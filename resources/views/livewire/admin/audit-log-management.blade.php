@@ -19,7 +19,7 @@
             </div>
         </div>
         <div>
-            @if((auth()->user()->can('delete-audit-log') || auth()->user()->hasAnyRole(['super-admin', 'registrar'])) && count($logs) > 0)
+            @if((auth()->user()->can('delete-audit-log') || auth()->user()->can('purge-audit-logs')) && count($logs) > 0)
                 <button type="button" class="btn btn-danger" wire:click="clearAuditLogs" onclick="confirm('Are you sure you want to permanently purge all security logs? This action cannot be undone.') || event.stopImmediatePropagation()" style="display: inline-flex; align-items: center; gap: 0.5rem;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     <span>Purge Logs</span>
@@ -73,7 +73,9 @@
                 <td><code>ID #{{ $log->record_id }}</code></td>
                 <td><small style="color: var(--color-text-secondary); font-family: monospace;">{{ $log->logged_at }}</small></td>
                 <td>
-                    <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="viewLogDetails({{ $log->id }})">Details Diff</button>
+                    @can('view-audit-log')
+                        <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="viewLogDetails({{ $log->id }})">Details Diff</button>
+                    @endcan
                 </td>
             </tr>
         @empty

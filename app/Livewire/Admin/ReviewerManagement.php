@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Services\CountryService;
+use App\Services\AcademicDisciplineMatcher;
+use App\Models\Campaign;
 
 class ReviewerManagement extends Component
 {
@@ -35,9 +37,16 @@ class ReviewerManagement extends Component
     public $phone;
     public $specialization;
 
-    // Filter & Search Properties
+    // Tab 1: Reviewer Directory Filter & Search Properties
     public $search = '';
     public $subjectFilter = '';
+    public $rankFilter = '';
+    public $countryFilter = '';
+
+    // Tab 2: Academic Candidacies Filter & Search Properties
+    public $candidacySearch = '';
+    public $candidacyCampaignFilter = '';
+    public $candidacyStatusFilter = 'ALL'; // ALL, NEEDS_DISPATCH, UNDER_REVIEW, COMPLETED
 
     // Application Review Dispatch Modal Properties
     public $showDispatchModal = false;
@@ -49,6 +58,11 @@ class ReviewerManagement extends Component
     public $reviewDueDate;
     public $reviewNotes;
     public $filterByFieldOnly = true;
+    public $dispatchReviewerSearch = '';
+    public $dispatchDisciplineFilter = '';
+    public $targetRequiredExperts = 3;
+    public $alreadyAssignedCount = 0;
+    public $remainingRequiredExperts = 3;
 
     // View Review Reports Modal Properties
     public $showReportsModal = false;
@@ -68,7 +82,7 @@ class ReviewerManagement extends Component
 
     public function mount()
     {
-        abort_unless(Auth::check() && (Auth::user()->hasAnyRole(['super-admin', 'registrar']) || Auth::user()->can('manage-reviewers')), 403);
+        abort_unless(Auth::check() && Auth::user()->can('manage-reviewers'), 403);
         $this->reviewDueDate = now()->addDays(14)->format('Y-m-d');
     }
 
@@ -80,12 +94,13 @@ class ReviewerManagement extends Component
 
     public function openCreateModal($prefilledSubject = null)
     {
+        abort_unless(Auth::user()->can('create-reviewer') || Auth::user()->can('manage-reviewers'), 403);
         $this->reset(['name', 'email', 'university', 'phone', 'specialization']);
         
         if (!empty($prefilledSubject)) {
             $this->subject = $prefilledSubject;
         } elseif ($this->showDispatchModal && $this->targetApplication && $this->targetApplication->campaign) {
-            $this->subject = $this->targetApplication->campaign->department;
+            $this->subject = AcademicDisciplineMatcher::normalizeDepartment($this->targetApplication->campaign->department);
         } else {
             $this->subject = '';
         }
@@ -104,6 +119,7 @@ class ReviewerManagement extends Component
 
     public function createReviewer()
     {
+        abort_unless(Auth::user()->can('create-reviewer') || Auth::user()->can('manage-reviewers'), 403);
         $this->validate();
 
         // 1. Generate a secure temporary password
@@ -168,7 +184,8 @@ class ReviewerManagement extends Component
     public function openEmpanelAndAssignModal($prefilledSubject = null)
     {
         $this->reset(['name', 'email', 'university', 'phone', 'specialization']);
-        $this->subject = $prefilledSubject ?: ($this->targetApplication?->campaign?->department ?? '');
+        $rawSubject = $prefilledSubject ?: ($this->targetApplication?->campaign?->department ?? '');
+        $this->subject = AcademicDisciplineMatcher::normalizeDepartment($rawSubject);
         $this->academic_rank = 'Professor';
         $this->country = 'Pakistan';
         $this->resetErrorBag();
@@ -188,6 +205,7 @@ class ReviewerManagement extends Component
 
     public function toggleReviewerStatus($profileId)
     {
+        abort_unless(Auth::user()->can('edit-reviewer') || Auth::user()->can('manage-reviewers'), 403);
         $profile = ReviewerProfile::findOrFail($profileId);
         $profile->is_active = !$profile->is_active;
         $profile->save();
@@ -202,12 +220,18 @@ class ReviewerManagement extends Component
 
     public function openDispatchModal($applicationId)
     {
+        abort_unless(Auth::user()->can('assign-reviewer') || Auth::user()->can('manage-reviewers'), 403);
         $this->targetApplicationId = $applicationId;
         $this->targetApplication = Application::with(['campaign', 'user.basicInfo', 'reviews.reviewer.reviewerProfile'])->findOrFail($applicationId);
         $this->selectedReviewerIds = [];
-        $this->reviewNotes = "Please evaluate the candidate's research publications, impact, and suitability for the position of {$this->targetApplication->campaign->title} under statutory university appointment criteria.";
+        $this->targetRequiredExperts = $this->targetApplication->campaign->getRequiredPeerReviewersCount();
+        $this->alreadyAssignedCount = $this->targetApplication->reviews->count();
+        $this->remainingRequiredExperts = max(0, $this->targetRequiredExperts - $this->alreadyAssignedCount);
+        $this->reviewNotes = "Please evaluate the candidate's research publications, impact, and suitability for the position of {$this->targetApplication->campaign->title} under statutory appointment criteria.";
         $this->reviewDueDate = now()->addDays(14)->format('Y-m-d');
         $this->filterByFieldOnly = true;
+        $this->dispatchReviewerSearch = '';
+        $this->dispatchDisciplineFilter = '';
         $this->resetErrorBag();
         $this->showDispatchModal = true;
     }
@@ -220,6 +244,8 @@ class ReviewerManagement extends Component
         $this->targetApplicationId = null;
         $this->targetApplication = null;
         $this->selectedReviewerIds = [];
+        $this->dispatchReviewerSearch = '';
+        $this->dispatchDisciplineFilter = '';
         $this->resetErrorBag();
     }
 
@@ -234,6 +260,7 @@ class ReviewerManagement extends Component
 
     public function dispatchApplicationToReviewers()
     {
+        abort_unless(Auth::user()->can('assign-reviewer') || Auth::user()->can('manage-reviewers'), 403);
         $this->validate([
             'selectedReviewerIds' => 'required|array|min:1',
             'reviewDueDate' => 'nullable|date|after_or_equal:today',
@@ -245,6 +272,22 @@ class ReviewerManagement extends Component
 
         $application = Application::with(['campaign', 'user.basicInfo'])->findOrFail($this->targetApplicationId);
         $assignedCount = 0;
+
+        $enforceStrict = \App\Models\SystemSetting::get('enforce_strict_peer_review_quorum', false);
+        $selectedCount = count($this->selectedReviewerIds);
+
+        if ($enforceStrict && $this->targetRequiredExperts > 0) {
+            $totalProjected = $this->alreadyAssignedCount + $selectedCount;
+            if ($totalProjected < $this->targetRequiredExperts) {
+                $needed = $this->targetRequiredExperts - $this->alreadyAssignedCount;
+                $this->addError('selectedReviewerIds', "Statutory Quota: Exactly {$this->targetRequiredExperts} external peer experts are required by statutory criteria for {$application->campaign->title}. Please select {$needed} expert(s) to satisfy the statutory quorum (currently selected: {$selectedCount}).");
+                return;
+            } elseif ($totalProjected > $this->targetRequiredExperts) {
+                $maxSelectable = max(0, $this->targetRequiredExperts - $this->alreadyAssignedCount);
+                $this->addError('selectedReviewerIds', "Statutory Quota Exceeded: At most {$maxSelectable} additional expert(s) can be selected to fulfill the statutory quorum of {$this->targetRequiredExperts}.");
+                return;
+            }
+        }
 
         foreach ($this->selectedReviewerIds as $reviewerUserId) {
             $reviewerUser = User::with('reviewerProfile')->find($reviewerUserId);
@@ -298,6 +341,7 @@ class ReviewerManagement extends Component
 
     public function openReportsModal($applicationId)
     {
+        abort_unless(Auth::user()->can('view-review-reports') || Auth::user()->can('manage-reviewers'), 403);
         $this->viewingApplication = Application::with(['campaign', 'user.basicInfo'])->findOrFail($applicationId);
         $this->applicationReviews = ApplicationReview::with(['reviewer.reviewerProfile', 'assigner'])
             ->where('application_id', $applicationId)
@@ -314,7 +358,7 @@ class ReviewerManagement extends Component
 
     public function render()
     {
-        // 1. Query Reviewer Profiles
+        // 1. Query Reviewer Profiles (Tab 1)
         $reviewersQuery = ReviewerProfile::with(['user', 'creator'])
             ->withCount('reviews');
 
@@ -324,7 +368,8 @@ class ReviewerManagement extends Component
                 $q->where('name', 'like', $s)
                   ->orWhere('university', 'like', $s)
                   ->orWhere('subject', 'like', $s)
-                  ->orWhere('specialization', 'like', $s);
+                  ->orWhere('specialization', 'like', $s)
+                  ->orWhereHas('user', fn($uq) => $uq->where('email', 'like', $s));
             });
         }
 
@@ -332,39 +377,88 @@ class ReviewerManagement extends Component
             $reviewersQuery->where('subject', $this->subjectFilter);
         }
 
+        if (!empty($this->rankFilter)) {
+            $reviewersQuery->where('academic_rank', $this->rankFilter);
+        }
+
+        if (!empty($this->countryFilter)) {
+            $reviewersQuery->where('country', $this->countryFilter);
+        }
+
         $reviewers = $reviewersQuery->latest()->paginate(10);
 
-        // 2. Query Academic Applications for Review Dispatch
-        $academicApplications = Application::with(['campaign', 'user.basicInfo', 'reviews.reviewer.reviewerProfile'])
-            ->whereHas('campaign', fn($q) => $q->where('track_type', 'ACADEMIC'))
-            ->latest()
-            ->get();
+        // 2. Query Academic Applications for Review Dispatch (Tab 2)
+        $candidaciesQuery = Application::with(['campaign', 'user.basicInfo', 'reviews.reviewer.reviewerProfile'])
+            ->withCount('reviews')
+            ->whereHas('campaign', fn($q) => $q->where('track_type', 'ACADEMIC'));
 
-        // 3. For the dispatch modal: retrieve matching reviewers
+        if (!empty($this->candidacySearch)) {
+            $cs = '%' . trim($this->candidacySearch) . '%';
+            $candidaciesQuery->where(function ($q) use ($cs) {
+                $q->where('tracking_number', 'like', $cs)
+                  ->orWhereHas('user', function ($uq) use ($cs) {
+                      $uq->where('email', 'like', $cs)
+                         ->orWhereHas('basicInfo', function ($bq) use ($cs) {
+                             $bq->where('first_name', 'like', $cs)
+                                ->orWhere('last_name', 'like', $cs)
+                                ->orWhere('cnic_number', 'like', $cs);
+                         });
+                  });
+            });
+        }
+
+        if (!empty($this->candidacyCampaignFilter)) {
+            $candidaciesQuery->where('campaign_id', $this->candidacyCampaignFilter);
+        }
+
+        if ($this->candidacyStatusFilter === 'NEEDS_DISPATCH') {
+            $candidaciesQuery->doesntHave('reviews');
+        } elseif ($this->candidacyStatusFilter === 'UNDER_REVIEW') {
+            $candidaciesQuery->where('status', 'UNDER_REVIEW');
+        } elseif ($this->candidacyStatusFilter === 'COMPLETED') {
+            $candidaciesQuery->whereHas('reviews', fn($q) => $q->where('status', 'SUBMITTED'));
+        }
+
+        $academicApplications = $candidaciesQuery->latest()->get();
+
+        // 3. For the dispatch modal: retrieve matching reviewers using AcademicDisciplineMatcher
         $fieldMatchedReviewers = collect();
         if ($this->targetApplication) {
             $dept = trim($this->targetApplication->campaign->department);
-            
-            $query = ReviewerProfile::with(['user', 'reviews'])->where('is_active', true);
-            
-            if ($this->filterByFieldOnly) {
-                $query->where(function ($q) use ($dept) {
-                    $q->where('subject', 'LIKE', '%' . $dept . '%')
-                      ->orWhere('specialization', 'LIKE', '%' . $dept . '%');
-                });
-            }
-            
-            $fieldMatchedReviewers = $query->get();
+            $campTitle = trim($this->targetApplication->campaign->title ?? '');
+
+            $fieldMatchedReviewers = AcademicDisciplineMatcher::queryForCandidacy(
+                $dept,
+                $campTitle,
+                $this->dispatchReviewerSearch,
+                $this->dispatchDisciplineFilter,
+                $this->filterByFieldOnly
+            )->get();
         }
 
-        // 4. Distinct Subjects for filter dropdown
+        // 4. Distinct Subjects, Ranks & Campaigns for dropdown filters
         $availableSubjects = ReviewerProfile::distinct()->pluck('subject')->filter()->values();
+        $availableRanks = ReviewerProfile::distinct()->pluck('academic_rank')->filter()->values();
+        $availableAcademicCampaigns = Campaign::where('track_type', 'ACADEMIC')->orderBy('title')->get();
+
+        // 5. System KPI Metrics
+        $stats = [
+            'totalReviewers' => ReviewerProfile::count(),
+            'activeReviewers' => ReviewerProfile::where('is_active', true)->count(),
+            'totalAcademicCampaigns' => Campaign::where('track_type', 'ACADEMIC')->count(),
+            'totalAcademicApplications' => Application::whereHas('campaign', fn($q) => $q->where('track_type', 'ACADEMIC'))->count(),
+            'inReviewApplications' => Application::where('status', 'UNDER_REVIEW')->count(),
+            'completedReviewsCount' => ApplicationReview::where('status', 'SUBMITTED')->count(),
+        ];
 
         return view('livewire.admin.reviewer-management', [
             'reviewers' => $reviewers,
             'academicApplications' => $academicApplications,
             'fieldMatchedReviewers' => $fieldMatchedReviewers,
             'availableSubjects' => $availableSubjects,
+            'availableRanks' => $availableRanks,
+            'availableAcademicCampaigns' => $availableAcademicCampaigns,
+            'stats' => $stats,
             'countries' => CountryService::all(),
             'priorityCountries' => CountryService::priority(),
         ])->layout('layouts.app');

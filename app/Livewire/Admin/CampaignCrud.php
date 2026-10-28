@@ -80,7 +80,7 @@ class CampaignCrud extends Component
 
     public function mount()
     {
-        abort_unless(Auth::check() && Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::check() && (Auth::user()->can('view-campaign') || Auth::user()->can('view-committee')), 403);
         $this->loadCampaigns();
         if ($this->campaigns->isNotEmpty()) {
             $this->selected_campaign_id = $this->campaigns->first()->id;
@@ -96,18 +96,16 @@ class CampaignCrud extends Component
 
     public function loadCommitteeData()
     {
-        // 🔒 SUPER ADMIN IS STRICTLY EXCLUDED from operational committee allocation areas
+        // 🔒 DYNAMIC COMMITTEE CANDIDATE POOL:
+        // Super-admin is strictly barred.
+        // Any user holding ANY non-applicant role (faculty, leadership, committee, dean, or any custom role)
+        // OR having an empanelled ReviewerProfile is automatically eligible for committee allocation!
         $users = User::where('is_active', true)
-            ->whereDoesntHave('roles', fn($q) => $q->where('name', 'super-admin'))
+            ->whereDoesntHave('roles', fn($q) => $q->whereIn('name', ['super-admin', 'admin']))
             ->where('email', 'not like', '%superadmin%')
             ->where(function($q) {
-                $q->whereHas('roles', fn($rq) => $rq->whereIn('name', [
-                    'scrutiny-committee',
-                    'appellate-committee',
-                    'selection-board-member',
-                    'academic-reviewer',
-                    'registrar'
-                ]))->orWhereHas('reviewerProfile');
+                $q->whereHas('roles', fn($rq) => $rq->where('name', '!=', 'applicant'))
+                  ->orWhereHas('reviewerProfile');
             })
             ->with(['roles', 'reviewerProfile', 'basicInfo'])
             ->get();
@@ -180,6 +178,7 @@ class CampaignCrud extends Component
     // ==========================================
     public function openCreateForm()
     {
+        abort_unless(Auth::user()->can('create-campaign'), 403);
         $this->resetForm();
         $this->isEditMode = false;
         $this->isFormOpen = true;
@@ -187,6 +186,7 @@ class CampaignCrud extends Component
 
     public function openEditForm($id)
     {
+        abort_unless(Auth::user()->can('edit-campaign'), 403);
         $this->resetForm();
         $this->campaign_id = $id;
         $campaign = Campaign::findOrFail($id);
@@ -229,6 +229,8 @@ class CampaignCrud extends Component
 
     public function saveCampaign()
     {
+        abort_unless(Auth::user()->can($this->isEditMode ? 'edit-campaign' : 'create-campaign'), 403);
+
         $rules = [
             'job_code' => 'required|string|max:50|unique:campaigns,job_code,' . ($this->campaign_id ?? 'NULL'),
             'title' => 'required|string|max:255',
@@ -292,6 +294,7 @@ class CampaignCrud extends Component
 
     public function deleteCampaign($id)
     {
+        abort_unless(Auth::user()->can('delete-campaign'), 403);
         Campaign::destroy($id);
         $this->loadCampaigns();
         $this->loadCommitteeData();
@@ -392,6 +395,7 @@ class CampaignCrud extends Component
 
     public function openConstitutionModal()
     {
+        abort_unless(Auth::user()->can('tune-constitution'), 403);
         if ($this->selected_campaign_id) {
             $this->syncConstitutionFromCampaign($this->selected_campaign_id);
         }
@@ -405,14 +409,38 @@ class CampaignCrud extends Component
 
     public function applyConstitutionPreset($preset)
     {
-        if ($preset === 'academic_prof') {
-            $this->constitution_required_total = 5;
-            $this->constitution_required_internal = 2;
+        if ($preset === 'asst_prof') {
+            $this->constitution_required_total = 6;
+            $this->constitution_required_internal = 5;
+            $this->constitution_required_external = 1;
+            $this->constitution_required_international = 0;
+            $this->constitution_required_independent = 0;
+            $this->constitution_title = 'Statutory Selection Committee for Assistant Professor';
+            $this->constitution_description = 'Statutory Criteria: 3 External Subject Experts for peer review. Selection Committee: Dean (Convener), Concerned Dept Head, 3 Internal Faculty from same institution, 1 External Professor from other institution.';
+        } elseif ($preset === 'academic_prof') {
+            $this->constitution_required_total = 6;
+            $this->constitution_required_internal = 4;
             $this->constitution_required_external = 2;
             $this->constitution_required_international = 1;
             $this->constitution_required_independent = 0;
-            $this->constitution_title = 'Statutory Academic Selection Committee (Professorial / Faculty)';
-            $this->constitution_description = '2 Internal Leaders/Staff, 2 External Subject Experts (Other Institutions/Offices), 1 International/Overseas Specialist.';
+            $this->constitution_title = 'Statutory Professorial Selection Board (Associate & Full Professor)';
+            $this->constitution_description = '3 External/Overseas Referees. Selection Board: 4 Internal Senior Leaders, 2 External Specialists (including 1 Overseas Specialist).';
+        } elseif ($preset === 'corporate_board') {
+            $this->constitution_required_total = 5;
+            $this->constitution_required_internal = 3;
+            $this->constitution_required_external = 2;
+            $this->constitution_required_international = 0;
+            $this->constitution_required_independent = 0;
+            $this->constitution_title = 'Corporate Executive Selection & Evaluation Panel';
+            $this->constitution_description = '3 Internal Company Executives (MD, HR, Division Head), 2 External Industry Advisors / Board Specialists.';
+        } elseif ($preset === 'public_sector') {
+            $this->constitution_required_total = 4;
+            $this->constitution_required_internal = 2;
+            $this->constitution_required_external = 1;
+            $this->constitution_required_international = 0;
+            $this->constitution_required_independent = 1;
+            $this->constitution_title = 'Public Sector Service Selection Board';
+            $this->constitution_description = '2 Internal Departmental Officers, 1 External Public Service Delegate, 1 Independent Legal Arbiter.';
         } elseif ($preset === 'executive_admin') {
             $this->constitution_required_total = 4;
             $this->constitution_required_internal = 2;
@@ -434,6 +462,7 @@ class CampaignCrud extends Component
 
     public function saveConstitution()
     {
+        abort_unless(Auth::user()->can('tune-constitution'), 403);
         $this->validate([
             'selected_campaign_id' => 'required|exists:campaigns,id',
             'constitution_required_total' => 'required|integer|min:1',
@@ -499,6 +528,8 @@ class CampaignCrud extends Component
     // ==========================================
     public function assignCommitteeMember()
     {
+        abort_unless(Auth::user()->can('assign-committee'), 403);
+
         // 1. Run validation
         $this->validate([
             'selected_campaign_id' => 'required|exists:campaigns,id',
@@ -577,6 +608,7 @@ class CampaignCrud extends Component
 
     public function removeCommitteeAssignment($id)
     {
+        abort_unless(Auth::user()->can('remove-committee'), 403);
         CampaignCommittee::destroy($id);
         session()->flash('message', 'Committee member de-assigned successfully.');
         $this->loadCommitteeData();

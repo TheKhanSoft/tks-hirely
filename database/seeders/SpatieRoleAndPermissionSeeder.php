@@ -13,83 +13,8 @@ class SpatieRoleAndPermissionSeeder extends Seeder
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // System Granular Permissions
-        $permissions = [
-            // User Permissions
-            'view-user',
-            'create-user',
-            'edit-user',
-            'delete-user',
-            
-            // Role Permissions
-            'view-role',
-            'create-role',
-            'edit-role',
-            'delete-role',
-            
-            // Permission Permissions
-            'view-permission',
-            'create-permission',
-            'edit-permission',
-            'delete-permission',
-            
-            // Campaign Permissions
-            'view-campaign',
-            'create-campaign',
-            'edit-campaign',
-            'delete-campaign',
-            
-            // Committee Assignment
-            'view-committee',
-            'assign-committee',
-            'remove-committee',
-            
-            // Application processing
-            'view-application',
-            'create-application',
-            'edit-application',
-            'delete-application',
-            'scrutinize-application',
-            'evaluate-application',
-            'submit-applications',
-            
-            // basicInfo processing
-            'view-basic-info',
-            'create-basic-info',
-            'edit-basic-info',
-            'delete-basic-info',
-
-            // Payment processing
-            'view-payment',
-            'create-payment',
-            'edit-payment',
-            'delete-payment',
-
-            // Audit log reading
-            'view-audit-log',
-            'delete-audit-log',
-            
-            // Appeal processing
-            'view-appeal',
-            'process-appeal',
-            
-            // Document Verification
-            'verify-documents',
-            'verify-medal',
-            'verify-publication',
-            'verify-project',
-            'verify-event',
-
-            // External Academic Reviewers
-            'manage-reviewers',
-            'assign-reviewer',
-            'view-review-reports',
-            'evaluate-academic-dossier',
-        ];
-
-        foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
-        }
+        // 1. Sync all system-generated permissions from PermissionRegistry
+        \App\Services\PermissionRegistry::syncAll();
 
         // Roles & Permissions Mapping
         $superAdmin = Role::firstOrCreate(['name' => 'super-admin', 'guard_name' => 'web']);
@@ -97,59 +22,71 @@ class SpatieRoleAndPermissionSeeder extends Seeder
 
         $registrar = Role::firstOrCreate(['name' => 'registrar', 'guard_name' => 'web']);
         $registrar->syncPermissions([
-            // Campaign CRUD
+            // Campaign CRUD & Governance
             'view-campaign',
             'create-campaign',
             'edit-campaign',
             'delete-campaign',
+            'tune-constitution',
             
             // Committee CRUD
             'view-committee',
             'assign-committee',
             'remove-committee',
             
-            // Users CRUD
+            // Users CRUD & Direct Permissions
             'view-user',
             'create-user',
             'edit-user',
             'delete-user',
+            'toggle-user-status',
+            'view-user-dossier',
+            'assign-user-permissions',
             
-            // Roles CRUD
+            // Roles & Permissions CRUD
             'view-role',
             'create-role',
             'edit-role',
             'delete-role',
-            
-            // Permissions CRUD
             'view-permission',
             'create-permission',
             'edit-permission',
             'delete-permission',
+            'assign-role-permissions',
             
-            // Applications CRUD
+            // Applications CRUD & Status
             'view-application',
             'create-application',
             'edit-application',
             'delete-application',
+            'change-application-status',
 
-            // basic_infos CRUD
+            // Candidate Profiles & Dossiers
             'view-basic-info',
             'create-basic-info',
             'edit-basic-info',
             'delete-basic-info',
+            'lock-candidate-profile',
+            'view-candidate-dossier',
 
-            // Payments CRUD
+            // Payments & Vouchers
             'view-payment',
             'create-payment',
             'edit-payment',
             'delete-payment',
+            'reconcile-payment',
+            'simulate-payment',
 
             // Audit Logs
             'view-audit-log',
             'delete-audit-log',
+            'purge-audit-logs',
 
             // Academic Reviewer Management
             'manage-reviewers',
+            'create-reviewer',
+            'edit-reviewer',
+            'delete-reviewer',
             'assign-reviewer',
             'view-review-reports',
         ]);
@@ -176,6 +113,8 @@ class SpatieRoleAndPermissionSeeder extends Seeder
         $selectionBoard->syncPermissions([
             'view-application',
             'evaluate-application',
+            'access-board-grading',
+            'submit-board-score',
         ]);
 
         $applicant = Role::firstOrCreate(['name' => 'applicant', 'guard_name' => 'web']);
@@ -189,5 +128,25 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'view-application',
             'evaluate-academic-dossier',
         ]);
+
+        // ==========================================
+        // ⚡ SHORT ROLE ALIASES (Concise developer & operator shortcuts)
+        // ==========================================
+        $boardShort = Role::firstOrCreate(['name' => 'board-member', 'guard_name' => 'web']);
+        $boardShort->syncPermissions($selectionBoard->permissions);
+
+        $boardUltraShort = Role::firstOrCreate(['name' => 'board', 'guard_name' => 'web']);
+        $boardUltraShort->syncPermissions($selectionBoard->permissions);
+
+        $scrutinyShort = Role::firstOrCreate(['name' => 'scrutiny', 'guard_name' => 'web']);
+        $scrutinyShort->syncPermissions($scrutinyPanel->permissions);
+
+        $appellateShort = Role::firstOrCreate(['name' => 'appellate', 'guard_name' => 'web']);
+        $appellateShort->syncPermissions($appellatePanel->permissions);
+
+        $reviewerShort = Role::firstOrCreate(['name' => 'reviewer', 'guard_name' => 'web']);
+        $reviewerShort->syncPermissions($reviewer->permissions);
+
+        $adminShort = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
     }
 }

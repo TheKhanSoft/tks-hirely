@@ -20,44 +20,50 @@
         </div>
         <div>
             @if(!$isFormOpen && $activeTab === 'campaigns')
-                <button type="button" class="btn btn-primary" wire:click="openCreateForm" style="display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: var(--shadow-sm);">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                    <span>Create Campaign</span>
-                </button>
+                @can('create-campaign')
+                    <button type="button" class="btn btn-primary" wire:click="openCreateForm" style="display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: var(--shadow-sm);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>Create Campaign</span>
+                    </button>
+                @endcan
             @endif
         </div>
     </div>
 
     <!-- Segmented Tab Navigation -->
     <div style="display: flex; gap: 0.5rem; background: var(--bg-tertiary); padding: 0.35rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); width: fit-content; margin-bottom: 1.5rem;">
-        <button type="button" 
-                class="btn" 
-                wire:click="setTab('campaigns')"
-                style="padding: 0.5rem 1.25rem; font-size: 0.875rem; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; transition: var(--transition-base); {{ $activeTab === 'campaigns' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-            </svg>
-            <span>Active Job Campaigns</span>
-            <span style="font-size: 0.75rem; padding: 0.15rem 0.45rem; border-radius: 999px; background: rgba(99,102,241,0.15); color: var(--primary);">{{ count($campaigns) }}</span>
-        </button>
+        @can('view-campaign')
+            <button type="button" 
+                    class="btn" 
+                    wire:click="setTab('campaigns')"
+                    style="padding: 0.5rem 1.25rem; font-size: 0.875rem; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; transition: var(--transition-base); {{ $activeTab === 'campaigns' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                </svg>
+                <span>Active Job Campaigns</span>
+                <span style="font-size: 0.75rem; padding: 0.15rem 0.45rem; border-radius: 999px; background: rgba(99,102,241,0.15); color: var(--primary);">{{ count($campaigns) }}</span>
+            </button>
+        @endcan
 
-        <button type="button" 
-                class="btn" 
-                wire:click="setTab('committees')"
-                style="padding: 0.5rem 1.25rem; font-size: 0.875rem; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; transition: var(--transition-base); {{ $activeTab === 'committees' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-            <span>Committee Allocations</span>
-            <span style="font-size: 0.75rem; padding: 0.15rem 0.45rem; border-radius: 999px; background: rgba(6,182,212,0.15); color: var(--secondary);">{{ count($assignments ?? []) }}</span>
-        </button>
+        @can('view-committee')
+            <button type="button" 
+                    class="btn" 
+                    wire:click="setTab('committees')"
+                    style="padding: 0.5rem 1.25rem; font-size: 0.875rem; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; transition: var(--transition-base); {{ $activeTab === 'committees' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>Committee Allocations</span>
+                <span style="font-size: 0.75rem; padding: 0.15rem 0.45rem; border-radius: 999px; background: rgba(6,182,212,0.15); color: var(--secondary);">{{ count($assignments ?? []) }}</span>
+            </button>
+        @endcan
     </div>
 
     <!-- ========================================== -->
@@ -299,20 +305,24 @@
                                 </td>
                                 <td style="text-align: right;">
                                     <div style="display: inline-flex; gap: 0.35rem;">
-                                        <button type="button" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.3rem;" wire:click="openEditForm({{ $camp->id }})">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                            </svg>
-                                            <span>Edit</span>
-                                        </button>
-                                        <button type="button" class="btn btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.3rem;" wire:click="deleteCampaign({{ $camp->id }})" onclick="confirm('Are you sure you want to delete this campaign? This will cascade delete applications and committees!') || event.stopImmediatePropagation()">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <polyline points="3 6 5 6 21 6"></polyline>
-                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                            </svg>
-                                            <span>Delete</span>
-                                        </button>
+                                        @can('edit-campaign')
+                                            <button type="button" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.3rem;" wire:click="openEditForm({{ $camp->id }})">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                                </svg>
+                                                <span>Edit</span>
+                                            </button>
+                                        @endcan
+                                        @can('delete-campaign')
+                                            <button type="button" class="btn btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.3rem;" wire:click="deleteCampaign({{ $camp->id }})" onclick="confirm('Are you sure you want to delete this campaign? This will cascade delete applications and committees!') || event.stopImmediatePropagation()">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                </svg>
+                                                <span>Delete</span>
+                                            </button>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>
@@ -380,15 +390,17 @@
                     </div>
 
                     @if($currentCampaign)
-                        <div style="align-self: flex-end;">
-                            <button type="button" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.65rem 1rem; font-size: 0.84rem;" wire:click="openConstitutionModal">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="12" cy="12" r="3"></circle>
-                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                                </svg>
-                                <span>Tune Constitution Criteria</span>
-                            </button>
-                        </div>
+                        @can('tune-constitution')
+                            <div style="align-self: flex-end;">
+                                <button type="button" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.65rem 1rem; font-size: 0.84rem;" wire:click="openConstitutionModal">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                    </svg>
+                                    <span>Tune Constitution Criteria</span>
+                                </button>
+                            </div>
+                        @endcan
                     @endif
                 </div>
             </div>
@@ -488,10 +500,11 @@
 
         <!-- 2. FORMAL ALLOCATION PANEL (IF CANDIDATE IS SELECTED) -->
         @if($selected_user_id)
-            @php
-                $selectedCand = collect($committee_users)->firstWhere('id', $selected_user_id);
-            @endphp
-            <div class="card mb-6" style="border-color: var(--primary); background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.95)); box-shadow: 0 12px 32px -6px var(--primary-glow);">
+            @can('assign-committee')
+                @php
+                    $selectedCand = collect($committee_users)->firstWhere('id', $selected_user_id);
+                @endphp
+                <div class="card mb-6" style="border-color: var(--primary); background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.95)); box-shadow: 0 12px 32px -6px var(--primary-glow);">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                     <div style="display: flex; align-items: center; gap: 0.75rem;">
                         <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(99, 102, 241, 0.2); display: flex; align-items: center; justify-content: center; color: var(--primary);">
@@ -573,6 +586,7 @@
                     </div>
                 </form>
             </div>
+            @endcan
         @endif
 
         <!-- 3. EMPANELLED EMPLOYEE & EXPERT CANDIDATE POOL (MULTI-SECTION & SEARCH) -->
@@ -721,12 +735,16 @@
                                     Deselect
                                 </button>
                             @else
-                                <button type="button" class="btn btn-secondary" style="padding: 0.35rem 0.85rem; font-size: 0.8rem; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;" wire:click="selectCandidate({{ $cand['id'] }})">
-                                    <span>Select Candidate</span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <polyline points="9 18 15 12 9 6"></polyline>
-                                    </svg>
-                                </button>
+                                @can('assign-committee')
+                                    <button type="button" class="btn btn-secondary" style="padding: 0.35rem 0.85rem; font-size: 0.8rem; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;" wire:click="selectCandidate({{ $cand['id'] }})">
+                                        <span>Select Candidate</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="9 18 15 12 9 6"></polyline>
+                                        </svg>
+                                    </button>
+                                @else
+                                    <span style="font-size: 0.75rem; color: var(--color-text-muted); font-style: italic;">Empanelled Member</span>
+                                @endcan
                             @endif
                         </div>
                     </div>
@@ -841,15 +859,19 @@
                                     </span>
                                 </td>
                                 <td style="text-align: right;">
-                                    <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.3rem;" 
-                                            wire:click="removeCommitteeAssignment({{ $asm->id }})" 
-                                            onclick="confirm('Are you sure you want to de-assign this committee member?') || event.stopImmediatePropagation()">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                                        </svg>
-                                        <span>De-assign</span>
-                                    </button>
+                                    @can('remove-committee')
+                                        <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.3rem;" 
+                                                wire:click="removeCommitteeAssignment({{ $asm->id }})" 
+                                                onclick="confirm('Are you sure you want to de-assign this committee member?') || event.stopImmediatePropagation()">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                                            </svg>
+                                            <span>De-assign</span>
+                                        </button>
+                                    @else
+                                        <span style="font-size: 0.75rem; color: var(--color-text-muted); font-style: italic;">Assigned</span>
+                                    @endcan
                                 </td>
                             </tr>
                         @empty
@@ -896,12 +918,33 @@
                             ⚡ QUICK STATUTORY PRESETS
                         </span>
                         <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <button type="button" class="btn btn-secondary" style="text-align: left; padding: 0.6rem 0.85rem; font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center;" wire:click="applyConstitutionPreset('asst_prof')">
+                                <div>
+                                    <strong style="color: var(--primary);">Assistant Professor Selection Committee (6 Members • 3 Peer Reviewers)</strong>
+                                    <div style="font-size: 0.74rem; color: var(--color-text-muted);">Dean (Convener), Dept Head, 3 Internal Faculty (Same Institution), 1 External Professor (Other Institution)</div>
+                                </div>
+                                <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: var(--primary); font-weight: 800;">Apply</span>
+                            </button>
                             <button type="button" class="btn btn-secondary" style="text-align: left; padding: 0.6rem 0.85rem; font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center;" wire:click="applyConstitutionPreset('academic_prof')">
                                 <div>
-                                    <strong>Professorial / Academic Faculty Track (5 Members)</strong>
-                                    <div style="font-size: 0.74rem; color: var(--color-text-muted);">2 Internal Leaders/Staff, 2 External Experts (Other Universities/Offices), 1 International Specialist</div>
+                                    <strong>Professorial Selection Board (6 Members • 3 Peer Reviewers)</strong>
+                                    <div style="font-size: 0.74rem; color: var(--color-text-muted);">4 Internal Senior Leaders, 2 External Specialists (including 1 Overseas/International Specialist)</div>
                                 </div>
-                                <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: var(--primary);">Apply</span>
+                                <span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #c084fc; font-weight: 800;">Apply</span>
+                            </button>
+                            <button type="button" class="btn btn-secondary" style="text-align: left; padding: 0.6rem 0.85rem; font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center;" wire:click="applyConstitutionPreset('corporate_board')">
+                                <div>
+                                    <strong>Corporate Executive Selection Panel (5 Members • Non-Academic)</strong>
+                                    <div style="font-size: 0.74rem; color: var(--color-text-muted);">3 Internal Company Executives (MD, HR, Lead), 2 External Industry Advisors / Board Delegates</div>
+                                </div>
+                                <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: var(--warning); font-weight: 800;">Apply</span>
+                            </button>
+                            <button type="button" class="btn btn-secondary" style="text-align: left; padding: 0.6rem 0.85rem; font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center;" wire:click="applyConstitutionPreset('public_sector')">
+                                <div>
+                                    <strong>Public Sector Service Board (4 Members • Civil Service)</strong>
+                                    <div style="font-size: 0.74rem; color: var(--color-text-muted);">2 Internal Departmental Officers, 1 External Service Delegate, 1 Independent Legal Arbiter</div>
+                                </div>
+                                <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success); font-weight: 800;">Apply</span>
                             </button>
                             <button type="button" class="btn btn-secondary" style="text-align: left; padding: 0.6rem 0.85rem; font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center;" wire:click="applyConstitutionPreset('executive_admin')">
                                 <div>

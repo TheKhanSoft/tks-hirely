@@ -20,6 +20,8 @@ class ApplicationManagement extends Component
     // Filters & Search
     public $search = '';
     public $statusFilter = '';
+    public $campaignFilter = '';
+    public $voucherFilter = '';
 
     // Collections
     public $users;
@@ -59,7 +61,7 @@ class ApplicationManagement extends Component
 
     public function openCreateApplicationForm()
     {
-        abort_unless(Auth::user()->can('create-application') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('create-application'), 403);
         $this->resetForm();
         $this->isEditMode = false;
         $this->isFormOpen = true;
@@ -67,7 +69,7 @@ class ApplicationManagement extends Component
 
     public function openEditApplicationForm($id)
     {
-        abort_unless(Auth::user()->can('edit-application') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('edit-application') || Auth::user()->can('change-application-status'), 403);
         $this->resetForm();
         $this->app_id = $id;
         $app = Application::findOrFail($id);
@@ -82,7 +84,7 @@ class ApplicationManagement extends Component
     public function saveApplication()
     {
         if ($this->isEditMode) {
-            abort_unless(Auth::user()->can('edit-application') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+            abort_unless(Auth::user()->can('edit-application') || Auth::user()->can('change-application-status'), 403);
             $app = Application::findOrFail($this->app_id);
             $app->update([
                 'status' => $this->app_status,
@@ -90,7 +92,7 @@ class ApplicationManagement extends Component
             ]);
             session()->flash('message', 'Application status updated successfully.');
         } else {
-            abort_unless(Auth::user()->can('create-application') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+            abort_unless(Auth::user()->can('create-application'), 403);
             $this->validate([
                 'app_user_id' => 'required|exists:users,id',
                 'app_campaign_id' => 'required|exists:campaigns,id',
@@ -110,14 +112,14 @@ class ApplicationManagement extends Component
 
     public function deleteApplication($id)
     {
-        abort_unless(Auth::user()->can('delete-application') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('delete-application'), 403);
         Application::destroy($id);
         session()->flash('message', 'Application record deleted successfully.');
     }
 
     public function viewApplicationDetails($id)
     {
-        abort_unless(Auth::user()->can('view-application') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('view-application'), 403);
         $this->selectedRecordId = $id;
         $this->selectedRecordDetails = Application::with('user.basicInfo', 'campaign', 'billingLedger', 'evaluations.boardMember', 'reviews.reviewer.reviewerProfile')->findOrFail($id);
         $this->isDetailsOpen = true;
@@ -129,6 +131,21 @@ class ApplicationManagement extends Component
 
         if (!empty($this->statusFilter)) {
             $query->where('status', $this->statusFilter);
+        }
+
+        if (!empty($this->campaignFilter)) {
+            $query->where('campaign_id', $this->campaignFilter);
+        }
+
+        if (!empty($this->voucherFilter)) {
+            if ($this->voucherFilter === 'SETTLED') {
+                $query->whereHas('billingLedger', fn($b) => $b->where('status', 'SETTLED'));
+            } elseif ($this->voucherFilter === 'PENDING') {
+                $query->where(function ($q) {
+                    $q->whereHas('billingLedger', fn($b) => $b->where('status', '!=', 'SETTLED'))
+                      ->orWhereDoesntHave('billingLedger');
+                });
+            }
         }
 
         if (!empty($this->search)) {
@@ -150,8 +167,18 @@ class ApplicationManagement extends Component
 
         $applications = $query->orderBy('created_at', 'desc')->get();
 
+        // Dynamic System KPI Metrics
+        $stats = [
+            'total' => Application::count(),
+            'paid' => Application::whereHas('billingLedger', fn($b) => $b->where('status', 'SETTLED'))->count(),
+            'eligible' => Application::where('status', 'ELIGIBLE')->count(),
+            'under_review' => Application::whereIn('status', ['UNDER_REVIEW', 'APPEALED'])->count(),
+            'approved' => Application::where('status', 'APPROVED')->count(),
+        ];
+
         return view('livewire.admin.application-management', [
             'applications' => $applications,
+            'stats' => $stats,
         ])->layout('layouts.app', ['title' => 'Applications Desk - Hirely']);
     }
 }

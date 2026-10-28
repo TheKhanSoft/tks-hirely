@@ -24,6 +24,13 @@ class UserManagement extends Component
     public $isPersonnelModalOpen = false;
     public $selectedPersonnel = null;
 
+    // Direct User Permissions Modal
+    public $isDirectPermissionsModalOpen = false;
+    public $targetUserIdForPermissions = null;
+    public $targetUserDirectPermissions = [];
+    public $targetUserRolePermissions = [];
+    public $allGroupedPermissions = [];
+
     // Collections
     public $roles = [];
 
@@ -36,7 +43,7 @@ class UserManagement extends Component
 
     public function mount()
     {
-        abort_unless(Auth::check() && Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::check() && Auth::user()->can('view-user'), 403);
         $this->loadAuxiliaryData();
     }
 
@@ -60,7 +67,7 @@ class UserManagement extends Component
 
     public function openCreateUserForm()
     {
-        abort_unless(Auth::user()->can('create-user') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('create-user'), 403);
         $this->resetForm();
         $this->isEditMode = false;
         $this->isFormOpen = true;
@@ -68,7 +75,7 @@ class UserManagement extends Component
 
     public function openEditUserForm($id)
     {
-        abort_unless(Auth::user()->can('edit-user') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('edit-user'), 403);
         $this->resetForm();
         $this->user_id = $id;
         $user = User::findOrFail($id);
@@ -82,7 +89,7 @@ class UserManagement extends Component
     public function saveUser()
     {
         if ($this->isEditMode) {
-            abort_unless(Auth::user()->can('edit-user') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+            abort_unless(Auth::user()->can('edit-user'), 403);
             $this->validate([
                 'email' => 'required|email|unique:users,email,' . $this->user_id,
                 'role_name' => 'required|exists:roles,name',
@@ -98,7 +105,7 @@ class UserManagement extends Component
             $user->syncRoles($this->role_name);
             session()->flash('message', 'User account updated successfully.');
         } else {
-            abort_unless(Auth::user()->can('create-user') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+            abort_unless(Auth::user()->can('create-user'), 403);
             $this->validate([
                 'email' => 'required|email|unique:users,email',
                 'role_name' => 'required|exists:roles,name',
@@ -119,7 +126,7 @@ class UserManagement extends Component
 
     public function deleteUser($id)
     {
-        abort_unless(Auth::user()->can('delete-user') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('delete-user'), 403);
         if (Auth::id() == $id) {
             session()->flash('error', 'Safety gate: You cannot delete your logged in session.');
             return;
@@ -130,7 +137,7 @@ class UserManagement extends Component
 
     public function toggleUserStatus($id)
     {
-        abort_unless(Auth::user()->can('edit-user') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('toggle-user-status') || Auth::user()->can('edit-user'), 403);
         if (Auth::id() == $id) {
             session()->flash('error', 'Safety gate: You cannot deactivate your active session.');
             return;
@@ -147,6 +154,7 @@ class UserManagement extends Component
 
     public function viewPersonnelDetails($id)
     {
+        abort_unless(Auth::user()->can('view-user-dossier') || Auth::user()->can('view-user'), 403);
         $this->selectedPersonnel = User::with([
             'roles',
             'basicInfo',
@@ -163,23 +171,73 @@ class UserManagement extends Component
         $this->selectedPersonnel = null;
     }
 
+    public function openDirectPermissionsModal($userId)
+    {
+        abort_unless(Auth::user()->can('assign-user-permissions') || Auth::user()->can('edit-user'), 403);
+        $user = User::with(['roles.permissions', 'permissions'])->findOrFail($userId);
+        $this->targetUserIdForPermissions = $userId;
+        $this->targetUserDirectPermissions = $user->getDirectPermissions()->pluck('name')->toArray();
+        $this->targetUserRolePermissions = $user->getPermissionsViaRoles()->pluck('name')->toArray();
+        $this->allGroupedPermissions = \App\Services\PermissionRegistry::catalogue();
+        $this->isDirectPermissionsModalOpen = true;
+    }
+
+    public function toggleDirectPermission($permName)
+    {
+        if (in_array($permName, $this->targetUserDirectPermissions)) {
+            $this->targetUserDirectPermissions = array_values(array_diff($this->targetUserDirectPermissions, [$permName]));
+        } else {
+            $this->targetUserDirectPermissions[] = $permName;
+        }
+    }
+
+    public function saveDirectPermissions()
+    {
+        abort_unless(Auth::user()->can('assign-user-permissions') || Auth::user()->can('edit-user'), 403);
+        $user = User::findOrFail($this->targetUserIdForPermissions);
+        $user->syncPermissions($this->targetUserDirectPermissions);
+        $this->isDirectPermissionsModalOpen = false;
+        session()->flash('message', 'Direct extra permissions updated successfully for ' . $user->email);
+    }
+
+    public function closeDirectPermissionsModal()
+    {
+        $this->isDirectPermissionsModalOpen = false;
+        $this->targetUserIdForPermissions = null;
+        $this->targetUserDirectPermissions = [];
+    }
+
     public function render()
     {
-        $query = User::with(['roles', 'basicInfo', 'reviewerProfile', 'committees.campaign']);
+        $query = User::with(['roles', 'basicInfo', 'reviewerProfile', 'committees.campaign', 'permissions']);
 
         // Personnel Classification Filter
         if ($this->categorySection === 'STAFF') {
-            $query->whereHas('roles', fn($q) => $q->whereIn('name', ['registrar', 'super-admin']));
+            $query->whereHas('roles', function($q) {
+                $q->whereNotIn('name', [
+                    'applicant',
+                    'scrutiny-committee', 'scrutiny',
+                    'appellate-committee', 'appellate',
+                    'selection-board-member', 'board-member', 'board',
+                    'academic-reviewer', 'reviewer',
+                ]);
+            });
         } elseif ($this->categorySection === 'COMMITTEES') {
-            $query->whereHas('roles', fn($q) => $q->whereIn('name', ['scrutiny-committee', 'appellate-committee', 'selection-board-member']));
+            $query->where(function($q) {
+                $q->whereHas('roles', fn($rq) => $rq->whereIn('name', [
+                    'scrutiny-committee', 'scrutiny',
+                    'appellate-committee', 'appellate',
+                    'selection-board-member', 'board-member', 'board',
+                ]))->orWhereHas('committees');
+            });
         } elseif ($this->categorySection === 'REVIEWERS') {
             $query->where(function($q) {
-                $q->whereHas('roles', fn($rq) => $rq->where('name', 'academic-reviewer'))
+                $q->whereHas('roles', fn($rq) => $rq->whereIn('name', ['academic-reviewer', 'reviewer']))
                   ->orWhereHas('reviewerProfile');
             });
         } elseif ($this->categorySection === 'APPLICANTS') {
             $query->whereHas('roles', fn($q) => $q->where('name', 'applicant'))
-                  ->whereDoesntHave('roles', fn($q) => $q->whereIn('name', ['super-admin', 'registrar', 'scrutiny-committee', 'appellate-committee', 'selection-board-member', 'academic-reviewer']));
+                  ->whereDoesntHave('roles', fn($q) => $q->where('name', '!=', 'applicant'));
         }
 
         if (!empty($this->roleFilter)) {
@@ -209,13 +267,30 @@ class UserManagement extends Component
 
         $users = $query->orderBy('created_at', 'desc')->get();
 
-        // Categorized Counts for directory pills
-        $staffCount = User::role(['registrar', 'super-admin'])->count();
-        $committeeCount = User::role(['scrutiny-committee', 'appellate-committee', 'selection-board-member'])->count();
-        $reviewerCount = User::whereHas('roles', fn($q) => $q->where('name', 'academic-reviewer'))->orWhereHas('reviewerProfile')->count();
+        // Categorized Counts for directory pills (Dynamic, supports any new roles)
+        $staffCount = User::whereHas('roles', function($q) {
+            $q->whereNotIn('name', [
+                'applicant',
+                'scrutiny-committee', 'scrutiny',
+                'appellate-committee', 'appellate',
+                'selection-board-member', 'board-member', 'board',
+                'academic-reviewer', 'reviewer',
+            ]);
+        })->count();
+
+        $committeeCount = User::whereHas('roles', fn($q) => $q->whereIn('name', [
+            'scrutiny-committee', 'scrutiny',
+            'appellate-committee', 'appellate',
+            'selection-board-member', 'board-member', 'board',
+        ]))->orWhereHas('committees')->count();
+
+        $reviewerCount = User::whereHas('roles', fn($q) => $q->whereIn('name', ['academic-reviewer', 'reviewer']))
+            ->orWhereHas('reviewerProfile')->count();
+
         $applicantCount = User::whereHas('roles', fn($q) => $q->where('name', 'applicant'))
-            ->whereDoesntHave('roles', fn($q) => $q->whereIn('name', ['super-admin', 'registrar', 'scrutiny-committee', 'appellate-committee', 'selection-board-member', 'academic-reviewer']))
+            ->whereDoesntHave('roles', fn($q) => $q->where('name', '!=', 'applicant'))
             ->count();
+
         $totalCount = User::count();
 
         return view('livewire.admin.user-management', [

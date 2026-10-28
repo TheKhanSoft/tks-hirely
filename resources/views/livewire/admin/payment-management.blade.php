@@ -22,12 +22,12 @@
                 <span>1Link Simulator</span>
             </a>
             @if(!$isFormOpen)
-                @if(auth()->user()->can('create-payment') || auth()->user()->hasAnyRole(['super-admin', 'registrar']))
+                @can('create-payment')
                     <button type="button" class="btn btn-primary" wire:click="openCreatePaymentForm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                         <span>Log Voucher / Payment</span>
                     </button>
-                @endif
+                @endcan
             @endif
         </div>
     </div>
@@ -143,10 +143,16 @@
                     <td>
                         <div class="flex gap-2">
                             @if($pay->status !== 'SETTLED')
-                                <button type="button" class="btn btn-success" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="markSettled({{ $pay->id }})" title="Quick reconcile this voucher to SETTLED">Reconcile Paid</button>
+                                @if(auth()->user()->can('reconcile-payment') || auth()->user()->can('edit-payment'))
+                                    <button type="button" class="btn btn-success" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="markSettled({{ $pay->id }})" title="Quick reconcile this voucher to SETTLED">Reconcile Paid</button>
+                                @endif
                             @endif
-                            <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditPaymentForm({{ $pay->id }})">Edit</button>
-                            <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deletePayment({{ $pay->id }})" onclick="confirm('Are you sure you want to delete this payment record?') || event.stopImmediatePropagation()">Delete</button>
+                            @can('edit-payment')
+                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditPaymentForm({{ $pay->id }})">Edit</button>
+                            @endcan
+                            @can('delete-payment')
+                                <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deletePayment({{ $pay->id }})" onclick="confirm('Are you sure you want to delete this payment record?') || event.stopImmediatePropagation()">Delete</button>
+                            @endcan
                         </div>
                     </td>
                 </tr>

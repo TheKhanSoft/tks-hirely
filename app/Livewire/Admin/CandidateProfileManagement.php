@@ -36,23 +36,17 @@ class CandidateProfileManagement extends Component
 
     public function mount()
     {
-        abort_unless(Auth::check() && Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::check() && Auth::user()->can('view-basic-info'), 403);
         $this->loadAuxiliaryData();
     }
 
     public function loadAuxiliaryData()
     {
-        // Strictly applicant accounts who are true job candidates (excluding institutional staff/committee/reviewers)
+        // 🔒 DYNAMIC CANDIDATE POOL: Only pure applicant accounts who do not hold any internal/institutional roles.
+        // Works dynamically for ANY existing or newly added roles (dean, vice-chancellor, director, etc.)
         $this->availableUsers = User::doesntHave('basicInfo')
-            ->role('applicant')
-            ->whereDoesntHave('roles', fn($q) => $q->whereIn('name', [
-                'super-admin',
-                'registrar',
-                'scrutiny-committee',
-                'appellate-committee',
-                'selection-board-member',
-                'academic-reviewer',
-            ]))
+            ->whereHas('roles', fn($q) => $q->where('name', 'applicant'))
+            ->whereDoesntHave('roles', fn($q) => $q->where('name', '!=', 'applicant'))
             ->get();
     }
 
@@ -74,7 +68,7 @@ class CandidateProfileManagement extends Component
 
     public function openCreateBasicInfoForm()
     {
-        abort_unless(Auth::user()->can('create-basic-info') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('create-basic-info'), 403);
         $this->resetForm();
         $this->loadAuxiliaryData();
         $this->isEditMode = false;
@@ -83,7 +77,7 @@ class CandidateProfileManagement extends Component
 
     public function openEditBasicInfoForm($id)
     {
-        abort_unless(Auth::user()->can('edit-basic-info') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('edit-basic-info'), 403);
         $this->resetForm();
         $this->bi_id = $id;
         $basicInfo = BasicInfo::findOrFail($id);
@@ -101,7 +95,7 @@ class CandidateProfileManagement extends Component
     public function saveBasicInfo()
     {
         if ($this->isEditMode) {
-            abort_unless(Auth::user()->can('edit-basic-info') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+            abort_unless(Auth::user()->can('edit-basic-info'), 403);
             $this->validate([
                 'bi_first_name' => 'required|string|max:100',
                 'bi_last_name' => 'required|string|max:100',
@@ -119,7 +113,7 @@ class CandidateProfileManagement extends Component
             ]);
             session()->flash('message', 'Candidate profile updated successfully.');
         } else {
-            abort_unless(Auth::user()->can('create-basic-info') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+            abort_unless(Auth::user()->can('create-basic-info'), 403);
             $this->validate([
                 'bi_user_id' => 'required|exists:users,id|unique:basic_infos,user_id',
                 'bi_first_name' => 'required|string|max:100',
@@ -146,7 +140,7 @@ class CandidateProfileManagement extends Component
 
     public function toggleLock($id)
     {
-        abort_unless(Auth::user()->can('edit-basic-info') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('lock-candidate-profile') || Auth::user()->can('edit-basic-info'), 403);
         $basicInfo = BasicInfo::findOrFail($id);
         $basicInfo->update(['is_locked' => !$basicInfo->is_locked]);
         session()->flash('message', 'Candidate lock status toggled.');
@@ -154,7 +148,7 @@ class CandidateProfileManagement extends Component
 
     public function deleteBasicInfo($id)
     {
-        abort_unless(Auth::user()->can('delete-basic-info') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('delete-basic-info'), 403);
         BasicInfo::destroy($id);
         session()->flash('message', 'Candidate profile deleted successfully.');
         $this->loadAuxiliaryData();
@@ -162,7 +156,7 @@ class CandidateProfileManagement extends Component
 
     public function viewBasicInfoDetails($id)
     {
-        abort_unless(Auth::user()->can('view-basic-info') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('view-candidate-dossier') || Auth::user()->can('view-basic-info'), 403);
         $this->selectedRecordId = $id;
         $this->selectedRecordDetails = BasicInfo::with([
             'user',
@@ -178,20 +172,15 @@ class CandidateProfileManagement extends Component
 
     public function render()
     {
-        // 🔒 STRICT SEPARATION: Only query genuine job applicants and recruitment candidates.
-        // Institutional employees, committee members, and academic reviewers are managed in User Accounts & Reviewer Directory.
+        // 🔒 DYNAMIC CANDIDATE QUERY:
+        // Only queries genuine job applicants/candidates.
+        // Users holding ANY non-applicant role (dean, provost, registrar, committee, reviewer, or ANY custom role)
+        // are automatically excluded without any hardcoded role lists!
         $query = BasicInfo::whereHas('user', function ($uq) {
             $uq->where(function ($sub) {
                 $sub->whereHas('roles', fn($rq) => $rq->where('name', 'applicant'))
                     ->orWhereHas('applications');
-            })->whereDoesntHave('roles', fn($rq) => $rq->whereIn('name', [
-                'super-admin',
-                'registrar',
-                'scrutiny-committee',
-                'appellate-committee',
-                'selection-board-member',
-                'academic-reviewer',
-            ]));
+            })->whereDoesntHave('roles', fn($rq) => $rq->where('name', '!=', 'applicant'));
         })->with(['user.roles', 'user.applications.campaign', 'degrees']);
 
         if (!empty($this->trackFilter)) {
@@ -216,8 +205,22 @@ class CandidateProfileManagement extends Component
 
         $profiles = $query->orderBy('first_name')->get();
 
+        // Dynamic Candidate Metrics
+        $stats = [
+            'total' => BasicInfo::whereHas('user', function ($uq) {
+                $uq->where(function ($sub) {
+                    $sub->whereHas('roles', fn($rq) => $rq->where('name', 'applicant'))
+                        ->orWhereHas('applications');
+                })->whereDoesntHave('roles', fn($rq) => $rq->where('name', '!=', 'applicant'));
+            })->count(),
+            'with_applications' => BasicInfo::whereHas('user.applications')->count(),
+            'academic' => BasicInfo::where('track_type', 'ACADEMIC')->count(),
+            'locked' => BasicInfo::where('is_locked', true)->count(),
+        ];
+
         return view('livewire.admin.candidate-profile-management', [
             'profiles' => $profiles,
+            'stats' => $stats,
         ])->layout('layouts.app', ['title' => 'Candidate Profiles - Hirely']);
     }
 }

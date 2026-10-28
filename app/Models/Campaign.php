@@ -40,7 +40,25 @@ class Campaign extends Model
         if (isset($this->require_transcript_proof)) {
             return (bool)$this->require_transcript_proof;
         }
-        return (bool)($this->scoring_rules['require_transcript_proof'] ?? true);
+        if (isset($this->scoring_rules['require_transcript_proof'])) {
+            return (bool)$this->scoring_rules['require_transcript_proof'];
+        }
+        return SystemSetting::isDocumentRequired('transcript');
+    }
+
+    /**
+     * Get the statutory required number of external peer reviewers for this position.
+     * E.g. For Assistant Professor: exactly 3 experts.
+     */
+    public function getRequiredPeerReviewersCount(): int
+    {
+        $rules = $this->scoring_rules ?? [];
+        if (isset($rules['required_peer_reviewers'])) {
+            return (int)$rules['required_peer_reviewers'];
+        }
+
+        $preset = SystemSetting::getConstitutionPresetForPost($this->title, $this->track_type);
+        return (int)($preset['required_peer_reviewers'] ?? 3);
     }
 
     /**
@@ -53,31 +71,11 @@ class Campaign extends Model
             return $rules['committee_constitution'];
         }
 
-        // Academic track: e.g. Assistant Professor, Associate Professor, Lecturer
-        if ($this->track_type === 'ACADEMIC') {
-            return [
-                'required_total' => 5,
-                'required_internal' => 2,
-                'required_external' => 2,
-                'required_international' => 1,
-                'required_independent' => 0,
-                'title' => 'Statutory Academic Selection Committee',
-                'description' => 'Statutory Quorum: 2 Internal Leaders/Faculty, 2 External Subject Experts (Other Institutions/Offices), 1 International/Overseas Specialist.',
-                'enforce_strict_quota' => true,
-            ];
-        }
+        // Dynamically resolve preset constitution based on post title & track from SystemSetting
+        $preset = SystemSetting::getConstitutionPresetForPost($this->title, $this->track_type);
+        $preset['enforce_strict_quota'] = SystemSetting::get('enforce_strict_committee_quorum', true);
 
-        // Corporate / Administrative track:
-        return [
-            'required_total' => 4,
-            'required_internal' => 2,
-            'required_external' => 1,
-            'required_international' => 0,
-            'required_independent' => 1,
-            'title' => 'Executive & Operational Selection Board',
-            'description' => 'Operational Quorum: 2 Internal Officers/Directors, 1 External Industry/Office Delegate, 1 Independent/Governance Member.',
-            'enforce_strict_quota' => true,
-        ];
+        return $preset;
     }
 
     /**

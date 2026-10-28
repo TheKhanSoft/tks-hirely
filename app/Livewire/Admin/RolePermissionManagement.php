@@ -19,6 +19,7 @@ class RolePermissionManagement extends Component
     // Collections
     public $roles = [];
     public $permissions = [];
+    public $groupedPermissions = [];
 
     // Role form fields
     public $role_id;
@@ -31,7 +32,7 @@ class RolePermissionManagement extends Component
 
     public function mount()
     {
-        abort_unless(Auth::check() && Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::check() && (Auth::user()->can('view-role') || Auth::user()->can('view-permission')), 403);
         
         $tab = request()->query('tab');
         if (in_array($tab, ['roles', 'permissions'])) {
@@ -51,6 +52,7 @@ class RolePermissionManagement extends Component
     {
         $this->roles = Role::with('permissions', 'users')->get();
         $this->permissions = Permission::orderBy('name')->get();
+        $this->groupedPermissions = \App\Services\PermissionRegistry::catalogue();
     }
 
     public function resetForm()
@@ -69,7 +71,7 @@ class RolePermissionManagement extends Component
     // Role operations
     public function openCreateRoleForm()
     {
-        abort_unless(Auth::user()->can('create-role') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('create-role'), 403);
         $this->resetForm();
         $this->isEditMode = false;
         $this->isFormOpen = true;
@@ -77,7 +79,7 @@ class RolePermissionManagement extends Component
 
     public function openEditRoleForm($id)
     {
-        abort_unless(Auth::user()->can('edit-role') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('edit-role') || Auth::user()->can('assign-role-permissions'), 403);
         $this->resetForm();
         $this->role_id = $id;
         $role = Role::findOrFail($id);
@@ -90,7 +92,7 @@ class RolePermissionManagement extends Component
     public function saveRole()
     {
         if ($this->isEditMode) {
-            abort_unless(Auth::user()->can('edit-role') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+            abort_unless(Auth::user()->can('edit-role') || Auth::user()->can('assign-role-permissions'), 403);
             $this->validate([
                 'role_name_input' => 'required|string|unique:roles,name,' . $this->role_id,
             ]);
@@ -99,7 +101,7 @@ class RolePermissionManagement extends Component
             $role->syncPermissions($this->selected_permissions);
             session()->flash('message', 'Role permissions updated successfully.');
         } else {
-            abort_unless(Auth::user()->can('create-role') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+            abort_unless(Auth::user()->can('create-role'), 403);
             $this->validate([
                 'role_name_input' => 'required|string|unique:roles,name',
             ]);
@@ -114,7 +116,7 @@ class RolePermissionManagement extends Component
 
     public function deleteRole($id)
     {
-        abort_unless(Auth::user()->can('delete-role') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('delete-role'), 403);
         $role = Role::findOrFail($id);
         if (in_array($role->name, ['super-admin', 'registrar', 'applicant'])) {
             session()->flash('error', 'Core roles are system locked and cannot be deleted.');
@@ -128,7 +130,7 @@ class RolePermissionManagement extends Component
     // Permission operations
     public function openCreatePermissionForm()
     {
-        abort_unless(Auth::user()->can('create-permission') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('create-permission'), 403);
         $this->resetForm();
         $this->isEditMode = false;
         $this->isFormOpen = true;
@@ -136,7 +138,7 @@ class RolePermissionManagement extends Component
 
     public function openEditPermissionForm($id)
     {
-        abort_unless(Auth::user()->can('edit-permission') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('edit-permission'), 403);
         $this->resetForm();
         $this->permission_id = $id;
         $perm = Permission::findOrFail($id);
@@ -148,7 +150,7 @@ class RolePermissionManagement extends Component
     public function savePermission()
     {
         if ($this->isEditMode) {
-            abort_unless(Auth::user()->can('edit-permission') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+            abort_unless(Auth::user()->can('edit-permission'), 403);
             $this->validate([
                 'permission_name_input' => 'required|string|unique:permissions,name,' . $this->permission_id,
             ]);
@@ -156,7 +158,7 @@ class RolePermissionManagement extends Component
             $perm->update(['name' => $this->permission_name_input]);
             session()->flash('message', 'Permission updated successfully.');
         } else {
-            abort_unless(Auth::user()->can('create-permission') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+            abort_unless(Auth::user()->can('create-permission'), 403);
             $this->validate([
                 'permission_name_input' => 'required|string|unique:permissions,name',
             ]);
@@ -170,7 +172,7 @@ class RolePermissionManagement extends Component
 
     public function deletePermission($id)
     {
-        abort_unless(Auth::user()->can('delete-permission') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('delete-permission'), 403);
         Permission::destroy($id);
         session()->flash('message', 'Permission deleted and revoked.');
         $this->loadData();

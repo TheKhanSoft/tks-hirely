@@ -19,12 +19,12 @@ class AuditLogManagement extends Component
 
     public function mount()
     {
-        abort_unless(Auth::check() && Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::check() && Auth::user()->can('view-audit-log'), 403);
     }
 
     public function viewLogDetails($id)
     {
-        abort_unless(Auth::user()->can('view-audit-log') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('view-audit-log'), 403);
         $this->selectedRecordId = $id;
         $this->selectedRecordDetails = SecurityAuditLog::with('user')->findOrFail($id);
         $this->isDetailsOpen = true;
@@ -32,7 +32,7 @@ class AuditLogManagement extends Component
 
     public function clearAuditLogs()
     {
-        abort_unless(Auth::user()->can('delete-audit-log') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('delete-audit-log') || Auth::user()->can('purge-audit-logs'), 403);
         SecurityAuditLog::truncate();
         session()->flash('message', 'All security audit logs purged successfully.');
     }

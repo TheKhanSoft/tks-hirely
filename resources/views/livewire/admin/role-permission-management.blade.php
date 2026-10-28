@@ -17,16 +17,20 @@
         </div>
         <div>
             @if(!$isFormOpen)
-                @if($activeSubTab === 'roles' && (auth()->user()->can('create-role') || auth()->user()->hasAnyRole(['super-admin', 'registrar'])))
-                    <button type="button" class="btn btn-primary" wire:click="openCreateRoleForm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        <span>Add Role</span>
-                    </button>
-                @elseif($activeSubTab === 'permissions' && (auth()->user()->can('create-permission') || auth()->user()->hasAnyRole(['super-admin', 'registrar'])))
-                    <button type="button" class="btn btn-primary" wire:click="openCreatePermissionForm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        <span>Add Permission</span>
-                    </button>
+                @if($activeSubTab === 'roles')
+                    @can('create-role')
+                        <button type="button" class="btn btn-primary" wire:click="openCreateRoleForm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            <span>Add Role</span>
+                        </button>
+                    @endcan
+                @elseif($activeSubTab === 'permissions')
+                    @can('create-permission')
+                        <button type="button" class="btn btn-primary" wire:click="openCreatePermissionForm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            <span>Add Permission</span>
+                        </button>
+                    @endcan
                 @endif
             @endif
         </div>
@@ -80,13 +84,32 @@
                     </x-input>
                     
                     <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; background: var(--bg-tertiary);" class="mt-4 mb-4">
-                        <h4 style="color: var(--secondary); margin-bottom: 1rem; font-size: 1rem; font-weight: 700;">Assign Granular Permissions Grid</h4>
-                        <div class="grid grid-cols-3 gap-3" style="max-height: 280px; overflow-y: auto;">
-                            @foreach($permissions as $perm)
-                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-card);">
-                                    <input type="checkbox" wire:model="selected_permissions" value="{{ $perm->name }}" style="width: 1.15rem; height: 1.15rem; accent-color: var(--primary);">
-                                    <span style="font-size: 0.85rem;">{{ str_replace('-', ' ', $perm->name) }}</span>
-                                </label>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h4 style="color: var(--secondary); margin: 0; font-size: 1rem; font-weight: 700;">Assign Granular Permissions Grid (Grouped by Module)</h4>
+                            <span style="font-size: 0.8rem; color: var(--color-text-secondary); font-weight: 600;">
+                                {{ count($selected_permissions) }} permissions assigned
+                            </span>
+                        </div>
+                        
+                        <div style="max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; padding-right: 0.5rem;">
+                            @foreach($groupedPermissions as $category => $categoryPerms)
+                                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem 1rem;">
+                                    <h5 style="font-size: 0.82rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 0.65rem 0; display: flex; align-items: center; gap: 0.4rem;">
+                                        <span>📁</span>
+                                        <span>{{ $category }}</span>
+                                    </h5>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        @foreach($categoryPerms as $permSlug => $permData)
+                                            <label style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; padding: 0.4rem 0.5rem; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-tertiary);">
+                                                <input type="checkbox" wire:model="selected_permissions" value="{{ $permSlug }}" style="width: 1.1rem; height: 1.1rem; accent-color: var(--primary); margin-top: 2px;">
+                                                <div>
+                                                    <strong style="font-size: 0.82rem; color: var(--color-text-primary); display: block;">{{ $permData['label'] }}</strong>
+                                                    <code style="font-size: 0.72rem; color: var(--color-text-muted);">{{ $permSlug }}</code>
+                                                </div>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
                             @endforeach
                         </div>
                     </div>
@@ -111,9 +134,13 @@
                         <td>{{ $role->users->count() }} Accounts</td>
                         <td>
                             <div class="flex gap-2">
-                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditRoleForm({{ $role->id }})">Edit & Sync</button>
+                                @can('edit-role')
+                                    <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditRoleForm({{ $role->id }})">Edit & Sync</button>
+                                @endcan
                                 @if(!in_array($role->name, ['super-admin', 'registrar', 'applicant']))
-                                    <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deleteRole({{ $role->id }})" onclick="confirm('Are you sure you want to delete this role?') || event.stopImmediatePropagation()">Delete</button>
+                                    @can('delete-role')
+                                        <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deleteRole({{ $role->id }})" onclick="confirm('Are you sure you want to delete this role?') || event.stopImmediatePropagation()">Delete</button>
+                                    @endcan
                                 @else
                                     <span style="color: var(--color-text-muted); font-size: 0.8rem; padding: 0.25rem 0.5rem;">System Core Locked</span>
                                 @endif
@@ -156,8 +183,12 @@
                         <td><code>{{ $perm->guard_name }}</code></td>
                         <td>
                             <div class="flex gap-2">
-                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditPermissionForm({{ $perm->id }})">Edit</button>
-                                <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deletePermission({{ $perm->id }})" onclick="confirm('Are you sure you want to delete this permission? This will revoke it from all roles.') || event.stopImmediatePropagation()">Delete</button>
+                                @can('edit-permission')
+                                    <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditPermissionForm({{ $perm->id }})">Edit</button>
+                                @endcan
+                                @can('delete-permission')
+                                    <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deletePermission({{ $perm->id }})" onclick="confirm('Are you sure you want to delete this permission? This will revoke it from all roles.') || event.stopImmediatePropagation()">Delete</button>
+                                @endcan
                             </div>
                         </td>
                     </tr>

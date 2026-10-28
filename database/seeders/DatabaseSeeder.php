@@ -177,6 +177,16 @@ class DatabaseSeeder extends Seeder
                 'application_fee' => 3000.00,
                 'is_active' => true,
                 'scoring_rules' => [
+                    'committee_constitution' => [
+                        'required_total' => 5,
+                        'required_internal' => 2,
+                        'required_external' => 2,
+                        'required_international' => 1,
+                        'required_independent' => 0,
+                        'title' => 'Statutory Academic Selection Committee (Faculty Track)',
+                        'description' => '2 Internal Leaders/Staff, 2 External Subject Experts (Other Institutions/Offices), 1 International/Overseas Specialist.',
+                        'enforce_strict_quota' => true,
+                    ],
                     'gold_medal_weight' => 5.0,
                     'silver_medal_weight' => 3.0,
                     'bronze_medal_weight' => 2.0,

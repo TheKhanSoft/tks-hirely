@@ -394,4 +394,104 @@ class ReviewerManagementTest extends TestCase
         $response = $this->get('/admin/reviewers');
         $response->assertStatus(403);
     }
+
+    public function test_all_allied_computing_disciplines_are_matched_for_assistant_professor_computer_science(): void
+    {
+        $registrar = User::factory()->create();
+        $registrar->assignRole('registrar');
+
+        // Create the 6 allied computing disciplines mentioned by the user
+        $disciplines = [
+            'Computer Science & Robotics',
+            'Computer Science',
+            'Information Technology & Networks',
+            'Computer Engineering',
+            'Artificial Intelligence & Systems',
+            'Cybersecurity & Cryptography',
+        ];
+
+        $matchedProfileIds = [];
+        foreach ($disciplines as $idx => $subject) {
+            $reviewerUser = User::factory()->create(['email' => "reviewer{$idx}@domain.edu"]);
+            $reviewerUser->assignRole('academic-reviewer');
+            $profile = ReviewerProfile::create([
+                'user_id' => $reviewerUser->id,
+                'name' => "Expert {$idx}",
+                'subject' => $subject,
+                'academic_rank' => 'Professor',
+                'university' => "University of Tech {$idx}",
+                'country' => 'Pakistan',
+                'is_active' => true,
+            ]);
+            $matchedProfileIds[] = $profile->id;
+        }
+
+        // Create non-allied reviewers
+        $nonAlliedSubjects = ['English Literature', 'Business Administration', 'Biotechnology'];
+        $unmatchedProfileIds = [];
+        foreach ($nonAlliedSubjects as $idx => $subject) {
+            $u = User::factory()->create(['email' => "other{$idx}@domain.edu"]);
+            $u->assignRole('academic-reviewer');
+            $p = ReviewerProfile::create([
+                'user_id' => $u->id,
+                'name' => "Other Expert {$idx}",
+                'subject' => $subject,
+                'academic_rank' => 'Professor',
+                'university' => "Arts/Biz University {$idx}",
+                'country' => 'Pakistan',
+                'is_active' => true,
+            ]);
+            $unmatchedProfileIds[] = $p->id;
+        }
+
+        // Campaign: Assistant Professor Computer Science, Department of Computer Science
+        $candidate = User::factory()->create();
+        $candidate->assignRole('applicant');
+        BasicInfo::create([
+            'user_id' => $candidate->id,
+            'first_name' => 'Alan',
+            'last_name' => 'Turing',
+            'date_of_birth' => '1990-06-23',
+            'cnic_number' => '37405-1122334-9',
+            'track_type' => 'ACADEMIC',
+            'is_locked' => true,
+        ]);
+
+        $campaign = Campaign::create([
+            'job_code' => 'CS-ASST-PROF-2026',
+            'title' => 'Assistant Professor Computer Science',
+            'department' => 'Department of Computer Science',
+            'track_type' => 'ACADEMIC',
+            'opening_date' => now()->subDay(),
+            'closing_date' => now()->addDays(30),
+            'application_fee' => 3000.00,
+            'is_active' => true,
+        ]);
+
+        $application = Application::create([
+            'user_id' => $candidate->id,
+            'campaign_id' => $campaign->id,
+            'status' => 'SUBMITTED',
+            'submission_timestamp' => now(),
+        ]);
+
+        $this->actingAs($registrar);
+
+        $component = Livewire::test(ReviewerManagement::class)
+            ->call('openDispatchModal', $application->id)
+            ->assertSet('showDispatchModal', true);
+
+        $matchedReviewers = $component->viewData('fieldMatchedReviewers');
+        $matchedIds = $matchedReviewers->pluck('id')->all();
+
+        // Assert all 6 computing disciplines are found
+        foreach ($matchedProfileIds as $expectedId) {
+            $this->assertContains($expectedId, $matchedIds, "Reviewer ID {$expectedId} was expected to match for Computer Science candidacy.");
+        }
+
+        // Assert non-allied disciplines are excluded
+        foreach ($unmatchedProfileIds as $excludedId) {
+            $this->assertNotContains($excludedId, $matchedIds, "Reviewer ID {$excludedId} should NOT match Computer Science candidacy.");
+        }
+    }
 }

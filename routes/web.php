@@ -17,32 +17,33 @@ use App\Livewire\Admin\PaymentManagement;
 use App\Livewire\Admin\UserManagement;
 use App\Livewire\Admin\RolePermissionManagement;
 use App\Livewire\Admin\AuditLogManagement;
+use App\Livewire\Admin\SystemSettings;
 use App\Livewire\Reviewer\EvaluationDesk;
 use App\Livewire\Board\LiveGradingPanel;
 use App\Livewire\Board\Dashboard as BoardDashboard;
 use App\Livewire\Scrutiny\Dashboard as ScrutinyDashboard;
 use App\Livewire\Bank\PaymentSimulator;
 
-// Role-Based Root Redirect Logic
+// Role-Based Root Redirect Logic (Supports both full titles and concise aliases)
 Route::get('/', function () {
     if (auth()->check()) {
         $user = auth()->user();
-        if ($user->hasRole('super-admin')) {
+        if ($user->hasAnyRole(['super-admin', 'admin'])) {
             return redirect('/admin/dashboard');
         }
         if ($user->hasRole('registrar')) {
             return redirect('/registrar/dashboard');
         }
-        if ($user->hasRole('scrutiny-committee')) {
+        if ($user->hasAnyRole(['scrutiny-committee', 'scrutiny'])) {
             return redirect('/scrutiny/dashboard');
         }
-        if ($user->hasRole('appellate-committee')) {
+        if ($user->hasAnyRole(['appellate-committee', 'appellate'])) {
             return redirect('/appellate/dashboard');
         }
-        if ($user->hasRole('selection-board-member')) {
+        if ($user->hasAnyRole(['selection-board-member', 'board-member', 'board'])) {
             return redirect('/board/dashboard');
         }
-        if ($user->hasRole('academic-reviewer')) {
+        if ($user->hasAnyRole(['academic-reviewer', 'reviewer'])) {
             return redirect('/reviewer/dashboard');
         }
         return redirect('/applicant/dashboard');
@@ -108,6 +109,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/registrar/roles', RolePermissionManagement::class);
     Route::get('/registrar/permissions', function() { return redirect('/registrar/roles?tab=permissions'); });
     Route::get('/registrar/audit-logs', AuditLogManagement::class);
+    Route::get('/registrar/settings', SystemSettings::class);
 
     // -------------------------------------------------------------
     // Super-Admin & Central Administrative Control (Legacy / Direct)
@@ -126,6 +128,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/roles', RolePermissionManagement::class);
     Route::get('/admin/permissions', function() { return redirect('/admin/roles?tab=permissions'); });
     Route::get('/admin/audit-logs', AuditLogManagement::class);
+    Route::get('/admin/settings', SystemSettings::class);
 
     // Direct / admin compatibility aliases
     Route::get('/admin/verification/{id}', ApplicationVerification::class);

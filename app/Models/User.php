@@ -90,4 +90,28 @@ class User extends Authenticatable
     {
         return $this->hasMany(ApplicationReview::class, 'reviewer_id');
     }
+
+    /**
+     * Check if the user is a recruitment applicant / job candidate.
+     */
+    public function isApplicant(): bool
+    {
+        return $this->hasRole('applicant') && !$this->hasAnyRoleOtherThan('applicant');
+    }
+
+    /**
+     * Check if the user has any roles other than the specified role.
+     */
+    public function hasAnyRoleOtherThan(string $roleName): bool
+    {
+        return $this->roles()->where('name', '!=', $roleName)->exists();
+    }
+
+    /**
+     * Check if the user is an internal institutional personnel, employee, committee member, or reviewer.
+     */
+    public function isStaffOrPersonnel(): bool
+    {
+        return $this->hasAnyRoleOtherThan('applicant') || $this->reviewerProfile()->exists() || $this->committees()->exists();
+    }
 }

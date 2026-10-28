@@ -20,12 +20,12 @@
         </div>
         <div>
             @if(!$isFormOpen)
-                @if(auth()->user()->can('create-user') || auth()->user()->hasAnyRole(['super-admin', 'registrar']))
+                @can('create-user')
                     <button type="button" class="btn btn-primary" wire:click="openCreateUserForm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                         <span>Register User</span>
                     </button>
-                @endif
+                @endcan
             @endif
         </div>
     </div>
@@ -146,10 +146,10 @@
         <x-table :headers="['Personnel / User Reference', 'Classification', 'Department / Institution', 'Role', 'Status', 'Actions']">
             @forelse($users as $u)
                 @php
-                    $isStaff = $u->hasAnyRole(['registrar', 'super-admin']);
-                    $isCommittee = $u->hasAnyRole(['scrutiny-committee', 'appellate-committee', 'selection-board-member']);
-                    $isReviewer = $u->hasRole('academic-reviewer') || $u->reviewerProfile;
-                    $isApplicant = $u->hasRole('applicant') && !$isStaff && !$isCommittee && !$isReviewer;
+                    $isCommittee = $u->hasAnyRole(['scrutiny-committee', 'scrutiny', 'appellate-committee', 'appellate', 'selection-board-member', 'board-member', 'board']) || $u->committees->isNotEmpty();
+                    $isReviewer = $u->hasAnyRole(['academic-reviewer', 'reviewer']) || $u->reviewerProfile;
+                    $isApplicant = $u->hasRole('applicant') && !$u->hasAnyRoleOtherThan('applicant');
+                    $isStaff = !$isApplicant && !$isCommittee && !$isReviewer;
 
                     $displayName = $u->reviewerProfile?->name 
                         ?? ($u->basicInfo?->first_name ? ($u->basicInfo->first_name . ' ' . $u->basicInfo->last_name) : null);
@@ -158,6 +158,8 @@
                         ?? ($isStaff || $isCommittee ? 'Main Campus / Head Office' : null);
 
                     $country = $u->reviewerProfile?->country 
+                        ?? ($u->basicInfo?->nationality ?: 'Domestic / Local');
+                @endphp
                         ?? ($u->basicInfo?->nationality ?: 'Domestic / Local');
                 @endphp
                 <tr>
@@ -212,26 +214,51 @@
                         <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25); text-transform: capitalize; font-size: 0.75rem;">
                             {{ str_replace('-', ' ', $u->roles->first()?->name ?? 'None') }}
                         </span>
+                        @if($u->permissions->isNotEmpty())
+                            <div style="margin-top: 0.25rem;">
+                                <span class="badge" style="background: rgba(6,182,212,0.15); color: var(--secondary); font-size: 0.68rem; border: 1px solid rgba(6,182,212,0.3);">
+                                    +{{ $u->permissions->count() }} Direct 🔑
+                                </span>
+                            </div>
+                        @endif
                     </td>
                     <td>
-                        <button type="button" 
-                                class="btn {{ $u->is_active ? 'btn-success' : 'btn-danger' }}" 
-                                style="padding: 0.2rem 0.6rem; font-size: 0.75rem; border-radius: 999px;" 
-                                wire:click="toggleUserStatus({{ $u->id }})" 
-                                :disabled="auth()->id() == $u->id"
-                                title="{{ auth()->id() == $u->id ? 'Cannot deactivate yourself' : 'Click to toggle active status' }}">
-                            {{ $u->is_active ? 'Active' : 'Blocked' }}
-                        </button>
+                        @can('toggle-user-status')
+                            <button type="button" 
+                                    class="btn {{ $u->is_active ? 'btn-success' : 'btn-danger' }}" 
+                                    style="padding: 0.2rem 0.6rem; font-size: 0.75rem; border-radius: 999px;" 
+                                    wire:click="toggleUserStatus({{ $u->id }})" 
+                                    :disabled="auth()->id() == $u->id"
+                                    title="{{ auth()->id() == $u->id ? 'Cannot deactivate yourself' : 'Click to toggle active status' }}">
+                                {{ $u->is_active ? 'Active' : 'Blocked' }}
+                            </button>
+                        @else
+                            <span class="badge" style="background: {{ $u->is_active ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)' }}; color: {{ $u->is_active ? 'var(--success)' : 'var(--danger)' }}; font-size: 0.75rem; border-radius: 999px;">
+                                {{ $u->is_active ? 'Active' : 'Blocked' }}
+                            </span>
+                        @endcan
                     </td>
                     <td>
                         <div class="flex gap-2">
-                            <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.3rem;" wire:click="viewPersonnelDetails({{ $u->id }})">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                                <span>Dossier</span>
-                            </button>
-                            <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.78rem;" wire:click="openEditUserForm({{ $u->id }})">Edit</button>
+                            @can('view-user-dossier')
+                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.3rem;" wire:click="viewPersonnelDetails({{ $u->id }})">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    <span>Dossier</span>
+                                </button>
+                            @endcan
+                            @can('assign-user-permissions')
+                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.25rem;" wire:click="openDirectPermissionsModal({{ $u->id }})" title="Grant extra direct permissions on top of role">
+                                    <span>🔑</span>
+                                    <span>Permissions</span>
+                                </button>
+                            @endcan
+                            @can('edit-user')
+                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.78rem;" wire:click="openEditUserForm({{ $u->id }})">Edit</button>
+                            @endcan
                             @if(auth()->id() !== $u->id)
-                                <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.78rem;" wire:click="deleteUser({{ $u->id }})" onclick="confirm('Are you sure you want to delete this user?') || event.stopImmediatePropagation()">Delete</button>
+                                @can('delete-user')
+                                    <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.78rem;" wire:click="deleteUser({{ $u->id }})" onclick="confirm('Are you sure you want to delete this user?') || event.stopImmediatePropagation()">Delete</button>
+                                @endcan
                             @endif
                         </div>
                     </td>
@@ -346,6 +373,90 @@
                 <div style="display: flex; justify-content: flex-end; margin-top: 1.25rem;">
                     <button type="button" class="btn btn-secondary" wire:click="closePersonnelModal">
                         Close Dossier
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Direct / Extra User Permissions Modal -->
+    @if($isDirectPermissionsModalOpen && $targetUserIdForPermissions)
+        @php
+            $targetUser = \App\Models\User::find($targetUserIdForPermissions);
+        @endphp
+        <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.82); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1.5rem; backdrop-filter: blur(8px);">
+            <div class="card" style="width: 100%; max-width: 820px; max-height: 90vh; overflow-y: auto; border-color: var(--secondary); box-shadow: 0 20px 48px -10px rgba(0, 0, 0, 0.8), 0 0 25px var(--secondary-glow);">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.25rem;">
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--color-text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                            <span>🔑 Manage Direct / Extra User Permissions</span>
+                        </h3>
+                        <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--color-text-secondary);">
+                            Target: <strong style="color: var(--color-text-primary);">{{ $targetUser?->email }}</strong> &bull; Primary Role: <span class="badge" style="background: rgba(99,102,241,0.15); color: var(--primary);">{{ $targetUser?->roles->first()?->name }}</span>
+                        </p>
+                    </div>
+                    <button type="button" class="btn btn-secondary" style="padding: 0.35rem 0.65rem;" wire:click="closeDirectPermissionsModal">
+                        ✕
+                    </button>
+                </div>
+
+                <div style="background: rgba(6,182,212,0.06); border: 1px solid rgba(6,182,212,0.25); border-radius: var(--radius-sm); padding: 0.85rem 1rem; margin-bottom: 1.25rem; font-size: 0.84rem; color: var(--color-text-secondary); line-height: 1.5;">
+                    💡 <strong>Granular Access Control:</strong> Permissions can be granted to security roles, or granted directly to this specific user on top of their role. If a permission is already inherited from their role, it is marked with <span class="badge" style="background: rgba(99,102,241,0.2); color: var(--primary); font-size: 0.7rem;">Role Inherited</span>. You can toggle any extra permissions below.
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <span style="font-size: 0.84rem; font-weight: 700; color: var(--color-text-primary);">
+                        Active Direct Permissions Selected: <span style="color: var(--secondary); font-size: 0.95rem;">{{ count($targetUserDirectPermissions) }}</span>
+                    </span>
+                </div>
+
+                <!-- Grouped Permissions List -->
+                <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                    @foreach($allGroupedPermissions as $groupName => $perms)
+                        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem 1rem;">
+                            <div style="font-size: 0.85rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.04em;">
+                                {{ $groupName }}
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                @foreach($perms as $permKey => $permMeta)
+                                    @php
+                                        $isInherited = in_array($permKey, $targetUserRolePermissions);
+                                        $isDirect = in_array($permKey, $targetUserDirectPermissions);
+                                    @endphp
+                                    <div style="display: flex; align-items: flex-start; gap: 0.6rem; padding: 0.5rem 0.65rem; border-radius: 6px; background: {{ $isDirect ? 'rgba(6,182,212,0.1)' : ($isInherited ? 'rgba(99,102,241,0.06)' : 'rgba(255,255,255,0.015)') }}; border: 1px solid {{ $isDirect ? 'var(--secondary)' : ($isInherited ? 'rgba(99,102,241,0.25)' : 'var(--border-color)') }};">
+                                        <input type="checkbox" 
+                                               style="margin-top: 0.2rem; width: 1.15rem; height: 1.15rem; accent-color: var(--secondary); cursor: pointer;"
+                                               wire:click="toggleDirectPermission('{{ $permKey }}')"
+                                               {{ $isDirect ? 'checked' : '' }}>
+                                        <div style="flex: 1; cursor: pointer;" wire:click="toggleDirectPermission('{{ $permKey }}')">
+                                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.4rem;">
+                                                <strong style="font-size: 0.82rem; color: var(--color-text-primary);">{{ $permMeta['label'] }}</strong>
+                                                @if($isInherited)
+                                                    <span class="badge" style="background: rgba(99,102,241,0.2); color: var(--primary); font-size: 0.65rem; padding: 0.1rem 0.35rem;">Role</span>
+                                                @endif
+                                                @if($isDirect)
+                                                    <span class="badge" style="background: rgba(6,182,212,0.2); color: var(--secondary); font-size: 0.65rem; padding: 0.1rem 0.35rem;">★ Extra</span>
+                                                @endif
+                                            </div>
+                                            <code style="font-size: 0.72rem; color: var(--color-text-muted); display: block; margin-top: 0.1rem;">{{ $permKey }}</code>
+                                            <div style="font-size: 0.74rem; color: var(--color-text-secondary); margin-top: 0.2rem; line-height: 1.35;">
+                                                {{ $permMeta['description'] }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" wire:click="closeDirectPermissionsModal">
+                        Cancel
+                    </button>
+                    <button type="button" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.5rem;" wire:click="saveDirectPermissions">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                        <span>Save Direct Extra Permissions</span>
                     </button>
                 </div>
             </div>

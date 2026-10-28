@@ -1,10 +1,10 @@
 <div>
     <!-- Executive Control Header -->
-    <div class="card mb-6" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem; position: relative; overflow: hidden;">
-        <div style="position: absolute; right: -2rem; top: -2rem; width: 160px; height: 160px; background: radial-gradient(circle, var(--secondary-glow) 0%, transparent 70%); pointer-events: none;"></div>
+    <div class="card mb-6 card-ambient-mesh" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem; position: relative; overflow: hidden; padding: 1.5rem 1.75rem;">
+        <div style="position: absolute; right: -2rem; top: -2rem; width: 180px; height: 180px; background: radial-gradient(circle, var(--secondary-glow) 0%, transparent 70%); pointer-events: none;"></div>
         <div>
-            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem;">
-                <div class="brand-icon-box" style="width: 42px; height: 42px; border-radius: 12px; background: rgba(6,182,212,0.15); border: 1px solid rgba(6,182,212,0.3);">
+            <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.35rem;">
+                <div class="brand-icon-box" style="width: 44px; height: 44px; border-radius: 12px; background: rgba(6,182,212,0.15); border: 1px solid rgba(6,182,212,0.3);">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--secondary);">
                         <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
                         <circle cx="9" cy="7" r="4"/>
@@ -13,30 +13,91 @@
                     </svg>
                 </div>
                 <div>
-                    <h2 class="card-title" style="margin: 0; font-size: 1.45rem;">Academic Reviewers & Expert Referees Desk</h2>
-                    <p class="card-subtitle" style="margin: 0;">Empanel external academic experts, match referees by discipline, and monitor confidential peer evaluations</p>
+                    <h1 class="card-title" style="margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">
+                        Academic Reviewers & Expert Referees Desk
+                    </h1>
+                    <p class="card-subtitle" style="margin: 0.2rem 0 0;">
+                        Empanel external academic experts, match referees dynamically by discipline, and orchestrate confidential peer evaluations.
+                    </p>
                 </div>
             </div>
         </div>
 
         <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <button type="button" class="btn btn-primary" wire:click="openCreateModal" style="display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: var(--shadow-sm);">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                <span>Add New Academic Reviewer</span>
-            </button>
+            @if(auth()->user()->can('create-reviewer') || auth()->user()->can('manage-reviewers'))
+                <button type="button" class="btn btn-primary" wire:click="openCreateModal" style="display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: var(--shadow-sm); padding: 0.55rem 1.15rem; font-weight: 700;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span>+ Empanel Academic Expert</span>
+                </button>
+            @endif
+        </div>
+    </div>
+
+    <!-- Live Executive KPI Summary Cards -->
+    <div class="grid grid-cols-4 gap-5 mb-6">
+        <div class="metric-card" style="--card-accent: var(--secondary); --metric-icon-bg: var(--secondary-light); --metric-icon-color: var(--secondary);">
+            <div class="metric-header">
+                <span class="metric-label">Empanelled Experts</span>
+                <div class="metric-icon-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="metric-value" style="color: var(--secondary);">{{ $stats['totalReviewers'] }}</div>
+            <div class="metric-subtext">{{ $stats['activeReviewers'] }} active for assignment</div>
+        </div>
+
+        <div class="metric-card" style="--card-accent: var(--primary); --metric-icon-bg: var(--primary-light); --metric-icon-color: var(--primary);">
+            <div class="metric-header">
+                <span class="metric-label">Academic Positions</span>
+                <div class="metric-icon-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="metric-value" style="color: var(--primary);">{{ $stats['totalAcademicCampaigns'] }}</div>
+            <div class="metric-subtext">{{ $stats['totalAcademicApplications'] }} total faculty candidacies</div>
+        </div>
+
+        <div class="metric-card" style="--card-accent: var(--warning); --metric-icon-bg: var(--warning-light); --metric-icon-color: var(--warning);">
+            <div class="metric-header">
+                <span class="metric-label">In Peer Review</span>
+                <div class="metric-icon-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </div>
+            </div>
+            <div class="metric-value" style="color: var(--warning);">{{ $stats['inReviewApplications'] }}</div>
+            <div class="metric-subtext">Awaiting referee evaluations</div>
+        </div>
+
+        <div class="metric-card" style="--card-accent: var(--success); --metric-icon-bg: var(--success-light); --metric-icon-color: var(--success);">
+            <div class="metric-header">
+                <span class="metric-label">Completed Reports</span>
+                <div class="metric-icon-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="metric-value" style="color: var(--success);">{{ $stats['completedReviewsCount'] }}</div>
+            <div class="metric-subtext">Signed confidential dossiers</div>
         </div>
     </div>
 
     <!-- Flash Message Notification -->
     @if (session()->has('message'))
-        <div class="alert alert-success mb-6" style="display: flex; align-items: center; gap: 0.75rem; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: var(--success); padding: 0.85rem 1.25rem; border-radius: var(--radius-md);">
+        <div class="alert alert-success mb-6" style="display: flex; align-items: center; gap: 0.75rem; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: var(--success); padding: 0.95rem 1.35rem; border-radius: var(--radius-md);">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            <div style="flex: 1;">
+            <div style="flex: 1; font-weight: 600;">
                 <span>{{ session('message') }}</span>
             </div>
         </div>
@@ -47,262 +108,385 @@
         <button type="button" 
                 class="btn" 
                 wire:click="setTab('reviewers')"
-                style="padding: 0.5rem 1.25rem; font-size: 0.875rem; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; transition: var(--transition-base); {{ $activeTab === 'reviewers' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                style="padding: 0.55rem 1.35rem; font-size: 0.88rem; border-radius: var(--radius-md); font-weight: 700; display: inline-flex; align-items: center; gap: 0.55rem; transition: var(--transition-base); {{ $activeTab === 'reviewers' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                 <circle cx="9" cy="7" r="4"/>
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
                 <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
             </svg>
-            <span>Empanelled Reviewers Register</span>
-            <span style="font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 999px; background: rgba(99,102,241,0.15); color: var(--primary);">{{ $reviewers->total() }}</span>
+            <span>Empanelled Subject Experts</span>
+            <span style="font-size: 0.75rem; padding: 0.15rem 0.55rem; border-radius: 999px; background: rgba(99,102,241,0.15); color: var(--primary); font-weight: 800;">{{ $reviewers->total() }}</span>
         </button>
 
         <button type="button" 
                 class="btn" 
                 wire:click="setTab('dispatch')"
-                style="padding: 0.5rem 1.25rem; font-size: 0.875rem; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; transition: var(--transition-base); {{ $activeTab === 'dispatch' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                style="padding: 0.55rem 1.35rem; font-size: 0.88rem; border-radius: var(--radius-md); font-weight: 700; display: inline-flex; align-items: center; gap: 0.55rem; transition: var(--transition-base); {{ $activeTab === 'dispatch' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/>
                 <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
             </svg>
-            <span>Academic Candidacies & Dispatch</span>
-            <span style="font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 999px; background: rgba(6,182,212,0.15); color: var(--secondary);">{{ $academicApplications->count() }}</span>
+            <span>Academic Peer Review Dispatch</span>
+            <span style="font-size: 0.75rem; padding: 0.15rem 0.55rem; border-radius: 999px; background: rgba(6,182,212,0.15); color: var(--secondary); font-weight: 800;">{{ $academicApplications->count() }}</span>
         </button>
     </div>
 
     <!-- ============================================================== -->
-    <!-- TAB 1: EMPANELLED REVIEWERS REGISTER                           -->
+    <!-- TAB 1: EMPANELLED REVIEWERS DIRECTORY                          -->
     <!-- ============================================================== -->
     @if($activeTab === 'reviewers')
-        <div class="card mb-4" style="padding: 1rem 1.25rem;">
+        <div class="card mb-4" style="padding: 1.15rem 1.35rem;">
             <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                <div style="position: relative; flex: 1; min-width: 260px;">
-                    <input type="text" class="form-control" wire:model.live.debounce.250ms="search" placeholder="Search by reviewer name, university, or specialization..." style="padding-left: 2.5rem;">
+                <!-- Search input -->
+                <div style="position: relative; flex: 2; min-width: 260px;">
+                    <input type="text" 
+                           class="form-control" 
+                           wire:model.live.debounce.250ms="search" 
+                           placeholder="Search expert by name, university, email, or specialization..." 
+                           style="padding-left: 2.5rem; background: var(--bg-card); color: var(--color-text-primary);">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); pointer-events: none;">
                         <circle cx="11" cy="11" r="8"/>
                         <path d="m21 21-4.3-4.3"/>
                     </svg>
                 </div>
 
+                <!-- Discipline Filter -->
                 @if(!empty($availableSubjects))
-                    <div style="width: 240px;">
-                        <select class="form-control form-select" wire:model.live="subjectFilter">
-                            <option value="">All Disciplines / Subjects</option>
+                    <div style="flex: 1; min-width: 200px;">
+                        <select class="form-control form-select" wire:model.live="subjectFilter" style="background: var(--bg-card); color: var(--color-text-primary);">
+                            <option value="">All Academic Disciplines</option>
                             @foreach($availableSubjects as $subj)
                                 <option value="{{ $subj }}">{{ $subj }}</option>
                             @endforeach
                         </select>
                     </div>
                 @endif
-                <div>
-                    <span style="font-size: 0.85rem; color: var(--color-text-secondary); font-weight: 600;">
-                        Showing {{ $reviewers->total() }} expert{{ $reviewers->total() === 1 ? '' : 's' }}
-                    </span>
+
+                <!-- Academic Rank Filter -->
+                @if(!empty($availableRanks))
+                    <div style="width: 190px;">
+                        <select class="form-control form-select" wire:model.live="rankFilter" style="background: var(--bg-card); color: var(--color-text-primary);">
+                            <option value="">All Academic Ranks</option>
+                            @foreach($availableRanks as $rk)
+                                <option value="{{ $rk }}">{{ $rk }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
+
+                <!-- Country Filter -->
+                <div style="width: 170px;">
+                    <select class="form-control form-select" wire:model.live="countryFilter" style="background: var(--bg-card); color: var(--color-text-primary);">
+                        <option value="">All Countries</option>
+                        @foreach($countries as $c)
+                            <option value="{{ $c }}">{{ $c }}</option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
         </div>
 
-        <x-table :headers="['Expert Name & Rank', 'Discipline / Field', 'Institution & Country', 'Contact Info', 'Specialization Scope', 'Active Dossiers', 'Status & Actions']">
-            @forelse($reviewers as $rev)
-                <tr wire:key="reviewer-row-{{ $rev->id }}">
-                    <td>
-                        <div style="display: flex; align-items: center; gap: 0.75rem;">
-                            <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, rgba(6,182,212,0.2), rgba(99,102,241,0.2)); border: 1px solid rgba(6,182,212,0.3); color: var(--secondary); font-weight: 800; font-size: 0.85rem; display: flex; align-items: center; justify-content: center;">
-                                {{ strtoupper(substr($rev->name, 0, 1)) }}
-                            </div>
-                            <div>
-                                <strong style="color: var(--color-text-primary); font-size: 0.95rem;">{{ $rev->name }}</strong><br>
-                                <span style="font-size: 0.78rem; color: var(--secondary); font-weight: 700;">{{ $rev->academic_rank }}</span>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25); font-weight: 700;">
-                            {{ $rev->subject }}
-                        </span>
-                    </td>
-                    <td>
-                        <div>
-                            <span style="color: var(--color-text-primary); font-size: 0.88rem; font-weight: 600;">{{ $rev->university }}</span><br>
-                            <small style="color: var(--color-text-muted);">📍 {{ $rev->country }}</small>
-                        </div>
-                    </td>
-                    <td>
-                        <div>
-                            <code style="color: var(--color-text-primary); font-size: 0.82rem;">{{ $rev->user->email }}</code>
-                            @if($rev->phone)
-                                <br><small style="color: var(--color-text-muted); font-size: 0.78rem;">{{ $rev->phone }}</small>
-                            @endif
-                        </div>
-                    </td>
-                    <td>
-                        <span style="font-size: 0.82rem; color: var(--color-text-secondary); max-width: 220px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $rev->specialization }}">
-                            {{ $rev->specialization ?: 'General ' . $rev->subject }}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); font-weight: 800; border: 1px solid rgba(6,182,212,0.25);">
-                            {{ $rev->reviews_count }} Assigned
-                        </span>
-                    </td>
-                    <td>
-                        <button type="button" 
-                                class="btn {{ $rev->is_active ? 'btn-success' : 'btn-danger' }}" 
-                                style="padding: 0.2rem 0.6rem; font-size: 0.75rem; border-radius: 999px; font-weight: 600;" 
-                                wire:click="toggleReviewerStatus({{ $rev->id }})" 
-                                title="Click to toggle reviewer availability status">
-                            {{ $rev->is_active ? 'Active' : 'Inactive' }}
-                        </button>
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="7" class="text-center" style="padding: 3rem 1.5rem; color: var(--color-text-muted);">
-                        <p style="font-size: 0.95rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: 0.25rem;">No Academic Reviewers Found</p>
-                        <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin-bottom: 1rem;">Empanel your first external academic subject expert.</p>
-                        <button type="button" class="btn btn-primary btn-sm" wire:click="openCreateModal">+ Add New Academic Reviewer</button>
-                    </td>
-                </tr>
-            @endforelse
-        </x-table>
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Expert Referee & Rank</th>
+                            <th>Academic Discipline</th>
+                            <th>Institution & Country</th>
+                            <th>Contact Particulars</th>
+                            <th>Research Focus</th>
+                            <th>Assigned Dossiers</th>
+                            <th style="text-align: right;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($reviewers as $rev)
+                            <tr wire:key="reviewer-row-{{ $rev->id }}">
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 0.85rem;">
+                                        <div class="user-avatar-circle" style="width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, rgba(6,182,212,0.2), rgba(99,102,241,0.2)); border: 1px solid rgba(6,182,212,0.3); color: var(--secondary); font-weight: 800; font-size: 0.88rem; display: flex; align-items: center; justify-content: center;">
+                                            {{ strtoupper(substr($rev->name, 0, 1)) }}
+                                        </div>
+                                        <div>
+                                            <strong style="color: var(--color-text-primary); font-size: 0.95rem;">{{ $rev->name }}</strong>
+                                            <div style="font-size: 0.78rem; color: var(--secondary); font-weight: 700; margin-top: 1px;">
+                                                {{ $rev->academic_rank }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25); font-weight: 700; font-size: 0.78rem;">
+                                        {{ $rev->subject }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong style="color: var(--color-text-primary); font-size: 0.88rem;">{{ $rev->university }}</strong>
+                                        <div style="color: var(--color-text-muted); font-size: 0.76rem; margin-top: 2px;">
+                                            📍 {{ $rev->country }}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <code style="color: var(--color-text-primary); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace;">{{ $rev->user->email }}</code>
+                                        @if($rev->phone)
+                                            <div style="color: var(--color-text-muted); font-size: 0.76rem; margin-top: 2px;">{{ $rev->phone }}</div>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td>
+                                    <span style="font-size: 0.82rem; color: var(--color-text-secondary); max-width: 240px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $rev->specialization }}">
+                                        {{ $rev->specialization ?: 'General ' . $rev->subject }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); font-weight: 800; border: 1px solid rgba(6,182,212,0.25); font-size: 0.76rem;">
+                                        {{ $rev->reviews_count }} Dossier{{ $rev->reviews_count === 1 ? '' : 's' }}
+                                    </span>
+                                </td>
+                                <td style="text-align: right;">
+                                    @if(auth()->user()->can('edit-reviewer') || auth()->user()->can('manage-reviewers'))
+                                        <button type="button" 
+                                                class="btn {{ $rev->is_active ? 'btn-success' : 'btn-danger' }} btn-sm" 
+                                                style="padding: 0.25rem 0.75rem; font-size: 0.76rem; border-radius: 9999px; font-weight: 700;" 
+                                                wire:click="toggleReviewerStatus({{ $rev->id }})" 
+                                                title="Click to toggle reviewer status">
+                                            {{ $rev->is_active ? '✓ Active' : '✕ Inactive' }}
+                                        </button>
+                                    @else
+                                        <span class="badge {{ $rev->is_active ? 'badge-paid' : '' }}" style="font-size: 0.76rem;">
+                                            {{ $rev->is_active ? 'Active' : 'Inactive' }}
+                                        </span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="text-center" style="padding: 3.5rem 1.5rem; color: var(--color-text-muted);">
+                                    <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(6,182,212,0.1); color: var(--secondary); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.75rem;">
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                    </div>
+                                    <h4 style="font-size: 1rem; font-weight: 700; color: var(--color-text-primary); margin: 0 0 0.35rem 0;">No Empanelled Reviewers Matching Filters</h4>
+                                    <p style="font-size: 0.82rem; margin: 0 0 1.25rem 0;">Try adjusting your search criteria or empanel a new external subject expert.</p>
+                                    <button type="button" class="btn btn-primary btn-sm" wire:click="openCreateModal">+ Empanel New Expert</button>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
 
-        <div style="margin-top: 1.25rem;">
-            {{ $reviewers->links() }}
+            @if($reviewers->hasPages())
+                <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color);">
+                    {{ $reviewers->links() }}
+                </div>
+            @endif
         </div>
     @endif
 
     <!-- ============================================================== -->
-    <!-- TAB 2: ACADEMIC APPLICATIONS & REVIEW DISPATCH                 -->
+    <!-- TAB 2: ACADEMIC CANDIDACIES & REVIEW DISPATCH                 -->
     <!-- ============================================================== -->
     @if($activeTab === 'dispatch')
+        <!-- Header & Live Filters -->
         <div class="card mb-4" style="padding: 1.25rem 1.5rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
                 <div>
-                    <h3 class="card-title" style="margin: 0; font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <h3 class="card-title" style="margin: 0; font-size: 1.25rem; font-weight: 800; display: flex; align-items: center; gap: 0.6rem;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
                             <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/>
                             <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
                         </svg>
-                        <span>Academic Position Candidacies (Lecturer, Assistant Prof, Associate Prof, Prof)</span>
+                        <span>Academic Peer Review Dispatch & Dossiers</span>
                     </h3>
-                    <p class="card-subtitle" style="margin: 0.2rem 0 0;">Dispatch candidate dossiers to external reviewers calibrated specifically to the academic department</p>
+                    <p class="card-subtitle" style="margin: 0.2rem 0 0;">
+                        Assign external peer reviewers calibrated to candidate department, track evaluations, and view confidential referee reports.
+                    </p>
+                </div>
+
+                <!-- Review Status Filter Tabs -->
+                <div style="display: flex; gap: 0.35rem; background: var(--bg-surface); padding: 0.25rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-sm" wire:click="$set('candidacyStatusFilter', 'ALL')" style="{{ $candidacyStatusFilter === 'ALL' ? 'background: var(--bg-card); color: var(--color-text-primary); font-weight: 700;' : 'background: transparent; color: var(--color-text-secondary);' }}">
+                        All Dossiers
+                    </button>
+                    <button type="button" class="btn btn-sm" wire:click="$set('candidacyStatusFilter', 'NEEDS_DISPATCH')" style="{{ $candidacyStatusFilter === 'NEEDS_DISPATCH' ? 'background: var(--bg-card); color: var(--warning); font-weight: 700;' : 'background: transparent; color: var(--color-text-secondary);' }}">
+                        Needs Dispatch
+                    </button>
+                    <button type="button" class="btn btn-sm" wire:click="$set('candidacyStatusFilter', 'UNDER_REVIEW')" style="{{ $candidacyStatusFilter === 'UNDER_REVIEW' ? 'background: var(--bg-card); color: var(--secondary); font-weight: 700;' : 'background: transparent; color: var(--color-text-secondary);' }}">
+                        Under Review
+                    </button>
+                    <button type="button" class="btn btn-sm" wire:click="$set('candidacyStatusFilter', 'COMPLETED')" style="{{ $candidacyStatusFilter === 'COMPLETED' ? 'background: var(--bg-card); color: var(--success); font-weight: 700;' : 'background: transparent; color: var(--color-text-secondary);' }}">
+                        Reports In
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search and Campaign Select -->
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <div style="position: relative; flex: 2; min-width: 260px;">
+                    <input type="text" 
+                           class="form-control" 
+                           wire:model.live.debounce.250ms="candidacySearch" 
+                           placeholder="Search candidate name, CNIC, or tracking reference..." 
+                           style="padding-left: 2.5rem; background: var(--bg-card); color: var(--color-text-primary);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); pointer-events: none;">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.3-4.3"/>
+                    </svg>
+                </div>
+
+                <div style="flex: 1; min-width: 220px;">
+                    <select class="form-control form-select" wire:model.live="candidacyCampaignFilter" style="background: var(--bg-card); color: var(--color-text-primary);">
+                        <option value="">All Academic Positions</option>
+                        @foreach($availableAcademicCampaigns as $c)
+                            <option value="{{ $c->id }}">{{ $c->title }} ({{ $c->job_code }})</option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
         </div>
 
-        <x-table :headers="['Candidate Particulars', 'Academic Position', 'Department / Field', 'Application Status', 'Peer Review Progress & Referees', 'Actions']">
-            @forelse($academicApplications as $app)
-                @php
-                    $reviewCount = $app->reviews->count();
-                    $submittedReviews = $app->reviews->where('status', 'SUBMITTED')->count();
-                    $pct = $reviewCount > 0 ? round(($submittedReviews / $reviewCount) * 100) : 0;
-                @endphp
-                <tr wire:key="academic-app-{{ $app->id }}">
-                    <td>
-                        <div style="display: flex; align-items: center; gap: 0.75rem;">
-                            <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(99,102,241,0.15); color: var(--primary); font-weight: 800; font-size: 0.85rem; display: flex; align-items: center; justify-content: center;">
-                                {{ strtoupper(substr($app->user->basicInfo?->first_name ?: $app->user->email, 0, 1)) }}
-                            </div>
-                            <div>
-                                <strong style="color: var(--color-text-primary); font-size: 0.95rem;">
-                                    {{ $app->user->basicInfo ? trim($app->user->basicInfo->first_name . ' ' . $app->user->basicInfo->last_name) : $app->user->email }}
-                                </strong><br>
-                                <code style="font-size: 0.78rem; color: var(--color-text-secondary);">
-                                    {{ $app->user->basicInfo?->cnic_number ?: $app->user->email }}
-                                </code>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <div>
-                            <strong style="color: var(--color-text-primary); font-size: 0.92rem;">{{ $app->campaign->title }}</strong><br>
-                            <code style="font-size: 0.75rem; color: var(--primary);">
-                                {{ $app->campaign->job_code }}
-                            </code>
-                        </div>
-                    </td>
-                    <td>
-                        <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25); font-weight: 700;">
-                            {{ $app->campaign->department }}
-                        </span>
-                    </td>
-                    <td>
-                        @if($app->status === 'UNDER_REVIEW')
-                            <span class="badge" style="background: rgba(6,182,212,0.15); color: var(--secondary); border: 1px solid rgba(6,182,212,0.3);">
-                                <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--secondary); margin-right: 0.35rem;"></span>
-                                In Peer Review
-                            </span>
-                        @elseif($app->status === 'PAID')
-                            <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3);">
-                                Paid / In Scrutiny
-                            </span>
-                        @elseif($app->status === 'ELIGIBLE')
-                            <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3);">
-                                Eligible
-                            </span>
-                        @else
-                            <span class="badge" style="background: rgba(255,255,255,0.08); color: var(--color-text-secondary);">{{ $app->status }}</span>
-                        @endif
-                    </td>
-                    <td>
-                        @if($reviewCount > 0)
-                            <div style="min-width: 220px;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; font-size: 0.75rem;">
-                                    <strong style="color: {{ $submittedReviews === $reviewCount ? 'var(--success)' : 'var(--warning)' }};">
-                                        {{ $submittedReviews }} of {{ $reviewCount }} Reports ({{ $pct }}%)
-                                    </strong>
-                                </div>
-                                <div class="review-progress-track" style="margin-bottom: 0.5rem;">
-                                    <div class="review-progress-fill" style="width: {{ $pct }}%; background: {{ $submittedReviews === $reviewCount ? 'var(--success)' : 'linear-gradient(90deg, var(--secondary), var(--primary))' }};"></div>
-                                </div>
-                                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                                    @foreach($app->reviews as $r)
-                                        <div>
-                                            @if($r->status === 'SUBMITTED')
-                                                <span class="review-chip review-chip-submitted" title="Score: {{ $r->overall_score }}/100 • Recommendation: {{ $r->recommendation }}">
-                                                    ✓ {{ $r->reviewer->reviewerProfile?->name ?? 'Reviewer' }} ({{ $r->overall_score }}/100)
-                                                </span>
-                                            @else
-                                                <span class="review-chip review-chip-pending" title="Assigned on: {{ $r->assigned_at?->format('Y-m-d') }} • Due: {{ $r->due_date?->format('Y-m-d') }}">
-                                                    ⏳ {{ $r->reviewer->reviewerProfile?->name ?? 'Reviewer' }} (Pending)
-                                                </span>
-                                            @endif
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Candidate Particulars</th>
+                            <th>Academic Position</th>
+                            <th>Department & Discipline</th>
+                            <th>Current State</th>
+                            <th>Peer Review Progress & Referees</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($academicApplications as $app)
+                            @php
+                                $reviewCount = $app->reviews->count();
+                                $submittedReviews = $app->reviews->where('status', 'SUBMITTED')->count();
+                                $pct = $reviewCount > 0 ? round(($submittedReviews / $reviewCount) * 100) : 0;
+                            @endphp
+                            <tr wire:key="academic-app-{{ $app->id }}">
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 0.85rem;">
+                                        <div class="user-avatar-circle" style="width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(6,182,212,0.25)); color: var(--primary); font-weight: 800; font-size: 0.88rem; display: flex; align-items: center; justify-content: center;">
+                                            {{ strtoupper(substr($app->user->basicInfo?->first_name ?: $app->user->email, 0, 1)) }}
                                         </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @else
-                            <span style="color: var(--color-text-muted); font-size: 0.82rem; font-style: italic;">Not Dispatched</span>
-                        @endif
-                    </td>
-                    <td>
-                        <div class="flex gap-2 align-center">
-                            <button type="button" class="btn btn-primary btn-sm" wire:click="openDispatchModal({{ $app->id }})" style="display: inline-flex; align-items: center; gap: 0.35rem;">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="22" y1="2" x2="11" y2="13"/>
-                                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                                </svg>
-                                <span>{{ $reviewCount > 0 ? 'Add Reviewers' : 'Send for Review' }}</span>
-                            </button>
+                                        <div>
+                                            <strong style="color: var(--color-text-primary); font-size: 0.95rem;">
+                                                {{ $app->user->basicInfo ? trim($app->user->basicInfo->first_name . ' ' . $app->user->basicInfo->last_name) : $app->user->email }}
+                                            </strong>
+                                            <div style="font-size: 0.76rem; color: var(--color-text-muted); font-family: 'JetBrains Mono', monospace; margin-top: 1px;">
+                                                CNIC: {{ $app->user->basicInfo?->cnic_number ?: 'Pending' }} • #{{ $app->tracking_number }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong style="color: var(--color-text-primary); font-size: 0.92rem;">{{ $app->campaign->title }}</strong>
+                                        <div style="font-size: 0.76rem; color: var(--primary); font-weight: 700; font-family: 'JetBrains Mono', monospace; margin-top: 1px;">
+                                            {{ $app->campaign->job_code }}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25); font-weight: 700; font-size: 0.78rem;">
+                                        {{ $app->campaign->department }}
+                                    </span>
+                                </td>
+                                <td>
+                                    @if($app->status === 'UNDER_REVIEW')
+                                        <span class="badge" style="background: rgba(6,182,212,0.15); color: var(--secondary); border: 1px solid rgba(6,182,212,0.3); font-weight: 700; font-size: 0.76rem;">
+                                            ⏳ In Peer Review
+                                        </span>
+                                    @elseif($app->status === 'PAID')
+                                        <span class="badge badge-paid" style="font-weight: 700; font-size: 0.76rem;">
+                                            ✓ Paid / Scrutiny
+                                        </span>
+                                    @elseif($app->status === 'ELIGIBLE')
+                                        <span class="badge badge-paid" style="font-weight: 700; font-size: 0.76rem;">
+                                            ✓ Eligible
+                                        </span>
+                                    @else
+                                        <span class="badge" style="font-size: 0.76rem;">{{ $app->status }}</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($reviewCount > 0)
+                                        <div style="min-width: 220px;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; font-size: 0.75rem;">
+                                                <strong style="color: {{ $submittedReviews === $reviewCount ? 'var(--success)' : 'var(--warning)' }};">
+                                                    {{ $submittedReviews }} of {{ $reviewCount }} Reports ({{ $pct }}%)
+                                                </strong>
+                                            </div>
+                                            <div class="review-progress-track" style="margin-bottom: 0.45rem;">
+                                                <div class="review-progress-fill" style="width: {{ $pct }}%; background: {{ $submittedReviews === $reviewCount ? 'var(--success)' : 'linear-gradient(90deg, var(--secondary), var(--primary))' }};"></div>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                                @foreach($app->reviews as $r)
+                                                    <div>
+                                                        @if($r->status === 'SUBMITTED')
+                                                            <span class="review-chip review-chip-submitted" title="Score: {{ $r->overall_score }}/100 • Recommendation: {{ $r->recommendation }}">
+                                                                ✓ {{ $r->reviewer->reviewerProfile?->name ?? 'Reviewer' }} ({{ $r->overall_score }}/100)
+                                                            </span>
+                                                        @else
+                                                            <span class="review-chip review-chip-pending" title="Assigned on: {{ $r->assigned_at?->format('Y-m-d') }} • Due: {{ $r->due_date?->format('Y-m-d') }}">
+                                                                ⏳ {{ $r->reviewer->reviewerProfile?->name ?? 'Reviewer' }} (Pending)
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @else
+                                        <span style="color: var(--color-text-muted); font-size: 0.8rem; font-style: italic;">
+                                            Awaiting Dispatch to Experts
+                                        </span>
+                                    @endif
+                                </td>
+                                <td style="text-align: right;">
+                                    <div class="flex gap-2 justify-end align-center">
+                                        @if(auth()->user()->can('assign-reviewer') || auth()->user()->can('manage-reviewers'))
+                                            <button type="button" class="btn btn-primary btn-sm" wire:click="openDispatchModal({{ $app->id }})" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.85rem; font-size: 0.82rem;">
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                                                    <line x1="22" y1="2" x2="11" y2="13"/>
+                                                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                                </svg>
+                                                <span>{{ $reviewCount > 0 ? '+ Add Referees' : 'Dispatch for Review' }}</span>
+                                            </button>
+                                        @endif
 
-                            @if($reviewCount > 0)
-                                <button type="button" class="btn btn-secondary btn-sm" wire:click="openReportsModal({{ $app->id }})" style="display: inline-flex; align-items: center; gap: 0.35rem;">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                                    <span>Reports ({{ $submittedReviews }})</span>
-                                </button>
-                            @endif
-                        </div>
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="6" class="text-center" style="padding: 3rem; color: var(--color-text-muted);">
-                        No academic position candidacies registered in the system.
-                    </td>
-                </tr>
-            @endforelse
-        </x-table>
+                                        @if($reviewCount > 0)
+                                            @if(auth()->user()->can('view-review-reports') || auth()->user()->can('manage-reviewers'))
+                                                <button type="button" class="btn btn-secondary btn-sm" wire:click="openReportsModal({{ $app->id }})" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.85rem; font-size: 0.82rem;">
+                                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                                    <span>Reports ({{ $submittedReviews }})</span>
+                                                </button>
+                                            @endif
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="text-center" style="padding: 3.5rem; color: var(--color-text-muted);">
+                                    <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(99,102,241,0.1); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.75rem;">
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                                    </div>
+                                    <h4 style="font-size: 1rem; font-weight: 700; color: var(--color-text-primary); margin: 0 0 0.35rem 0;">No Academic Candidacies Found</h4>
+                                    <p style="font-size: 0.82rem; margin: 0;">No applicant files match the selected position or search filter.</p>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
     @endif
 
     <!-- ============================================================== -->
@@ -310,18 +494,18 @@
     <!-- ============================================================== -->
     @if($showDispatchModal && $targetApplication)
         <div class="modal-overlay-premium" style="z-index: 1050;">
-            <div class="modal-dialog-premium" style="width: 100%; max-width: 860px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; padding: 0;">
+            <div class="modal-dialog-premium" style="width: 100%; max-width: 900px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; padding: 0;">
                 <!-- Header -->
                 <div class="flex justify-between align-center" style="padding: 1.25rem 1.75rem; border-bottom: 1px solid var(--border-color); background: var(--bg-surface); flex-shrink: 0;">
                     <div style="display: flex; align-items: center; gap: 0.85rem;">
-                        <div class="brand-icon-box" style="width: 40px; height: 40px; border-radius: 10px; background: rgba(6,182,212,0.12); color: var(--secondary);">
+                        <div class="brand-icon-box" style="width: 42px; height: 42px; border-radius: 10px; background: rgba(6,182,212,0.15); color: var(--secondary);">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="22" y1="2" x2="11" y2="13"/>
                                 <polygon points="22 2 15 22 11 13 2 9 22 2"/>
                             </svg>
                         </div>
                         <div>
-                            <h3 class="card-title" style="margin: 0; font-size: 1.22rem; font-weight: 800; letter-spacing: -0.02em;">
+                            <h3 class="card-title" style="margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em;">
                                 Dispatch Candidacy for External Academic Peer Review
                             </h3>
                             <p class="card-subtitle" style="margin: 0.2rem 0 0; font-size: 0.84rem;">
@@ -332,10 +516,10 @@
                     <button type="button" class="btn btn-secondary btn-sm" wire:click="closeDispatchModal" style="padding: 0.35rem 0.65rem;">✕</button>
                 </div>
 
-                <!-- Case Details & Smart Filter Header -->
+                <!-- Case Details Header Banner -->
                 <div style="padding: 1rem 1.75rem; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; flex-shrink: 0;">
                     <div style="display: flex; align-items: center; gap: 0.85rem; min-width: 260px;">
-                        <div class="user-avatar-circle" style="width: 38px; height: 38px; font-size: 0.82rem; font-weight: 800; background: linear-gradient(135deg, var(--secondary), var(--primary)); flex-shrink: 0;">
+                        <div class="user-avatar-circle" style="width: 40px; height: 40px; font-size: 0.85rem; font-weight: 800; background: linear-gradient(135deg, var(--secondary), var(--primary)); flex-shrink: 0;">
                             {{ strtoupper(substr($targetApplication->user->basicInfo?->first_name ?: $targetApplication->user->email, 0, 1)) }}{{ strtoupper(substr($targetApplication->user->basicInfo?->last_name ?: '', 0, 1)) }}
                         </div>
                         <div>
@@ -346,7 +530,7 @@
                                 <span class="badge badge-appealed" style="font-size: 0.7rem; text-transform: uppercase;">{{ $targetApplication->campaign->department }}</span>
                             </div>
                             <div style="font-size: 0.76rem; color: var(--color-text-muted); font-family: 'JetBrains Mono', monospace; margin-top: 1px;">
-                                CNIC: {{ $targetApplication->user->basicInfo?->cnic_number ?? 'Pending' }}
+                                CNIC: {{ $targetApplication->user->basicInfo?->cnic_number ?? 'Pending' }} • Dossier Ref: #{{ $targetApplication->tracking_number }}
                             </div>
                         </div>
                     </div>
@@ -354,33 +538,76 @@
                     <!-- Filter Pill Toggle -->
                     <label style="cursor: pointer; display: inline-flex; align-items: center; gap: 0.55rem; background: var(--bg-card); padding: 0.45rem 0.95rem; border-radius: 9999px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); user-select: none;">
                         <input type="checkbox" wire:model.live="filterByFieldOnly" style="width: 1.1rem; height: 1.1rem; accent-color: var(--secondary); cursor: pointer;">
-                        <span style="font-size: 0.82rem; font-weight: 600; color: var(--color-text-primary);">
-                            Only show field-related reviewers ({{ $targetApplication->campaign->department }})
+                        <span style="font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary);">
+                            Smart Discipline Match ({{ \App\Services\AcademicDisciplineMatcher::normalizeDepartment($targetApplication->campaign->department) }})
                         </span>
                     </label>
                 </div>
 
                 <!-- Field Matched Reviewers Selection Area -->
-                <div style="padding: 1.5rem 1.75rem 3rem 1.75rem; overflow-y: auto; flex: 1;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
+                <div style="padding: 1.25rem 1.75rem 3rem 1.75rem; overflow-y: auto; flex: 1;">
+                    <!-- Statutory Constitution Quorum Banner -->
+                    <div style="margin-bottom: 1.25rem; padding: 0.85rem 1.25rem; background: rgba(99,102,241,0.06); border: 1.5px solid rgba(99,102,241,0.2); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.18); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem;">
+                                ⚖
+                            </div>
+                            <div>
+                                <div style="font-size: 0.82rem; font-weight: 800; color: var(--color-text-primary);">
+                                    Statutory Criteria Quorum: Exactly {{ $targetRequiredExperts }} External Subject Referees Required
+                                </div>
+                                <div style="font-size: 0.74rem; color: var(--color-text-muted);">
+                                    {{ $alreadyAssignedCount }} previously dispatched • {{ count($selectedReviewerIds) }} currently picked for dispatch
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            @php
+                                $totalDispatchedOrPicked = count($selectedReviewerIds) + $alreadyAssignedCount;
+                            @endphp
+                            @if($totalDispatchedOrPicked === $targetRequiredExperts)
+                                <span class="badge" style="background: rgba(16,185,129,0.18); color: var(--success); font-weight: 800; font-size: 0.78rem; padding: 0.4rem 0.8rem; border: 1px solid rgba(16,185,129,0.3);">
+                                    ✓ Quorum Satisfied ({{ $totalDispatchedOrPicked }} of {{ $targetRequiredExperts }})
+                                </span>
+                            @elseif($totalDispatchedOrPicked < $targetRequiredExperts)
+                                <span class="badge" style="background: rgba(245,158,11,0.15); color: var(--warning); font-weight: 800; font-size: 0.78rem; padding: 0.4rem 0.8rem; border: 1px solid rgba(245,158,11,0.3);">
+                                    ⏳ {{ $totalDispatchedOrPicked }}/{{ $targetRequiredExperts }} (Pick {{ $targetRequiredExperts - $totalDispatchedOrPicked }} more)
+                                </span>
+                            @else
+                                <span class="badge" style="background: rgba(239,68,68,0.15); color: var(--danger); font-weight: 800; font-size: 0.78rem; padding: 0.4rem 0.8rem; border: 1px solid rgba(239,68,68,0.3);">
+                                    ⚠ Over Quota ({{ $totalDispatchedOrPicked }}/{{ $targetRequiredExperts }})
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    @if($errors->has('selectedReviewerIds'))
+                        <div class="alert alert-danger mb-4" style="padding: 0.75rem 1rem; font-size: 0.82rem; display: flex; align-items: center; gap: 0.5rem; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: var(--danger); border-radius: var(--radius-sm);">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                            <span>{{ $errors->first('selectedReviewerIds') }}</span>
+                        </div>
+                    @endif
+                    <!-- Filter Toolbar inside modal -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
                         <div style="display: flex; align-items: center; gap: 0.6rem;">
                             <div style="width: 28px; height: 28px; border-radius: 8px; background: rgba(99,102,241,0.15); color: var(--primary); display: flex; align-items: center; justify-content: center;">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                             </div>
-                            <h4 style="font-size: 1rem; font-weight: 700; color: var(--color-text-primary); margin: 0;">
+                            <h4 style="font-size: 0.98rem; font-weight: 800; color: var(--color-text-primary); margin: 0;">
                                 @if($filterByFieldOnly)
-                                    Field-Matched Subject Experts in {{ $targetApplication->campaign->department }}
+                                    Field-Matched Referees in {{ \App\Services\AcademicDisciplineMatcher::normalizeDepartment($targetApplication->campaign->department) }} & Allied Fields
                                 @else
-                                    All Empanelled Academic Reviewers
+                                    All Empanelled Academic Experts
                                 @endif
                             </h4>
-                            <span class="badge" style="background: rgba(99,102,241,0.14); color: var(--primary); font-size: 0.75rem; font-weight: 800;">
-                                {{ $fieldMatchedReviewers->count() }} Available
+                            <span class="badge" style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: 0.75rem; font-weight: 800;">
+                                {{ $fieldMatchedReviewers->count() }} Found
                             </span>
                         </div>
 
                         <div style="display: flex; align-items: center; gap: 0.75rem;">
-                            <button type="button" class="btn btn-primary btn-sm" wire:click="openEmpanelAndAssignModal('{{ addslashes($targetApplication->campaign->department) }}')" style="font-size: 0.8rem; padding: 0.4rem 0.85rem; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: var(--shadow-sm);">
+                            <button type="button" class="btn btn-primary btn-sm" wire:click="openEmpanelAndAssignModal('{{ addslashes($targetApplication->campaign->department) }}')" style="font-size: 0.8rem; padding: 0.4rem 0.85rem; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: var(--shadow-sm); font-weight: 700;">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                                 <span>+ Empanel New Expert</span>
                             </button>
@@ -391,13 +618,39 @@
                         </div>
                     </div>
 
+                    <!-- Inner Search & Discipline Filter Bar -->
+                    <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center;">
+                        <div style="position: relative; flex: 2;">
+                            <input type="text" 
+                                   class="form-control" 
+                                   wire:model.live.debounce.200ms="dispatchReviewerSearch" 
+                                   placeholder="Filter experts by name, subfield, or university..." 
+                                   style="padding-left: 2.2rem; font-size: 0.85rem; background: var(--bg-card); color: var(--color-text-primary);">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="2" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); pointer-events: none;">
+                                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                            </svg>
+                        </div>
+
+                        @if(!empty($availableSubjects))
+                            <div style="flex: 1;">
+                                <select class="form-control form-select" wire:model.live="dispatchDisciplineFilter" style="font-size: 0.85rem; background: var(--bg-card); color: var(--color-text-primary);">
+                                    <option value="">All Field Disciplines</option>
+                                    @foreach($availableSubjects as $subj)
+                                        <option value="{{ $subj }}">{{ $subj }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
+                    </div>
+
                     @error('selectedReviewerIds')
                         <div class="card mb-3" style="background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.3); padding: 0.75rem 1rem;">
                             <span style="color: #fca5a5; font-size: 0.82rem; font-weight: 600;">{{ $message }}</span>
                         </div>
                     @enderror
 
-                    <div class="grid grid-cols-2 gap-3 mb-6" style="max-height: 280px; overflow-y: auto;">
+                    <!-- Reviewers Grid -->
+                    <div class="grid grid-cols-2 gap-3 mb-6" style="max-height: 290px; overflow-y: auto;">
                         @forelse($fieldMatchedReviewers as $rev)
                             @php
                                 $isAlreadyAssigned = $targetApplication->reviews->contains('reviewer_id', $rev->user_id);
@@ -408,19 +661,24 @@
                                  @if(!$isAlreadyAssigned) wire:click="toggleReviewerSelection({{ $rev->user_id }})" @endif>
                                 <div>
                                     <div class="flex justify-between align-center mb-1">
-                                        <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.68rem; font-weight: 700;">{{ $rev->subject }}</span>
+                                        <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.7rem; font-weight: 700;">{{ $rev->subject }}</span>
                                         <span style="font-size: 0.72rem; color: var(--color-text-muted);">📍 {{ $rev->country }}</span>
                                     </div>
 
-                                    <strong style="color: var(--color-text-primary); font-size: 0.92rem; display: block; margin-bottom: 2px;">
+                                    <strong style="color: var(--color-text-primary); font-size: 0.94rem; display: block; margin-bottom: 2px;">
                                         {{ $rev->name }}
                                     </strong>
-                                    <span style="font-size: 0.8rem; color: var(--secondary); font-weight: 600; display: block;">
+                                    <span style="font-size: 0.8rem; color: var(--secondary); font-weight: 700; display: block;">
                                         {{ $rev->academic_rank }}
                                     </span>
-                                    <span style="font-size: 0.75rem; color: var(--color-text-secondary); display: block;">
+                                    <span style="font-size: 0.76rem; color: var(--color-text-secondary); display: block;">
                                         {{ $rev->university }}
                                     </span>
+                                    @if($rev->specialization)
+                                        <div style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                            Scope: {{ $rev->specialization }}
+                                        </div>
+                                    @endif
                                 </div>
 
                                 <div style="margin-top: 0.75rem; border-top: 1px solid var(--border-color); padding-top: 0.5rem;" class="flex justify-between align-center">
@@ -429,11 +687,11 @@
                                     </span>
 
                                     @if($isAlreadyAssigned)
-                                        <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--success); font-size: 0.65rem;">Already Assigned</span>
+                                        <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--success); font-size: 0.68rem; font-weight: 700;">Already Assigned</span>
                                     @elseif($isSelected)
-                                        <span class="badge" style="background: rgba(6,182,212,0.15); color: var(--secondary); font-size: 0.65rem; font-weight: 700;">✓ Selected</span>
+                                        <span class="badge" style="background: rgba(6,182,212,0.15); color: var(--secondary); font-size: 0.68rem; font-weight: 800;">✓ Selected</span>
                                     @else
-                                        <span class="btn btn-secondary btn-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">Select</span>
+                                        <span class="btn btn-secondary btn-sm" style="font-size: 0.7rem; padding: 0.2rem 0.55rem;">Select</span>
                                     @endif
                                 </div>
                             </div>
@@ -441,22 +699,19 @@
                             <div style="grid-column: 1 / -1; text-align: center; color: var(--color-text-muted); padding: 2.5rem 1.5rem; background: rgba(0,0,0,0.15); border: 1.5px dashed var(--border-color); border-radius: var(--radius-md);">
                                 <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(6,182,212,0.1); color: var(--secondary); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.75rem;">
                                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                                        <circle cx="9" cy="7" r="4"/>
-                                        <line x1="19" y1="8" x2="19" y2="14"/>
-                                        <line x1="22" y1="11" x2="16" y2="11"/>
+                                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
                                     </svg>
                                 </div>
                                 <h5 style="color: var(--color-text-primary); font-size: 1rem; font-weight: 700; margin: 0 0 0.35rem 0;">
-                                    No External Reviewers Empanelled for {{ $targetApplication->campaign->department }}
+                                    No External Reviewers Found Matching Search Criteria
                                 </h5>
                                 <p style="font-size: 0.82rem; color: var(--color-text-secondary); max-width: 460px; margin: 0 auto 1.25rem auto; line-height: 1.5;">
-                                    Statutory faculty appointments require external subject reviews. Click below to empanel an expert right here or browse all faculties.
+                                    Statutory faculty appointments require external subject reviews. Click below to empanel a new expert or toggle all faculties.
                                 </p>
                                 <div class="flex gap-2 justify-center flex-wrap">
                                     <button type="button" class="btn btn-primary btn-sm" wire:click="openEmpanelAndAssignModal('{{ addslashes($targetApplication->campaign->department) }}')" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.9rem;">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                                        <span>+ Empanel New Expert for {{ $targetApplication->campaign->department }}</span>
+                                        <span>+ Empanel New Expert for {{ \App\Services\AcademicDisciplineMatcher::normalizeDepartment($targetApplication->campaign->department) }}</span>
                                     </button>
                                     <button type="button" class="btn btn-secondary btn-sm" wire:click="$set('filterByFieldOnly', false)" style="padding: 0.45rem 0.9rem;">
                                         <span>Show All Disciplines</span>
@@ -553,13 +808,16 @@
                                 <option value="Tenured Professor">Tenured Professor</option>
                                 <option value="Distinguished Professor">Distinguished Professor</option>
                                 <option value="Senior Scientist">Senior Scientist / Principal Investigator</option>
+                                <option value="Industry Fellow">Industry Fellow / Technical Advisor</option>
+                                <option value="Principal Consultant">Principal Consultant / Lead Specialist</option>
+                                <option value="Executive Director">Executive Director / Senior Director</option>
                             </select>
                         </x-select>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4 mb-4">
-                        <x-input label="Affiliated University / Institution *" :error="$errors->first('university')">
-                            <input type="text" class="form-control" wire:model="university" placeholder="e.g. National University of Sciences & Technology">
+                        <x-input label="Institutional Affiliation / Organization / University *" :error="$errors->first('university')">
+                            <input type="text" class="form-control" wire:model="university" placeholder="e.g. Oxford University, Microsoft Research, NUST">
                         </x-input>
 
                         <!-- Searchable & Selectable Country Component -->
@@ -609,7 +867,7 @@
                                 Empanel & Assign New Subject Expert
                             </h3>
                             <p class="card-subtitle" style="margin: 0.2rem 0 0; font-size: 0.82rem;">
-                                Pre-configured for <strong style="color: var(--secondary);">{{ $targetApplication?->campaign?->department }}</strong>. Automatically assigned to this candidate upon saving.
+                                Pre-configured for <strong style="color: var(--secondary);">{{ \App\Services\AcademicDisciplineMatcher::normalizeDepartment($targetApplication?->campaign?->department ?? '') }}</strong>. Automatically assigned to this candidate upon saving.
                             </p>
                         </div>
                     </div>
@@ -646,13 +904,16 @@
                                 <option value="Tenured Professor">Tenured Professor</option>
                                 <option value="Distinguished Professor">Distinguished Professor</option>
                                 <option value="Senior Scientist">Senior Scientist / Principal Investigator</option>
+                                <option value="Industry Fellow">Industry Fellow / Technical Advisor</option>
+                                <option value="Principal Consultant">Principal Consultant / Lead Specialist</option>
+                                <option value="Executive Director">Executive Director / Senior Director</option>
                             </select>
                         </x-select>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4 mb-4">
-                        <x-input label="Affiliated University / Institution *" :error="$errors->first('university')">
-                            <input type="text" class="form-control" wire:model="university" placeholder="e.g. National University of Sciences & Technology">
+                        <x-input label="Institutional Affiliation / Organization / University *" :error="$errors->first('university')">
+                            <input type="text" class="form-control" wire:model="university" placeholder="e.g. Oxford University, Microsoft Research, NUST">
                         </x-input>
 
                         <x-searchable-country-select wire:model="country" label="Affiliated Country *" :error="$errors->first('country')" placeholder="Search or select country..." />

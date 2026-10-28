@@ -32,7 +32,7 @@ class PaymentManagement extends Component
 
     public function mount()
     {
-        abort_unless(Auth::check() && Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::check() && Auth::user()->can('view-payment'), 403);
         $this->loadAuxiliaryData();
     }
 
@@ -58,7 +58,7 @@ class PaymentManagement extends Component
 
     public function openCreatePaymentForm()
     {
-        abort_unless(Auth::user()->can('create-payment') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('create-payment'), 403);
         $this->resetForm();
         $this->loadAuxiliaryData();
         $this->isEditMode = false;
@@ -67,7 +67,7 @@ class PaymentManagement extends Component
 
     public function openEditPaymentForm($id)
     {
-        abort_unless(Auth::user()->can('edit-payment') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('edit-payment'), 403);
         $this->resetForm();
         $this->pay_id = $id;
         $ledger = BillingLedger::findOrFail($id);
@@ -84,7 +84,7 @@ class PaymentManagement extends Component
     public function savePayment()
     {
         if ($this->isEditMode) {
-            abort_unless(Auth::user()->can('edit-payment') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+            abort_unless(Auth::user()->can('edit-payment'), 403);
             $this->validate([
                 'pay_amount' => 'required|numeric',
                 'pay_status' => 'required|in:PENDING,AUTHORIZED,SETTLED,EXPIRED',
@@ -104,7 +104,7 @@ class PaymentManagement extends Component
 
             session()->flash('message', 'Payment & voucher details updated.');
         } else {
-            abort_unless(Auth::user()->can('create-payment') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+            abort_unless(Auth::user()->can('create-payment'), 403);
             $this->validate([
                 'pay_app_id' => 'required|exists:applications,id|unique:billing_ledger,application_id',
                 'pay_consumer_id' => 'required|string|unique:billing_ledger,consumer_id',
@@ -134,7 +134,7 @@ class PaymentManagement extends Component
 
     public function markSettled($id)
     {
-        abort_unless(Auth::user()->can('edit-payment') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('reconcile-payment') || Auth::user()->can('edit-payment'), 403);
         $ledger = BillingLedger::findOrFail($id);
         $ledger->update([
             'status' => 'SETTLED',
@@ -151,7 +151,7 @@ class PaymentManagement extends Component
 
     public function deletePayment($id)
     {
-        abort_unless(Auth::user()->can('delete-payment') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('delete-payment'), 403);
         BillingLedger::destroy($id);
         session()->flash('message', 'Billing record deleted.');
         $this->loadAuxiliaryData();

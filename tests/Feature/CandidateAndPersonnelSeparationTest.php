@@ -109,5 +109,72 @@ class CandidateAndPersonnelSeparationTest extends TestCase
             ->assertSee('Dr. Usman Qureshi')
             ->assertSee('Main Campus / Head Office');
     }
+
+    public function test_arbitrary_new_custom_roles_are_dynamically_excluded_from_candidate_profiles()
+    {
+        $this->actingAs($this->registrar);
+
+        // Create 2 completely new custom roles that were never hardcoded (e.g. dean-faculty, director-qec)
+        $deanRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'dean-faculty', 'guard_name' => 'web']);
+        $directorRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'director-qec', 'guard_name' => 'web']);
+
+        $deanUser = User::factory()->create(['email' => 'dean.engineering@university.edu']);
+        $deanUser->assignRole('dean-faculty');
+
+        BasicInfo::create([
+            'user_id' => $deanUser->id,
+            'track_type' => 'ACADEMIC',
+            'first_name' => 'Prof. Dr. Jamshed',
+            'last_name' => 'Anwar',
+            'cnic_number' => '42201-5555555-1',
+            'date_of_birth' => '1975-01-01',
+            'gender' => 'Male',
+            'father_name' => 'Father',
+            'marital_status' => 'Married',
+            'phone_number' => '+92-300-5555555',
+            'permanent_address' => 'Faculty of Engineering Office',
+            'mailing_address' => 'Faculty of Engineering Office',
+            'same_address' => true,
+            'is_locked' => true,
+        ]);
+
+        // Assert deanUser has basicInfo in DB
+        $this->assertDatabaseHas('basic_infos', ['user_id' => $deanUser->id]);
+
+        // When CandidateProfileManagement runs, deanUser is AUTOMATICALLY excluded with zero hardcoding!
+        $component = Livewire::test(CandidateProfileManagement::class);
+        $profiles = $component->viewData('profiles');
+        $emails = $profiles->pluck('user.email')->all();
+
+        $this->assertNotContains('dean.engineering@university.edu', $emails);
+        $this->assertContains('applicant1@gmail.com', $emails);
+
+        // In UserManagement, deanUser is automatically recognized as institutional staff!
+        $userComponent = Livewire::test(UserManagement::class);
+        $userComponent->call('filterCategory', 'STAFF');
+        $staffUsers = $userComponent->viewData('users')->pluck('email')->all();
+        $this->assertContains('dean.engineering@university.edu', $staffUsers);
+    }
+
+    public function test_concise_short_role_aliases_work_seamlessly()
+    {
+        // Test short aliases: board, scrutiny, appellate, reviewer
+        $shortBoardUser = User::factory()->create(['email' => 'boardmember@university.edu']);
+        $shortBoardUser->assignRole('board');
+
+        $this->assertTrue($shortBoardUser->hasRole('board'));
+        $this->assertTrue($shortBoardUser->can('evaluate-application'));
+
+        // Test root redirection with short alias
+        $this->actingAs($shortBoardUser);
+        $response = $this->get('/');
+        $response->assertRedirect('/board/dashboard');
+
+        // Test scrutiny short alias
+        $shortScrutinyUser = User::factory()->create(['email' => 'scrutinyofficer@university.edu']);
+        $shortScrutinyUser->assignRole('scrutiny');
+        $this->actingAs($shortScrutinyUser);
+        $this->get('/')->assertRedirect('/scrutiny/dashboard');
+    }
 }
 
