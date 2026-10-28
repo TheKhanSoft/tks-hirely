@@ -22,6 +22,7 @@ class CampaignCrud extends Component
     public $opening_date;
     public $closing_date;
     public $application_fee = 1000.00;
+    public $require_transcript_proof = true;
     
     // Dynamic rule mapper fields (Academic track weights)
     public $gold_medal_weight = 5.0;
@@ -135,6 +136,7 @@ class CampaignCrud extends Component
         
         $this->patent_granted_weight = $rules['patent_granted_weight'] ?? 1.0;
         $this->patent_licensed_weight = $rules['patent_licensed_weight'] ?? 2.0;
+        $this->require_transcript_proof = (bool)$campaign->requiresTranscriptProof();
 
         $this->isEditMode = true;
         $this->isFormOpen = true;
@@ -175,6 +177,7 @@ class CampaignCrud extends Component
             
             'patent_granted_weight' => floatval($this->patent_granted_weight),
             'patent_licensed_weight' => floatval($this->patent_licensed_weight),
+            'require_transcript_proof' => (bool)$this->require_transcript_proof,
         ];
 
         $data = [
@@ -185,6 +188,7 @@ class CampaignCrud extends Component
             'opening_date' => $this->opening_date,
             'closing_date' => $this->closing_date,
             'application_fee' => $this->application_fee,
+            'require_transcript_proof' => (bool)$this->require_transcript_proof,
             'scoring_rules' => $scoringRules,
         ];
 
@@ -219,6 +223,7 @@ class CampaignCrud extends Component
         $this->opening_date = '';
         $this->closing_date = '';
         $this->application_fee = 1000.00;
+        $this->require_transcript_proof = true;
         
         $this->gold_medal_weight = 5.0;
         $this->silver_medal_weight = 3.0;

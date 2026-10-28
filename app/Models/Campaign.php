@@ -19,6 +19,7 @@ class Campaign extends Model
         'closing_date',
         'application_fee',
         'is_active',
+        'require_transcript_proof',
         'scoring_rules',
     ];
 
@@ -27,8 +28,20 @@ class Campaign extends Model
         'closing_date' => 'datetime',
         'application_fee' => 'decimal:2',
         'is_active' => 'boolean',
+        'require_transcript_proof' => 'boolean',
         'scoring_rules' => 'array',
     ];
+
+    /**
+     * Determine if academic degrees require transcript proof.
+     */
+    public function requiresTranscriptProof(): bool
+    {
+        if (isset($this->require_transcript_proof)) {
+            return (bool)$this->require_transcript_proof;
+        }
+        return (bool)($this->scoring_rules['require_transcript_proof'] ?? true);
+    }
 
     /**
      * Committees assigned to this campaign.

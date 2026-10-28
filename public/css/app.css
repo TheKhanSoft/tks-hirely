@@ -370,8 +370,11 @@ body {
 .wizard-steps {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
     position: relative;
+    overflow-x: auto;
+    padding-bottom: 0.75rem;
+    scrollbar-width: thin;
 }
 .wizard-steps::before {
     content: '';
@@ -387,7 +390,10 @@ body {
     gap: 0.5rem;
     z-index: 2;
     flex: 1;
+    min-width: 85px;
     position: relative;
+    user-select: none;
+    cursor: pointer;
 }
 .wizard-step {
     width: 2.5rem;

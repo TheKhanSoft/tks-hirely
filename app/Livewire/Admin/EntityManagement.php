@@ -76,6 +76,7 @@ class EntityManagement extends Component
     public $opening_date;
     public $closing_date;
     public $application_fee = 1000.00;
+    public $campaign_require_transcript_proof = true;
     // Campaign Weights
     public $gold_medal_weight = 5.0;
     public $silver_medal_weight = 3.0;
@@ -196,6 +197,7 @@ class EntityManagement extends Component
         ]);
         $this->role_name = 'applicant';
         $this->track_type = 'ACADEMIC';
+        $this->campaign_require_transcript_proof = true;
         $this->bi_track_type = 'ACADEMIC';
         $this->pay_status = 'PENDING';
         $this->app_status = 'DRAFT';
@@ -446,6 +448,7 @@ class EntityManagement extends Component
         $this->project_max_marks = $rules['project_max_marks'] ?? 13.0;
         $this->patent_granted_weight = $rules['patent_granted_weight'] ?? 1.0;
         $this->patent_licensed_weight = $rules['patent_licensed_weight'] ?? 2.0;
+        $this->campaign_require_transcript_proof = (bool)$camp->requiresTranscriptProof();
 
         $this->isEditMode = true;
         $this->isFormOpen = true;
@@ -481,6 +484,7 @@ class EntityManagement extends Component
             'project_max_marks' => floatval($this->project_max_marks),
             'patent_granted_weight' => floatval($this->patent_granted_weight),
             'patent_licensed_weight' => floatval($this->patent_licensed_weight),
+            'require_transcript_proof' => (bool)$this->campaign_require_transcript_proof,
         ];
 
         $data = [
@@ -491,6 +495,7 @@ class EntityManagement extends Component
             'opening_date' => $this->opening_date,
             'closing_date' => $this->closing_date,
             'application_fee' => $this->application_fee,
+            'require_transcript_proof' => (bool)$this->campaign_require_transcript_proof,
             'scoring_rules' => $scoringRules,
         ];
 

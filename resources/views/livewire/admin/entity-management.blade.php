@@ -237,6 +237,17 @@
                         </x-input>
                     </div>
 
+                    <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem 1.25rem; background: var(--bg-secondary); margin-top: 1rem;" class="flex justify-between align-center">
+                        <div>
+                            <strong style="color: var(--color-text-primary); font-size: 0.95rem; display: block;">📜 Academic Transcript Proof Requirement</strong>
+                            <small style="color: var(--color-text-secondary);">Choose whether applicants must upload degree transcripts/certificates or if uploads are optional.</small>
+                        </div>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 700; color: var(--color-text-primary);">
+                            <input type="checkbox" wire:model="campaign_require_transcript_proof" style="width: 1.25rem; height: 1.25rem;">
+                            <span>{{ $campaign_require_transcript_proof ? 'Mandatory (Required *)' : 'Optional' }}</span>
+                        </label>
+                    </div>
+
                     @if($track_type === 'ACADEMIC')
                         <div style="border: 1px solid var(--secondary-glow); border-radius: 8px; padding: 1.5rem; background: rgba(6,182,212,0.02);" class="mt-6 mb-6">
                             <h4 style="color: var(--secondary); font-size: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;" class="mb-4">⚡ Academic Scoring Weights</h4>

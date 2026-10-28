@@ -196,8 +196,8 @@ class ProfileWizard extends Component
                 'quota' => 'required|string',
                 'gender' => 'required|in:Male,Female,Other',
                 'father_name' => 'required|string|max:150',
-                'phone_number' => 'required|string|max:20',
-                'secondary_phone' => 'nullable|string|max:20',
+                'phone_number' => ['required', 'regex:/^((\+92|0092|92)?[\s\-]?)?(0?3[0-9]{2}[\s\-]?[0-9]{7}|0[1-9][0-9]{1,2}[\s\-]?[0-9]{6,8}|\+[1-9][0-9]{7,14})$/'],
+                'secondary_phone' => ['nullable', 'regex:/^((\+92|0092|92)?[\s\-]?)?(0?3[0-9]{2}[\s\-]?[0-9]{7}|0[1-9][0-9]{1,2}[\s\-]?[0-9]{6,8}|\+[1-9][0-9]{7,14})$/'],
                 'secondary_email' => 'nullable|email|max:100',
                 'same_address' => 'boolean',
                 'permanent_address' => 'required|string|max:500',
@@ -214,6 +214,9 @@ class ProfileWizard extends Component
 
     protected $messages = [
         'cnic_number.regex' => 'The CNIC number format must be 12345-1234567-1.',
+        'phone_number.required' => 'Mobile / Contact number is required.',
+        'phone_number.regex' => 'Please enter a valid mobile number (e.g. 0300-1234567 or +923001234567).',
+        'secondary_phone.regex' => 'Please enter a valid secondary phone/mobile number (e.g. 0300-7654321 or +923007654321).',
     ];
 
     public function mount()
@@ -357,6 +360,166 @@ class ProfileWizard extends Component
         }
     }
 
+    public function goToStep($step)
+    {
+        $step = intval($step);
+        if ($step < 1 || $step > $this->totalSteps) {
+            return;
+        }
+
+        // Validate and save step 1 if navigating forward from step 1
+        if ($this->currentStep === 1 && $step > 1) {
+            $this->cnic_number = $this->formatCnic($this->cnic_number);
+            if ($this->same_address) {
+                $this->mailing_address = $this->permanent_address;
+            }
+            $rules = $this->getRules();
+            if (!empty($rules)) {
+                $this->validate($rules);
+            }
+            $this->saveProfileStep1();
+        }
+
+        $this->currentStep = $step;
+    }
+
+    public function getCountriesProperty()
+    {
+        return [
+            'Pakistan',
+            'United States',
+            'United Kingdom',
+            'Canada',
+            'Australia',
+            'Saudi Arabia',
+            'United Arab Emirates',
+            'China',
+            'Germany',
+            'France',
+            'Turkey',
+            'Malaysia',
+            'Qatar',
+            'Oman',
+            'Kuwait',
+            'Bahrain',
+            'Singapore',
+            'Japan',
+            'South Korea',
+            'India',
+            'Bangladesh',
+            'Sri Lanka',
+            'Nepal',
+            'Afghanistan',
+            'Iran',
+            'Egypt',
+            'South Africa',
+            'Nigeria',
+            'Kenya',
+            'Italy',
+            'Spain',
+            'Netherlands',
+            'Switzerland',
+            'Sweden',
+            'Norway',
+            'Denmark',
+            'Finland',
+            'Ireland',
+            'New Zealand',
+            'Brazil',
+            'Other Country',
+        ];
+    }
+
+    public function getStatesProperty()
+    {
+        $country = strtolower(trim($this->nationality ?? ''));
+
+        if (in_array($country, ['pakistan', 'pakistani', ''])) {
+            return [
+                'Punjab',
+                'Sindh',
+                'Khyber Pakhtunkhwa',
+                'Balochistan',
+                'Islamabad Capital Territory',
+                'Gilgit-Baltistan',
+                'Azad Jammu and Kashmir',
+            ];
+        }
+
+        if (in_array($country, ['united states', 'usa', 'us', 'american'])) {
+            return [
+                'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado',
+                'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho',
+                'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana',
+                'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota',
+                'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada',
+                'New Hampshire', 'New Jersey', 'New Mexico', 'New York',
+                'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon',
+                'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
+                'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington',
+                'West Virginia', 'Wisconsin', 'Wyoming'
+            ];
+        }
+
+        if (in_array($country, ['canada', 'canadian'])) {
+            return [
+                'Alberta', 'British Columbia', 'Manitoba', 'New Brunswick',
+                'Newfoundland and Labrador', 'Northwest Territories', 'Nova Scotia',
+                'Nunavut', 'Ontario', 'Prince Edward Island', 'Quebec', 'Saskatchewan', 'Yukon'
+            ];
+        }
+
+        if (in_array($country, ['united kingdom', 'uk', 'british', 'great britain'])) {
+            return ['England', 'Scotland', 'Wales', 'Northern Ireland'];
+        }
+
+        if (in_array($country, ['australia', 'australian'])) {
+            return [
+                'Australian Capital Territory', 'New South Wales', 'Northern Territory',
+                'Queensland', 'South Australia', 'Tasmania', 'Victoria', 'Western Australia'
+            ];
+        }
+
+        if (in_array($country, ['united arab emirates', 'uae', 'emirati'])) {
+            return ['Abu Dhabi', 'Dubai', 'Sharjah', 'Ajman', 'Umm Al Quwain', 'Ras Al Khaimah', 'Fujairah'];
+        }
+
+        if (in_array($country, ['saudi arabia', 'saudi'])) {
+            return [
+                'Riyadh', 'Makkah', 'Eastern Province', 'Madinah', 'Al-Qassim',
+                'Asir', 'Tabuk', 'Hail', 'Northern Borders', 'Jazan', 'Najran', 'Al-Bahah', 'Al-Jawf'
+            ];
+        }
+
+        if (in_array($country, ['china', 'chinese'])) {
+            return ['Beijing', 'Shanghai', 'Guangdong', 'Zhejiang', 'Jiangsu', 'Sichuan', 'Hubei', 'Shandong'];
+        }
+
+        if (in_array($country, ['germany', 'german'])) {
+            return ['Bavaria', 'Berlin', 'Baden-Württemberg', 'North Rhine-Westphalia', 'Hesse', 'Saxony', 'Hamburg'];
+        }
+
+        if (in_array($country, ['turkey', 'turkish', 'türkiye'])) {
+            return ['Istanbul', 'Ankara', 'Izmir', 'Bursa', 'Antalya', 'Adana', 'Konya'];
+        }
+
+        if (in_array($country, ['india', 'indian'])) {
+            return ['Maharashtra', 'Delhi', 'Karnataka', 'Tamil Nadu', 'Uttar Pradesh', 'Gujarat', 'West Bengal', 'Punjab'];
+        }
+
+        return [];
+    }
+
+    public function updatedNationality($value)
+    {
+        $states = $this->states;
+        if (!empty($states)) {
+            if (!in_array($this->domicile, $states)) {
+                $this->domicile = $states[0] ?? '';
+            }
+        }
+    }
+
     // Save basicInfo Step 1
     protected function saveProfileStep1()
     {
@@ -490,6 +653,8 @@ class ProfileWizard extends Component
             return;
         }
 
+        $isProofRequired = $this->selectedCampaignModel?->requiresTranscriptProof() ?? true;
+
         $this->validate([
             'new_degree_level' => 'required|string|in:' . implode(',', array_keys($this->getNextDegreeLevelOptionsProperty())),
             'new_degree_country' => 'required|string|max:100',
@@ -501,10 +666,10 @@ class ProfileWizard extends Component
             'new_degree_board' => 'required|string',
             'new_degree_division' => 'required|string',
             'new_degree_scale' => 'required|string',
-            'new_degree_proof' => 'required|file|max:2048',
+            'new_degree_proof' => $isProofRequired ? 'required|file|max:2048' : 'nullable|file|max:2048',
         ]);
 
-        $path = $this->new_degree_proof->store('degrees', 'public');
+        $path = $this->new_degree_proof ? $this->new_degree_proof->store('degrees', 'public') : null;
         $basicInfo = Auth::user()->basicInfo;
         if (!$basicInfo) return;
 

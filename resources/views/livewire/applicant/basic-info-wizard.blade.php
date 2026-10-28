@@ -1,5 +1,5 @@
-<div>
-    <x-card title="👤 Applicant Recruitment Wizard" subtitle="Provide your biodata, educational history, professional experience, milestones, and generate your processing voucher.">
+<div wire:key="wizard-root">
+    <x-card wire:key="wizard-header-card" title="👤 Applicant Recruitment Wizard" subtitle="Provide your biodata, educational history, professional experience, milestones, and generate your processing voucher.">
         <!-- Wizard Progress Steps with Labels Underneath -->
         @php
             $stepLabels = [
@@ -15,7 +15,7 @@
         @endphp
         <div class="wizard-steps" style="margin-top: 1.5rem;">
             @for ($i = 1; $i <= $totalSteps; $i++)
-                <div class="wizard-step-container {{ $currentStep == $i ? 'active' : ($currentStep > $i ? 'completed' : '') }}">
+                <div wire:key="nav-step-{{ $i }}" class="wizard-step-container {{ $currentStep == $i ? 'active' : ($currentStep > $i ? 'completed' : '') }}" wire:click="goToStep({{ $i }})" title="Go to Step {{ $i }}: {{ $stepLabels[$i] }}">
                     <div class="wizard-step {{ $currentStep == $i ? 'active' : ($currentStep > $i ? 'completed' : '') }}">
                         @if($currentStep > $i) ✓ @else {{ $i }} @endif
                     </div>
@@ -26,15 +26,18 @@
     </x-card>
 
     @if($basicInfo && $basicInfo->is_locked && $currentStep < 8)
-        <x-alert type="warning" message="⚠️ Your basicInfo is currently locked because your application has been submitted and processing voucher generated. Please proceed to Step 8 to access your voucher." />
+        <div wire:key="wizard-lock-alert">
+            <x-alert type="warning" message="⚠️ Your basicInfo is currently locked because your application has been submitted and processing voucher generated. Please proceed to Step 8 to access your voucher." />
+        </div>
     @endif
 
-    <div style="margin-top: 2rem;">
+    <div wire:key="wizard-body-container" style="margin-top: 2rem;">
         <!-- ========================================== -->
         <!-- STEP 1: BIO-DATA / PERSONAL INFO -->
         <!-- ========================================== -->
         @if ($currentStep === 1)
-            <x-card title="📋 Step 1: Personal Bio-Data Details">
+            <div wire:key="step-wrapper-1">
+                <x-card wire:key="step-card-1" title="📋 Step 1: Personal Bio-Data Details">
                 <div class="flex-col gap-6">
                     <x-select label="Select Recruitment Campaign *" :error="$errors->first('campaign_id')">
                         <select class="form-control form-select" wire:model.live="campaign_id" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
@@ -99,9 +102,16 @@
                         <x-input label="Place of Birth (City/District) *" :error="$errors->first('place_of_birth')">
                             <input type="text" class="form-control" wire:model="place_of_birth" placeholder="e.g. Rawalpindi" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
                         </x-input>
-                        <x-input label="Nationality *" :error="$errors->first('nationality')">
-                            <input type="text" class="form-control" wire:model="nationality" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
-                        </x-input>
+                        <x-select label="Nationality (Country) *" :error="$errors->first('nationality')">
+                            <select class="form-control form-select" wire:model.live="nationality" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
+                                @foreach($this->countries as $country)
+                                    <option value="{{ $country }}">{{ $country }}</option>
+                                @endforeach
+                                @if(!in_array($nationality, $this->countries) && !empty($nationality))
+                                    <option value="{{ $nationality }}">{{ $nationality }}</option>
+                                @endif
+                            </select>
+                        </x-select>
                         <x-input label="Religion *" :error="$errors->first('religion')">
                             <input type="text" class="form-control" wire:model="religion" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
                         </x-input>
@@ -116,9 +126,23 @@
                                 <option value="Widowed">Widowed</option>
                             </select>
                         </x-select>
-                        <x-input label="Domicile (City/Province) *" :error="$errors->first('domicile')">
-                            <input type="text" class="form-control" wire:model="domicile" placeholder="e.g. Punjab (Rawalpindi)" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
-                        </x-input>
+                        @if (!empty($this->states))
+                            <x-select label="State / Province (Domicile) *" :error="$errors->first('domicile')">
+                                <select class="form-control form-select" wire:model="domicile" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
+                                    <option value="">-- Select State / Province --</option>
+                                    @foreach ($this->states as $st)
+                                        <option value="{{ $st }}">{{ $st }}</option>
+                                    @endforeach
+                                    @if(!in_array($domicile, $this->states) && !empty($domicile))
+                                        <option value="{{ $domicile }}">{{ $domicile }}</option>
+                                    @endif
+                                </select>
+                            </x-select>
+                        @else
+                            <x-input label="State / Province (Domicile) *" :error="$errors->first('domicile')">
+                                <input type="text" class="form-control" wire:model="domicile" placeholder="Enter State/Province" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
+                            </x-input>
+                        @endif
                         <x-select label="Quota Selection *" :error="$errors->first('quota')">
                             <select class="form-control form-select" wire:model.live="quota" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
                                 <option value="General">General / Open Merit</option>
@@ -157,12 +181,14 @@
                     </div>
                 </div>
             </x-card>
+        </div>
 
         <!-- ========================================== -->
         <!-- STEP 2: ACADEMICS -->
         <!-- ========================================== -->
         @elseif ($currentStep === 2)
-            <x-card title="🎓 Step 2: Academic Qualifications & Achievements">
+            <div wire:key="step-wrapper-2">
+                <x-card wire:key="step-card-2" title="🎓 Step 2: Academic Qualifications & Achievements">
                 <div class="flex-col gap-6">
                     <!-- Degree Input Form -->
                     <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);" class="mb-4">
@@ -234,7 +260,7 @@
                         </div>
 
                         <div class="grid grid-cols-1 gap-4 mt-4">
-                            <x-input label="Transcript Proof * (PDF/Image max 2MB)" :error="$errors->first('new_degree_proof')">
+                            <x-input label="Transcript Proof {{ ($this->selectedCampaignModel?->requiresTranscriptProof() ?? true) ? '*' : '(Optional)' }} (PDF/Image max 2MB)" :error="$errors->first('new_degree_proof')">
                                 <input type="file" class="form-control" wire:model="new_degree_proof" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
                             </x-input>
                         </div>
@@ -326,12 +352,14 @@
                     @endif
                 </div>
             </x-card>
+        </div>
 
         <!-- ========================================== -->
         <!-- STEP 3: EXPERIENCE -->
         <!-- ========================================== -->
         @elseif ($currentStep === 3)
-            <x-card title="💼 Step 3: Professional Employment History">
+            <div wire:key="step-wrapper-3">
+                <x-card wire:key="step-card-3" title="💼 Step 3: Professional Employment History">
                 <div class="flex-col gap-6">
                     <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
                         <h4 style="color: var(--secondary); font-weight: 700; margin-bottom: 1rem;">➕ Record Employment Period</h4>
@@ -430,12 +458,14 @@
                     </x-table>
                 </div>
             </x-card>
+        </div>
 
         <!-- ========================================== -->
         <!-- STEP 4: RESEARCH / MILESTONES / TOOLS -->
         <!-- ========================================== -->
         @elseif ($currentStep === 4)
-            <x-card title="📄 Step 4: Track Specific Milestones & Core Capabilities">
+            <div wire:key="step-wrapper-4">
+                <x-card wire:key="step-card-4" title="📄 Step 4: Track Specific Milestones & Core Capabilities">
                 <!-- Academic Publications -->
                 @if ($this->trackType === 'ACADEMIC')
                     <div class="flex-col gap-6">
@@ -627,12 +657,14 @@
                     </div>
                 @endif
             </x-card>
+        </div>
 
         <!-- ========================================== -->
         <!-- STEP 5: PORTFOLIO -->
         <!-- ========================================== -->
         @elseif ($currentStep === 5)
-            <x-card title="📋 Step 5: Professional Portfolio / Projects Registry">
+            <div wire:key="step-wrapper-5">
+                <x-card wire:key="step-card-5" title="📋 Step 5: Professional Portfolio / Projects Registry">
                 <!-- Academic Projects & Patents -->
                 @if ($this->trackType === 'ACADEMIC')
                     <div class="flex-col gap-6">
@@ -835,12 +867,14 @@
                     </div>
                 @endif
             </x-card>
+        </div>
 
         <!-- ========================================== -->
         <!-- STEP 6: EVENTS & TRAINING -->
         <!-- ========================================== -->
         @elseif ($currentStep === 6)
-            <x-card title="📋 Step 6: Professional Events, Seminars, & Safety Training">
+            <div wire:key="step-wrapper-6">
+                <x-card wire:key="step-card-6" title="📋 Step 6: Professional Events, Seminars, & Safety Training">
                 <!-- Academic / Admin Events -->
                 @if ($this->trackType !== 'SUPPORT')
                     <div class="flex-col gap-6">
@@ -974,12 +1008,14 @@
                     </div>
                 @endif
             </x-card>
+        </div>
 
         <!-- ========================================== -->
         <!-- STEP 7: REFEREES -->
         <!-- ========================================== -->
         @elseif ($currentStep === 7)
-            <x-card title="👥 Step 7: Professional & Academic Referees">
+            <div wire:key="step-wrapper-7">
+                <x-card wire:key="step-card-7" title="👥 Step 7: Professional & Academic Referees">
                 <div class="flex-col gap-6">
                     <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
                         <h4 style="color: var(--secondary); font-weight: 700; margin-bottom: 1rem;">➕ Record referee contact details</h4>
@@ -1044,12 +1080,14 @@
                     </x-table>
                 </div>
             </x-card>
+        </div>
 
         <!-- ========================================== -->
         <!-- STEP 8: PAYMENT AND LOCK -->
         <!-- ========================================== -->
         @elseif ($currentStep === 8)
-            <x-card title="💳 Step 8: Processing Challan & Submission Lock">
+            <div wire:key="step-wrapper-8">
+                <x-card wire:key="step-card-8" title="💳 Step 8: Processing Challan & Submission Lock">
                 <div class="flex-col gap-6 align-center text-center">
                     @if (!$challanGenerated && !$basicInfo?->is_locked)
                         <h4 style="color: var(--secondary); font-weight: 800;">Submit Application and Generate Processing Challan</h4>
@@ -1103,6 +1141,7 @@
                     @endif
                 </div>
             </x-card>
+        </div>
         @endif
 
         <!-- Wizard Navigation Controls -->

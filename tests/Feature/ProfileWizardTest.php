@@ -148,4 +148,106 @@ class ProfileWizardTest extends TestCase
             // 9. Dropdown should reset to 14_YEARS (first available option of ['14_YEARS', '16_YEARS'])
             ->assertSet('new_degree_level', '14_YEARS');
     }
+
+    public function test_phone_number_validation_rules(): void
+    {
+        $this->seed(\Database\Seeders\SpatieRoleAndPermissionSeeder::class);
+        $user = User::factory()->create();
+        $user->assignRole('applicant');
+
+        $campaign = Campaign::create([
+            'job_code' => 'TEST-PHONE',
+            'title' => 'Test Lecturer',
+            'track_type' => 'ACADEMIC',
+            'department' => 'CS',
+            'opening_date' => now()->subDay(),
+            'closing_date' => now()->addDays(10),
+            'application_fee' => 1000.00,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($user);
+
+        // Invalid phone number format (text or invalid length)
+        Livewire::test(ProfileWizard::class)
+            ->set('campaign_id', $campaign->id)
+            ->set('first_name', 'Ali')
+            ->set('cnic_number', '37405-1234567-1')
+            ->set('date_of_birth', '1995-05-15')
+            ->set('father_name', 'Muhammad Ali')
+            ->set('permanent_address', 'Address')
+            ->set('mailing_address', 'Address')
+            ->set('place_of_birth', 'Rawalpindi')
+            ->set('phone_number', 'invalid-phone')
+            ->call('nextStep')
+            ->assertHasErrors(['phone_number']);
+
+        // Valid phone number format (Pakistani mobile format)
+        Livewire::test(ProfileWizard::class)
+            ->set('campaign_id', $campaign->id)
+            ->set('first_name', 'Ali')
+            ->set('cnic_number', '37405-1234567-1')
+            ->set('date_of_birth', '1995-05-15')
+            ->set('father_name', 'Muhammad Ali')
+            ->set('permanent_address', 'Address')
+            ->set('mailing_address', 'Address')
+            ->set('place_of_birth', 'Rawalpindi')
+            ->set('domicile', 'Punjab')
+            ->set('phone_number', '0300-1234567')
+            ->set('secondary_phone', '0300-7654321')
+            ->call('nextStep')
+            ->assertHasNoErrors(['phone_number', 'secondary_phone']);
+    }
+
+    public function test_transcript_proof_optional_and_mandatory(): void
+    {
+        $this->seed(\Database\Seeders\SpatieRoleAndPermissionSeeder::class);
+        $user = User::factory()->create();
+        $user->assignRole('applicant');
+
+        BasicInfo::create([
+            'user_id' => $user->id,
+            'track_type' => 'ACADEMIC',
+            'first_name' => 'Proof',
+            'last_name' => 'Tester',
+            'cnic_number' => '12345-1234567-2',
+            'date_of_birth' => '1990-01-01',
+        ]);
+
+        $this->actingAs($user);
+
+        // 1. Campaign with require_transcript_proof = false
+        $campaignOptional = Campaign::create([
+            'job_code' => 'TEST-OPTIONAL',
+            'title' => 'Support Staff',
+            'track_type' => 'ACADEMIC',
+            'department' => 'Admin',
+            'opening_date' => now()->subDay(),
+            'closing_date' => now()->addDays(10),
+            'application_fee' => 500.00,
+            'is_active' => true,
+            'require_transcript_proof' => false,
+        ]);
+
+        Livewire::test(ProfileWizard::class)
+            ->set('campaign_id', $campaignOptional->id)
+            ->set('new_degree_level', 'SSC')
+            ->set('new_degree_title', 'Matric')
+            ->set('new_degree_major', 'Science')
+            ->set('new_degree_board', 'BISE')
+            ->set('new_degree_inst', 'School')
+            ->set('new_degree_year', 2010)
+            ->set('new_degree_gpa', '800')
+            ->set('new_degree_scale', '1050')
+            ->set('new_degree_division', 'First Division')
+            ->set('new_degree_country', 'Pakistan')
+            ->set('new_degree_proof', null) // No proof uploaded
+            ->call('addDegree')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('academic_degrees', [
+            'degree_title' => 'Matric',
+            'proof_path' => null,
+        ]);
+    }
 }
