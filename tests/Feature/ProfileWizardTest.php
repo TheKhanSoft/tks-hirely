@@ -398,4 +398,50 @@ class ProfileWizardTest extends TestCase
         $this->assertStringStartsWith('1000', $ledger->consumer_id);
         $this->assertEquals(12, strlen($ledger->consumer_id));
     }
+
+    public function test_step4_tabs_and_governance_milestone_layout(): void
+    {
+        $this->seed(\Database\Seeders\SpatieRoleAndPermissionSeeder::class);
+        $user = User::factory()->create();
+        $user->assignRole('applicant');
+
+        $basicInfo = BasicInfo::create([
+            'user_id' => $user->id,
+            'track_type' => 'ACADEMIC',
+            'first_name' => 'Sara',
+            'last_name' => 'Ahmed',
+            'father_name' => 'Ahmed Khan',
+            'gender' => 'Female',
+            'date_of_birth' => '1990-05-10',
+            'cnic_number' => '35201-9988776-2',
+            'contact_number' => '+92-300-1234567',
+        ]);
+
+        $this->actingAs($user);
+
+        $component = Livewire::test(ProfileWizard::class)
+            ->set('currentStep', 4)
+            ->assertSee('Academic Publications')
+            ->assertSee('Governance Milestones')
+            ->assertSee('Vocational Tools')
+            ->call('setStep4Tab', 'ADMINISTRATIVE')
+            ->assertSee('step4-tab-administrative')
+            ->assertSee('Record Governance Milestone / Budget Managed')
+            ->assertSee('Milestone Title *')
+            ->assertSee('Narrative / Impact Statement')
+            ->assertSee('Budget Managed (Millions PKR)')
+            ->assertSee('Execution Year')
+            ->assertSee('Supporting Verification File (PDF)')
+            ->assertSee('Governance Milestones Log');
+
+        $component->call('setStep4Tab', 'SUPPORT')
+            ->assertSee('step4-tab-support')
+            ->assertSee('Register Technical Tool / Vocational Skill')
+            ->assertSee('Capabilities Log');
+
+        $component->call('setStep4Tab', 'ACADEMIC')
+            ->assertSee('step4-tab-academic')
+            ->assertSee('Record Peer-Reviewed Publication')
+            ->assertSee('Academic Publications Log');
+    }
 }

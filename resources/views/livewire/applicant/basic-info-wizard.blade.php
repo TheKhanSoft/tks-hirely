@@ -1,5 +1,5 @@
 <div wire:key="wizard-root">
-    <x-card wire:key="wizard-header-card" title="👤 Applicant Recruitment Wizard" subtitle="Provide your biodata, educational history, professional experience, milestones, and generate your processing voucher.">
+    <x-card wire:key="wizard-header-card" title="Applicant Recruitment Dossier Wizard" subtitle="Provide your biodata, educational history, professional experience, milestones, and generate your fee voucher.">
         <!-- Wizard Progress Steps with Labels Underneath -->
         @php
             $stepLabels = [
@@ -27,7 +27,7 @@
 
     @if($basicInfo && $basicInfo->is_locked && $currentStep < 8)
         <div wire:key="wizard-lock-alert">
-            <x-alert type="warning" message="⚠️ Your basicInfo is currently locked because your application has been submitted and processing voucher generated. Please proceed to Step 8 to access your voucher." />
+            <x-alert type="warning" message="Your candidate dossier is locked because your application has been submitted and processing voucher generated. Please proceed to Step 8 to access your voucher." />
         </div>
     @endif
 
@@ -37,7 +37,7 @@
         <!-- ========================================== -->
         @if ($currentStep === 1)
             <div wire:key="step-wrapper-1">
-                <x-card wire:key="step-card-1" title="📋 Step 1: Personal Bio-Data Details">
+                <x-card wire:key="step-card-1" title="Step 1: Personal Bio-Data Details">
                 <div class="flex-col gap-6">
                     <div class="grid grid-cols-2 gap-6">
                         <x-input label="First Name *" :error="$errors->first('first_name')">
@@ -172,7 +172,7 @@
         <!-- ========================================== -->
         @elseif ($currentStep === 2)
             <div wire:key="step-wrapper-2">
-                <x-card wire:key="step-card-2" title="🎓 Step 2: Academic Qualifications & Achievements">
+                <x-card wire:key="step-card-2" title="Step 2: Academic Qualifications & Distinctions">
                 <div class="flex-col gap-6">
                     <!-- Degree Input Form -->
                     <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);" class="mb-4">
@@ -343,7 +343,7 @@
         <!-- ========================================== -->
         @elseif ($currentStep === 3)
             <div wire:key="step-wrapper-3">
-                <x-card wire:key="step-card-3" title="💼 Step 3: Professional Employment History">
+                <x-card wire:key="step-card-3" title="Step 3: Professional Employment History">
                 <div class="flex-col gap-6">
                     <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
                         <h4 style="color: var(--secondary); font-weight: 700; margin-bottom: 1rem;">➕ Record Employment Period</h4>
@@ -449,7 +449,7 @@
         <!-- ========================================== -->
         @elseif ($currentStep === 4)
             <div wire:key="step-wrapper-4">
-                <x-card wire:key="step-card-4" title="📄 Step 4: Track Specific Milestones & Core Capabilities">
+                <x-card wire:key="step-card-4" title="Step 4: Track Specific Milestones & Capabilities">
 
                 <!-- Track Category Switcher Tabs -->
                 <div class="flex flex-wrap gap-3 mb-6" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
@@ -490,7 +490,7 @@
 
                 <!-- Academic Publications -->
                 @if (($step4_active_tab ?? $this->trackType) === 'ACADEMIC')
-                    <div class="flex-col gap-6">
+                    <div wire:key="step4-tab-academic" class="flex-col gap-6">
                         <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
                             <h4 style="color: var(--secondary); font-weight: 700; margin-bottom: 1rem;">📚 Record Peer-Reviewed Publication</h4>
                             
@@ -560,6 +560,7 @@
                         </div>
 
                         <!-- Publications Table -->
+                        <h4 style="color: var(--color-text-primary); font-weight: 700;">Academic Publications Log</h4>
                         <x-table :headers="['Research Title', 'Journal & ISSN', 'Category / Impact', 'Authorship Scope', 'Year', 'Proof Document', 'Status', 'Action']">
                             @forelse($publications as $pub)
                                 <tr>
@@ -597,23 +598,23 @@
 
                 <!-- Admin Milestones -->
                 @elseif (($step4_active_tab ?? $this->trackType) === 'ADMINISTRATIVE')
-                    <div class="flex-col gap-6">
+                    <div wire:key="step4-tab-administrative" class="flex-col gap-6">
                         <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
                             <h4 style="color: var(--secondary); font-weight: 700; margin-bottom: 1rem;">⚙️ Record Governance Milestone / Budget Managed</h4>
-                            <div class="grid grid-cols-3 gap-4">
+                            <div class="grid grid-cols-2 gap-4">
                                 <x-input label="Milestone Title *" :error="$errors->first('new_ms_title')">
                                     <input type="text" class="form-control" wire:model="new_ms_title" placeholder="e.g. ERP Deployment Control" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
                                 </x-input>
+                                <x-input label="Narrative / Impact Statement" :error="$errors->first('new_ms_description')">
+                                    <input type="text" class="form-control" wire:model="new_ms_description" placeholder="Briefly describe operational scale..." {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
+                                </x-input>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4 mt-4 align-center">
                                 <x-input label="Budget Managed (Millions PKR)" :error="$errors->first('new_ms_budget')">
                                     <input type="number" class="form-control" wire:model="new_ms_budget" placeholder="e.g. 15.5" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
                                 </x-input>
                                 <x-input label="Execution Year" :error="$errors->first('new_ms_year')">
                                     <input type="number" class="form-control" wire:model="new_ms_year" placeholder="e.g. 2023" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
-                                </x-input>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4 mt-4 align-center">
-                                <x-input label="Narrative / Impact Statement" :error="$errors->first('new_ms_description')">
-                                    <input type="text" class="form-control" wire:model="new_ms_description" placeholder="Briefly describe operational scale..." {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
                                 </x-input>
                                 <x-input label="Supporting Verification File (PDF)" :error="$errors->first('new_ms_proof')">
                                     <input type="file" class="form-control" wire:model="new_ms_proof" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
@@ -624,13 +625,14 @@
                             </div>
                         </div>
 
+                        <h4 style="color: var(--color-text-primary); font-weight: 700;">Governance Milestones Log</h4>
                         <x-table :headers="['Milestone Name', 'Budget Managed', 'Year', 'Statement', 'Proof Doc', 'Action']">
                             @forelse($milestones as $idx => $ms)
                                 <tr>
                                     <td><strong style="color: var(--secondary)">{{ $ms['title'] }}</strong></td>
                                     <td>PKR {{ number_format($ms['budget'], 1) }} Million</td>
                                     <td>{{ $ms['year'] }}</td>
-                                    <td>{{ $ms['description'] }}</td>
+                                    <td><small style="max-width: 250px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $ms['description'] }}</small></td>
                                     <td>
                                         @if(!empty($ms['proof_path']))
                                             <a href="/storage/{{ $ms['proof_path'] }}" target="_blank" style="color: var(--secondary)">📄 View Proof</a>
@@ -650,7 +652,7 @@
 
                 <!-- Support Tools -->
                 @elseif (($step4_active_tab ?? $this->trackType) === 'SUPPORT')
-                    <div class="flex-col gap-6">
+                    <div wire:key="step4-tab-support" class="flex-col gap-6">
                         <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
                             <h4 style="color: var(--secondary); font-weight: 700; margin-bottom: 1rem;">🔧 Register Technical Tool / Vocational Skill</h4>
                             <div class="grid grid-cols-4 gap-4 align-center">
@@ -676,6 +678,7 @@
                             </div>
                         </div>
 
+                        <h4 style="color: var(--color-text-primary); font-weight: 700;">Vocational Tools & Capabilities Log</h4>
                         <x-table :headers="['Vocational Skill / Tool', 'Proficiency Class', 'Handling Span', 'Certification Document', 'Action']">
                             @forelse($tools as $idx => $t)
                                 <tr>
@@ -707,7 +710,7 @@
         <!-- ========================================== -->
         @elseif ($currentStep === 5)
             <div wire:key="step-wrapper-5">
-                <x-card wire:key="step-card-5" title="📋 Step 5: Professional Portfolio / Projects Registry">
+                <x-card wire:key="step-card-5" title="Step 5: Professional Portfolio & Projects">
                 <!-- Academic Projects & Patents -->
                 @if ($this->trackType === 'ACADEMIC')
                     <div class="flex-col gap-6">
@@ -917,7 +920,7 @@
         <!-- ========================================== -->
         @elseif ($currentStep === 6)
             <div wire:key="step-wrapper-6">
-                <x-card wire:key="step-card-6" title="📋 Step 6: Professional Events, Seminars, & Safety Training">
+                <x-card wire:key="step-card-6" title="Step 6: Professional Events, Seminars & Safety Training">
                 <!-- Academic / Admin Events -->
                 @if ($this->trackType !== 'SUPPORT')
                     <div class="flex-col gap-6">
@@ -1058,7 +1061,7 @@
         <!-- ========================================== -->
         @elseif ($currentStep === 7)
             <div wire:key="step-wrapper-7">
-                <x-card wire:key="step-card-7" title="👥 Step 7: Professional & Academic Referees">
+                <x-card wire:key="step-card-7" title="Step 7: Professional & Academic Referees">
                 <div class="flex-col gap-6">
                     <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
                         <h4 style="color: var(--secondary); font-weight: 700; margin-bottom: 1rem;">➕ Record referee contact details</h4>
@@ -1130,7 +1133,7 @@
         <!-- ========================================== -->
         @elseif ($currentStep === 8)
             <div wire:key="step-wrapper-8">
-                <x-card wire:key="step-card-8" title="💳 Step 8: Processing Challan & Submission Lock">
+                <x-card wire:key="step-card-8" title="Step 8: Processing Voucher & Submission Lock">
                 <div class="flex-col gap-6 align-center text-center">
                     @if (!$challanGenerated && !$basicInfo?->is_locked)
                         <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); width: 100%; text-align: left;" class="mb-4">
@@ -1167,13 +1170,17 @@
                             @endif
                         </div>
 
-                        <h4 style="color: var(--secondary); font-weight: 800;">Submit Application and Generate Processing Challan</h4>
-                        <p style="color: var(--color-text-secondary); max-width: 600px;">
-                            By clicking the button below, you will lock your basicInfo details from further modifications. The system will automatically construct your 12-digit consumer billing reference for checkout.
+                        <h4 style="color: var(--secondary); font-weight: 800; font-size: 1.15rem;">Submit Application and Generate Processing Voucher</h4>
+                        <p style="color: var(--color-text-secondary); max-width: 600px; font-size: 0.9rem;">
+                            By clicking the button below, you will lock your candidate profile details from further modifications. The system will automatically construct your 12-digit 1Link / Kuickpay consumer reference for fee processing.
                         </p>
-                        <x-button variant="primary" style="padding: 0.75rem 2rem; font-size: 1.1rem;" wire:click="generateChallan" :disabled="!$campaign_id">
-                            🔒 Lock basicInfo & Generate Challan
-                        </x-button>
+                        <button type="button" class="btn btn-primary" style="padding: 0.75rem 2rem; font-size: 1.05rem; display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;" wire:click="generateChallan" :disabled="!$campaign_id">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            <span>Lock Profile & Generate Voucher</span>
+                        </button>
                     @else
                         @php
                             $userApp = Auth::user()->applications()->first();
@@ -1198,26 +1205,38 @@
                                 Use the 12-digit consumer reference ID listed below to pay your processing fee via the bank simulator switch, mobile banking, or OTG teller.
                             </p>
 
-                            <div style="background: rgba(0,0,0,0.4); padding: 1.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                                <small style="text-transform: uppercase; color: var(--color-text-secondary); letter-spacing: 1px; font-weight: 700;">Consumer ID Reference</small>
-                                <h2 class="challan-id">{{ $billing?->consumer_id ?? $consumer_id }}</h2>
-                                <div class="flex justify-between mt-4">
+                            <div style="background: var(--bg-card-solid); padding: 1.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
+                                <small style="text-transform: uppercase; color: var(--color-text-secondary); letter-spacing: 1px; font-weight: 700; font-size: 0.75rem;">1Link / Kuickpay Consumer ID Reference</small>
+                                <h2 class="challan-id" style="margin: 0.75rem 0;">{{ $billing?->consumer_id ?? $consumer_id }}</h2>
+                                <div class="flex justify-between mt-4" style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
                                     <span style="color: var(--color-text-secondary)">Total Processing Fee:</span>
-                                    <strong style="color: var(--success); font-size: 1.15rem;">PKR {{ number_format($billing?->amount ?? $application_fee, 2) }}</strong>
+                                    <strong style="color: var(--warning); font-size: 1.25rem;">PKR {{ number_format($billing?->amount ?? $application_fee, 2) }}</strong>
                                 </div>
                             </div>
 
                             @if($billing?->status === 'SETTLED')
-                                <div style="margin-top: 1.5rem; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--success); border-radius: var(--radius-sm); padding: 1rem;">
-                                    <p style="color: #6ee7b7; font-weight: 700; margin: 0;">
-                                        ✓ Payment Reconciled. Transaction ID: <code>{{ $billing->transaction_id }}</code>. Your file has been pushed to the scrutiny committee verification queue.
+                                <div style="margin-top: 1.5rem; background: var(--success-light); border: 1px solid var(--success-glow); border-radius: var(--radius-sm); padding: 1rem;">
+                                    <p style="color: #6ee7b7; font-weight: 700; margin: 0; font-size: 0.92rem;">
+                                        ✓ Payment Reconciled. Transaction ID: <code style="font-family: 'JetBrains Mono', monospace;">{{ $billing->transaction_id }}</code>. Your dossier has been queued for scrutiny committee verification.
                                     </p>
                                 </div>
                             @else
-                                <div style="margin-top: 1.5rem; background: rgba(245, 158, 11, 0.1); border: 1px dashed var(--warning); border-radius: var(--radius-sm); padding: 1rem;">
-                                    <p style="color: #fcd34d; font-weight: 600; margin: 0; font-size: 0.9rem;">
-                                        📟 Note: Use the 💳 Bank Switch Sim link in the sidebar to complete payment.
-                                    </p>
+                                <div style="margin-top: 1.5rem; background: var(--secondary-light); border: 1px dashed var(--secondary-glow); border-radius: var(--radius-sm); padding: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                                    <div>
+                                        <p style="color: #67e8f9; font-weight: 700; margin: 0; font-size: 0.95rem;">
+                                            Instant Sandbox Payment Available
+                                        </p>
+                                        <p style="color: var(--color-text-secondary); font-size: 0.82rem; margin: 0.2rem 0 0;">
+                                            Test real-time 1Link webhook reconciliation using our built-in simulator.
+                                        </p>
+                                    </div>
+                                    <a href="/bank/simulator?consumer_id={{ $billing?->consumer_id ?? $consumer_id }}" class="btn btn-primary btn-sm">
+                                        <span>Open Bank Switch Simulator</span>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="5" x2="19" y1="12" y2="12"/>
+                                            <polyline points="12 5 19 12 12 19"/>
+                                        </svg>
+                                    </a>
                                 </div>
                             @endif
                         </div>
@@ -1230,13 +1249,25 @@
         <!-- Wizard Navigation Controls -->
         <div class="flex justify-between mt-6" style="border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
             @if ($currentStep > 1)
-                <x-button variant="secondary" wire:click="prevStep">⬅ Back Step</x-button>
+                <x-button variant="secondary" wire:click="prevStep">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" x2="5" y1="12" y2="12"/>
+                        <polyline points="12 19 5 12 12 5"/>
+                    </svg>
+                    <span>Previous Step</span>
+                </x-button>
             @else
                 <div></div>
             @endif
 
             @if ($currentStep < $totalSteps)
-                <x-button variant="primary" wire:click="nextStep">Continue Next ➡</x-button>
+                <x-button variant="primary" wire:click="nextStep">
+                    <span>Continue Next</span>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" x2="19" y1="12" y2="12"/>
+                        <polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                </x-button>
             @endif
         </div>
     </div>

@@ -1,54 +1,125 @@
 <div>
     <!-- Console Control Header -->
-    <x-card title="⚙️ System Entity Console" subtitle="Unified BREAD desk for administrative control, roles registry, candidate applications, vouchers, and audit logs.">
-        <div style="position: absolute; top: 1.5rem; right: 1.5rem;" class="flex gap-2">
+    <div class="card mb-6" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; position: relative; overflow: hidden;">
+        <div style="position: absolute; right: -2rem; top: -2rem; width: 140px; height: 140px; background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%); pointer-events: none;"></div>
+        <div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem;">
+                <div class="brand-icon-box" style="width: 38px; height: 38px; border-radius: 10px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
+                        <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path>
+                        <path d="M12 6a4 4 0 1 0 4 4 4 4 0 0 0-4-4z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="card-title" style="margin: 0; font-size: 1.35rem;">System Entity Console</h2>
+                    <p class="card-subtitle" style="margin: 0;">Unified management desk for administrative control, roles registry, candidate applications, vouchers, and audit logs</p>
+                </div>
+            </div>
+        </div>
+        <div>
             @if(!$isFormOpen && !$isDetailsOpen)
                 @if($activeTab === 'users' && auth()->user()->can('create-user'))
-                    <x-button variant="primary" wire:click="openCreateUserForm">➕ Register User</x-button>
+                    <button type="button" class="btn btn-primary" wire:click="openCreateUserForm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        <span>Register User</span>
+                    </button>
                 @elseif($activeTab === 'roles' && auth()->user()->can('create-role'))
-                    <x-button variant="primary" wire:click="openCreateRoleForm">➕ Add Role</x-button>
+                    <button type="button" class="btn btn-primary" wire:click="openCreateRoleForm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        <span>Add Role</span>
+                    </button>
                 @elseif($activeTab === 'permissions' && auth()->user()->can('create-permission'))
-                    <x-button variant="primary" wire:click="openCreatePermissionForm">➕ Add Permission</x-button>
+                    <button type="button" class="btn btn-primary" wire:click="openCreatePermissionForm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        <span>Add Permission</span>
+                    </button>
                 @elseif($activeTab === 'campaigns' && auth()->user()->can('create-campaign'))
-                    <x-button variant="primary" wire:click="openCreateCampaignForm">➕ Create Campaign</x-button>
+                    <button type="button" class="btn btn-primary" wire:click="openCreateCampaignForm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        <span>Create Campaign</span>
+                    </button>
                 @elseif($activeTab === 'applications' && auth()->user()->can('create-application'))
-                    <x-button variant="primary" wire:click="openCreateApplicationForm">➕ Add Application</x-button>
+                    <button type="button" class="btn btn-primary" wire:click="openCreateApplicationForm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        <span>Add Application</span>
+                    </button>
                 @elseif($activeTab === 'basic_infos' && auth()->user()->can('create-basic-info'))
-                    <x-button variant="primary" wire:click="openCreateBasicInfoForm">➕ Create basicInfo</x-button>
+                    <button type="button" class="btn btn-primary" wire:click="openCreateBasicInfoForm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        <span>Create Profile</span>
+                    </button>
                 @elseif($activeTab === 'payments' && auth()->user()->can('create-payment'))
-                    <x-button variant="primary" wire:click="openCreatePaymentForm">➕ Log Payment</x-button>
+                    <button type="button" class="btn btn-primary" wire:click="openCreatePaymentForm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        <span>Log Payment</span>
+                    </button>
                 @elseif($activeTab === 'logs' && auth()->user()->can('delete-audit-log') && count($logs ?? []) > 0)
-                    <x-button variant="danger" wire:click="clearAuditLogs" onclick="confirm('Are you sure you want to permanently purge all security logs?') || event.stopImmediatePropagation()">🗑️ Purge Logs</x-button>
+                    <button type="button" class="btn btn-danger" wire:click="clearAuditLogs" onclick="confirm('Are you sure you want to permanently purge all security logs?') || event.stopImmediatePropagation()" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        <span>Purge Logs</span>
+                    </button>
                 @endif
             @endif
         </div>
-    </x-card>
+    </div>
 
-    <!-- Glassmorphic Navigation Tabs based on Granular Permissions -->
-    <div class="flex gap-2 mb-6" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-top: 1.5rem; overflow-x: auto; white-space: nowrap;">
+    <!-- Segmented Navigation Tabs -->
+    <div style="display: flex; gap: 0.35rem; background: var(--bg-tertiary); padding: 0.35rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); width: 100%; margin-bottom: 1.5rem; overflow-x: auto; white-space: nowrap;">
         @can('view-user')
-            <x-button :variant="$activeTab === 'users' ? 'primary' : 'secondary'" wire:click="setTab('users')">👥 Users</x-button>
+            <button type="button" class="btn" wire:click="setTab('users')"
+                    style="padding: 0.45rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; gap: 0.45rem; transition: var(--transition-base); {{ $activeTab === 'users' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <span>Users</span>
+            </button>
         @endcan
         @can('view-role')
-            <x-button :variant="$activeTab === 'roles' ? 'primary' : 'secondary'" wire:click="setTab('roles')">🛡️ Roles</x-button>
+            <button type="button" class="btn" wire:click="setTab('roles')"
+                    style="padding: 0.45rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; gap: 0.45rem; transition: var(--transition-base); {{ $activeTab === 'roles' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                <span>Roles</span>
+            </button>
         @endcan
         @can('view-permission')
-            <x-button :variant="$activeTab === 'permissions' ? 'primary' : 'secondary'" wire:click="setTab('permissions')">🔑 Perms</x-button>
+            <button type="button" class="btn" wire:click="setTab('permissions')"
+                    style="padding: 0.45rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; gap: 0.45rem; transition: var(--transition-base); {{ $activeTab === 'permissions' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"></circle><path d="m21 2-9.6 9.6"></path><path d="m15.5 7.5 3 3L22 7l-3-3"></path></svg>
+                <span>Permissions</span>
+            </button>
         @endcan
         @can('view-campaign')
-            <x-button :variant="$activeTab === 'campaigns' ? 'primary' : 'secondary'" wire:click="setTab('campaigns')">📢 Campaigns</x-button>
+            <button type="button" class="btn" wire:click="setTab('campaigns')"
+                    style="padding: 0.45rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; gap: 0.45rem; transition: var(--transition-base); {{ $activeTab === 'campaigns' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                <span>Campaigns</span>
+            </button>
         @endcan
         @can('view-application')
-            <x-button :variant="$activeTab === 'applications' ? 'primary' : 'secondary'" wire:click="setTab('applications')">📋 Applications</x-button>
+            <button type="button" class="btn" wire:click="setTab('applications')"
+                    style="padding: 0.45rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; gap: 0.45rem; transition: var(--transition-base); {{ $activeTab === 'applications' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                <span>Applications</span>
+            </button>
         @endcan
         @can('view-basic-info')
-            <x-button :variant="$activeTab === 'basic_infos' ? 'primary' : 'secondary'" wire:click="setTab('basic_infos')">👤 basic_infos</x-button>
+            <button type="button" class="btn" wire:click="setTab('basic_infos')"
+                    style="padding: 0.45rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; gap: 0.45rem; transition: var(--transition-base); {{ $activeTab === 'basic_infos' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span>Candidate Profiles</span>
+            </button>
         @endcan
         @can('view-payment')
-            <x-button :variant="$activeTab === 'payments' ? 'primary' : 'secondary'" wire:click="setTab('payments')">💳 Vouchers</x-button>
+            <button type="button" class="btn" wire:click="setTab('payments')"
+                    style="padding: 0.45rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; gap: 0.45rem; transition: var(--transition-base); {{ $activeTab === 'payments' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                <span>Vouchers & Payments</span>
+            </button>
         @endcan
         @can('view-audit-log')
-            <x-button :variant="$activeTab === 'logs' ? 'primary' : 'secondary'" wire:click="setTab('logs')">🔍 Audit Logs</x-button>
+            <button type="button" class="btn" wire:click="setTab('logs')"
+                    style="padding: 0.45rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; gap: 0.45rem; transition: var(--transition-base); {{ $activeTab === 'logs' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <span>Security Audit Logs</span>
+            </button>
         @endcan
     </div>
 
@@ -57,7 +128,13 @@
     <!-- ========================================== -->
     @if ($activeTab === 'users')
         @if ($isFormOpen)
-            <x-card :title="$isEditMode ? '✍️ Edit User Account' : '➕ Register User Account'">
+            <div class="card" style="border-color: var(--primary-glow); box-shadow: var(--shadow-md);">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                    <h3 class="card-title" style="margin: 0; font-size: 1.2rem;">
+                        {{ $isEditMode ? 'Edit User Account' : 'Register User Account' }}
+                    </h3>
+                    <button type="button" class="btn btn-secondary" wire:click="$set('isFormOpen', false)" style="padding: 0.35rem 0.75rem; font-size: 0.85rem;">Cancel</button>
+                </div>
                 <form wire:submit.prevent="saveUser">
                     <div class="grid grid-cols-2 gap-6">
                         <x-input label="Email Address *" :error="$errors->first('email')">
@@ -77,38 +154,49 @@
                         </x-select>
                         <div class="form-group" style="margin-top: 1.75rem;">
                             <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
-                                <input type="checkbox" wire:model="is_active" style="width: 1.3rem; height: 1.3rem;">
+                                <input type="checkbox" wire:model="is_active" style="width: 1.25rem; height: 1.25rem; accent-color: var(--primary);">
                                 <span style="font-weight: 600;">Allow User Login (Active Status)</span>
                             </label>
                         </div>
                     </div>
                     <div class="flex gap-4 mt-6" style="border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
-                        <x-button variant="primary" type="submit">💾 Save User</x-button>
-                        <x-button variant="secondary" wire:click="$set('isFormOpen', false)">Cancel</x-button>
+                        <button type="submit" class="btn btn-primary">Save User</button>
+                        <button type="button" class="btn btn-secondary" wire:click="$set('isFormOpen', false)">Cancel</button>
                     </div>
                 </form>
-            </x-card>
+            </div>
         @else
             <x-table :headers="['Email Address Reference', 'Mapped Role', 'Active Status', 'Date Created', 'Actions']">
                 @forelse($users as $u)
                     <tr>
-                        <td><strong style="color: var(--color-text-primary)">{{ $u->email }}</strong></td>
-                        <td><x-badge type="appealed">{{ str_replace('-', ' ', $u->roles->first()?->name ?? 'None') }}</x-badge></td>
                         <td>
-                            <x-button :variant="$u->is_active ? 'success' : 'danger'" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="toggleUserStatus({{ $u->id }})" :disabled="auth()->id() == $u->id">
-                                {{ $u->is_active ? '✓ Active' : '✗ Blocked' }}
-                            </x-button>
+                            <div style="display: flex; align-items: center; gap: 0.6rem;">
+                                <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(99,102,241,0.15); color: var(--primary); font-weight: 700; font-size: 0.75rem; display: flex; align-items: center; justify-content: center;">
+                                    {{ strtoupper(substr($u->email, 0, 1)) }}
+                                </div>
+                                <strong style="color: var(--color-text-primary)">{{ $u->email }}</strong>
+                            </div>
                         </td>
-                        <td>{{ $u->created_at?->format('Y-m-d H:i') ?: 'System default' }}</td>
+                        <td>
+                            <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25);">
+                                {{ str_replace('-', ' ', $u->roles->first()?->name ?? 'None') }}
+                            </span>
+                        </td>
+                        <td>
+                            <button type="button" class="btn {{ $u->is_active ? 'btn-success' : 'btn-danger' }}" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; border-radius: 999px;" wire:click="toggleUserStatus({{ $u->id }})" :disabled="auth()->id() == $u->id">
+                                {{ $u->is_active ? 'Active' : 'Blocked' }}
+                            </button>
+                        </td>
+                        <td><span style="font-size: 0.85rem; color: var(--color-text-secondary); font-family: monospace;">{{ $u->created_at?->format('Y-m-d H:i') ?: 'System default' }}</span></td>
                         <td>
                             <div class="flex gap-2">
-                                <x-button variant="secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditUserForm({{ $u->id }})">Edit</x-button>
-                                <x-button variant="danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deleteUser({{ $u->id }})" onclick="confirm('Are you sure you want to delete this user?') || event.stopImmediatePropagation()" :disabled="auth()->id() == $u->id">Delete</x-button>
+                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditUserForm({{ $u->id }})">Edit</button>
+                                <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deleteUser({{ $u->id }})" onclick="confirm('Are you sure you want to delete this user?') || event.stopImmediatePropagation()" :disabled="auth()->id() == $u->id">Delete</button>
                             </div>
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" class="text-center">No user accounts found.</td></tr>
+                    <tr><td colspan="5" class="text-center" style="padding: 2rem;">No user accounts found.</td></tr>
                 @endforelse
             </x-table>
         @endif
@@ -118,41 +206,51 @@
     <!-- ========================================== -->
     @elseif ($activeTab === 'roles')
         @if ($isFormOpen)
-            <x-card :title="$isEditMode ? '🛡️ Sync Role Permissions' : '🛡️ Register New Role'">
+            <div class="card" style="border-color: var(--primary-glow); box-shadow: var(--shadow-md);">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                    <h3 class="card-title" style="margin: 0; font-size: 1.2rem;">
+                        {{ $isEditMode ? 'Sync Role Permissions' : 'Register New Role' }}
+                    </h3>
+                    <button type="button" class="btn btn-secondary" wire:click="$set('isFormOpen', false)" style="padding: 0.35rem 0.75rem; font-size: 0.85rem;">Cancel</button>
+                </div>
                 <form wire:submit.prevent="saveRole">
                     <x-input label="Role Name Reference *" :error="$errors->first('role_name_input')">
                         <input type="text" class="form-control" wire:model="role_name_input" placeholder="e.g. support-technician">
                     </x-input>
                     
-                    <div style="border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1.5rem; background: var(--bg-secondary);" class="mt-4 mb-4">
-                        <h4 style="color: var(--secondary); margin-bottom: 1rem;">🔑 Mapped Permissions Grid</h4>
-                        <div class="grid grid-cols-3 gap-4" style="max-height: 250px; overflow-y: auto;">
+                    <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; background: var(--bg-tertiary);" class="mt-4 mb-4">
+                        <h4 style="color: var(--secondary); margin-bottom: 1rem; font-size: 1rem; font-weight: 700;">Mapped Permissions Grid</h4>
+                        <div class="grid grid-cols-3 gap-3" style="max-height: 250px; overflow-y: auto;">
                             @foreach($permissions as $perm)
-                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px;">
-                                    <input type="checkbox" wire:model="selected_permissions" value="{{ $perm->name }}" style="width: 1.15rem; height: 1.15rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-card);">
+                                    <input type="checkbox" wire:model="selected_permissions" value="{{ $perm->name }}" style="width: 1.15rem; height: 1.15rem; accent-color: var(--primary);">
                                     <span style="font-size: 0.85rem;">{{ str_replace('-', ' ', $perm->name) }}</span>
                                 </label>
                             @endforeach
                         </div>
                     </div>
                     <div class="flex gap-4 mt-6" style="border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
-                        <x-button variant="primary" type="submit">💾 Save Role</x-button>
-                        <x-button variant="secondary" wire:click="$set('isFormOpen', false)">Cancel</x-button>
+                        <button type="submit" class="btn btn-primary">Save Role</button>
+                        <button type="button" class="btn btn-secondary" wire:click="$set('isFormOpen', false)">Cancel</button>
                     </div>
                 </form>
-            </x-card>
+            </div>
         @else
-            <x-table :headers="['Role Name Reference', 'Sycned Permissions Count', 'Active Accounts Scope', 'Action']">
+            <x-table :headers="['Role Name Reference', 'Synced Permissions Count', 'Active Accounts Scope', 'Action']">
                 @foreach($roles as $role)
                     <tr>
                         <td><strong style="color: var(--secondary); text-transform: uppercase;">{{ str_replace('-', ' ', $role->name) }}</strong></td>
-                        <td><x-badge type="appealed">{{ $role->name === 'super-admin' ? 'All (Wildcard *)' : $role->permissions->count() . ' perms' }}</x-badge></td>
+                        <td>
+                            <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); border: 1px solid rgba(6,182,212,0.25);">
+                                {{ $role->name === 'super-admin' ? 'All (Wildcard *)' : $role->permissions->count() . ' permissions' }}
+                            </span>
+                        </td>
                         <td>{{ $role->users->count() }} Accounts</td>
                         <td>
                             <div class="flex gap-2">
-                                <x-button variant="secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditRoleForm({{ $role->id }})">Edit & Sync</x-button>
+                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditRoleForm({{ $role->id }})">Edit & Sync</button>
                                 @if(!in_array($role->name, ['super-admin', 'registrar', 'applicant']))
-                                    <x-button variant="danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deleteRole({{ $role->id }})" onclick="confirm('Are you sure you want to delete this role?') || event.stopImmediatePropagation()">Delete</x-button>
+                                    <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deleteRole({{ $role->id }})" onclick="confirm('Are you sure you want to delete this role?') || event.stopImmediatePropagation()">Delete</button>
                                 @else
                                     <span style="color: var(--color-text-muted); font-size: 0.8rem;">System Locked</span>
                                 @endif
@@ -168,32 +266,38 @@
     <!-- ========================================== -->
     @elseif ($activeTab === 'permissions')
         @if ($isFormOpen)
-            <x-card :title="$isEditMode ? '🔑 Edit System Permission' : '🔑 Register Permission Action'">
+            <div class="card" style="border-color: var(--primary-glow); box-shadow: var(--shadow-md);">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                    <h3 class="card-title" style="margin: 0; font-size: 1.2rem;">
+                        {{ $isEditMode ? 'Edit System Permission' : 'Register Permission Action' }}
+                    </h3>
+                    <button type="button" class="btn btn-secondary" wire:click="$set('isFormOpen', false)" style="padding: 0.35rem 0.75rem; font-size: 0.85rem;">Cancel</button>
+                </div>
                 <form wire:submit.prevent="savePermission">
                     <x-input label="Permission Name Slug *" :error="$errors->first('permission_name_input')">
                         <input type="text" class="form-control" wire:model="permission_name_input" placeholder="e.g. view-reports">
                     </x-input>
                     <div class="flex gap-4 mt-6" style="border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
-                        <x-button variant="primary" type="submit">💾 Save Permission</x-button>
-                        <x-button variant="secondary" wire:click="$set('isFormOpen', false)">Cancel</x-button>
+                        <button type="submit" class="btn btn-primary">Save Permission</button>
+                        <button type="button" class="btn btn-secondary" wire:click="$set('isFormOpen', false)">Cancel</button>
                     </div>
                 </form>
-            </x-card>
+            </div>
         @else
             <x-table :headers="['Permission Slug Name', 'Guard Engine Reference', 'Actions']">
                 @forelse($permissions as $perm)
                     <tr>
-                        <td><code>{{ $perm->name }}</code></td>
+                        <td><code style="background: rgba(99,102,241,0.1); color: var(--primary); padding: 0.2rem 0.5rem; border-radius: 4px;">{{ $perm->name }}</code></td>
                         <td><code>{{ $perm->guard_name }}</code></td>
                         <td>
                             <div class="flex gap-2">
-                                <x-button variant="secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditPermissionForm({{ $perm->id }})">Edit</x-button>
-                                <x-button variant="danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deletePermission({{ $perm->id }})" onclick="confirm('Are you sure you want to delete this permission? This will detach it from all roles.') || event.stopImmediatePropagation()">Delete</x-button>
+                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditPermissionForm({{ $perm->id }})">Edit</button>
+                                <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deletePermission({{ $perm->id }})" onclick="confirm('Are you sure you want to delete this permission? This will detach it from all roles.') || event.stopImmediatePropagation()">Delete</button>
                             </div>
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="3" class="text-center">No system permissions registered.</td></tr>
+                    <tr><td colspan="3" class="text-center" style="padding: 2rem;">No system permissions registered.</td></tr>
                 @endforelse
             </x-table>
         @endif
@@ -203,7 +307,13 @@
     <!-- ========================================== -->
     @elseif ($activeTab === 'campaigns')
         @if ($isFormOpen)
-            <x-card :title="$isEditMode ? '📢 Modify Recruitment Campaign' : '📢 Create Recruitment Campaign'">
+            <div class="card" style="border-color: var(--primary-glow); box-shadow: var(--shadow-md);">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                    <h3 class="card-title" style="margin: 0; font-size: 1.2rem;">
+                        {{ $isEditMode ? 'Modify Recruitment Campaign' : 'Create Recruitment Campaign' }}
+                    </h3>
+                    <button type="button" class="btn btn-secondary" wire:click="$set('isFormOpen', false)" style="padding: 0.35rem 0.75rem; font-size: 0.85rem;">Cancel</button>
+                </div>
                 <form wire:submit.prevent="saveCampaign">
                     <div class="grid grid-cols-2 gap-4">
                         <x-input label="Job Code *" :error="$errors->first('job_code')">
@@ -237,20 +347,20 @@
                         </x-input>
                     </div>
 
-                    <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem 1.25rem; background: var(--bg-secondary); margin-top: 1rem;" class="flex justify-between align-center">
+                    <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem 1.25rem; background: var(--bg-tertiary); margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <strong style="color: var(--color-text-primary); font-size: 0.95rem; display: block;">📜 Academic Transcript Proof Requirement</strong>
-                            <small style="color: var(--color-text-secondary);">Choose whether applicants must upload degree transcripts/certificates or if uploads are optional.</small>
+                            <strong style="color: var(--color-text-primary); font-size: 0.95rem; display: block;">Academic Transcript Proof Requirement</strong>
+                            <small style="color: var(--color-text-secondary);">Enforce mandatory document uploads during candidate profile completion</small>
                         </div>
-                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 700; color: var(--color-text-primary);">
-                            <input type="checkbox" wire:model="campaign_require_transcript_proof" style="width: 1.25rem; height: 1.25rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 600; color: var(--color-text-primary);">
+                            <input type="checkbox" wire:model="campaign_require_transcript_proof" style="width: 1.15rem; height: 1.15rem; accent-color: var(--primary);">
                             <span>{{ $campaign_require_transcript_proof ? 'Mandatory (Required *)' : 'Optional' }}</span>
                         </label>
                     </div>
 
                     @if($track_type === 'ACADEMIC')
-                        <div style="border: 1px solid var(--secondary-glow); border-radius: 8px; padding: 1.5rem; background: rgba(6,182,212,0.02);" class="mt-6 mb-6">
-                            <h4 style="color: var(--secondary); font-size: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;" class="mb-4">⚡ Academic Scoring Weights</h4>
+                        <div style="border: 1px solid var(--secondary-glow); border-radius: var(--radius-md); padding: 1.5rem; background: rgba(6,182,212,0.03);" class="mt-6 mb-6">
+                            <h4 style="color: var(--secondary); font-size: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;" class="mb-4">Academic Scoring Weights</h4>
                             <div class="grid grid-cols-3 gap-4">
                                 <x-input label="Gold Medal Weight"><input type="number" step="0.1" class="form-control" wire:model="gold_medal_weight"></x-input>
                                 <x-input label="Silver Medal Weight"><input type="number" step="0.1" class="form-control" wire:model="silver_medal_weight"></x-input>
@@ -266,11 +376,11 @@
                     @endif
 
                     <div class="flex gap-4 mt-6" style="border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
-                        <x-button variant="primary" type="submit">💾 Save Campaign</x-button>
-                        <x-button variant="secondary" wire:click="$set('isFormOpen', false)">Cancel</x-button>
+                        <button type="submit" class="btn btn-primary">Save Campaign</button>
+                        <button type="button" class="btn btn-secondary" wire:click="$set('isFormOpen', false)">Cancel</button>
                     </div>
                 </form>
-            </x-card>
+            </div>
         @else
             <!-- Campaign List & Committee Assignment Panel -->
             <div class="grid grid-cols-3 gap-6">
@@ -280,17 +390,21 @@
                         @foreach($campaigns as $camp)
                             <tr>
                                 <td><code style="color: var(--secondary)">{{ $camp->job_code }}</code></td>
-                                <td><strong>{{ $camp->title }}</strong><br><small>{{ $camp->department }}</small></td>
-                                <td><x-badge type="appealed">{{ $camp->track_type }}</x-badge></td>
-                                <td>PKR {{ number_format($camp->application_fee, 2) }}</td>
+                                <td><strong>{{ $camp->title }}</strong><br><small style="color: var(--color-text-secondary)">{{ $camp->department }}</small></td>
                                 <td>
-                                    <small>Open: {{ $camp->opening_date?->format('Y-m-d') }}</small><br>
+                                    <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25);">
+                                        {{ $camp->track_type }}
+                                    </span>
+                                </td>
+                                <td><strong>PKR {{ number_format($camp->application_fee, 2) }}</strong></td>
+                                <td>
+                                    <small style="display: block;">Open: {{ $camp->opening_date?->format('Y-m-d') }}</small>
                                     <small style="color: var(--color-text-secondary)">Close: {{ $camp->closing_date?->format('Y-m-d') }}</small>
                                 </td>
                                 <td>
                                     <div class="flex gap-2">
-                                        <x-button variant="secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditCampaignForm({{ $camp->id }})">Edit</x-button>
-                                        <x-button variant="danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deleteCampaign({{ $camp->id }})" onclick="confirm('Are you sure you want to delete this campaign?') || event.stopImmediatePropagation()">Delete</x-button>
+                                        <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditCampaignForm({{ $camp->id }})">Edit</button>
+                                        <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deleteCampaign({{ $camp->id }})" onclick="confirm('Are you sure you want to delete this campaign?') || event.stopImmediatePropagation()">Delete</button>
                                     </div>
                                 </td>
                             </tr>
@@ -300,7 +414,7 @@
                 
                 <!-- Committee Assignments sub-panel -->
                 <div class="card flex-col gap-4">
-                    <h3 class="card-title">👥 Allocate Committee Members</h3>
+                    <h3 class="card-title">Allocate Committee Members</h3>
                     <form wire:submit.prevent="assignCommitteeMember">
                         <x-select label="Select Job Campaign *" :error="$errors->first('selected_campaign_id')">
                             <select class="form-control form-select" wire:model="selected_campaign_id">
@@ -328,22 +442,22 @@
                         </x-select>
 
                         <div class="mt-4">
-                            <x-button variant="primary" style="width: 100%;" type="submit">👥 Allocate Member</x-button>
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">Allocate Member</button>
                         </div>
                     </form>
 
-                    <h4 class="mt-4 border-bottom pb-2">Active Panel Allocations</h4>
+                    <h4 class="mt-4 border-bottom pb-2" style="font-size: 0.95rem; font-weight: 700;">Active Panel Allocations</h4>
                     <div style="max-height: 200px; overflow-y: auto;">
                         @forelse($committee_assignments as $asg)
-                            <div style="background: var(--bg-table-hover); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem; margin-bottom: 0.75rem;" class="flex justify-between align-center">
+                            <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem; margin-bottom: 0.75rem;" class="flex justify-between align-center">
                                 <div>
                                     <code style="color: var(--secondary)">{{ $asg->campaign->job_code }}</code><br>
                                     <small>{{ $asg->user->email }}</small><br>
-                                    <x-badge :type="$asg->is_appellate_panel ? 'appealed' : 'paid'">
+                                    <span class="badge" style="background: {{ $asg->is_appellate_panel ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)' }}; color: {{ $asg->is_appellate_panel ? 'var(--warning)' : 'var(--success)' }}; font-size: 0.75rem;">
                                         {{ $asg->is_appellate_panel ? 'Appellate Panel' : 'Scrutiny Panel' }}
-                                    </x-badge>
+                                    </span>
                                 </div>
-                                <x-button variant="danger" style="padding: 0.2rem 0.4rem; font-size: 0.75rem;" wire:click="removeCommitteeAssignment({{ $asg->id }})">×</x-button>
+                                <button type="button" class="btn btn-danger" style="padding: 0.2rem 0.4rem; font-size: 0.75rem;" wire:click="removeCommitteeAssignment({{ $asg->id }})">×</button>
                             </div>
                         @empty
                             <p style="color: var(--color-text-muted); font-size: 0.85rem;" class="text-center">No panel allocations recorded.</p>
@@ -358,7 +472,13 @@
     <!-- ========================================== -->
     @elseif ($activeTab === 'applications')
         @if ($isFormOpen)
-            <x-card :title="$isEditMode ? '✍️ Manage Application Status' : '➕ Register Application record'">
+            <div class="card" style="border-color: var(--primary-glow); box-shadow: var(--shadow-md);">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                    <h3 class="card-title" style="margin: 0; font-size: 1.2rem;">
+                        {{ $isEditMode ? 'Manage Application Status' : 'Register Application Record' }}
+                    </h3>
+                    <button type="button" class="btn btn-secondary" wire:click="$set('isFormOpen', false)" style="padding: 0.35rem 0.75rem; font-size: 0.85rem;">Cancel</button>
+                </div>
                 <form wire:submit.prevent="saveApplication">
                     @if(!$isEditMode)
                         <div class="grid grid-cols-2 gap-4">
@@ -399,37 +519,41 @@
                         </x-input>
                     </div>
                     <div class="flex gap-4 mt-6" style="border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
-                        <x-button variant="primary" type="submit">💾 Save Application</x-button>
-                        <x-button variant="secondary" wire:click="$set('isFormOpen', false)">Cancel</x-button>
+                        <button type="submit" class="btn btn-primary">Save Application</button>
+                        <button type="button" class="btn btn-secondary" wire:click="$set('isFormOpen', false)">Cancel</button>
                     </div>
                 </form>
-            </x-card>
+            </div>
         @else
             <x-table :headers="['Candidate details', 'Campaign Code', 'Voucher status', 'Processing stage', 'Submitted Timestamp', 'Actions']">
                 @forelse($applications as $app)
                     <tr>
                         <td>
                             <strong style="color: var(--color-text-primary)">{{ $app->user->basicInfo?->first_name ?? 'N/A' }} {{ $app->user->basicInfo?->last_name ?? 'N/A' }}</strong><br>
-                            <small>{{ $app->user->email }}</small>
+                            <small style="color: var(--color-text-secondary)">{{ $app->user->email }}</small>
                         </td>
                         <td><code>{{ $app->campaign->job_code }}</code></td>
                         <td>
-                            <x-badge :type="$app->billingLedger?->status === 'SETTLED' ? 'paid' : 'pending'">
+                            <span class="badge" style="background: {{ $app->billingLedger?->status === 'SETTLED' ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)' }}; color: {{ $app->billingLedger?->status === 'SETTLED' ? 'var(--success)' : 'var(--warning)' }};">
                                 {{ $app->billingLedger?->status ?: 'No Voucher' }}
-                            </x-badge>
+                            </span>
                         </td>
-                        <td><x-badge :type="strtolower($app->status)">{{ $app->status }}</x-badge></td>
-                        <td>{{ $app->submission_timestamp ?: 'In draft' }}</td>
+                        <td>
+                            <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25);">
+                                {{ $app->status }}
+                            </span>
+                        </td>
+                        <td><span style="font-size: 0.85rem; color: var(--color-text-secondary); font-family: monospace;">{{ $app->submission_timestamp ?: 'In draft' }}</span></td>
                         <td>
                             <div class="flex gap-2">
-                                <x-button variant="secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="viewApplicationDetails({{ $app->id }})">Details</x-button>
-                                <x-button variant="secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditApplicationForm({{ $app->id }})">Status</x-button>
-                                <x-button variant="danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deleteApplication({{ $app->id }})" onclick="confirm('Are you sure you want to delete this application record?') || event.stopImmediatePropagation()">Delete</x-button>
+                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="viewApplicationDetails({{ $app->id }})">Details</button>
+                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditApplicationForm({{ $app->id }})">Status</button>
+                                <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deleteApplication({{ $app->id }})" onclick="confirm('Are you sure you want to delete this application record?') || event.stopImmediatePropagation()">Delete</button>
                             </div>
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="text-center">No recruitment applications logged.</td></tr>
+                    <tr><td colspan="6" class="text-center" style="padding: 2rem;">No recruitment applications logged.</td></tr>
                 @endforelse
             </x-table>
         @endif
@@ -439,7 +563,13 @@
     <!-- ========================================== -->
     @elseif ($activeTab === 'basic_infos')
         @if ($isFormOpen)
-            <x-card :title="$isEditMode ? '✍️ Modify basicInfo details' : '➕ Create Basic basicInfo Record'">
+            <div class="card" style="border-color: var(--primary-glow); box-shadow: var(--shadow-md);">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                    <h3 class="card-title" style="margin: 0; font-size: 1.2rem;">
+                        {{ $isEditMode ? 'Modify Profile Details' : 'Create Profile Record' }}
+                    </h3>
+                    <button type="button" class="btn btn-secondary" wire:click="$set('isFormOpen', false)" style="padding: 0.35rem 0.75rem; font-size: 0.85rem;">Cancel</button>
+                </div>
                 <form wire:submit.prevent="saveBasicInfo">
                     @if(!$isEditMode)
                         <x-select label="Select Applicant Account *" :error="$errors->first('bi_user_id')">
@@ -468,42 +598,46 @@
                         </x-input>
                         <div class="form-group" style="margin-top: 1.75rem;">
                             <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                <input type="checkbox" wire:model="bi_is_locked" style="width: 1.25rem; height: 1.25rem;">
-                                <span style="font-weight: 600;">Lock basicInfo (Voucher generated)</span>
+                                <input type="checkbox" wire:model="bi_is_locked" style="width: 1.25rem; height: 1.25rem; accent-color: var(--primary);">
+                                <span style="font-weight: 600;">Lock Profile (Voucher generated)</span>
                             </label>
                         </div>
                     </div>
                     <div class="flex gap-4 mt-6" style="border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
-                        <x-button variant="primary" type="submit">💾 Save basicInfo</x-button>
-                        <x-button variant="secondary" wire:click="$set('isFormOpen', false)">Cancel</x-button>
+                        <button type="submit" class="btn btn-primary">Save Profile</button>
+                        <button type="button" class="btn btn-secondary" wire:click="$set('isFormOpen', false)">Cancel</button>
                     </div>
                 </form>
-            </x-card>
+            </div>
         @else
             <x-table :headers="['Candidate Reference', 'Track Type', 'CNIC Number Reference', 'Lock Status', 'Action']">
                 @forelse($basic_infos as $basicInfo)
                     <tr>
                         <td>
                             <strong style="color: var(--color-text-primary)">{{ $basicInfo->first_name }} {{ $basicInfo->last_name }}</strong><br>
-                            <small>{{ $basicInfo->user->email }}</small>
+                            <small style="color: var(--color-text-secondary)">{{ $basicInfo->user->email }}</small>
                         </td>
-                        <td><x-badge type="appealed">{{ $basicInfo->track_type }}</x-badge></td>
+                        <td>
+                            <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25);">
+                                {{ $basicInfo->track_type }}
+                            </span>
+                        </td>
                         <td><code>{{ $basicInfo->cnic_number }}</code></td>
                         <td>
-                            <x-badge :type="$basicInfo->is_locked ? 'ineligible' : 'paid'">
-                                {{ $basicInfo->is_locked ? '🔒 Locked' : '🔓 Editing' }}
-                            </x-badge>
+                            <span class="badge" style="background: {{ $basicInfo->is_locked ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)' }}; color: {{ $basicInfo->is_locked ? 'var(--danger)' : 'var(--success)' }};">
+                                {{ $basicInfo->is_locked ? 'Locked' : 'Editing' }}
+                            </span>
                         </td>
                         <td>
                             <div class="flex gap-2">
-                                <x-button variant="secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="viewBasicInfoDetails({{ $basicInfo->id }})">Full basicInfo Details</x-button>
-                                <x-button variant="secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditBasicInfoForm({{ $basicInfo->id }})">Basic Details</x-button>
-                                <x-button variant="danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deleteBasicInfo({{ $basicInfo->id }})" onclick="confirm('Are you sure you want to delete this basicInfo?') || event.stopImmediatePropagation()">Delete</x-button>
+                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="viewBasicInfoDetails({{ $basicInfo->id }})">Full Profile Details</button>
+                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditBasicInfoForm({{ $basicInfo->id }})">Basic Details</button>
+                                <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deleteBasicInfo({{ $basicInfo->id }})" onclick="confirm('Are you sure you want to delete this profile?') || event.stopImmediatePropagation()">Delete</button>
                             </div>
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" class="text-center">No candidate basic_infos registered in system.</td></tr>
+                    <tr><td colspan="5" class="text-center" style="padding: 2rem;">No candidate profiles registered in system.</td></tr>
                 @endforelse
             </x-table>
         @endif
@@ -513,7 +647,13 @@
     <!-- ========================================== -->
     @elseif ($activeTab === 'payments')
         @if ($isFormOpen)
-            <x-card :title="$isEditMode ? '✍️ Edit Processing Voucher details' : '➕ Log Processing Voucher'">
+            <div class="card" style="border-color: var(--primary-glow); box-shadow: var(--shadow-md);">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                    <h3 class="card-title" style="margin: 0; font-size: 1.2rem;">
+                        {{ $isEditMode ? 'Edit Processing Voucher Details' : 'Log Processing Voucher' }}
+                    </h3>
+                    <button type="button" class="btn btn-secondary" wire:click="$set('isFormOpen', false)" style="padding: 0.35rem 0.75rem; font-size: 0.85rem;">Cancel</button>
+                </div>
                 <form wire:submit.prevent="savePayment">
                     @if(!$isEditMode)
                         <div class="grid grid-cols-2 gap-4">
@@ -534,7 +674,7 @@
                         <x-input label="Total Amount (PKR) *" :error="$errors->first('pay_amount')">
                             <input type="number" class="form-control" wire:model="pay_amount">
                         </x-input>
-                        <x-select label="Voucher status *" :error="$errors->first('pay_status')">
+                        <x-select label="Voucher Status *" :error="$errors->first('pay_status')">
                             <select class="form-control form-select" wire:model="pay_status">
                                 <option value="PENDING">Pending Payment</option>
                                 <option value="AUTHORIZED">Authorized</option>
@@ -542,7 +682,7 @@
                                 <option value="EXPIRED">Expired</option>
                             </select>
                         </x-select>
-                        <x-input label="Bank Transaction reference ID" :error="$errors->first('pay_transaction_id')">
+                        <x-input label="Bank Transaction Reference ID" :error="$errors->first('pay_transaction_id')">
                             <input type="text" class="form-control" wire:model="pay_transaction_id" placeholder="TID-123456">
                         </x-input>
                     </div>
@@ -552,11 +692,11 @@
                         </x-input>
                     </div>
                     <div class="flex gap-4 mt-6" style="border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
-                        <x-button variant="primary" type="submit">💾 Save Payment</x-button>
-                        <x-button variant="secondary" wire:click="$set('isFormOpen', false)">Cancel</x-button>
+                        <button type="submit" class="btn btn-primary">Save Payment</button>
+                        <button type="button" class="btn btn-secondary" wire:click="$set('isFormOpen', false)">Cancel</button>
                     </div>
                 </form>
-            </x-card>
+            </div>
         @else
             <x-table :headers="['Consumer ID', 'Applicant Account', 'Campaign Scope', 'Amount PKR', 'Voucher status', 'Transaction ID', 'Paid Date', 'Action']">
                 @forelse($payments as $pay)
@@ -565,18 +705,22 @@
                         <td>{{ $pay->application->user->email }}</td>
                         <td><code>{{ $pay->application->campaign->job_code }}</code></td>
                         <td><strong>PKR {{ number_format($pay->amount, 2) }}</strong></td>
-                        <td><x-badge :type="strtolower($pay->status)">{{ $pay->status }}</x-badge></td>
+                        <td>
+                            <span class="badge" style="background: {{ $pay->status === 'SETTLED' ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)' }}; color: {{ $pay->status === 'SETTLED' ? 'var(--success)' : 'var(--warning)' }};">
+                                {{ $pay->status }}
+                            </span>
+                        </td>
                         <td><code>{{ $pay->transaction_id ?: 'N/A' }}</code></td>
-                        <td>{{ $pay->payment_timestamp ?: 'Unpaid' }}</td>
+                        <td><span style="font-size: 0.85rem; color: var(--color-text-secondary); font-family: monospace;">{{ $pay->payment_timestamp ?: 'Unpaid' }}</span></td>
                         <td>
                             <div class="flex gap-2">
-                                <x-button variant="secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditPaymentForm({{ $pay->id }})">Reconcile / Edit</x-button>
-                                <x-button variant="danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deletePayment({{ $pay->id }})" onclick="confirm('Are you sure you want to delete this payment record?') || event.stopImmediatePropagation()">Delete</x-button>
+                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditPaymentForm({{ $pay->id }})">Reconcile / Edit</button>
+                                <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deletePayment({{ $pay->id }})" onclick="confirm('Are you sure you want to delete this payment record?') || event.stopImmediatePropagation()">Delete</button>
                             </div>
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="8" class="text-center">No processing billing vouchers logged.</td></tr>
+                    <tr><td colspan="8" class="text-center" style="padding: 2rem;">No processing billing vouchers logged.</td></tr>
                 @endforelse
             </x-table>
         @endif
@@ -585,29 +729,37 @@
     <!-- TAB 8: AUDIT LOGS -->
     <!-- ========================================== -->
     @elseif ($activeTab === 'logs')
-        <x-card title="📜 Security Audit Log Ledger">
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <h3 class="card-title" style="margin: 0; font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                    <span>Security Audit Log Ledger</span>
+                </h3>
+            </div>
             <x-table :headers="['Action User', 'Access IP', 'Action Mode', 'Target Database Table', 'Record reference ID', 'Timestamp Logged', 'Action']">
                 @forelse($logs as $log)
                     <tr>
                         <td><strong>{{ $log->user?->email ?: 'Anonymous / Guest' }}</strong></td>
                         <td><code>{{ $log->ip_address }}</code></td>
                         <td>
-                            <x-badge :type="$log->action_type === 'DELETED' ? 'ineligible' : ($log->action_type === 'CREATED' ? 'eligible' : 'appealed')">
+                            <span class="badge" style="background: {{ $log->action_type === 'DELETED' ? 'rgba(239,68,68,0.15)' : ($log->action_type === 'CREATED' ? 'rgba(16,185,129,0.15)' : 'rgba(99,102,241,0.15)') }}; color: {{ $log->action_type === 'DELETED' ? 'var(--danger)' : ($log->action_type === 'CREATED' ? 'var(--success)' : 'var(--primary)') }};">
                                 {{ $log->action_type }}
-                            </x-badge>
+                            </span>
                         </td>
                         <td><code>{{ $log->table_name }}</code></td>
                         <td><code>ID #{{ $log->record_id }}</code></td>
-                        <td><small style="color: var(--color-text-secondary)">{{ $log->logged_at }}</small></td>
+                        <td><small style="color: var(--color-text-secondary); font-family: monospace;">{{ $log->logged_at }}</small></td>
                         <td>
-                            <x-button variant="secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="viewLogDetails({{ $log->id }})">Details Diff</x-button>
+                            <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="viewLogDetails({{ $log->id }})">Details Diff</button>
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="text-center">No security audit records logged.</td></tr>
+                    <tr><td colspan="7" class="text-center" style="padding: 2rem;">No security audit records logged.</td></tr>
                 @endforelse
             </x-table>
-        </x-card>
+        </div>
     @endif
 
     <!-- ========================================== -->
@@ -615,7 +767,7 @@
     <!-- ========================================== -->
     
     <!-- 1. Application Details Modal -->
-    <x-modal :show="$isDetailsOpen && $activeTab === 'applications'" title="📋 Application basicInfo Details Summary" closeAction="$set('isDetailsOpen', false)" style="max-width: 800px;">
+    <x-modal :show="$isDetailsOpen && $activeTab === 'applications'" title="Application Profile Details Summary" closeAction="$set('isDetailsOpen', false)" style="max-width: 800px;">
         @if($selectedRecordDetails)
             <div style="max-height: 450px; overflow-y: auto; padding-right: 0.5rem;">
                 <div class="grid grid-cols-2 gap-4 border-bottom pb-4 mb-4">
@@ -639,15 +791,15 @@
                     </div>
                     <div>
                         <p style="color: var(--color-text-secondary)">Track Classification:</p>
-                        <x-badge type="appealed">{{ $selectedRecordDetails->campaign->track_type }}</x-badge>
+                        <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary);">{{ $selectedRecordDetails->campaign->track_type }}</span>
                     </div>
                 </div>
                 <div class="grid grid-cols-3 gap-4 border-bottom pb-4 mb-4">
                     <div>
-                        <p style="color: var(--color-text-secondary)">Challan Voucher status:</p>
-                        <x-badge :type="$selectedRecordDetails->billingLedger?->status === 'SETTLED' ? 'paid' : 'pending'">
+                        <p style="color: var(--color-text-secondary)">Challan Voucher Status:</p>
+                        <span class="badge" style="background: {{ $selectedRecordDetails->billingLedger?->status === 'SETTLED' ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)' }}; color: {{ $selectedRecordDetails->billingLedger?->status === 'SETTLED' ? 'var(--success)' : 'var(--warning)' }};">
                             {{ $selectedRecordDetails->billingLedger?->status ?: 'No Voucher' }}
-                        </x-badge>
+                        </span>
                     </div>
                     <div>
                         <p style="color: var(--color-text-secondary)">Consumer Reference ID:</p>
@@ -673,10 +825,10 @@
                                 <td><strong style="color: var(--success)">{{ $eval->interview_score }}</strong></td>
                                 <td>
                                     @if($eval->is_outlier)
-                                        <x-badge type="ineligible">Outlier Alert</x-badge><br>
+                                        <span class="badge" style="background: rgba(239,68,68,0.15); color: var(--danger);">Outlier Alert</span><br>
                                         <small style="color: var(--color-text-muted)">Justify: {{ $eval->outlier_justification }}</small>
                                     @else
-                                        <x-badge type="paid">Normal</x-badge>
+                                        <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--success);">Normal</span>
                                     @endif
                                 </td>
                             </tr>
@@ -689,8 +841,8 @@
         @endif
     </x-modal>
 
-    <!-- 2. basicInfo Details Modal -->
-    <x-modal :show="$isDetailsOpen && $activeTab === 'basic_infos'" title="👤 Complete Candidate Wizard basicInfo details" closeAction="$set('isDetailsOpen', false)" style="max-width: 900px; width: 95%;">
+    <!-- 2. Profile Details Modal -->
+    <x-modal :show="$isDetailsOpen && $activeTab === 'basic_infos'" title="Complete Candidate Wizard Profile Details" closeAction="$set('isDetailsOpen', false)" style="max-width: 900px; width: 95%;">
         @if($selectedRecordDetails)
             <div style="max-height: 550px; overflow-y: auto; padding-right: 0.5rem;">
                 <div class="grid grid-cols-3 gap-4 border-bottom pb-4 mb-4">
@@ -729,7 +881,7 @@
 
                 <!-- Academic History (Ascending sorted) -->
                 @if($selectedRecordDetails->degrees->isNotEmpty())
-                    <h4 style="color: var(--secondary); font-weight: 700;" class="mt-4 mb-2">🎓 Chronological Academic Qualifications</h4>
+                    <h4 style="color: var(--secondary); font-weight: 700;" class="mt-4 mb-2">Chronological Academic Qualifications</h4>
                     <x-table :headers="['Degree', 'Major Specialization', 'Institution / Board', 'Passing Year', 'Marks Obtd / Scale', 'Division/Grade', 'Transcript Proof']">
                         @foreach($selectedRecordDetails->degrees as $deg)
                             <tr>
@@ -753,7 +905,7 @@
 
                 <!-- Job Experiences -->
                 @if($selectedRecordDetails->experiences->isNotEmpty())
-                    <h4 style="color: var(--secondary); font-weight: 700;" class="mt-6 mb-2">💼 Employment History Log</h4>
+                    <h4 style="color: var(--secondary); font-weight: 700;" class="mt-6 mb-2">Employment History Log</h4>
                     <x-table :headers="['Designation', 'Company Name', 'Tenure Dates Range', 'Sector', 'Gross Salary', 'Description', 'Letter File']">
                         @foreach($selectedRecordDetails->experiences as $exp)
                             <tr>
@@ -779,32 +931,38 @@
     </x-modal>
 
     <!-- 3. Security Audit Log Details Modal -->
-    <x-modal :show="$isDetailsOpen && $activeTab === 'logs'" title="🔍 Security Audit State Details Diff" closeAction="$set('isDetailsOpen', false)" style="max-width: 800px;">
+    <x-modal :show="$isDetailsOpen && $activeTab === 'logs'" title="Security Audit State Details Diff" closeAction="$set('isDetailsOpen', false)" style="max-width: 800px;">
         @if($selectedRecordDetails)
             <div style="max-height: 450px; overflow-y: auto;">
                 <div class="grid grid-cols-3 gap-4 border-bottom pb-4 mb-4">
                     <div>
                         <p style="color: var(--color-text-secondary)">Action Class:</p>
-                        <x-badge type="appealed">{{ $selectedRecordDetails->action_type }}</x-badge>
+                        <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary);">{{ $selectedRecordDetails->action_type }}</span>
                     </div>
                     <div>
                         <p style="color: var(--color-text-secondary)">Database Table:</p>
                         <code>{{ $selectedRecordDetails->table_name }}</code>
                     </div>
                     <div>
-                        <p style="color: var(--color-text-secondary)">Record reference ID:</p>
+                        <p style="color: var(--color-text-secondary)">Record Reference ID:</p>
                         <code>ID #{{ $selectedRecordDetails->record_id }}</code>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-6 mt-4">
                     <div>
-                        <h4 style="color: var(--danger); font-size: 0.95rem; margin-bottom: 0.5rem;">🔴 State Before Change:</h4>
-                        <pre style="background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 6px; font-size: 0.8rem; overflow-x: auto; color: #fca5a5;">{{ json_encode($selectedRecordDetails->state_before, JSON_PRETTY_PRINT) ?: 'No previous state (NEW INSERT)' }}</pre>
+                        <h4 style="color: var(--danger); font-size: 0.95rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--danger);"></span>
+                            State Before Change:
+                        </h4>
+                        <pre style="background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 6px; font-size: 0.8rem; overflow-x: auto; color: #fca5a5; font-family: 'JetBrains Mono', monospace;">{{ json_encode($selectedRecordDetails->state_before, JSON_PRETTY_PRINT) ?: 'No previous state (NEW INSERT)' }}</pre>
                     </div>
                     <div>
-                        <h4 style="color: var(--success); font-size: 0.95rem; margin-bottom: 0.5rem;">🟢 State After Change:</h4>
-                        <pre style="background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 6px; font-size: 0.8rem; overflow-x: auto; color: #a7f3d0;">{{ json_encode($selectedRecordDetails->state_after, JSON_PRETTY_PRINT) }}</pre>
+                        <h4 style="color: var(--success); font-size: 0.95rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--success);"></span>
+                            State After Change:
+                        </h4>
+                        <pre style="background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 6px; font-size: 0.8rem; overflow-x: auto; color: #a7f3d0; font-family: 'JetBrains Mono', monospace;">{{ json_encode($selectedRecordDetails->state_after, JSON_PRETTY_PRINT) }}</pre>
                     </div>
                 </div>
             </div>
