@@ -50,9 +50,27 @@ class CampaignCrud extends Component
     public $selected_campaign_id;
     public $selected_user_id;
     public $is_appellate_panel = false;
+    public $member_category = 'INTERNAL';
+    public $role_designation = 'Internal Member / Department Head';
+    public $affiliation = '';
+    public $country = '';
+
+    // Candidate Pool Filtering
+    public $candidateSearch = '';
+    public $candidateFilterSection = 'ALL'; // ALL, INTERNAL, EXTERNAL, INTERNATIONAL, INDEPENDENT
+
+    // Statutory Constitution Modal & Presets
+    public $isConstitutionModalOpen = false;
+    public $constitution_required_total = 5;
+    public $constitution_required_internal = 2;
+    public $constitution_required_external = 2;
+    public $constitution_required_international = 1;
+    public $constitution_required_independent = 0;
+    public $constitution_title = '';
+    public $constitution_description = '';
     
     // Lists
-    public $committee_users;
+    public $committee_users = [];
     public $assignments;
 
     // View states
@@ -64,6 +82,10 @@ class CampaignCrud extends Component
     {
         abort_unless(Auth::check() && Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
         $this->loadCampaigns();
+        if ($this->campaigns->isNotEmpty()) {
+            $this->selected_campaign_id = $this->campaigns->first()->id;
+            $this->syncConstitutionFromCampaign($this->selected_campaign_id);
+        }
         $this->loadCommitteeData();
     }
 
@@ -74,13 +96,76 @@ class CampaignCrud extends Component
 
     public function loadCommitteeData()
     {
-        // Get all users who can serve on committees (scrutiny, appellate, selection board, super-admin)
-        $this->committee_users = User::role(['scrutiny-committee', 'appellate-committee', 'selection-board-member', 'super-admin'])
-            ->where('is_active', true)
+        // 🔒 SUPER ADMIN IS STRICTLY EXCLUDED from operational committee allocation areas
+        $users = User::where('is_active', true)
+            ->whereDoesntHave('roles', fn($q) => $q->where('name', 'super-admin'))
+            ->where('email', 'not like', '%superadmin%')
+            ->where(function($q) {
+                $q->whereHas('roles', fn($rq) => $rq->whereIn('name', [
+                    'scrutiny-committee',
+                    'appellate-committee',
+                    'selection-board-member',
+                    'academic-reviewer',
+                    'registrar'
+                ]))->orWhereHas('reviewerProfile');
+            })
+            ->with(['roles', 'reviewerProfile', 'basicInfo'])
             ->get();
 
+        $this->committee_users = $users->map(function($user) {
+            $category = 'INTERNAL';
+            $country = 'Domestic / Local';
+            $affiliation = 'Main Campus / Head Office';
+            $rank = $user->roles->first()?->name ? ucwords(str_replace('-', ' ', $user->roles->first()->name)) : 'Staff Member';
+            $name = $user->email;
+            $subject = 'Operations & Administration';
+
+            if ($user->reviewerProfile) {
+                $name = $user->reviewerProfile->name ?: $user->email;
+                $affiliation = $user->reviewerProfile->university ?: 'External Partner Institution / Office';
+                $country = $user->reviewerProfile->country ?: 'Domestic / Local';
+                $rank = $user->reviewerProfile->academic_rank ?: 'External Expert';
+                $subject = $user->reviewerProfile->subject ?: ($user->reviewerProfile->specialization ?: 'Specialist');
+                
+                // Categorize domestic vs international
+                $domesticCountries = ['pakistan', 'domestic', 'local', 'national'];
+                if (!in_array(strtolower(trim($country)), $domesticCountries)) {
+                    $category = 'INTERNATIONAL';
+                } else {
+                    $category = 'EXTERNAL';
+                }
+            } elseif ($user->hasRole('appellate-committee')) {
+                $category = 'INDEPENDENT';
+                $rank = 'Appellate Grievance Arbiter';
+                $affiliation = 'Independent Appellate Cell';
+                $subject = 'Statutory Appeals & Grievance Review';
+                if ($user->basicInfo && $user->basicInfo->first_name) {
+                    $name = $user->basicInfo->first_name . ' ' . $user->basicInfo->last_name;
+                }
+            } else {
+                $category = 'INTERNAL';
+                if ($user->basicInfo && $user->basicInfo->first_name) {
+                    $name = $user->basicInfo->first_name . ' ' . $user->basicInfo->last_name;
+                }
+            }
+
+            return [
+                'id' => $user->id,
+                'email' => $user->email,
+                'name' => $name,
+                'category' => $category,
+                'country' => $country,
+                'affiliation' => $affiliation,
+                'rank' => $rank,
+                'subject' => $subject,
+                'role_name' => $user->roles->pluck('name')->map(fn($r) => ucwords(str_replace('-', ' ', $r)))->join(', '),
+            ];
+        })->toArray();
+
         // Get all current campaign assignments
-        $this->assignments = CampaignCommittee::with('campaign', 'user.roles')->get();
+        $this->assignments = CampaignCommittee::with(['campaign', 'user.roles', 'user.reviewerProfile', 'user.basicInfo'])
+            ->orderBy('id', 'desc')
+            ->get();
     }
 
     public function setTab($tab)
@@ -252,6 +337,163 @@ class CampaignCrud extends Component
         $this->is_appellate_panel = false;
     }
 
+    public function updatedSelectedCampaignId($val)
+    {
+        if ($val) {
+            $this->syncConstitutionFromCampaign($val);
+        }
+    }
+
+    public function syncConstitutionFromCampaign($campaignId)
+    {
+        $campaign = Campaign::find($campaignId);
+        if ($campaign) {
+            $constitution = $campaign->getCommitteeConstitution();
+            $this->constitution_required_total = (int)($constitution['required_total'] ?? 5);
+            $this->constitution_required_internal = (int)($constitution['required_internal'] ?? 2);
+            $this->constitution_required_external = (int)($constitution['required_external'] ?? 2);
+            $this->constitution_required_international = (int)($constitution['required_international'] ?? 1);
+            $this->constitution_required_independent = (int)($constitution['required_independent'] ?? 0);
+            $this->constitution_title = $constitution['title'] ?? 'Statutory Operational Committee Constitution';
+            $this->constitution_description = $constitution['description'] ?? 'Statutory member quota breakdown.';
+        }
+    }
+
+    public function selectCandidate($userId)
+    {
+        $this->selected_user_id = $userId;
+        $candidate = collect($this->committee_users)->firstWhere('id', $userId);
+        if ($candidate) {
+            $this->member_category = $candidate['category'];
+            $this->affiliation = $candidate['affiliation'];
+            $this->country = $candidate['country'];
+            $this->role_designation = match($candidate['category']) {
+                'INTERNATIONAL' => 'International / Overseas Specialist',
+                'EXTERNAL' => 'External Subject Expert',
+                'INDEPENDENT' => 'Independent Arbiter / Legal Member',
+                default => 'Internal Member / Department Head',
+            };
+        }
+    }
+
+    public function clearSelectedCandidate()
+    {
+        $this->selected_user_id = null;
+        $this->member_category = 'INTERNAL';
+        $this->role_designation = 'Internal Member / Department Head';
+        $this->affiliation = '';
+        $this->country = '';
+    }
+
+    public function filterCandidateSection($sec)
+    {
+        $this->candidateFilterSection = $sec;
+    }
+
+    public function openConstitutionModal()
+    {
+        if ($this->selected_campaign_id) {
+            $this->syncConstitutionFromCampaign($this->selected_campaign_id);
+        }
+        $this->isConstitutionModalOpen = true;
+    }
+
+    public function closeConstitutionModal()
+    {
+        $this->isConstitutionModalOpen = false;
+    }
+
+    public function applyConstitutionPreset($preset)
+    {
+        if ($preset === 'academic_prof') {
+            $this->constitution_required_total = 5;
+            $this->constitution_required_internal = 2;
+            $this->constitution_required_external = 2;
+            $this->constitution_required_international = 1;
+            $this->constitution_required_independent = 0;
+            $this->constitution_title = 'Statutory Academic Selection Committee (Professorial / Faculty)';
+            $this->constitution_description = '2 Internal Leaders/Staff, 2 External Subject Experts (Other Institutions/Offices), 1 International/Overseas Specialist.';
+        } elseif ($preset === 'executive_admin') {
+            $this->constitution_required_total = 4;
+            $this->constitution_required_internal = 2;
+            $this->constitution_required_external = 1;
+            $this->constitution_required_international = 0;
+            $this->constitution_required_independent = 1;
+            $this->constitution_title = 'Executive & Operational Selection Board (Director / Officers)';
+            $this->constitution_description = '2 Internal Leadership Officers, 1 External Industry/Office Delegate, 1 Independent Governance Member.';
+        } elseif ($preset === 'expert_heavy') {
+            $this->constitution_required_total = 5;
+            $this->constitution_required_internal = 1;
+            $this->constitution_required_external = 3;
+            $this->constitution_required_international = 1;
+            $this->constitution_required_independent = 0;
+            $this->constitution_title = 'External-Led Expert Scrutiny Panel';
+            $this->constitution_description = '1 Internal Convener, 3 External Subject Experts (Other Universities/Offices), 1 Overseas Specialist.';
+        }
+    }
+
+    public function saveConstitution()
+    {
+        $this->validate([
+            'selected_campaign_id' => 'required|exists:campaigns,id',
+            'constitution_required_total' => 'required|integer|min:1',
+            'constitution_required_internal' => 'required|integer|min:0',
+            'constitution_required_external' => 'required|integer|min:0',
+            'constitution_required_international' => 'required|integer|min:0',
+            'constitution_required_independent' => 'required|integer|min:0',
+        ]);
+
+        $sum = (int)$this->constitution_required_internal +
+               (int)$this->constitution_required_external +
+               (int)$this->constitution_required_international +
+               (int)$this->constitution_required_independent;
+
+        if ($sum !== (int)$this->constitution_required_total) {
+            $this->addError('constitution_required_total', "Category slots sum ({$sum}) does not equal total required members ({$this->constitution_required_total}).");
+            return;
+        }
+
+        $campaign = Campaign::findOrFail($this->selected_campaign_id);
+        $rules = $campaign->scoring_rules ?? [];
+        $rules['committee_constitution'] = [
+            'required_total' => (int)$this->constitution_required_total,
+            'required_internal' => (int)$this->constitution_required_internal,
+            'required_external' => (int)$this->constitution_required_external,
+            'required_international' => (int)$this->constitution_required_international,
+            'required_independent' => (int)$this->constitution_required_independent,
+            'title' => $this->constitution_title ?: 'Statutory Committee Constitution',
+            'description' => $this->constitution_description ?: 'Statutory quota specification.',
+            'enforce_strict_quota' => true,
+        ];
+
+        $campaign->update(['scoring_rules' => $rules]);
+        $this->isConstitutionModalOpen = false;
+        session()->flash('message', 'Statutory Committee Constitution updated successfully for ' . $campaign->title);
+    }
+
+    public function getFilteredCandidatesProperty()
+    {
+        $list = collect($this->committee_users);
+
+        if ($this->candidateFilterSection && $this->candidateFilterSection !== 'ALL') {
+            $list = $list->where('category', $this->candidateFilterSection);
+        }
+
+        if (!empty($this->candidateSearch)) {
+            $term = strtolower(trim($this->candidateSearch));
+            $list = $list->filter(function($c) use ($term) {
+                return str_contains(strtolower($c['name']), $term) ||
+                       str_contains(strtolower($c['email']), $term) ||
+                       str_contains(strtolower($c['affiliation']), $term) ||
+                       str_contains(strtolower($c['country']), $term) ||
+                       str_contains(strtolower($c['subject']), $term) ||
+                       str_contains(strtolower($c['rank']), $term);
+            });
+        }
+
+        return $list->values();
+    }
+
     // ==========================================
     // 👥 COMMITTEE PANEL ASSIGNMENT BREAD
     // ==========================================
@@ -261,25 +503,75 @@ class CampaignCrud extends Component
         $this->validate([
             'selected_campaign_id' => 'required|exists:campaigns,id',
             'is_appellate_panel' => 'required|boolean',
+            'member_category' => 'required|in:INTERNAL,EXTERNAL,INTERNATIONAL,INDEPENDENT',
+            'role_designation' => 'nullable|string|max:150',
+            'affiliation' => 'nullable|string|max:190',
+            'country' => 'nullable|string|max:100',
             'selected_user_id' => [
                 'required',
                 'exists:users,id',
-                // Custom operational seeder logic rule check
-                new SeparatedCommitteeConflictRule($this->selected_campaign_id, $this->is_appellate_panel)
+                new SeparatedCommitteeConflictRule($this->selected_campaign_id, (bool)$this->is_appellate_panel)
             ]
         ], [
-            'selected_user_id.required' => 'Please select a committee member to assign.'
+            'selected_user_id.required' => 'Please select a committee member from the employee/expert candidate pool.'
         ]);
 
-        // 2. Add to table
+        // 2. Strict Super-Admin Exclusion Check
+        $targetUser = User::findOrFail($this->selected_user_id);
+        if ($targetUser->hasRole('super-admin') || str_contains(strtolower($targetUser->email), 'superadmin')) {
+            $this->addError('selected_user_id', 'Super Administrators are strictly excluded from operational committee allocations.');
+            return;
+        }
+
+        // 3. Exact Statutory Quota Check (for Scrutiny / Selection Panel)
+        $campaign = Campaign::findOrFail($this->selected_campaign_id);
+        $metrics = $campaign->getCommitteeMetrics();
+        $constitution = $metrics['constitution'];
+
+        if (!$this->is_appellate_panel) {
+            $requiredTotal = (int)($constitution['required_total'] ?? 5);
+            $scrutinyAssigned = CampaignCommittee::where('campaign_id', $this->selected_campaign_id)
+                ->where('is_appellate_panel', false)
+                ->get();
+
+            // Check if overall committee quorum is already filled
+            if ($scrutinyAssigned->count() >= $requiredTotal) {
+                $this->addError('selected_user_id', "Statutory quorum reached: The committee constitution specifies exactly {$requiredTotal} members. All {$requiredTotal} slot(s) are already allocated.");
+                return;
+            }
+
+            // Check if category quota is exceeded
+            $categoryKey = match($this->member_category) {
+                'INTERNAL' => 'required_internal',
+                'EXTERNAL' => 'required_external',
+                'INTERNATIONAL' => 'required_international',
+                'INDEPENDENT' => 'required_independent',
+                default => 'required_internal',
+            };
+            $categoryQuota = (int)($constitution[$categoryKey] ?? 0);
+            $alreadyAssignedInCategory = $scrutinyAssigned->where('member_category', $this->member_category)->count();
+
+            if ($categoryQuota > 0 && $alreadyAssignedInCategory >= $categoryQuota) {
+                $catLabel = $metrics['categories'][$this->member_category]['label'] ?? $this->member_category;
+                $this->addError('member_category', "Quota limit reached: The constitution allocates exactly {$categoryQuota} slot(s) for '{$catLabel}'. All {$categoryQuota} slot(s) are already filled.");
+                return;
+            }
+        }
+
+        // 4. Add to table
         CampaignCommittee::create([
             'campaign_id' => $this->selected_campaign_id,
             'user_id' => $this->selected_user_id,
             'is_appellate_panel' => (bool)$this->is_appellate_panel,
+            'member_category' => $this->member_category,
+            'role_designation' => $this->role_designation ?: 'Committee Member',
+            'affiliation' => $this->affiliation ?: 'Home Organization',
+            'country' => $this->country ?: 'Domestic / Local',
+            'assigned_at' => now(),
         ]);
 
-        session()->flash('message', 'Committee member assigned successfully.');
-        $this->resetForm();
+        session()->flash('message', 'Committee member successfully assigned under statutory criteria.');
+        $this->clearSelectedCandidate();
         $this->loadCommitteeData();
     }
 

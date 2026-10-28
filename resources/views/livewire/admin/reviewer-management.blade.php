@@ -361,7 +361,76 @@
                 </div>
 
                 <!-- Field Matched Reviewers Selection Area -->
-                <div style="padding: 1.5rem 1.75rem 2.5rem 1.75rem; overflow-y: auto; flex: 1;">
+                <div style="padding: 1.5rem 1.75rem 3rem 1.75rem; overflow-y: auto; flex: 1;">
+                    <!-- Inline Empanelment Form (Opens smoothly right inside the dispatch window) -->
+                    @if($showInlineEmpanel)
+                        <div style="background: rgba(13, 20, 36, 0.98); border: 1.5px solid var(--secondary); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.6);">
+                            <div class="flex justify-between align-center mb-3">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(6,182,212,0.15); color: var(--secondary); display: flex; align-items: center; justify-content: center;">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                    </div>
+                                    <div>
+                                        <strong style="color: var(--color-text-primary); font-size: 0.98rem;">Empanel & Assign New Subject Expert</strong>
+                                        <span style="font-size: 0.75rem; color: var(--secondary); display: block;">For {{ $targetApplication->campaign->department }} (Automatically selected upon saving)</span>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-secondary btn-sm" wire:click="$set('showInlineEmpanel', false)" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">✕ Close Form</button>
+                            </div>
+
+                            <form wire:submit.prevent="createReviewer">
+                                <div class="grid grid-cols-2 gap-3 mb-3">
+                                    <x-input label="Full Name & Title *" :error="$errors->first('name')">
+                                        <input type="text" class="form-control" wire:model="name" placeholder="e.g. Prof. Dr. Tariq Mahmood">
+                                    </x-input>
+                                    <x-input label="Institutional Email Address *" :error="$errors->first('email')">
+                                        <input type="email" class="form-control" wire:model="email" placeholder="e.g. tariq.mahmood@nust.edu.pk">
+                                    </x-input>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3 mb-3">
+                                    <x-input label="Subject / Academic Discipline *" :error="$errors->first('subject')">
+                                        <input type="text" class="form-control" wire:model="subject" placeholder="e.g. Computer Science">
+                                    </x-input>
+                                    <x-select label="Current Academic Rank / Position *" :error="$errors->first('academic_rank')">
+                                        <select class="form-control form-select" wire:model="academic_rank">
+                                            <option value="Professor">Professor</option>
+                                            <option value="Associate Professor">Associate Professor</option>
+                                            <option value="Assistant Professor">Assistant Professor</option>
+                                            <option value="Tenured Professor">Tenured Professor</option>
+                                            <option value="Distinguished Professor">Distinguished Professor</option>
+                                            <option value="Senior Scientist">Senior Scientist / Principal Investigator</option>
+                                        </select>
+                                    </x-select>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3 mb-3">
+                                    <x-input label="Affiliated University / Institution *" :error="$errors->first('university')">
+                                        <input type="text" class="form-control" wire:model="university" placeholder="e.g. National University of Sciences & Technology">
+                                    </x-input>
+                                    <x-searchable-country-select wire:model="country" label="Affiliated Country *" :error="$errors->first('country')" placeholder="Search or select country..." />
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3 mb-3">
+                                    <x-input label="Contact Phone (Optional)" :error="$errors->first('phone')">
+                                        <input type="text" class="form-control" wire:model="phone" placeholder="e.g. +92 300 1234567">
+                                    </x-input>
+                                    <x-input label="Specialization / Research Focus (Optional)" :error="$errors->first('specialization')">
+                                        <input type="text" class="form-control" wire:model="specialization" placeholder="e.g. AI, Distributed Systems">
+                                    </x-input>
+                                </div>
+
+                                <div class="flex justify-between align-center mt-3 pt-3" style="border-top: 1px solid var(--border-color);">
+                                    <button type="button" class="btn btn-secondary btn-sm" wire:click="$set('showInlineEmpanel', false)">Cancel</button>
+                                    <button type="submit" class="btn btn-primary btn-sm" wire:loading.attr="disabled">
+                                        <span wire:loading.remove wire:target="createReviewer">✓ Empanel & Select for Review</span>
+                                        <span wire:loading wire:target="createReviewer">Saving Expert...</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    @endif
+
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
                             <span style="font-size: 1.1rem;">🎯</span>
@@ -378,9 +447,9 @@
                         </div>
 
                         <div style="display: flex; align-items: center; gap: 0.75rem;">
-                            <button type="button" class="btn btn-secondary btn-sm" wire:click="openCreateModal('{{ addslashes($targetApplication->campaign->department) }}')" style="font-size: 0.78rem; padding: 0.35rem 0.75rem; display: inline-flex; align-items: center; gap: 0.35rem;">
+                            <button type="button" class="btn btn-secondary btn-sm" wire:click="toggleInlineEmpanel('{{ addslashes($targetApplication->campaign->department) }}')" style="font-size: 0.78rem; padding: 0.35rem 0.75rem; display: inline-flex; align-items: center; gap: 0.35rem;">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                                <span>+ Empanel New Expert</span>
+                                <span>{{ $showInlineEmpanel ? 'Hide Empanel Form' : '+ Empanel New Expert' }}</span>
                             </button>
 
                             <span class="badge {{ count($selectedReviewerIds) > 0 ? 'badge-paid' : 'badge-draft' }}" style="font-size: 0.78rem; font-weight: 800; padding: 0.35rem 0.75rem;">
@@ -449,10 +518,10 @@
                                     No External Reviewers Empanelled for {{ $targetApplication->campaign->department }}
                                 </h5>
                                 <p style="font-size: 0.82rem; color: var(--color-text-secondary); max-width: 460px; margin: 0 auto 1.25rem auto; line-height: 1.5;">
-                                    Statutory faculty appointments require external subject reviews. Click below to empanel an expert or browse all faculties.
+                                    Statutory faculty appointments require external subject reviews. Click below to empanel an expert right here or browse all faculties.
                                 </p>
                                 <div class="flex gap-2 justify-center flex-wrap">
-                                    <button type="button" class="btn btn-primary btn-sm" wire:click="openCreateModal('{{ addslashes($targetApplication->campaign->department) }}')" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.9rem;">
+                                    <button type="button" class="btn btn-primary btn-sm" wire:click="toggleInlineEmpanel('{{ addslashes($targetApplication->campaign->department) }}')" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.9rem;">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                                         <span>+ Empanel New Expert for {{ $targetApplication->campaign->department }}</span>
                                     </button>
@@ -496,10 +565,10 @@
     @endif
 
     <!-- ============================================================== -->
-    <!-- MODAL 1: ADD NEW ACADEMIC REVIEWER (LAYERED ON TOP: Z-INDEX 1200)-->
+    <!-- MODAL 1: ADD NEW ACADEMIC REVIEWER (LAYERED ON TOP: Z-INDEX 1600)-->
     <!-- ============================================================== -->
     @if($showCreateModal)
-        <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); display: flex; align-items: center; justify-content: center; z-index: 1200; padding: 1.5rem;">
+        <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); display: flex; align-items: center; justify-content: center; z-index: 1600; padding: 1.5rem;">
             <div class="card" style="width: 100%; max-width: 720px; max-height: 92vh; overflow-y: auto; border-color: var(--secondary-glow); box-shadow: 0 25px 60px rgba(0,0,0,0.9); background: var(--bg-card-solid); border-radius: var(--radius-lg);">
                 <div class="flex justify-between align-center mb-4" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
                     <div style="display: flex; align-items: center; gap: 0.75rem;">

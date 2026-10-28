@@ -41,6 +41,7 @@ class ReviewerManagement extends Component
 
     // Application Review Dispatch Modal Properties
     public $showDispatchModal = false;
+    public $showInlineEmpanel = false;
     public $targetApplicationId;
     public $targetApplication;
     public $selectedReviewerIds = [];
@@ -159,6 +160,19 @@ class ReviewerManagement extends Component
         }
 
         $this->showCreateModal = false;
+        $this->showInlineEmpanel = false;
+    }
+
+    public function toggleInlineEmpanel($prefilledSubject = null)
+    {
+        $this->showInlineEmpanel = !$this->showInlineEmpanel;
+        if ($this->showInlineEmpanel) {
+            $this->reset(['name', 'email', 'university', 'phone', 'specialization']);
+            $this->subject = $prefilledSubject ?: ($this->targetApplication?->campaign?->department ?? '');
+            $this->academic_rank = 'Professor';
+            $this->country = 'Pakistan';
+            $this->resetErrorBag();
+        }
     }
 
     public function toggleReviewerStatus($profileId)
@@ -190,6 +204,7 @@ class ReviewerManagement extends Component
     public function closeDispatchModal()
     {
         $this->showDispatchModal = false;
+        $this->showInlineEmpanel = false;
         $this->targetApplicationId = null;
         $this->targetApplication = null;
         $this->selectedReviewerIds = [];

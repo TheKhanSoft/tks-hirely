@@ -338,66 +338,411 @@
     <!-- TAB 2: COMMITTEE ALLOCATIONS BREAD -->
     <!-- ========================================== -->
     @elseif ($activeTab === 'committees')
-        <!-- Allocation form -->
-        <div class="card mb-6" style="border-color: var(--secondary-glow); box-shadow: var(--shadow-sm);">
-            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
-                <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(6,182,212,0.15); display: flex; align-items: center; justify-content: center; color: var(--secondary);">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
-                </div>
-                <div>
-                    <h3 class="card-title" style="margin: 0; font-size: 1.15rem;">Allocate Operational Committee Member</h3>
-                    <p class="card-subtitle" style="margin: 0;">Map authorized staff to scrutiny evaluation desks or appellate grievance benches</p>
-                </div>
-            </div>
+        @php
+            $currentCampaign = $campaigns->firstWhere('id', $selected_campaign_id);
+            $campaignMetrics = $currentCampaign ? $currentCampaign->getCommitteeMetrics() : null;
+            $campaignAssignments = $assignments->where('campaign_id', $selected_campaign_id);
+        @endphp
 
-            <form wire:submit.prevent="assignCommitteeMember">
-                <div class="grid grid-cols-3 gap-6">
-                    <x-input label="Target Job Campaign *" :error="$errors->first('selected_campaign_id')">
-                        <select class="form-control form-select" wire:model="selected_campaign_id">
-                            <option value="">-- Select Campaign --</option>
+        <!-- 1. STATUTORY CONSTITUTION & QUOTA TRACKER BANNER -->
+        <div class="constitution-banner mb-6">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1.5rem; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 280px;">
+                    <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem;">
+                        <span class="badge" style="background: rgba(99, 102, 241, 0.18); color: var(--primary); border: 1px solid rgba(99, 102, 241, 0.3); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em;">
+                            Operational Governance
+                        </span>
+                        @if($currentCampaign)
+                            <span class="badge" style="background: rgba(6, 182, 212, 0.15); color: var(--secondary); border: 1px solid rgba(6, 182, 212, 0.3);">
+                                {{ $currentCampaign->track_type }}
+                            </span>
+                        @endif
+                    </div>
+                    <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 0.4rem 0;">
+                        Statutory Committee Allocation & Quota Engine
+                    </h2>
+                    <p style="font-size: 0.88rem; color: var(--color-text-secondary); margin: 0; line-height: 1.5;">
+                        Empanel balanced evaluation bodies across internal leadership, external experts from partner institutions/offices, and international specialists under statutory criteria.
+                    </p>
+                </div>
+
+                <!-- Campaign Selector & Constitution Config -->
+                <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                    <div style="min-width: 240px;">
+                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--color-text-secondary); margin-bottom: 0.25rem;">
+                            TARGET JOB CAMPAIGN
+                        </label>
+                        <select class="form-control form-select" wire:model.live="selected_campaign_id" style="font-weight: 600;">
                             @foreach($campaigns as $c)
                                 <option value="{{ $c->id }}">{{ $c->title }} ({{ $c->job_code }})</option>
                             @endforeach
                         </select>
-                    </x-input>
+                    </div>
 
-                    <x-input label="Select User Account *" :error="$errors->first('selected_user_id')">
-                        <select class="form-control form-select" wire:model="selected_user_id">
-                            <option value="">-- Select Member --</option>
-                            @foreach($committee_users as $u)
-                                <option value="{{ $u->id }}">{{ $u->email }} (Role: {{ str_replace('-', ' ', $u->roles->first()?->name) }})</option>
-                            @endforeach
-                        </select>
-                    </x-input>
-
-                    <x-input label="Committee Panel Type *" :error="$errors->first('is_appellate_panel')">
-                        <select class="form-control form-select" wire:model="is_appellate_panel">
-                            <option value="0">Scrutiny / Selection Committee</option>
-                            <option value="1">Appellate Panel (Grievance Review)</option>
-                        </select>
-                    </x-input>
+                    @if($currentCampaign)
+                        <div style="align-self: flex-end;">
+                            <button type="button" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.65rem 1rem; font-size: 0.84rem;" wire:click="openConstitutionModal">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                </svg>
+                                <span>Tune Constitution Criteria</span>
+                            </button>
+                        </div>
+                    @endif
                 </div>
+            </div>
 
-                <div style="margin-top: 1.25rem;">
-                    <button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="9" cy="7" r="4"></circle>
-                            <line x1="19" y1="8" x2="19" y2="14"></line>
-                            <line x1="22" y1="11" x2="16" y2="11"></line>
-                        </svg>
-                        <span>Establish Assignment</span>
-                    </button>
+            @if($campaignMetrics)
+                <!-- Live Quota Status & Statutory Quorum Tracker -->
+                <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.75rem;">
+                        <div>
+                            <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--color-text-muted); letter-spacing: 0.05em;">
+                                ACTIVE CONSTITUTION SPECIFICATION
+                            </span>
+                            <div style="font-size: 0.95rem; font-weight: 700; color: var(--color-text-primary); margin-top: 0.15rem;">
+                                {{ $campaignMetrics['constitution']['title'] ?? 'Statutory Operational Committee' }}
+                            </div>
+                        </div>
+
+                        <!-- Overall Quorum Badge -->
+                        @if($campaignMetrics['is_complete'])
+                            <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.4); padding: 0.4rem 0.8rem; font-size: 0.82rem; font-weight: 700;">
+                                <span class="badge-dot" style="background: var(--success);"></span>
+                                ✓ Statutory Quorum Satisfied ({{ $campaignMetrics['total_assigned'] }} / {{ $campaignMetrics['required_total'] }} Members Assigned)
+                            </span>
+                        @elseif($campaignMetrics['is_over_allocated'])
+                            <span class="badge" style="background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.4); padding: 0.4rem 0.8rem; font-size: 0.82rem; font-weight: 700;">
+                                ⚠️ Quota Exceeded ({{ $campaignMetrics['total_assigned'] }} Assigned vs {{ $campaignMetrics['required_total'] }} Prescribed)
+                            </span>
+                        @else
+                            <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.4); padding: 0.4rem 0.8rem; font-size: 0.82rem; font-weight: 700;">
+                                <span class="badge-dot" style="background: var(--warning);"></span>
+                                Quorum Incomplete: {{ $campaignMetrics['total_assigned'] }} of {{ $campaignMetrics['required_total'] }} Members Empanelled ({{ $campaignMetrics['required_total'] - $campaignMetrics['total_assigned'] }} Slot{{ ($campaignMetrics['required_total'] - $campaignMetrics['total_assigned']) > 1 ? 's' : '' }} Remaining)
+                            </span>
+                        @endif
+                    </div>
+
+                    <!-- Category Breakdown Chips -->
+                    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        <!-- Internal Quota -->
+                        @php $catInternal = $campaignMetrics['categories']['INTERNAL']; @endphp
+                        <div class="quota-pill {{ $catInternal['satisfied'] ? 'satisfied' : 'pending' }}">
+                            <span class="member-category-badge internal" style="font-size: 0.68rem; padding: 0.15rem 0.45rem;">
+                                🏛️ Internal Staff
+                            </span>
+                            <span>{{ $catInternal['assigned'] }} / {{ $catInternal['required'] }} Assigned</span>
+                            @if($catInternal['satisfied'])
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: var(--success);"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            @else
+                                <span style="font-size: 0.72rem; opacity: 0.85;">(Need {{ $catInternal['available'] }})</span>
+                            @endif
+                        </div>
+
+                        <!-- External Quota -->
+                        @php $catExternal = $campaignMetrics['categories']['EXTERNAL']; @endphp
+                        <div class="quota-pill {{ $catExternal['satisfied'] ? 'satisfied' : 'pending' }}">
+                            <span class="member-category-badge external" style="font-size: 0.68rem; padding: 0.15rem 0.45rem;">
+                                🌐 External Experts
+                            </span>
+                            <span>{{ $catExternal['assigned'] }} / {{ $catExternal['required'] }} Assigned</span>
+                            @if($catExternal['satisfied'])
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: var(--success);"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            @else
+                                <span style="font-size: 0.72rem; opacity: 0.85;">(Need {{ $catExternal['available'] }})</span>
+                            @endif
+                        </div>
+
+                        <!-- International Quota -->
+                        @php $catIntl = $campaignMetrics['categories']['INTERNATIONAL']; @endphp
+                        <div class="quota-pill {{ $catIntl['satisfied'] ? 'satisfied' : 'pending' }}">
+                            <span class="member-category-badge international" style="font-size: 0.68rem; padding: 0.15rem 0.45rem;">
+                                ✈️ International Specialists
+                            </span>
+                            <span>{{ $catIntl['assigned'] }} / {{ $catIntl['required'] }} Assigned</span>
+                            @if($catIntl['satisfied'])
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: var(--success);"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            @else
+                                <span style="font-size: 0.72rem; opacity: 0.85;">(Need {{ $catIntl['available'] }})</span>
+                            @endif
+                        </div>
+
+                        <!-- Independent Quota (if configured) -->
+                        @php $catInd = $campaignMetrics['categories']['INDEPENDENT']; @endphp
+                        @if($catInd['required'] > 0 || $catInd['assigned'] > 0)
+                            <div class="quota-pill {{ $catInd['satisfied'] ? 'satisfied' : 'pending' }}">
+                                <span class="member-category-badge independent" style="font-size: 0.68rem; padding: 0.15rem 0.45rem;">
+                                    ⚖️ Independent Arbiter
+                                </span>
+                                <span>{{ $catInd['assigned'] }} / {{ $catInd['required'] }} Assigned</span>
+                                @if($catInd['satisfied'])
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: var(--success);"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                @endif
+                            </div>
+                        @endif
+                    </div>
                 </div>
-            </form>
+            @endif
         </div>
 
-        <!-- Assignments Table -->
+        <!-- 2. FORMAL ALLOCATION PANEL (IF CANDIDATE IS SELECTED) -->
+        @if($selected_user_id)
+            @php
+                $selectedCand = collect($committee_users)->firstWhere('id', $selected_user_id);
+            @endphp
+            <div class="card mb-6" style="border-color: var(--primary); background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.95)); box-shadow: 0 12px 32px -6px var(--primary-glow);">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.25rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(99, 102, 241, 0.2); display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <line x1="19" y1="8" x2="19" y2="14"></line>
+                                <line x1="22" y1="11" x2="16" y2="11"></line>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--color-text-primary);">
+                                Empanel Selected Member: {{ $selectedCand['name'] ?? 'Candidate' }}
+                            </h3>
+                            <p style="margin: 0; font-size: 0.85rem; color: var(--color-text-secondary);">
+                                {{ $selectedCand['email'] ?? '' }} &bull; Affiliation: <strong>{{ $selectedCand['affiliation'] ?? 'N/A' }}</strong> ({{ $selectedCand['country'] ?? 'Domestic' }})
+                            </p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" wire:click="clearSelectedCandidate">
+                        ✕ Cancel Selection
+                    </button>
+                </div>
+
+                @if($errors->any())
+                    <div class="alert alert-danger mb-4" style="padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-size: 0.88rem;">
+                        <ul style="margin: 0; padding-left: 1.25rem;">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <form wire:submit.prevent="assignCommitteeMember">
+                    <div class="grid grid-cols-4 gap-6">
+                        <!-- Committee Panel Type -->
+                        <x-input label="Committee Panel Type *" :error="$errors->first('is_appellate_panel')">
+                            <select class="form-control form-select" wire:model.live="is_appellate_panel">
+                                <option value="0">Scrutiny / Selection Committee (Operational)</option>
+                                <option value="1">Appellate Panel (Grievance Review)</option>
+                            </select>
+                        </x-input>
+
+                        <!-- Statutory Member Category -->
+                        <x-input label="Statutory Quota Category *" :error="$errors->first('member_category')">
+                            <select class="form-control form-select" wire:model.live="member_category">
+                                <option value="INTERNAL">🏛️ Internal Staff & Faculty (Home Org/Campus)</option>
+                                <option value="EXTERNAL">🌐 External Expert (Other University/Office)</option>
+                                <option value="INTERNATIONAL">✈️ International Specialist (Overseas/Country)</option>
+                                <option value="INDEPENDENT">⚖️ Independent Arbiter / Legal Observer</option>
+                            </select>
+                        </x-input>
+
+                        <!-- Role / Capacity -->
+                        <x-input label="Statutory Role / Capacity *" :error="$errors->first('role_designation')">
+                            <input type="text" class="form-control" wire:model="role_designation" placeholder="e.g. Convener, Subject Expert, Dean">
+                        </x-input>
+
+                        <!-- Affiliation / Office -->
+                        <x-input label="Organization / Office / Institution" :error="$errors->first('affiliation')">
+                            <input type="text" class="form-control" wire:model="affiliation" placeholder="e.g. LUMS, MIT, Main Campus">
+                        </x-input>
+                    </div>
+
+                    <div style="margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="font-size: 0.82rem; color: var(--color-text-muted);">
+                            Quota slot will be registered under category: <strong style="color: var(--secondary);">{{ $member_category }}</strong> for <strong style="color: var(--color-text-primary);">{{ $currentCampaign?->title }}</strong>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.4rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <line x1="19" y1="8" x2="19" y2="14"></line>
+                                <line x1="22" y1="11" x2="16" y2="11"></line>
+                            </svg>
+                            <span style="font-weight: 700;">Establish Statutory Assignment</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        @endif
+
+        <!-- 3. EMPANELLED EMPLOYEE & EXPERT CANDIDATE POOL (MULTI-SECTION & SEARCH) -->
+        <div class="card mb-6" style="border-color: var(--border-color); box-shadow: var(--shadow-sm);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.85rem;">
+                <div>
+                    <h3 class="card-title" style="margin: 0; font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <span>Empanelled Member Pool (Cross-Institutional & Multi-Section)</span>
+                    </h3>
+                    <p class="card-subtitle" style="margin: 0.15rem 0 0 0;">
+                        Select internal faculty/officers, external institutional delegates, or overseas subject specialists to fulfill campaign constitution.
+                    </p>
+                </div>
+
+                <!-- Search Input -->
+                <div style="position: relative; min-width: 280px;">
+                    <input type="text" class="form-control" placeholder="Search by name, institution, country, field..." 
+                           wire:model.live.debounce.250ms="candidateSearch"
+                           style="padding-left: 2.2rem; font-size: 0.85rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--color-text-muted);">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Dynamic Section Tabs / Filters -->
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem;">
+                <button type="button" class="btn {{ $candidateFilterSection === 'ALL' ? 'btn-primary' : 'btn-secondary' }}" 
+                        style="padding: 0.4rem 0.85rem; font-size: 0.82rem; border-radius: var(--radius-sm);"
+                        wire:click="filterCandidateSection('ALL')">
+                    All Personnel ({{ count($committee_users) }})
+                </button>
+                <button type="button" class="btn {{ $candidateFilterSection === 'INTERNAL' ? 'btn-primary' : 'btn-secondary' }}" 
+                        style="padding: 0.4rem 0.85rem; font-size: 0.82rem; border-radius: var(--radius-sm);"
+                        wire:click="filterCandidateSection('INTERNAL')">
+                    🏛️ Internal Staff & Faculty ({{ count(array_filter($committee_users, fn($c) => $c['category'] === 'INTERNAL')) }})
+                </button>
+                <button type="button" class="btn {{ $candidateFilterSection === 'EXTERNAL' ? 'btn-primary' : 'btn-secondary' }}" 
+                        style="padding: 0.4rem 0.85rem; font-size: 0.82rem; border-radius: var(--radius-sm);"
+                        wire:click="filterCandidateSection('EXTERNAL')">
+                    🌐 External Experts (Other Universities / Offices) ({{ count(array_filter($committee_users, fn($c) => $c['category'] === 'EXTERNAL')) }})
+                </button>
+                <button type="button" class="btn {{ $candidateFilterSection === 'INTERNATIONAL' ? 'btn-primary' : 'btn-secondary' }}" 
+                        style="padding: 0.4rem 0.85rem; font-size: 0.82rem; border-radius: var(--radius-sm);"
+                        wire:click="filterCandidateSection('INTERNATIONAL')">
+                    ✈️ International Specialists ({{ count(array_filter($committee_users, fn($c) => $c['category'] === 'INTERNATIONAL')) }})
+                </button>
+                <button type="button" class="btn {{ $candidateFilterSection === 'INDEPENDENT' ? 'btn-primary' : 'btn-secondary' }}" 
+                        style="padding: 0.4rem 0.85rem; font-size: 0.82rem; border-radius: var(--radius-sm);"
+                        wire:click="filterCandidateSection('INDEPENDENT')">
+                    ⚖️ Appellate Arbiters ({{ count(array_filter($committee_users, fn($c) => $c['category'] === 'INDEPENDENT')) }})
+                </button>
+            </div>
+
+            <!-- Candidate Cards Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem;">
+                @forelse($this->filteredCandidates as $cand)
+                    @php
+                        $assignedToCurrent = $campaignAssignments->firstWhere('user_id', $cand['id']);
+                        $isSelected = ($selected_user_id === $cand['id']);
+                    @endphp
+                    <div class="candidate-pool-card {{ $isSelected ? 'selected' : '' }} {{ $assignedToCurrent ? 'assigned' : '' }}">
+                        <div>
+                            <!-- Header Badges -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                @if($cand['category'] === 'INTERNAL')
+                                    <span class="member-category-badge internal">🏛️ Internal Member</span>
+                                @elseif($cand['category'] === 'EXTERNAL')
+                                    <span class="member-category-badge external">🌐 External Expert</span>
+                                @elseif($cand['category'] === 'INTERNATIONAL')
+                                    <span class="member-category-badge international">✈️ International Specialist</span>
+                                @else
+                                    <span class="member-category-badge independent">⚖️ Appellate Arbiter</span>
+                                @endif
+
+                                <span class="country-pill">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                    </svg>
+                                    <span>{{ $cand['country'] }}</span>
+                                </span>
+                            </div>
+
+                            <!-- User Info -->
+                            <div style="display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.75rem;">
+                                <div style="width: 38px; height: 38px; border-radius: 50%; background: rgba(99, 102, 241, 0.15); color: var(--primary); font-weight: 800; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    {{ strtoupper(substr($cand['name'], 0, 1)) }}
+                                </div>
+                                <div style="overflow: hidden;">
+                                    <h4 style="margin: 0; font-size: 0.98rem; font-weight: 700; color: var(--color-text-primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                        {{ $cand['name'] }}
+                                    </h4>
+                                    <div style="font-size: 0.78rem; color: var(--color-text-muted); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                        {{ $cand['email'] }}
+                                    </div>
+                                    <div style="font-size: 0.8rem; font-weight: 600; color: var(--secondary); margin-top: 0.2rem;">
+                                        {{ $cand['rank'] }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Affiliation & Subject -->
+                            <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem 0.65rem; margin-bottom: 0.75rem; font-size: 0.78rem;">
+                                <div style="display: flex; align-items: center; gap: 0.35rem; color: var(--color-text-secondary); margin-bottom: 0.25rem;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-muted);">
+                                        <rect x="2" y="2" width="20" height="20" rx="2" ry="2"></rect>
+                                        <path d="M7 2v20"></path>
+                                        <path d="M17 2v20"></path>
+                                        <path d="M2 12h20"></path>
+                                        <path d="M2 7h5"></path>
+                                        <path d="M2 17h5"></path>
+                                        <path d="M17 17h5"></path>
+                                        <path d="M17 7h5"></path>
+                                    </svg>
+                                    <span style="font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">{{ $cand['affiliation'] }}</span>
+                                </div>
+                                <div style="color: var(--color-text-muted); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                    Field / Domain: <strong style="color: var(--color-text-secondary);">{{ $cand['subject'] }}</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Footer / Actions -->
+                        <div style="border-top: 1px solid var(--border-color); padding-top: 0.65rem; margin-top: 0.25rem; display: flex; justify-content: space-between; align-items: center;">
+                            @if($assignedToCurrent)
+                                <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.75rem;">
+                                    ✓ Assigned ({{ $assignedToCurrent->is_appellate_panel ? 'Appellate' : 'Scrutiny' }})
+                                </span>
+                                <span style="font-size: 0.72rem; color: var(--color-text-muted);">
+                                    {{ $assignedToCurrent->role_designation ?: 'Member' }}
+                                </span>
+                            @elseif($isSelected)
+                                <span class="badge" style="background: rgba(99, 102, 241, 0.2); color: var(--primary); border: 1px solid var(--primary); font-size: 0.75rem; font-weight: 700;">
+                                    ● Currently Selected
+                                </span>
+                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" wire:click="clearSelectedCandidate">
+                                    Deselect
+                                </button>
+                            @else
+                                <button type="button" class="btn btn-secondary" style="padding: 0.35rem 0.85rem; font-size: 0.8rem; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;" wire:click="selectCandidate({{ $cand['id'] }})">
+                                    <span>Select Candidate</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="9 18 15 12 9 6"></polyline>
+                                    </svg>
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                @empty
+                    <div style="grid-column: 1 / -1; padding: 3rem 1rem; text-align: center; color: var(--color-text-muted);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 0.5rem auto;">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <p style="margin: 0; font-size: 0.95rem;">No empanelled candidates found matching your filter criteria.</p>
+                    </div>
+                @endforelse
+            </div>
+        </div>
+
+        <!-- 4. ACTIVE COMMITTEE ALLOCATIONS LEDGER -->
         <div class="card" style="border-color: var(--border-color); padding: 0; overflow: hidden;">
             <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                 <h3 class="card-title" style="margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
@@ -411,7 +756,7 @@
                     <span>Active Committee Allocations Ledger</span>
                 </h3>
                 <span class="badge" style="background: var(--bg-tertiary); color: var(--color-text-secondary); border: 1px solid var(--border-color);">
-                    {{ count($assignments ?? []) }} Assignments
+                    {{ count($assignments ?? []) }} Total Active Assignments
                 </span>
             </div>
 
@@ -421,15 +766,21 @@
                         <tr>
                             <th>Job Campaign</th>
                             <th>Committee Member</th>
-                            <th>System Role</th>
-                            <th>Assigned Panel Type</th>
+                            <th>Affiliation & Country</th>
+                            <th>Statutory Category</th>
+                            <th>Assigned Capacity & Panel</th>
                             <th>Assigned Date</th>
                             <th style="text-align: right;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($assignments as $asm)
-                            <tr>
+                            @php
+                                $isThisCampaign = ($selected_campaign_id && $asm->campaign_id == $selected_campaign_id);
+                                $memName = $asm->user->reviewerProfile?->name 
+                                    ?? ($asm->user->basicInfo?->first_name ? ($asm->user->basicInfo->first_name . ' ' . $asm->user->basicInfo->last_name) : $asm->user->email);
+                            @endphp
+                            <tr style="{{ $isThisCampaign ? 'background: rgba(99, 102, 241, 0.04);' : '' }}">
                                 <td>
                                     <strong>{{ $asm->campaign->title }}</strong>
                                     <div style="margin-top: 0.2rem;">
@@ -438,39 +789,61 @@
                                 </td>
                                 <td>
                                     <div style="display: flex; align-items: center; gap: 0.6rem;">
-                                        <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(99,102,241,0.15); color: var(--primary); font-weight: 700; font-size: 0.75rem; display: flex; align-items: center; justify-content: center;">
-                                            {{ strtoupper(substr($asm->user->email, 0, 1)) }}
+                                        <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(99,102,241,0.15); color: var(--primary); font-weight: 700; font-size: 0.8rem; display: flex; align-items: center; justify-content: center;">
+                                            {{ strtoupper(substr($memName, 0, 1)) }}
                                         </div>
-                                        <strong>{{ $asm->user->email }}</strong>
+                                        <div>
+                                            <strong style="color: var(--color-text-primary);">{{ $memName }}</strong>
+                                            <div style="font-size: 0.78rem; color: var(--color-text-muted);">{{ $asm->user->email }}</div>
+                                        </div>
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25);">
-                                        {{ str_replace('-', ' ', $asm->user->roles->first()?->name ?? 'No Role') }}
-                                    </span>
+                                    <div><strong>{{ $asm->affiliation ?: 'Home Organization' }}</strong></div>
+                                    <div style="margin-top: 0.15rem;">
+                                        <span class="country-pill" style="font-size: 0.7rem;">
+                                            {{ $asm->country ?: 'Domestic / Local' }}
+                                        </span>
+                                    </div>
                                 </td>
                                 <td>
-                                    @if($asm->is_appellate_panel)
-                                        <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3);">
-                                            <span class="badge-dot" style="background: var(--warning);"></span>
-                                            Appellate Panel
-                                        </span>
+                                    @if($asm->member_category === 'INTERNAL')
+                                        <span class="member-category-badge internal">🏛️ Internal</span>
+                                    @elseif($asm->member_category === 'EXTERNAL')
+                                        <span class="member-category-badge external">🌐 External Expert</span>
+                                    @elseif($asm->member_category === 'INTERNATIONAL')
+                                        <span class="member-category-badge international">✈️ International</span>
                                     @else
-                                        <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3);">
-                                            <span class="badge-dot" style="background: var(--success);"></span>
-                                            Scrutiny Panel
-                                        </span>
+                                        <span class="member-category-badge independent">⚖️ Independent</span>
                                     @endif
                                 </td>
                                 <td>
-                                    <span style="font-size: 0.85rem; color: var(--color-text-secondary); font-family: monospace;">
+                                    <div style="font-weight: 700; font-size: 0.85rem; color: var(--color-text-primary);">
+                                        {{ $asm->role_designation ?: 'Committee Member' }}
+                                    </div>
+                                    <div style="margin-top: 0.2rem;">
+                                        @if($asm->is_appellate_panel)
+                                            <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.72rem;">
+                                                <span class="badge-dot" style="background: var(--warning);"></span>
+                                                Appellate Panel
+                                            </span>
+                                        @else
+                                            <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.72rem;">
+                                                <span class="badge-dot" style="background: var(--success);"></span>
+                                                Scrutiny / Selection Panel
+                                            </span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td>
+                                    <span style="font-size: 0.82rem; color: var(--color-text-secondary); font-family: monospace;">
                                         {{ $asm->assigned_at?->format('Y-m-d H:i') ?: 'N/A' }}
                                     </span>
                                 </td>
                                 <td style="text-align: right;">
                                     <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.3rem;" 
                                             wire:click="removeCommitteeAssignment({{ $asm->id }})" 
-                                            onclick="confirm('Are you sure you want to de-assign this member?') || event.stopImmediatePropagation()">
+                                            onclick="confirm('Are you sure you want to de-assign this committee member?') || event.stopImmediatePropagation()">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <line x1="18" y1="6" x2="6" y2="18"></line>
                                             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -481,7 +854,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center" style="padding: 3rem 1rem;">
+                                <td colspan="7" class="text-center" style="padding: 3rem 1rem;">
                                     <div style="color: var(--color-text-muted);">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 0.5rem auto;">
                                             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -498,5 +871,109 @@
                 </table>
             </div>
         </div>
+
+        <!-- 5. TUNE STATUTORY COMMITTEE CONSTITUTION MODAL -->
+        @if($isConstitutionModalOpen)
+            <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1.5rem; backdrop-filter: blur(8px);">
+                <div class="card" style="width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; border-color: var(--primary); box-shadow: 0 20px 48px -10px rgba(0, 0, 0, 0.8), 0 0 20px var(--primary-glow);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.25rem;">
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--color-text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                                ⚙️ Statutory Committee Constitution Rules
+                            </h3>
+                            <p style="margin: 0.2rem 0 0 0; font-size: 0.85rem; color: var(--color-text-secondary);">
+                                Define required statutory quotas for: <strong>{{ $currentCampaign?->title }}</strong>
+                            </p>
+                        </div>
+                        <button type="button" class="btn btn-secondary" style="padding: 0.35rem 0.65rem;" wire:click="closeConstitutionModal">
+                            ✕
+                        </button>
+                    </div>
+
+                    <!-- Preset Buttons -->
+                    <div style="margin-bottom: 1.5rem; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem;">
+                        <span style="display: block; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--color-text-muted); margin-bottom: 0.6rem; letter-spacing: 0.05em;">
+                            ⚡ QUICK STATUTORY PRESETS
+                        </span>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <button type="button" class="btn btn-secondary" style="text-align: left; padding: 0.6rem 0.85rem; font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center;" wire:click="applyConstitutionPreset('academic_prof')">
+                                <div>
+                                    <strong>Professorial / Academic Faculty Track (5 Members)</strong>
+                                    <div style="font-size: 0.74rem; color: var(--color-text-muted);">2 Internal Leaders/Staff, 2 External Experts (Other Universities/Offices), 1 International Specialist</div>
+                                </div>
+                                <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: var(--primary);">Apply</span>
+                            </button>
+                            <button type="button" class="btn btn-secondary" style="text-align: left; padding: 0.6rem 0.85rem; font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center;" wire:click="applyConstitutionPreset('executive_admin')">
+                                <div>
+                                    <strong>Executive / Administrative Director Track (4 Members)</strong>
+                                    <div style="font-size: 0.74rem; color: var(--color-text-muted);">2 Internal Directors/Officers, 1 External Office Delegate, 1 Independent Governance Arbiter</div>
+                                </div>
+                                <span class="badge" style="background: rgba(6, 182, 212, 0.15); color: var(--secondary);">Apply</span>
+                            </button>
+                            <button type="button" class="btn btn-secondary" style="text-align: left; padding: 0.6rem 0.85rem; font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center;" wire:click="applyConstitutionPreset('expert_heavy')">
+                                <div>
+                                    <strong>External Expert-Led Panel (5 Members)</strong>
+                                    <div style="font-size: 0.74rem; color: var(--color-text-muted);">1 Internal Convener, 3 External Subject Experts (Other Universities/Offices), 1 Overseas Specialist</div>
+                                </div>
+                                <span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #c084fc;">Apply</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Custom Constitution Settings -->
+                    <form wire:submit.prevent="saveConstitution">
+                        <div class="mb-4">
+                            <x-input label="Constitution Title" :error="$errors->first('constitution_title')">
+                                <input type="text" class="form-control" wire:model="constitution_title" placeholder="e.g. Statutory Selection Board Constitution">
+                            </x-input>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <x-input label="Total Required Members Quorum *" :error="$errors->first('constitution_required_total')">
+                                <input type="number" min="1" max="25" class="form-control" wire:model.live="constitution_required_total">
+                            </x-input>
+
+                            <x-input label="Required Internal Staff / Faculty *" :error="$errors->first('constitution_required_internal')">
+                                <input type="number" min="0" max="20" class="form-control" wire:model.live="constitution_required_internal">
+                            </x-input>
+
+                            <x-input label="Required External Experts (Other Offices/Universities) *" :error="$errors->first('constitution_required_external')">
+                                <input type="number" min="0" max="20" class="form-control" wire:model.live="constitution_required_external">
+                            </x-input>
+
+                            <x-input label="Required International Specialists (Overseas) *" :error="$errors->first('constitution_required_international')">
+                                <input type="number" min="0" max="20" class="form-control" wire:model.live="constitution_required_international">
+                            </x-input>
+
+                            <x-input label="Required Independent Arbiters / Governance *" :error="$errors->first('constitution_required_independent')">
+                                <input type="number" min="0" max="20" class="form-control" wire:model.live="constitution_required_independent">
+                            </x-input>
+                        </div>
+
+                        @php
+                            $sumSlots = (int)$constitution_required_internal + (int)$constitution_required_external + (int)$constitution_required_international + (int)$constitution_required_independent;
+                        @endphp
+
+                        <div style="padding: 0.75rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1.25rem; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; {{ $sumSlots === (int)$constitution_required_total ? 'background: rgba(16, 185, 129, 0.12); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3);' : 'background: rgba(239, 68, 68, 0.12); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3);' }}">
+                            <span>Sum of Quota Slots: <strong>{{ $sumSlots }}</strong> / Total Prescribed: <strong>{{ $constitution_required_total }}</strong></span>
+                            @if($sumSlots === (int)$constitution_required_total)
+                                <span>✓ Exactly Balanced</span>
+                            @else
+                                <span>⚠️ Must equal total required</span>
+                            @endif
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                            <button type="button" class="btn btn-secondary" wire:click="closeConstitutionModal">
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.5rem;" {{ $sumSlots !== (int)$constitution_required_total ? 'disabled' : '' }}>
+                                Save Constitution Specification
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        @endif
     @endif
 </div>
