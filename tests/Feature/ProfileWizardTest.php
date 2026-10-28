@@ -85,8 +85,6 @@ class ProfileWizardTest extends TestCase
 
         $this->actingAs($user);
 
-        $fakePdf = \Illuminate\Http\UploadedFile::fake()->create('transcript.pdf', 500);
-
         Livewire::test(ProfileWizard::class)
             // 1. Initial State (no degrees added)
             ->assertSet('new_degree_level', 'SSC')
@@ -101,7 +99,7 @@ class ProfileWizardTest extends TestCase
             ->set('new_degree_gpa', '850')
             ->set('new_degree_scale', '1050')
             ->set('new_degree_division', 'First Division')
-            ->set('new_degree_proof', $fakePdf)
+            ->set('new_degree_proof', \Illuminate\Http\UploadedFile::fake()->create('transcript_ssc.pdf', 500))
             ->call('addDegree')
             ->assertHasNoErrors()
 
@@ -117,7 +115,7 @@ class ProfileWizardTest extends TestCase
             ->set('new_degree_gpa', '910')
             ->set('new_degree_scale', '1100')
             ->set('new_degree_division', 'First Division')
-            ->set('new_degree_proof', $fakePdf)
+            ->set('new_degree_proof', \Illuminate\Http\UploadedFile::fake()->create('transcript_hssc.pdf', 500))
             ->call('addDegree')
             ->assertHasNoErrors()
 
@@ -134,7 +132,7 @@ class ProfileWizardTest extends TestCase
             ->set('new_degree_gpa', '3.8')
             ->set('new_degree_scale', '4.0')
             ->set('new_degree_division', 'First Division')
-            ->set('new_degree_proof', $fakePdf)
+            ->set('new_degree_proof', \Illuminate\Http\UploadedFile::fake()->create('transcript_bs.pdf', 500))
             ->set('new_degree_country', 'Pakistan')
             ->call('addDegree')
             ->assertHasNoErrors()
@@ -249,5 +247,155 @@ class ProfileWizardTest extends TestCase
             'degree_title' => 'Matric',
             'proof_path' => null,
         ]);
+    }
+
+    public function test_step4_data_persistence_publications_and_milestones(): void
+    {
+        $this->seed(\Database\Seeders\SpatieRoleAndPermissionSeeder::class);
+        $user = User::factory()->create();
+        $user->assignRole('applicant');
+
+        $basicInfo = BasicInfo::create([
+            'user_id' => $user->id,
+            'track_type' => 'ACADEMIC',
+            'first_name' => 'Research',
+            'last_name' => 'Scholar',
+            'cnic_number' => '12345-1234567-3',
+            'date_of_birth' => '1990-01-01',
+        ]);
+
+        $this->actingAs($user);
+
+        // 1. Add Academic Publication
+        $component = Livewire::test(ProfileWizard::class)
+            ->set('currentStep', 4)
+            ->set('step4_active_tab', 'ACADEMIC')
+            ->set('new_pub_title', 'Deep Learning in Distributed High-Load Systems')
+            ->set('new_pub_journal', 'IEEE Transactions on Software Engineering')
+            ->set('new_pub_issn', '0098-5589')
+            ->set('new_pub_category', 'W')
+            ->set('new_pub_impact', 3.85)
+            ->set('new_pub_year', 2023)
+            ->set('new_pub_authors', 'R. Scholar, K. Khan')
+            ->set('new_pub_doi', '10.1109/TSE.2023.123456')
+            ->call('addPublication')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('publications', [
+            'basic_info_id' => $basicInfo->id,
+            'title' => 'Deep Learning in Distributed High-Load Systems',
+            'journal_name' => 'IEEE Transactions on Software Engineering',
+            'issn_print' => '0098-5589',
+        ]);
+
+        // 2. Switch tab to ADMINISTRATIVE and add Governance Milestone
+        $component->call('setStep4Tab', 'ADMINISTRATIVE')
+            ->assertSet('step4_active_tab', 'ADMINISTRATIVE')
+            ->set('new_ms_title', 'Enterprise Multi-Campus ERP Overhaul')
+            ->set('new_ms_budget', 25.5)
+            ->set('new_ms_year', 2022)
+            ->set('new_ms_description', 'Direct oversight of campus automation rollout across 4 faculties.')
+            ->call('addMilestone')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('admin_milestones', [
+            'basic_info_id' => $basicInfo->id,
+            'title' => 'Enterprise Multi-Campus ERP Overhaul',
+            'budget' => 25.50,
+            'year' => 2022,
+        ]);
+
+        // 3. Switch tab to SUPPORT and add Tool/Skill
+        $component->call('setStep4Tab', 'SUPPORT')
+            ->assertSet('step4_active_tab', 'SUPPORT')
+            ->set('new_tool_name', 'High Voltage Switchgear Automation')
+            ->set('new_tool_proficiency', 'Expert')
+            ->set('new_tool_experience', 7)
+            ->call('addTool')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('support_tools', [
+            'basic_info_id' => $basicInfo->id,
+            'tool_name' => 'High Voltage Switchgear Automation',
+            'proficiency_level' => 'Expert',
+            'experience_years' => '7',
+        ]);
+
+        // 4. Delete publication and assert removal
+        $pub = \App\Models\Publication::where('title', 'Deep Learning in Distributed High-Load Systems')->first();
+        $this->assertNotNull($pub);
+        $component->call('removePublication', $pub->id);
+        $this->assertDatabaseMissing('publications', [
+            'id' => $pub->id,
+        ]);
+    }
+
+    public function test_campaign_selection_moved_to_step8_and_generates_challan(): void
+    {
+        $this->seed(\Database\Seeders\SpatieRoleAndPermissionSeeder::class);
+        $user = User::factory()->create();
+        $user->assignRole('applicant');
+
+        $campaign = Campaign::create([
+            'job_code' => 'PROF-001',
+            'title' => 'Professor of Computer Science',
+            'track_type' => 'ACADEMIC',
+            'department' => 'Computer Science',
+            'opening_date' => now()->subDay(),
+            'closing_date' => now()->addDays(15),
+            'application_fee' => 3000.00,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($user);
+
+        // Step 1: Does NOT require campaign_id anymore
+        $component = Livewire::test(ProfileWizard::class)
+            ->set('first_name', 'Hamza')
+            ->set('last_name', 'Tariq')
+            ->set('cnic_number', '37405-1234567-9')
+            ->set('date_of_birth', '1985-04-20')
+            ->set('father_name', 'Tariq Mehmood')
+            ->set('phone_number', '0300-9876543')
+            ->set('place_of_birth', 'Islamabad')
+            ->set('domicile', 'Punjab')
+            ->set('permanent_address', 'F-7/2 Islamabad')
+            ->set('mailing_address', 'F-7/2 Islamabad')
+            ->call('nextStep')
+            ->assertHasNoErrors();
+
+        $basicInfo = BasicInfo::where('user_id', $user->id)->first();
+        $this->assertNotNull($basicInfo);
+        $this->assertEquals('Hamza', $basicInfo->first_name);
+
+        // Navigate to Step 8
+        $component->set('currentStep', 8);
+
+        // Calling generateChallan without campaign fails validation
+        $component->set('campaign_id', null)
+            ->call('generateChallan')
+            ->assertHasErrors(['campaign_id']);
+
+        // Now select campaign and generate challan
+        $component->set('campaign_id', $campaign->id)
+            ->call('generateChallan')
+            ->assertHasNoErrors();
+
+        // Verify basicInfo is locked
+        $basicInfo->refresh();
+        $this->assertTrue($basicInfo->is_locked);
+        $this->assertEquals('ACADEMIC', $basicInfo->track_type);
+
+        // Verify application was submitted
+        $application = \App\Models\Application::where('user_id', $user->id)->where('campaign_id', $campaign->id)->first();
+        $this->assertNotNull($application);
+        $this->assertEquals('SUBMITTED', $application->status);
+
+        // Verify billing ledger has consumer ID and amount
+        $ledger = \App\Models\BillingLedger::where('application_id', $application->id)->first();
+        $this->assertNotNull($ledger);
+        $this->assertEquals(3000.00, $ledger->amount);
+        $this->assertStringStartsWith('1000', $ledger->consumer_id);
+        $this->assertEquals(12, strlen($ledger->consumer_id));
     }
 }

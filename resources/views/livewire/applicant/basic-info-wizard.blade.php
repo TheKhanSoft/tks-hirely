@@ -39,22 +39,6 @@
             <div wire:key="step-wrapper-1">
                 <x-card wire:key="step-card-1" title="📋 Step 1: Personal Bio-Data Details">
                 <div class="flex-col gap-6">
-                    <x-select label="Select Recruitment Campaign *" :error="$errors->first('campaign_id')">
-                        <select class="form-control form-select" wire:model.live="campaign_id" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
-                            <option value="">-- Select Active Position --</option>
-                            @foreach ($campaigns as $camp)
-                                <option value="{{ $camp->id }}">{{ $camp->title }} (Job Code: {{ $camp->job_code }} | Track: {{ $camp->track_type }})</option>
-                            @endforeach
-                        </select>
-                    </x-select>
-
-                    @if($campaign_id)
-                        <div style="padding: 1rem; background: rgba(6, 182, 212, 0.08); border-radius: 8px; border: 1px solid var(--secondary-glow);" class="mb-4">
-                            <strong style="color: var(--secondary)">RECRUITMENT TRACK DETECTED:</strong> 
-                            <x-badge type="appealed" style="margin-left: 0.5rem; font-weight: 800;">{{ $this->trackType }}</x-badge>
-                        </div>
-                    @endif
-
                     <div class="grid grid-cols-2 gap-6">
                         <x-input label="First Name *" :error="$errors->first('first_name')">
                             <input type="text" class="form-control" wire:model="first_name" {{ $basicInfo?->is_locked ? 'disabled' : '' }} placeholder="e.g. Ali">
@@ -466,14 +450,52 @@
         @elseif ($currentStep === 4)
             <div wire:key="step-wrapper-4">
                 <x-card wire:key="step-card-4" title="📄 Step 4: Track Specific Milestones & Core Capabilities">
+
+                <!-- Track Category Switcher Tabs -->
+                <div class="flex flex-wrap gap-3 mb-6" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+                    <button type="button" 
+                        wire:click="setStep4Tab('ACADEMIC')" 
+                        class="btn {{ ($step4_active_tab ?? $this->trackType) === 'ACADEMIC' ? 'btn-primary' : 'btn-secondary' }}"
+                        style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; cursor: pointer;">
+                        📚 Academic Publications
+                        @if(count($publications) > 0)
+                            <span style="background: rgba(255,255,255,0.25); border-radius: 9999px; padding: 0.1rem 0.5rem; font-size: 0.75rem;">{{ count($publications) }}</span>
+                        @endif
+                    </button>
+                    <button type="button" 
+                        wire:click="setStep4Tab('ADMINISTRATIVE')" 
+                        class="btn {{ ($step4_active_tab ?? $this->trackType) === 'ADMINISTRATIVE' ? 'btn-primary' : 'btn-secondary' }}"
+                        style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; cursor: pointer;">
+                        ⚙️ Governance Milestones
+                        @if(count($milestones) > 0)
+                            <span style="background: rgba(255,255,255,0.25); border-radius: 9999px; padding: 0.1rem 0.5rem; font-size: 0.75rem;">{{ count($milestones) }}</span>
+                        @endif
+                    </button>
+                    <button type="button" 
+                        wire:click="setStep4Tab('SUPPORT')" 
+                        class="btn {{ ($step4_active_tab ?? $this->trackType) === 'SUPPORT' ? 'btn-primary' : 'btn-secondary' }}"
+                        style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; cursor: pointer;">
+                        🔧 Vocational Tools & Skills
+                        @if(count($tools) > 0)
+                            <span style="background: rgba(255,255,255,0.25); border-radius: 9999px; padding: 0.1rem 0.5rem; font-size: 0.75rem;">{{ count($tools) }}</span>
+                        @endif
+                    </button>
+                </div>
+
+                @if (session()->has('step4_success'))
+                    <div class="mb-4">
+                        <x-alert type="paid" :message="session('step4_success')" />
+                    </div>
+                @endif
+
                 <!-- Academic Publications -->
-                @if ($this->trackType === 'ACADEMIC')
+                @if (($step4_active_tab ?? $this->trackType) === 'ACADEMIC')
                     <div class="flex-col gap-6">
                         <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
                             <h4 style="color: var(--secondary); font-weight: 700; margin-bottom: 1rem;">📚 Record Peer-Reviewed Publication</h4>
                             
                             <div class="grid grid-cols-2 gap-4">
-                                <x-input label="Research Paper Title" :error="$errors->first('new_pub_title')">
+                                <x-input label="Research Paper Title *" :error="$errors->first('new_pub_title')">
                                     <input type="text" class="form-control" wire:model="new_pub_title" placeholder="Full paper title" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
                                 </x-input>
                                 <x-input label="Authors List (Comma Separated)" :error="$errors->first('new_pub_authors')">
@@ -482,7 +504,7 @@
                             </div>
 
                             <div class="grid grid-cols-3 gap-4 mt-4">
-                                <x-input label="Journal Name" :error="$errors->first('new_pub_journal')">
+                                <x-input label="Journal Name *" :error="$errors->first('new_pub_journal')">
                                     <input type="text" class="form-control" wire:model="new_pub_journal" placeholder="e.g. IEEE Transactions" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
                                 </x-input>
                                 <x-input label="ISSN Print (Format: xxxx-xxxx)" :error="$errors->first('new_pub_issn')">
@@ -513,7 +535,10 @@
                                 </x-input>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-4 mt-4 align-center">
+                            <div class="grid grid-cols-3 gap-4 mt-4 align-center">
+                                <x-input label="Volume & Issue (Optional)" :error="$errors->first('new_pub_volume')">
+                                    <input type="text" class="form-control" wire:model="new_pub_volume" placeholder="e.g. Vol. 14, Issue 2" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
+                                </x-input>
                                 <x-input label="Web URL Address" :error="$errors->first('new_pub_url')">
                                     <input type="url" class="form-control" wire:model="new_pub_url" placeholder="https://..." {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
                                 </x-input>
@@ -540,7 +565,7 @@
                                 <tr>
                                     <td>
                                         <strong style="color: var(--secondary)">{{ $pub['title'] }}</strong><br>
-                                        <small style="color: var(--color-text-secondary)">DOI: {{ $pub['doi'] }}</small>
+                                        <small style="color: var(--color-text-secondary)">DOI: {{ $pub['doi'] ?? 'N/A' }}</small>
                                     </td>
                                     <td>{{ $pub['journal_name'] }}<br><code>{{ $pub['issn_print'] }}</code></td>
                                     <td>
@@ -552,7 +577,13 @@
                                         Corresponding: <strong>{{ $pub['is_corresponding_author'] ? '✓ Yes' : '✗ No' }}</strong>
                                     </td>
                                     <td>{{ $pub['publication_year'] }}</td>
-                                    <td><a href="/storage/{{ $pub['proof_path'] }}" target="_blank" style="color: var(--secondary)">📄 View PDF</a></td>
+                                    <td>
+                                        @if(!empty($pub['proof_path']))
+                                            <a href="/storage/{{ $pub['proof_path'] }}" target="_blank" style="color: var(--secondary)">📄 View PDF</a>
+                                        @else
+                                            <span style="color: var(--color-text-secondary)">No Proof</span>
+                                        @endif
+                                    </td>
                                     <td><x-badge type="draft">Pending Scrutiny</x-badge></td>
                                     <td>
                                         <x-button variant="danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="removePublication({{ $pub['id'] }})" :disabled="$basicInfo?->is_locked">Remove</x-button>
@@ -565,12 +596,12 @@
                     </div>
 
                 <!-- Admin Milestones -->
-                @elseif ($this->trackType === 'ADMINISTRATIVE')
+                @elseif (($step4_active_tab ?? $this->trackType) === 'ADMINISTRATIVE')
                     <div class="flex-col gap-6">
                         <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
                             <h4 style="color: var(--secondary); font-weight: 700; margin-bottom: 1rem;">⚙️ Record Governance Milestone / Budget Managed</h4>
                             <div class="grid grid-cols-3 gap-4">
-                                <x-input label="Milestone Title" :error="$errors->first('new_ms_title')">
+                                <x-input label="Milestone Title *" :error="$errors->first('new_ms_title')">
                                     <input type="text" class="form-control" wire:model="new_ms_title" placeholder="e.g. ERP Deployment Control" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
                                 </x-input>
                                 <x-input label="Budget Managed (Millions PKR)" :error="$errors->first('new_ms_budget')">
@@ -600,7 +631,13 @@
                                     <td>PKR {{ number_format($ms['budget'], 1) }} Million</td>
                                     <td>{{ $ms['year'] }}</td>
                                     <td>{{ $ms['description'] }}</td>
-                                    <td><a href="/storage/{{ $ms['proof_path'] }}" target="_blank" style="color: var(--secondary)">📄 View Proof</a></td>
+                                    <td>
+                                        @if(!empty($ms['proof_path']))
+                                            <a href="/storage/{{ $ms['proof_path'] }}" target="_blank" style="color: var(--secondary)">📄 View Proof</a>
+                                        @else
+                                            <span style="color: var(--color-text-secondary)">No Proof</span>
+                                        @endif
+                                    </td>
                                     <td>
                                         <x-button variant="danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="removeMilestone({{ $ms['id'] }})" :disabled="$basicInfo?->is_locked">Remove</x-button>
                                     </td>
@@ -612,12 +649,12 @@
                     </div>
 
                 <!-- Support Tools -->
-                @elseif ($this->trackType === 'SUPPORT')
+                @elseif (($step4_active_tab ?? $this->trackType) === 'SUPPORT')
                     <div class="flex-col gap-6">
                         <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
                             <h4 style="color: var(--secondary); font-weight: 700; margin-bottom: 1rem;">🔧 Register Technical Tool / Vocational Skill</h4>
                             <div class="grid grid-cols-4 gap-4 align-center">
-                                <x-input label="Tool Name" :error="$errors->first('new_tool_name')">
+                                <x-input label="Tool Name *" :error="$errors->first('new_tool_name')">
                                     <input type="text" class="form-control" wire:model="new_tool_name" placeholder="e.g. Electrical Safety Grid" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
                                 </x-input>
                                 <x-select label="Proficiency Level" :error="$errors->first('new_tool_proficiency')">
@@ -645,7 +682,13 @@
                                     <td><strong style="color: var(--secondary)">{{ $t['name'] }}</strong></td>
                                     <td><x-badge type="appealed">{{ $t['proficiency'] }}</x-badge></td>
                                     <td>{{ $t['experience'] }} Years</td>
-                                    <td><a href="/storage/{{ $t['fitness_cert'] }}" target="_blank" style="color: var(--secondary)">📄 View File</a></td>
+                                    <td>
+                                        @if(!empty($t['fitness_cert']))
+                                            <a href="/storage/{{ $t['fitness_cert'] }}" target="_blank" style="color: var(--secondary)">📄 View File</a>
+                                        @else
+                                            <span style="color: var(--color-text-secondary)">No File</span>
+                                        @endif
+                                    </td>
                                     <td>
                                         <x-button variant="danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="removeTool({{ $t['id'] }})" :disabled="$basicInfo?->is_locked">Remove</x-button>
                                     </td>
@@ -1090,22 +1133,62 @@
                 <x-card wire:key="step-card-8" title="💳 Step 8: Processing Challan & Submission Lock">
                 <div class="flex-col gap-6 align-center text-center">
                     @if (!$challanGenerated && !$basicInfo?->is_locked)
+                        <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); width: 100%; text-align: left;" class="mb-4">
+                            <h4 style="color: var(--secondary); font-weight: 700; margin-bottom: 1rem;">🎯 Target Recruitment Position</h4>
+                            
+                            <x-select label="Select Recruitment Campaign to Apply For *" :error="$errors->first('campaign_id')">
+                                <select class="form-control form-select" wire:model.live="campaign_id">
+                                    <option value="">-- Choose Position / Vacancy --</option>
+                                    @foreach ($campaigns as $camp)
+                                        <option value="{{ $camp->id }}">{{ $camp->title }} (Job Code: {{ $camp->job_code }} | Track: {{ $camp->track_type }})</option>
+                                    @endforeach
+                                </select>
+                            </x-select>
+
+                            @if($this->selectedCampaignModel)
+                                <div style="margin-top: 1.25rem; padding: 1.25rem; background: rgba(6, 182, 212, 0.08); border-radius: 8px; border: 1px solid var(--secondary-glow);" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div>
+                                        <small style="color: var(--color-text-secondary); text-transform: uppercase; font-size: 0.75rem; font-weight: 700;">Job Code</small><br>
+                                        <strong style="color: var(--color-text-primary);">{{ $this->selectedCampaignModel->job_code }}</strong>
+                                    </div>
+                                    <div>
+                                        <small style="color: var(--color-text-secondary); text-transform: uppercase; font-size: 0.75rem; font-weight: 700;">Department</small><br>
+                                        <strong style="color: var(--color-text-primary);">{{ $this->selectedCampaignModel->department }}</strong>
+                                    </div>
+                                    <div>
+                                        <small style="color: var(--color-text-secondary); text-transform: uppercase; font-size: 0.75rem; font-weight: 700;">Recruitment Track</small><br>
+                                        <x-badge type="appealed">{{ $this->selectedCampaignModel->track_type }}</x-badge>
+                                    </div>
+                                    <div>
+                                        <small style="color: var(--color-text-secondary); text-transform: uppercase; font-size: 0.75rem; font-weight: 700;">Processing Fee</small><br>
+                                        <strong style="color: var(--success); font-size: 1.1rem;">PKR {{ number_format($this->selectedCampaignModel->application_fee, 2) }}</strong>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+
                         <h4 style="color: var(--secondary); font-weight: 800;">Submit Application and Generate Processing Challan</h4>
                         <p style="color: var(--color-text-secondary); max-width: 600px;">
                             By clicking the button below, you will lock your basicInfo details from further modifications. The system will automatically construct your 12-digit consumer billing reference for checkout.
                         </p>
-                        <x-button variant="primary" style="padding: 0.75rem 2rem; font-size: 1.1rem;" wire:click="generateChallan">
+                        <x-button variant="primary" style="padding: 0.75rem 2rem; font-size: 1.1rem;" wire:click="generateChallan" :disabled="!$campaign_id">
                             🔒 Lock basicInfo & Generate Challan
                         </x-button>
                     @else
                         @php
                             $userApp = Auth::user()->applications()->first();
                             $billing = $userApp?->billingLedger;
+                            $appCampaign = $userApp?->campaign ?? $this->selectedCampaignModel;
                         @endphp
                         
                         <div class="challan-box" style="width: 100%; max-width: 600px;">
                             <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;" class="flex justify-between align-center">
-                                <strong style="color: var(--color-text-primary); font-size: 1.25rem;">HIRELY PROCESSING VOUCHER</strong>
+                                <div>
+                                    <strong style="color: var(--color-text-primary); font-size: 1.25rem;">HIRELY PROCESSING VOUCHER</strong>
+                                    @if($appCampaign)
+                                        <div style="font-size: 0.85rem; color: var(--secondary); font-weight: 600;">Position: {{ $appCampaign->title }} ({{ $appCampaign->job_code }})</div>
+                                    @endif
+                                </div>
                                 <x-badge :type="$billing?->status === 'SETTLED' ? 'paid' : 'pending'">
                                     {{ $billing?->status === 'SETTLED' ? '✓ Voucher PAID' : '⚡ PENDING PAYMENT' }}
                                 </x-badge>
@@ -1153,7 +1236,7 @@
             @endif
 
             @if ($currentStep < $totalSteps)
-                <x-button variant="primary" wire:click="nextStep" :disabled="!$campaign_id">Continue Next ➡</x-button>
+                <x-button variant="primary" wire:click="nextStep">Continue Next ➡</x-button>
             @endif
         </div>
     </div>

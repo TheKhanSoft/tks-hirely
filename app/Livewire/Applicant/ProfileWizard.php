@@ -32,6 +32,8 @@ class ProfileWizard extends Component
     
     // Step 1: Bio-Data
     public $campaign_id;
+    public $track_type = 'ACADEMIC';
+    public $step4_active_tab = 'ACADEMIC';
     public $first_name;
     public $last_name;
     public $cnic_number;
@@ -188,7 +190,6 @@ class ProfileWizard extends Component
     {
         if ($this->currentStep === 1) {
             return [
-                'campaign_id' => 'required|exists:campaigns,id',
                 'first_name' => 'required|string|max:100',
                 'last_name' => 'nullable|string|max:100',
                 'cnic_number' => ['required', 'regex:/^[0-9]{5}-[0-9]{7}-[0-9]{1}$/'],
@@ -209,10 +210,18 @@ class ProfileWizard extends Component
                 'domicile' => 'required|string|max:100',
             ];
         }
+
+        if ($this->currentStep === 8) {
+            return [
+                'campaign_id' => 'required|exists:campaigns,id',
+            ];
+        }
+
         return [];
     }
 
     protected $messages = [
+        'campaign_id.required' => 'Please select the recruitment campaign you wish to apply for before generating your voucher.',
         'cnic_number.regex' => 'The CNIC number format must be 12345-1234567-1.',
         'phone_number.required' => 'Mobile / Contact number is required.',
         'phone_number.regex' => 'Please enter a valid mobile number (e.g. 0300-1234567 or +923001234567).',
@@ -244,89 +253,48 @@ class ProfileWizard extends Component
             $this->religion = $basicInfo->religion ?? 'Islam';
             $this->marital_status = $basicInfo->marital_status ?? 'Single';
             $this->domicile = $basicInfo->domicile ?? '';
-            
-            // Reload databases & load normalized tables
-            $this->refreshDegrees();
-            $this->refreshExperiences();
-            $this->refreshMilestones();
-            $this->refreshTools();
-            $this->refreshPatents();
-            $this->refreshPortfolioItems();
-            $this->refreshTrainings();
-            $this->refreshReferees();
-            
-            $this->reloadDatabaseRelations($basicInfo);
+            $this->track_type = $basicInfo->track_type ?? 'ACADEMIC';
+            $this->step4_active_tab = $this->track_type;
         }
+
+        $this->reloadDatabaseRelations();
 
         $options = $this->getNextDegreeLevelOptionsProperty();
         $this->new_degree_level = !empty($options) ? array_key_first($options) : null;
     }
 
-    protected function reloadDatabaseRelations($basicInfo)
+    protected function reloadDatabaseRelations($basicInfo = null)
     {
-        $this->medals = $basicInfo->medals->map(fn($m) => [
-            'id' => $m->id,
-            'degree_title' => $m->degree_title,
-            'medal_type' => $m->medal_type,
-            'year_awarded' => $m->year_awarded,
-            'proof_path' => $m->transcription_proof_path,
-        ])->toArray();
-
-        $this->publications = $basicInfo->publications->map(fn($p) => [
-            'id' => $p->id,
-            'title' => $p->title,
-            'journal_name' => $p->journal_name,
-            'issn_print' => $p->issn_print,
-            'hjrs_category' => $p->hjrs_category,
-            'impact_factor' => $p->impact_factor,
-            'author_order' => $p->author_order,
-            'is_corresponding_author' => $p->is_corresponding_author,
-            'authors' => $p->authors,
-            'doi' => $p->doi,
-            'volume_issue' => $p->volume_issue,
-            'url' => $p->url,
-            'proof_path' => $p->proof_path,
-            'publication_year' => $p->publication_year,
-        ])->toArray();
-        usort($this->publications, fn($a, $b) => ($a['publication_year'] ?? 0) <=> ($b['publication_year'] ?? 0));
-
-        $this->projects = $basicInfo->researchProjects->map(fn($r) => [
-            'id' => $r->id,
-            'project_title' => $r->project_title,
-            'funding_agency' => $r->funding_agency,
-            'grant_amount' => $r->grant_amount,
-            'start_date' => $r->start_date?->format('Y-m-d'),
-            'role_in_project' => $r->role_in_project,
-            'turnitin_similarity_percentage' => $r->turnitin_similarity_percentage,
-            'status' => $r->status,
-            'co_pis' => $r->co_pis,
-            'award_letter_proof_path' => $r->award_letter_proof_path,
-        ])->toArray();
-        usort($this->projects, fn($a, $b) => strcmp($a['start_date'] ?? '', $b['start_date'] ?? ''));
-
-        $this->events = $basicInfo->events->map(fn($e) => [
-            'id' => $e->id,
-            'event_name' => $e->event_name,
-            'event_type' => $e->event_type,
-            'event_role' => $e->event_role,
-            'paper_title' => $e->paper_title,
-            'start_date' => $e->start_date?->format('Y-m-d'),
-            'end_date' => $e->end_date?->format('Y-m-d'),
-            'proof_path' => $e->certificate_proof_path,
-            'location' => $e->location,
-            'organizer' => $e->organizer,
-        ])->toArray();
-        usort($this->events, fn($a, $b) => strcmp($a['start_date'] ?? '', $b['start_date'] ?? ''));
+        $this->refreshDegrees();
+        $this->refreshMedals();
+        $this->refreshExperiences();
+        $this->refreshPublications();
+        $this->refreshMilestones();
+        $this->refreshTools();
+        $this->refreshProjects();
+        $this->refreshPatents();
+        $this->refreshPortfolioItems();
+        $this->refreshEvents();
+        $this->refreshTrainings();
+        $this->refreshReferees();
     }
 
     public function getSelectedCampaignModelProperty()
     {
-        return Campaign::find($this->campaign_id);
+        return $this->campaign_id ? Campaign::find($this->campaign_id) : null;
     }
 
     public function getTrackTypeProperty()
     {
-        return $this->selectedCampaignModel?->track_type ?? 'ACADEMIC';
+        return $this->selectedCampaignModel?->track_type ?? $this->track_type ?? 'ACADEMIC';
+    }
+
+    public function setStep4Tab($tab)
+    {
+        if (in_array($tab, ['ACADEMIC', 'ADMINISTRATIVE', 'SUPPORT'])) {
+            $this->step4_active_tab = $tab;
+            $this->track_type = $tab;
+        }
     }
 
     // Step navigation
@@ -336,6 +304,16 @@ class ProfileWizard extends Component
             $this->cnic_number = $this->formatCnic($this->cnic_number);
             if ($this->same_address) {
                 $this->mailing_address = $this->permanent_address;
+            }
+        }
+
+        if ($this->currentStep === 4) {
+            if (!empty($this->new_pub_title) && !empty($this->new_pub_journal)) {
+                $this->addPublication();
+            } elseif (!empty($this->new_ms_title)) {
+                $this->addMilestone();
+            } elseif (!empty($this->new_tool_name)) {
+                $this->addTool();
             }
         }
 
@@ -714,7 +692,7 @@ class ProfileWizard extends Component
     public function addMedal()
     {
         $this->validate([
-            'new_medal_degree' => 'required|string',
+            'new_medal_degree' => 'required|string|max:150',
             'new_medal_type' => 'required|in:GOLD,SILVER,BRONZE',
             'new_medal_year' => 'required|integer',
             'new_medal_proof' => 'required|file|max:2048',
@@ -722,6 +700,10 @@ class ProfileWizard extends Component
 
         $path = $this->new_medal_proof->store('medals', 'public');
         $basicInfo = Auth::user()->basicInfo;
+        if (!$basicInfo) {
+            $this->saveProfileStep1();
+            $basicInfo = Auth::user()->fresh()->basicInfo;
+        }
 
         AcademicMedal::create([
             'basic_info_id' => $basicInfo->id,
@@ -731,7 +713,7 @@ class ProfileWizard extends Component
             'transcription_proof_path' => $path,
         ]);
 
-        $this->reloadDatabaseRelations($basicInfo);
+        $this->refreshMedals();
 
         $this->new_medal_degree = '';
         $this->new_medal_year = '';
@@ -740,16 +722,19 @@ class ProfileWizard extends Component
 
     public function removeMedal($id)
     {
-        AcademicMedal::destroy($id);
-        $this->reloadDatabaseRelations(Auth::user()->basicInfo);
+        $basicInfo = Auth::user()->basicInfo;
+        if ($basicInfo) {
+            AcademicMedal::where('basic_info_id', $basicInfo->id)->where('id', $id)->delete();
+            $this->refreshMedals();
+        }
     }
 
     // Experience
     public function addExperience()
     {
         $this->validate([
-            'new_exp_title' => 'required|string',
-            'new_exp_company' => 'required|string',
+            'new_exp_title' => 'required|string|max:150',
+            'new_exp_company' => 'required|string|max:255',
             'new_exp_start' => 'required|date',
             'new_exp_end' => 'nullable|date|after_or_equal:new_exp_start',
             'new_exp_sector' => 'required|in:Government,Semi-Government,Private',
@@ -760,6 +745,10 @@ class ProfileWizard extends Component
 
         $path = $this->new_exp_proof->store('experience', 'public');
         $basicInfo = Auth::user()->basicInfo;
+        if (!$basicInfo) {
+            $this->saveProfileStep1();
+            $basicInfo = Auth::user()->fresh()->basicInfo;
+        }
         if (!$basicInfo) return;
 
         $basicInfo->experiences()->create([
@@ -798,41 +787,47 @@ class ProfileWizard extends Component
     public function addPublication()
     {
         $this->validate([
-            'new_pub_title' => 'required|string',
-            'new_pub_journal' => 'required|string',
-            'new_pub_issn' => 'required|string|max:9',
+            'new_pub_title' => 'required|string|max:500',
+            'new_pub_journal' => 'required|string|max:300',
+            'new_pub_issn' => 'nullable|string|max:20',
             'new_pub_category' => 'required|in:W,X,Y,Z',
-            'new_pub_impact' => 'required|numeric',
-            'new_pub_author_order' => 'required|integer',
-            'new_pub_authors' => 'required|string',
-            'new_pub_doi' => 'required|string',
-            'new_pub_volume' => 'required|string',
-            'new_pub_url' => 'required|url',
-            'new_pub_proof' => 'required|file|max:2048',
-            'new_pub_year' => 'required|integer',
+            'new_pub_impact' => 'nullable|numeric|min:0',
+            'new_pub_author_order' => 'nullable|integer|min:1',
+            'new_pub_authors' => 'nullable|string|max:500',
+            'new_pub_doi' => 'nullable|string|max:200',
+            'new_pub_volume' => 'nullable|string|max:100',
+            'new_pub_url' => 'nullable|url|max:255',
+            'new_pub_proof' => 'nullable|file|max:2048',
+            'new_pub_year' => 'nullable|integer|min:1900|max:' . (date('Y') + 1),
         ]);
 
-        $path = $this->new_pub_proof->store('publications', 'public');
         $basicInfo = Auth::user()->basicInfo;
+        if (!$basicInfo) {
+            $this->saveProfileStep1();
+            $basicInfo = Auth::user()->fresh()->basicInfo;
+        }
+        if (!$basicInfo) return;
+
+        $path = $this->new_pub_proof ? $this->new_pub_proof->store('publications', 'public') : null;
 
         Publication::create([
             'basic_info_id' => $basicInfo->id,
             'title' => $this->new_pub_title,
             'journal_name' => $this->new_pub_journal,
-            'issn_print' => $this->new_pub_issn,
-            'hjrs_category' => $this->new_pub_category,
-            'impact_factor' => $this->new_pub_impact,
-            'author_order' => $this->new_pub_author_order,
-            'is_corresponding_author' => $this->new_pub_is_corresponding,
-            'authors' => $this->new_pub_authors,
-            'doi' => $this->new_pub_doi,
-            'volume_issue' => $this->new_pub_volume,
-            'url' => $this->new_pub_url,
+            'issn_print' => $this->new_pub_issn ?: 'N/A',
+            'hjrs_category' => $this->new_pub_category ?? 'W',
+            'impact_factor' => $this->new_pub_impact ?: 0.000,
+            'author_order' => $this->new_pub_author_order ?: 1,
+            'is_corresponding_author' => (bool)$this->new_pub_is_corresponding,
+            'authors' => $this->new_pub_authors ?: null,
+            'doi' => $this->new_pub_doi ?: null,
+            'volume_issue' => $this->new_pub_volume ?: null,
+            'url' => $this->new_pub_url ?: null,
             'proof_path' => $path,
-            'publication_year' => (int)$this->new_pub_year,
+            'publication_year' => $this->new_pub_year ? (int)$this->new_pub_year : (int)date('Y'),
         ]);
 
-        $this->reloadDatabaseRelations($basicInfo);
+        $this->refreshPublications();
 
         $this->new_pub_title = '';
         $this->new_pub_journal = '';
@@ -846,34 +841,44 @@ class ProfileWizard extends Component
         $this->new_pub_url = '';
         $this->new_pub_proof = null;
         $this->new_pub_year = '';
+
+        session()->flash('step4_success', 'Publication registered successfully.');
     }
 
     public function removePublication($id)
     {
-        Publication::destroy($id);
-        $this->reloadDatabaseRelations(Auth::user()->basicInfo);
+        $basicInfo = Auth::user()->basicInfo;
+        if ($basicInfo) {
+            Publication::where('basic_info_id', $basicInfo->id)->where('id', $id)->delete();
+            $this->refreshPublications();
+        }
     }
 
     // Admin Milestones (Step 4)
     public function addMilestone()
     {
         $this->validate([
-            'new_ms_title' => 'required|string',
-            'new_ms_budget' => 'required|numeric',
-            'new_ms_year' => 'required|integer',
-            'new_ms_description' => 'required|string',
-            'new_ms_proof' => 'required|file|max:2048',
+            'new_ms_title' => 'required|string|max:255',
+            'new_ms_budget' => 'nullable|numeric|min:0',
+            'new_ms_year' => 'nullable|integer|min:1900|max:' . (date('Y') + 1),
+            'new_ms_description' => 'nullable|string|max:1000',
+            'new_ms_proof' => 'nullable|file|max:2048',
         ]);
 
-        $path = $this->new_ms_proof->store('milestones', 'public');
         $basicInfo = Auth::user()->basicInfo;
+        if (!$basicInfo) {
+            $this->saveProfileStep1();
+            $basicInfo = Auth::user()->fresh()->basicInfo;
+        }
         if (!$basicInfo) return;
+
+        $path = $this->new_ms_proof ? $this->new_ms_proof->store('milestones', 'public') : null;
 
         $basicInfo->milestones()->create([
             'title' => $this->new_ms_title,
-            'budget' => $this->new_ms_budget,
-            'year' => (int)$this->new_ms_year,
-            'description' => $this->new_ms_description,
+            'budget' => $this->new_ms_budget ?: 0,
+            'year' => $this->new_ms_year ? (int)$this->new_ms_year : (int)date('Y'),
+            'description' => $this->new_ms_description ?: '',
             'proof_path' => $path,
         ]);
 
@@ -884,6 +889,8 @@ class ProfileWizard extends Component
         $this->new_ms_year = '';
         $this->new_ms_description = '';
         $this->new_ms_proof = null;
+
+        session()->flash('step4_success', 'Governance milestone registered successfully.');
     }
 
     public function removeMilestone($id)
@@ -899,20 +906,25 @@ class ProfileWizard extends Component
     public function addTool()
     {
         $this->validate([
-            'new_tool_name' => 'required|string',
-            'new_tool_fitness' => 'required|file|max:2048',
+            'new_tool_name' => 'required|string|max:150',
+            'new_tool_fitness' => 'nullable|file|max:2048',
             'new_tool_proficiency' => 'required|in:Beginner,Intermediate,Expert',
-            'new_tool_experience' => 'required|integer',
+            'new_tool_experience' => 'nullable|integer|min:0',
         ]);
 
-        $path = $this->new_tool_fitness->store('certificates', 'public');
         $basicInfo = Auth::user()->basicInfo;
+        if (!$basicInfo) {
+            $this->saveProfileStep1();
+            $basicInfo = Auth::user()->fresh()->basicInfo;
+        }
         if (!$basicInfo) return;
+
+        $path = $this->new_tool_fitness ? $this->new_tool_fitness->store('certificates', 'public') : null;
 
         $basicInfo->tools()->create([
             'tool_name' => $this->new_tool_name,
             'proficiency_level' => $this->new_tool_proficiency,
-            'experience_years' => $this->new_tool_experience,
+            'experience_years' => $this->new_tool_experience ?: '0',
             'fitness_proof_path' => $path,
         ]);
 
@@ -922,6 +934,8 @@ class ProfileWizard extends Component
         $this->new_tool_fitness = null;
         $this->new_tool_proficiency = 'Intermediate';
         $this->new_tool_experience = '';
+
+        session()->flash('step4_success', 'Technical tool/skill registered successfully.');
     }
 
     public function removeTool($id)
@@ -957,6 +971,10 @@ class ProfileWizard extends Component
 
         $path = $this->new_proj_proof->store('projects', 'public');
         $basicInfo = Auth::user()->basicInfo;
+        if (!$basicInfo) {
+            $this->saveProfileStep1();
+            $basicInfo = Auth::user()->fresh()->basicInfo;
+        }
 
         ResearchProject::create([
             'basic_info_id' => $basicInfo->id,
@@ -971,7 +989,7 @@ class ProfileWizard extends Component
             'award_letter_proof_path' => $path,
         ]);
 
-        $this->reloadDatabaseRelations($basicInfo);
+        $this->refreshProjects();
 
         $this->new_proj_title = '';
         $this->new_proj_funding = '';
@@ -987,8 +1005,11 @@ class ProfileWizard extends Component
 
     public function removeProject($id)
     {
-        ResearchProject::destroy($id);
-        $this->reloadDatabaseRelations(Auth::user()->basicInfo);
+        $basicInfo = Auth::user()->basicInfo;
+        if ($basicInfo) {
+            ResearchProject::where('basic_info_id', $basicInfo->id)->where('id', $id)->delete();
+            $this->refreshProjects();
+        }
     }
 
     // Academic Patents (Step 5)
@@ -1091,6 +1112,10 @@ class ProfileWizard extends Component
 
         $path = $this->new_event_proof->store('events', 'public');
         $basicInfo = Auth::user()->basicInfo;
+        if (!$basicInfo) {
+            $this->saveProfileStep1();
+            $basicInfo = Auth::user()->fresh()->basicInfo;
+        }
 
         ProfessionalEvent::create([
             'basic_info_id' => $basicInfo->id,
@@ -1105,7 +1130,7 @@ class ProfileWizard extends Component
             'certificate_proof_path' => $path,
         ]);
 
-        $this->reloadDatabaseRelations($basicInfo);
+        $this->refreshEvents();
 
         $this->new_event_name = '';
         $this->new_event_paper = '';
@@ -1118,8 +1143,11 @@ class ProfileWizard extends Component
 
     public function removeEvent($id)
     {
-        ProfessionalEvent::destroy($id);
-        $this->reloadDatabaseRelations(Auth::user()->basicInfo);
+        $basicInfo = Auth::user()->basicInfo;
+        if ($basicInfo) {
+            ProfessionalEvent::where('basic_info_id', $basicInfo->id)->where('id', $id)->delete();
+            $this->refreshEvents();
+        }
     }
 
     // Support Training (Step 6)
@@ -1234,6 +1262,22 @@ class ProfileWizard extends Component
         $this->new_degree_country = 'Pakistan';
     }
 
+    public function refreshMedals()
+    {
+        $basicInfo = Auth::user()->basicInfo;
+        if ($basicInfo) {
+            $this->medals = $basicInfo->medals()->orderBy('year_awarded', 'asc')->get()->map(fn($m) => [
+                'id' => $m->id,
+                'degree_title' => $m->degree_title,
+                'medal_type' => $m->medal_type,
+                'year_awarded' => $m->year_awarded,
+                'proof_path' => $m->transcription_proof_path,
+            ])->toArray();
+        } else {
+            $this->medals = [];
+        }
+    }
+
     protected function refreshExperiences()
     {
         $basicInfo = Auth::user()->basicInfo;
@@ -1272,11 +1316,36 @@ class ProfileWizard extends Component
         }
     }
 
+    protected function refreshPublications()
+    {
+        $basicInfo = Auth::user()->basicInfo;
+        if ($basicInfo) {
+            $this->publications = $basicInfo->publications()->orderBy('publication_year', 'asc')->get()->map(fn($p) => [
+                'id' => $p->id,
+                'title' => $p->title,
+                'journal_name' => $p->journal_name,
+                'issn_print' => $p->issn_print,
+                'hjrs_category' => $p->hjrs_category,
+                'impact_factor' => $p->impact_factor,
+                'author_order' => $p->author_order,
+                'is_corresponding_author' => $p->is_corresponding_author,
+                'authors' => $p->authors,
+                'doi' => $p->doi,
+                'volume_issue' => $p->volume_issue,
+                'url' => $p->url,
+                'proof_path' => $p->proof_path,
+                'publication_year' => $p->publication_year,
+            ])->toArray();
+        } else {
+            $this->publications = [];
+        }
+    }
+
     protected function refreshTools()
     {
         $basicInfo = Auth::user()->basicInfo;
         if ($basicInfo) {
-            $this->tools = $basicInfo->tools->map(fn($t) => [
+            $this->tools = $basicInfo->tools()->orderBy('id', 'asc')->get()->map(fn($t) => [
                 'id' => $t->id,
                 'name' => $t->tool_name,
                 'proficiency' => $t->proficiency_level,
@@ -1285,6 +1354,48 @@ class ProfileWizard extends Component
             ])->toArray();
         } else {
             $this->tools = [];
+        }
+    }
+
+    protected function refreshProjects()
+    {
+        $basicInfo = Auth::user()->basicInfo;
+        if ($basicInfo) {
+            $this->projects = $basicInfo->researchProjects()->orderBy('start_date', 'asc')->get()->map(fn($r) => [
+                'id' => $r->id,
+                'project_title' => $r->project_title,
+                'funding_agency' => $r->funding_agency,
+                'grant_amount' => $r->grant_amount,
+                'start_date' => $r->start_date?->format('Y-m-d'),
+                'role_in_project' => $r->role_in_project,
+                'turnitin_similarity_percentage' => $r->turnitin_similarity_percentage,
+                'status' => $r->status,
+                'co_pis' => $r->co_pis,
+                'award_letter_proof_path' => $r->award_letter_proof_path,
+            ])->toArray();
+        } else {
+            $this->projects = [];
+        }
+    }
+
+    protected function refreshEvents()
+    {
+        $basicInfo = Auth::user()->basicInfo;
+        if ($basicInfo) {
+            $this->events = $basicInfo->events()->orderBy('start_date', 'asc')->get()->map(fn($e) => [
+                'id' => $e->id,
+                'event_name' => $e->event_name,
+                'event_type' => $e->event_type,
+                'event_role' => $e->event_role,
+                'paper_title' => $e->paper_title,
+                'start_date' => $e->start_date?->format('Y-m-d'),
+                'end_date' => $e->end_date?->format('Y-m-d'),
+                'proof_path' => $e->certificate_proof_path,
+                'location' => $e->location,
+                'organizer' => $e->organizer,
+            ])->toArray();
+        } else {
+            $this->events = [];
         }
     }
 
@@ -1327,7 +1438,7 @@ class ProfileWizard extends Component
     {
         $basicInfo = Auth::user()->basicInfo;
         if ($basicInfo) {
-            $this->trainings = $basicInfo->trainings->map(fn($tr) => [
+            $this->trainings = $basicInfo->trainings()->orderBy('id', 'asc')->get()->map(fn($tr) => [
                 'id' => $tr->id,
                 'title' => $tr->title,
                 'body' => $tr->body,
@@ -1343,7 +1454,7 @@ class ProfileWizard extends Component
     {
         $basicInfo = Auth::user()->basicInfo;
         if ($basicInfo) {
-            $this->referees = $basicInfo->referees->map(fn($r) => [
+            $this->referees = $basicInfo->referees()->orderBy('id', 'asc')->get()->map(fn($r) => [
                 'id' => $r->id,
                 'name' => $r->name,
                 'email' => $r->email,
@@ -1372,15 +1483,29 @@ class ProfileWizard extends Component
     // Finalize basicInfo and Application in Step 8
     public function generateChallan()
     {
+        $this->validate([
+            'campaign_id' => 'required|exists:campaigns,id',
+        ], [
+            'campaign_id.required' => 'Please select the recruitment campaign you wish to apply for before generating your voucher.',
+        ]);
+
         $campaign = Campaign::find($this->campaign_id);
-        $basicInfo = Auth::user()->basicInfo;
+        $basicInfo = Auth::user()->fresh()?->basicInfo ?? BasicInfo::where('user_id', Auth::id())->first();
+
+        if (!$basicInfo) {
+            $this->saveProfileStep1();
+            $basicInfo = BasicInfo::where('user_id', Auth::id())->first();
+        }
 
         if (!$campaign || !$basicInfo) {
             return;
         }
 
-        // Lock basicInfo from further edits
-        $basicInfo->update(['is_locked' => true]);
+        // Lock basicInfo from further edits and assign final track type
+        $basicInfo->update([
+            'is_locked' => true,
+            'track_type' => $campaign->track_type,
+        ]);
 
         // Generate 12-digit consumer ID
         $this->consumer_id = '1000' . str_pad((string)rand(10000000, 99999999), 8, '0', STR_PAD_LEFT);
