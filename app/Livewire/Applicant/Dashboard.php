@@ -46,7 +46,7 @@ class Dashboard extends Component
             'appeal_proof_path' => $path,
         ]);
 
-        session()->flash('message', 'Your appeal has been submitted successfully for committee review.');
+        session()->flash('message', 'Your formal appeal has been submitted successfully and queued for grievance committee review.');
         
         $this->showAppealForm = false;
         $this->appealText = '';
@@ -56,9 +56,33 @@ class Dashboard extends Component
     public function render()
     {
         $user = Auth::user();
+        $basicInfo = $user->basicInfo;
+        $applications = $user->applications()->with(['campaign', 'billingLedger'])->latest()->get();
+
+        // Calculate dossier completeness percentage
+        $completion = 0;
+        if ($basicInfo) {
+            if ($basicInfo->is_locked) {
+                $completion = 100;
+            } else {
+                $completion += 30; // Bio-Data filled
+                if ($basicInfo->degrees()->count() > 0) $completion += 25;
+                if ($basicInfo->experiences()->count() > 0) $completion += 20;
+                if ($basicInfo->publications()->count() > 0 || $basicInfo->tools()->count() > 0 || $basicInfo->milestones()->count() > 0) $completion += 15;
+                if ($applications->count() > 0) $completion += 10;
+                $completion = min(100, $completion);
+            }
+        }
+
         return view('livewire.applicant.dashboard', [
-            'basicInfo' => $user->basicInfo,
-            'applications' => $user->applications()->with('campaign', 'billingLedger')->get()
+            'basicInfo' => $basicInfo,
+            'applications' => $applications,
+            'completion' => $completion,
+            'totalApplications' => $applications->count(),
+            'paidCount' => $applications->whereIn('status', ['PAID', 'ELIGIBLE', 'APPROVED'])->count(),
+            'pendingCount' => $applications->where('status', 'SUBMITTED')->count(),
+            'eligibleCount' => $applications->where('status', 'ELIGIBLE')->count(),
+            'ineligibleCount' => $applications->where('status', 'INELIGIBLE')->count(),
         ])->layout('layouts.app');
     }
 }

@@ -1,74 +1,178 @@
-<div>
-    <!-- Welcome Header Card -->
-    <div class="card mb-6" style="background: var(--bg-card); border-color: var(--border-color); box-shadow: var(--shadow-md);">
-        <div class="flex justify-between align-center" style="flex-wrap: wrap; gap: 1rem;">
-            <div>
-                <h1 class="card-title" style="font-size: 1.6rem; font-weight: 800; letter-spacing: -0.03em;">
-                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; background: var(--secondary-light); color: var(--secondary); margin-right: 0.5rem;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                    </span>
-                    Candidate Portal
-                </h1>
-                <p class="card-subtitle">
-                    Welcome back, <strong style="color: var(--color-text-primary);">{{ $basicInfo ? trim($basicInfo->first_name . ' ' . $basicInfo->last_name) : auth()->user()->email }}</strong>. Track your job submissions and payment vouchers.
-                </p>
+<div class="flex-col gap-6">
+    <!-- Flash Success Notification -->
+    @if (session()->has('message'))
+        <div class="card" style="background: rgba(16, 185, 129, 0.1); border-color: var(--success); padding: 1rem 1.25rem;">
+            <div class="flex align-center gap-3">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                <div style="flex: 1;">
+                    <strong style="color: #6ee7b7; font-size: 0.95rem;">Action Successful</strong>
+                    <p style="color: var(--color-text-secondary); font-size: 0.88rem; margin: 0.15rem 0 0;">{{ session('message') }}</p>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if(!$basicInfo)
+        <!-- ============================================================== -->
+        <!-- ONBOARDING HERO: NEW CANDIDATE                                 -->
+        <!-- ============================================================== -->
+        <div class="card applicant-hero text-center" style="padding: 3.5rem 2rem;">
+            <div class="applicant-avatar" style="margin: 0 auto 1.5rem; width: 76px; height: 76px; font-size: 2rem;">
+                {{ strtoupper(substr(auth()->user()->email, 0, 1)) }}
             </div>
             
-            <div class="flex align-center gap-3">
-                <a href="/applicant/wizard" class="btn btn-primary btn-sm">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <h1 style="font-size: 1.85rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.5rem; color: var(--color-text-primary);">
+                Welcome to Hirely Recruitment Portal
+            </h1>
+            <p style="color: var(--color-text-secondary); font-size: 1.05rem; max-width: 580px; margin: 0 auto 2rem; line-height: 1.6;">
+                Begin your university employment application by preparing your candidate profile dossier, entering your academic and professional credentials, and generating your 1Link fee voucher.
+            </p>
+
+            <!-- 3-Step Walkthrough Preview -->
+            <div class="grid grid-cols-3 gap-4 mb-6" style="max-width: 850px; margin-left: auto; margin-right: auto; text-align: left;">
+                <div style="background: var(--bg-card-solid); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--primary-light); color: var(--primary); font-weight: 800; font-size: 0.8rem;">1</span>
+                        <strong style="font-size: 0.95rem; color: var(--color-text-primary);">Bio-Data & Degrees</strong>
+                    </div>
+                    <p style="color: var(--color-text-muted); font-size: 0.82rem; margin: 0;">Enter your personal details, academic qualifications, and verified CNIC identity.</p>
+                </div>
+
+                <div style="background: var(--bg-card-solid); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--secondary-light); color: var(--secondary); font-weight: 800; font-size: 0.8rem;">2</span>
+                        <strong style="font-size: 0.95rem; color: var(--color-text-primary);">Select Campaign</strong>
+                    </div>
+                    <p style="color: var(--color-text-muted); font-size: 0.82rem; margin: 0;">Choose the open faculty or staff vacancy, review criteria, and submit your dossier.</p>
+                </div>
+
+                <div style="background: var(--bg-card-solid); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--success-light); color: var(--success); font-weight: 800; font-size: 0.8rem;">3</span>
+                        <strong style="font-size: 0.95rem; color: var(--color-text-primary);">1Link Fee & Track</strong>
+                    </div>
+                    <p style="color: var(--color-text-muted); font-size: 0.82rem; margin: 0;">Settle processing fee via mobile banking or simulator and track committee scrutiny.</p>
+                </div>
+            </div>
+
+            <div class="flex justify-center gap-3">
+                <a href="/applicant/wizard" class="btn btn-primary btn-lg">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
                         <path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1Z"/>
                         <path d="m9 14 2 2 4-4"/>
                     </svg>
-                    <span>Application Wizard</span>
+                    <span>Launch Application Dossier Wizard</span>
                 </a>
+            </div>
+        </div>
+    @else
+        <!-- ============================================================== -->
+        <!-- EXECUTIVE APPLICANT PROFILE HERO                               -->
+        <!-- ============================================================== -->
+        <div class="applicant-hero">
+            <div class="flex justify-between align-center" style="flex-wrap: wrap; gap: 1.75rem;">
+                <!-- Candidate Identity Block -->
+                <div class="flex align-center gap-4" style="flex: 1; min-width: 280px;">
+                    <div class="applicant-avatar">
+                        {{ strtoupper(substr($basicInfo->first_name ?: auth()->user()->email, 0, 1)) }}
+                        <div class="applicant-avatar-verified" title="Verified Identity Record">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                        </div>
+                    </div>
 
-                <div style="background: var(--bg-btn-secondary); border: 1px solid var(--border-color); padding: 0.45rem 0.9rem; border-radius: var(--radius-sm);" class="flex align-center gap-2">
-                    <span class="badge-dot" style="background: var(--success); box-shadow: 0 0 6px var(--success);"></span>
-                    <span style="font-size: 0.78rem; font-weight: 700; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">
-                        Candidate Active
-                    </span>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="flex align-center gap-2" style="flex-wrap: wrap;">
+                            <h1 style="font-size: 1.65rem; font-weight: 800; letter-spacing: -0.03em; margin: 0; color: var(--color-text-primary);">
+                                {{ trim($basicInfo->first_name . ' ' . $basicInfo->last_name) }}
+                            </h1>
+                            <span class="badge badge-appealed" style="font-size: 0.72rem; font-weight: 800;">
+                                {{ $basicInfo->track_type }} TRACK
+                            </span>
+                        </div>
+
+                        <div class="flex align-center gap-3 mt-2" style="flex-wrap: wrap; font-size: 0.85rem; color: var(--color-text-secondary);">
+                            <span class="flex align-center gap-1">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="20" height="16" x="2" y="4" rx="2"/>
+                                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                                </svg>
+                                {{ auth()->user()->email }}
+                            </span>
+                            
+                            <span style="color: var(--border-color);">•</span>
+
+                            <span class="flex align-center gap-1">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="20" height="14" x="2" y="5" rx="2"/>
+                                    <circle cx="8" cy="12" r="2"/>
+                                    <path d="M14 10h4"/>
+                                    <path d="M14 14h2"/>
+                                </svg>
+                                CNIC: <strong style="font-family: 'JetBrains Mono', monospace; color: var(--color-text-primary);">{{ $basicInfo->cnic_number }}</strong>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Completeness Gauge & Primary Action -->
+                <div style="min-width: 260px; max-width: 320px; width: 100%;">
+                    <div class="flex justify-between align-center mb-2">
+                        <span style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-secondary);">
+                            Dossier Completeness
+                        </span>
+                        <strong style="color: {{ $completion === 100 ? 'var(--success)' : 'var(--secondary)' }}; font-size: 0.95rem; font-weight: 800;">
+                            {{ $completion }}%
+                        </strong>
+                    </div>
+
+                    <div class="progress-track-container mb-2">
+                        <div class="progress-track-bar" style="width: {{ $completion }}%;"></div>
+                    </div>
+
+                    <p style="font-size: 0.75rem; color: var(--color-text-muted); margin: 0 0 0.85rem;">
+                        @if($basicInfo->is_locked)
+                            ✓ Dossier locked & submitted for administrative review.
+                        @else
+                            Pending completion. Finalize details and submit to lock.
+                        @endif
+                    </p>
+
+                    <div class="flex gap-2">
+                        <a href="/applicant/wizard" class="btn btn-primary btn-sm" style="flex: 1;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                                <path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1Z"/>
+                                <path d="m9 14 2 2 4-4"/>
+                            </svg>
+                            <span>{{ $basicInfo->is_locked ? 'View Dossier' : 'Continue Wizard' }}</span>
+                        </a>
+
+                        <a href="/bank/simulator" class="btn btn-secondary btn-sm" title="Open 1Link Sandbox Switch">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect width="20" height="14" x="2" y="5" rx="2"/>
+                                <line x1="2" x2="22" y1="10" y2="10"/>
+                            </svg>
+                            <span>1Link Sim</span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    @if(!$basicInfo)
-        <!-- Empty State Hero -->
-        <div class="card text-center mb-6" style="border: 2px dashed var(--border-hover); padding: 4.5rem 2rem;">
-            <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-                    <path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1Z"/>
-                    <path d="M12 11h4"/>
-                    <path d="M12 16h4"/>
-                    <path d="M8 11h.01"/>
-                    <path d="M8 16h.01"/>
-                </svg>
-            </div>
-            <h3 class="card-title justify-center mb-2" style="font-size: 1.4rem;">Build Your Candidate Profile</h3>
-            <p style="color: var(--color-text-secondary); font-size: 0.95rem; max-width: 500px; margin: 0 auto 1.75rem;">
-                You haven't completed your candidate profile or applied for any recruitment campaigns yet. Launch the wizard to prepare your dossier and generate your fee voucher.
-            </p>
-            <a href="/applicant/wizard" class="btn btn-primary btn-lg">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M5 12h14"/>
-                    <path d="m12 5 7 7-7 7"/>
-                </svg>
-                <span>Launch Profile Wizard</span>
-            </a>
-        </div>
-    @else
-        <!-- Grid Status Bento Cards -->
-        <div class="grid grid-cols-3 gap-6 mb-6">
-            <!-- Profile Locking Status -->
+        <!-- ============================================================== -->
+        <!-- EXECUTIVE BENTO KPI METRICS                                    -->
+        <!-- ============================================================== -->
+        <div class="grid grid-cols-4 gap-6">
+            <!-- Dossier Gate Status -->
             <div class="metric-card" style="--card-accent: {{ $basicInfo->is_locked ? 'var(--success)' : 'var(--warning)' }};">
                 <div class="metric-header">
-                    <span class="metric-label">Profile Lock Status</span>
+                    <span class="metric-label">Dossier Gate</span>
                     <div class="metric-icon-wrap" style="background: {{ $basicInfo->is_locked ? 'var(--success-light)' : 'var(--warning-light)' }}; color: {{ $basicInfo->is_locked ? 'var(--success)' : 'var(--warning)' }};">
                         @if($basicInfo->is_locked)
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -85,22 +189,22 @@
                 </div>
                 <div>
                     @if($basicInfo->is_locked)
-                        <span class="badge badge-paid" style="font-size: 0.8rem;">
+                        <span class="badge badge-paid">
                             <span class="badge-dot" style="background: var(--success);"></span>
-                            Locked & Submitted
+                            Frozen & Submitted
                         </span>
-                        <p class="metric-subtext" style="margin-top: 0.5rem;">Fields frozen for administrative scrutiny.</p>
+                        <p class="metric-subtext" style="margin-top: 0.5rem;">Records secured for scrutiny committee verification.</p>
                     @else
-                        <span class="badge badge-pending" style="font-size: 0.8rem;">
+                        <span class="badge badge-pending">
                             <span class="badge-dot" style="background: var(--warning);"></span>
-                            Open for Edits
+                            Draft / Editable
                         </span>
-                        <p class="metric-subtext" style="margin-top: 0.5rem;">You can update qualifications and records.</p>
+                        <p class="metric-subtext" style="margin-top: 0.5rem;">Free to update education, tools, and publications.</p>
                     @endif
                 </div>
             </div>
-            
-            <!-- Assigned Evaluation Track -->
+
+            <!-- Recruitment Track -->
             <div class="metric-card" style="--card-accent: var(--secondary);">
                 <div class="metric-header">
                     <span class="metric-label">Evaluation Track</span>
@@ -112,84 +216,224 @@
                     </div>
                 </div>
                 <div>
-                    <span class="badge badge-appealed" style="font-size: 0.85rem; font-weight: 800;">
-                        {{ $basicInfo->track_type }} TRACK
-                    </span>
-                    <p class="metric-subtext" style="margin-top: 0.5rem;">HEC / University criteria calibrated for this track.</p>
+                    <div class="metric-value" style="font-size: 1.45rem; color: var(--secondary); margin-bottom: 0.35rem;">
+                        {{ $basicInfo->track_type }}
+                    </div>
+                    <p class="metric-subtext">Calibrated against official HEC & university appointment statutes.</p>
                 </div>
             </div>
 
-            <!-- CNIC Reference -->
+            <!-- Application Pipeline -->
             <div class="metric-card" style="--card-accent: var(--primary);">
                 <div class="metric-header">
-                    <span class="metric-label">Verified CNIC Number</span>
+                    <span class="metric-label">Active Applications</span>
                     <div class="metric-icon-wrap" style="background: var(--primary-light); color: var(--primary);">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect width="20" height="14" x="2" y="5" rx="2"/>
-                            <circle cx="8" cy="12" r="2"/>
-                            <path d="M14 10h4"/>
-                            <path d="M14 14h2"/>
+                            <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/>
+                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
                         </svg>
                     </div>
                 </div>
                 <div>
-                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.25rem; font-weight: 800; color: var(--color-text-primary); letter-spacing: 1px;">
-                        {{ $basicInfo->cnic_number }}
+                    <div class="metric-value">{{ $totalApplications }}</div>
+                    <p class="metric-subtext">{{ $paidCount }} Paid & Verified • {{ $pendingCount }} Awaiting Payment</p>
+                </div>
+            </div>
+
+            <!-- Fee & Scrutiny State -->
+            <div class="metric-card" style="--card-accent: {{ $pendingCount > 0 ? 'var(--warning)' : 'var(--success)' }};">
+                <div class="metric-header">
+                    <span class="metric-label">Voucher Settlement</span>
+                    <div class="metric-icon-wrap" style="background: {{ $pendingCount > 0 ? 'var(--warning-light)' : 'var(--success-light)' }}; color: {{ $pendingCount > 0 ? 'var(--warning)' : 'var(--success)' }};">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="20" height="14" x="2" y="5" rx="2"/>
+                            <line x1="2" x2="22" y1="10" y2="10"/>
+                        </svg>
                     </div>
-                    <p class="metric-subtext" style="margin-top: 0.35rem;">Unique identity verification key.</p>
+                </div>
+                <div>
+                    @if($pendingCount > 0)
+                        <span class="badge badge-pending">
+                            <span class="badge-dot" style="background: var(--warning);"></span>
+                            {{ $pendingCount }} Pending Payment
+                        </span>
+                        <p class="metric-subtext" style="margin-top: 0.5rem;">Settle fee to queue dossier for committee scrutiny.</p>
+                    @else
+                        <span class="badge badge-paid">
+                            <span class="badge-dot" style="background: var(--success);"></span>
+                            All Fees Reconciled
+                        </span>
+                        <p class="metric-subtext" style="margin-top: 0.5rem;">Zero pending vouchers. Invoices settled.</p>
+                    @endif
                 </div>
             </div>
         </div>
 
-        <!-- Application table -->
-        <div class="card" style="border-color: var(--border-color);">
-            <div class="flex justify-between align-center mb-4">
-                <h3 class="card-title" style="font-size: 1.1rem;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/>
-                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-                    </svg>
-                    Active Applications & Invoices
-                </h3>
+        <!-- ============================================================== -->
+        <!-- RECRUITMENT LIFECYCLE ROADMAP (APPLICATION JOURNEY)             -->
+        <!-- ============================================================== -->
+        @php
+            $hasSubmitted = $applications->count() > 0;
+            $hasPaid = $applications->whereIn('status', ['PAID', 'ELIGIBLE', 'APPROVED'])->count() > 0;
+            $hasEligible = $applications->whereIn('status', ['ELIGIBLE', 'APPROVED'])->count() > 0;
+            $hasApproved = $applications->where('status', 'APPROVED')->count() > 0;
+        @endphp
+        <div class="card">
+            <div class="flex justify-between align-center mb-2">
+                <div>
+                    <h3 class="card-title" style="font-size: 1.05rem;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                        University Recruitment Lifecycle Pipeline
+                    </h3>
+                    <p class="card-subtitle">Transparent tracking of your candidacy through institutional scrutiny gates.</p>
+                </div>
+
+                <div class="flex align-center gap-2">
+                    <span class="status-beacon">
+                        <span class="beacon-dot"></span>
+                        Live Portal Status
+                    </span>
+                </div>
             </div>
-            
+
+            <div class="lifecycle-tracker">
+                <!-- Step 1: Dossier Setup -->
+                <div class="lifecycle-step completed">
+                    <div class="lifecycle-node">✓</div>
+                    <span class="lifecycle-label">1. Candidate Dossier</span>
+                </div>
+                <div class="lifecycle-connector filled"></div>
+
+                <!-- Step 2: Submission & Challan -->
+                <div class="lifecycle-step {{ $hasSubmitted ? 'completed' : 'active' }}">
+                    <div class="lifecycle-node">
+                        @if($hasSubmitted) ✓ @else 2 @endif
+                    </div>
+                    <span class="lifecycle-label">2. Campaign Voucher</span>
+                </div>
+                <div class="lifecycle-connector {{ $hasPaid ? 'filled' : '' }}"></div>
+
+                <!-- Step 3: 1Link Fee Settle -->
+                <div class="lifecycle-step {{ $hasPaid ? 'completed' : ($hasSubmitted ? 'active' : '') }}">
+                    <div class="lifecycle-node">
+                        @if($hasPaid) ✓ @else 3 @endif
+                    </div>
+                    <span class="lifecycle-label">3. 1Link Settlement</span>
+                </div>
+                <div class="lifecycle-connector {{ $hasEligible ? 'filled' : '' }}"></div>
+
+                <!-- Step 4: Scrutiny Committee -->
+                <div class="lifecycle-step {{ $hasEligible ? 'completed' : ($hasPaid ? 'active' : '') }}">
+                    <div class="lifecycle-node">
+                        @if($hasEligible) ✓ @else 4 @endif
+                    </div>
+                    <span class="lifecycle-label">4. Scrutiny Desk</span>
+                </div>
+                <div class="lifecycle-connector {{ $hasApproved ? 'filled' : '' }}"></div>
+
+                <!-- Step 5: Selection Board -->
+                <div class="lifecycle-step {{ $hasApproved ? 'completed' : ($hasEligible ? 'active' : '') }}">
+                    <div class="lifecycle-node">
+                        @if($hasApproved) ✓ @else 5 @endif
+                    </div>
+                    <span class="lifecycle-label">5. Selection Board</span>
+                </div>
+                <div class="lifecycle-connector {{ $hasApproved ? 'filled' : '' }}"></div>
+
+                <!-- Step 6: Final Merit & Appointment -->
+                <div class="lifecycle-step {{ $hasApproved ? 'active' : '' }}">
+                    <div class="lifecycle-node">6</div>
+                    <span class="lifecycle-label">6. Appointment</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- ACTIVE APPLICATIONS & VOUCHERS TABLE                           -->
+        <!-- ============================================================== -->
+        <div class="card">
+            <div class="flex justify-between align-center mb-4" style="flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h3 class="card-title" style="font-size: 1.15rem;">
+                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/>
+                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                        </svg>
+                        Job Applications & Fee Invoices
+                    </h3>
+                    <p class="card-subtitle">Real-time status of your submissions, consumer reference numbers, and administrative scrutiny notes.</p>
+                </div>
+
+                @if(!$basicInfo->is_locked)
+                    <a href="/applicant/wizard" class="btn btn-secondary btn-sm">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        <span>Apply for Another Position</span>
+                    </a>
+                @endif
+            </div>
+
             <div class="table-container">
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Job Campaign</th>
+                            <th>Recruitment Campaign</th>
                             <th>Department</th>
-                            <th>Applied Date</th>
+                            <th>Submission Date</th>
                             <th>1Link Consumer ID</th>
-                            <th>Status</th>
-                            <th>Actions & Notes</th>
+                            <th>Processing Fee</th>
+                            <th>Current Status</th>
+                            <th>Actions & Review</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($applications as $app)
-                            <tr>
+                            <tr wire:key="app-row-{{ $app->id }}">
                                 <td>
-                                    <strong style="color: var(--color-text-primary); font-size: 0.95rem;">{{ $app->campaign->title }}</strong> <br>
-                                    <small style="color: var(--color-text-secondary);">Job Code: <code style="color: var(--secondary); font-family: 'JetBrains Mono', monospace; font-weight: 700;">{{ $app->campaign->job_code }}</code></small>
+                                    <div class="flex-col">
+                                        <strong style="color: var(--color-text-primary); font-size: 0.95rem;">{{ $app->campaign->title }}</strong>
+                                        <div class="flex align-center gap-2 mt-1">
+                                            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; background: var(--primary-light); color: var(--primary); padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 700;">
+                                                {{ $app->campaign->job_code }}
+                                            </span>
+                                            <span style="font-size: 0.72rem; color: var(--color-text-muted); text-transform: uppercase;">
+                                                {{ $app->campaign->track_type }}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td>
-                                    <span style="color: var(--color-text-secondary); font-size: 0.88rem;">{{ $app->campaign->department }}</span>
+                                    <span style="color: var(--color-text-secondary); font-size: 0.88rem; font-weight: 500;">
+                                        {{ $app->campaign->department }}
+                                    </span>
                                 </td>
                                 <td>
                                     <span style="font-size: 0.85rem; color: var(--color-text-muted);">
-                                        {{ $app->submission_timestamp?->format('Y-m-d H:i') ?: 'Draft' }}
+                                        {{ $app->submission_timestamp?->format('d M Y, h:i A') ?: 'Draft' }}
                                     </span>
                                 </td>
                                 <td>
                                     @if($app->billingLedger)
-                                        <div style="display: flex; align-items: center; gap: 0.4rem;">
-                                            <code style="color: var(--secondary); font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 0.95rem; background: var(--secondary-light); padding: 0.2rem 0.5rem; border-radius: 4px;">
-                                                {{ $app->billingLedger->consumer_id }}
-                                            </code>
+                                        <div class="copyable-chip" onclick="copyConsumerId('{{ $app->billingLedger->consumer_id }}', this)" title="Click to copy Consumer ID to clipboard">
+                                            <span>{{ $app->billingLedger->consumer_id }}</span>
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                                                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                                            </svg>
                                         </div>
                                     @else
                                         <span style="color: var(--color-text-muted); font-size: 0.85rem;">Not Generated</span>
                                     @endif
+                                </td>
+                                <td>
+                                    <strong style="color: var(--color-text-primary); font-size: 0.95rem;">
+                                        PKR {{ number_format($app->billingLedger?->amount ?? $app->campaign->application_fee, 2) }}
+                                    </strong>
                                 </td>
                                 <td>
                                     @if($app->status === 'DRAFT')
@@ -202,12 +446,12 @@
                                     @elseif($app->status === 'PAID')
                                         <span class="badge badge-paid">
                                             <span class="badge-dot" style="background: var(--success);"></span>
-                                            Paid / In Scrutiny
+                                            Paid / Under Scrutiny
                                         </span>
                                     @elseif($app->status === 'ELIGIBLE')
                                         <span class="badge badge-eligible">
                                             <span class="badge-dot" style="background: var(--success);"></span>
-                                            Eligible
+                                            Eligible for Board
                                         </span>
                                     @elseif($app->status === 'INELIGIBLE')
                                         <span class="badge badge-ineligible">
@@ -215,25 +459,39 @@
                                             Disqualified
                                         </span>
                                     @elseif($app->status === 'APPEALED')
-                                        <span class="badge badge-appealed">Appeal Lodged</span>
+                                        <span class="badge badge-appealed">
+                                            <span class="badge-dot" style="background: var(--secondary);"></span>
+                                            Appeal Under Review
+                                        </span>
+                                    @elseif($app->status === 'APPROVED')
+                                        <span class="badge badge-approved">
+                                            <span class="badge-dot" style="background: var(--success);"></span>
+                                            Appointment Approved
+                                        </span>
                                     @elseif($app->status === 'REJECTED')
                                         <span class="badge badge-rejected">Appeal Dismissed</span>
-                                    @elseif($app->status === 'APPROVED')
-                                        <span class="badge badge-paid">Approved</span>
                                     @endif
                                 </td>
                                 <td>
                                     @if($app->status === 'SUBMITTED')
                                         <div class="flex gap-2 align-center">
-                                            <a href="/applicant/wizard" class="btn btn-secondary btn-sm">View Challan</a>
+                                            <a href="/applicant/wizard" class="btn btn-secondary btn-sm" title="View Challan Slip">
+                                                <span>Slip</span>
+                                            </a>
                                             @if($app->billingLedger)
-                                                <a href="/bank/simulator?consumer_id={{ $app->billingLedger->consumer_id }}" class="btn btn-primary btn-sm" style="font-size: 0.75rem;">Pay Sim</a>
+                                                <a href="/bank/simulator?consumer_id={{ $app->billingLedger->consumer_id }}" class="btn btn-primary btn-sm" style="font-size: 0.78rem;">
+                                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <rect width="20" height="14" x="2" y="5" rx="2"/>
+                                                        <line x1="2" x2="22" y1="10" y2="10"/>
+                                                    </svg>
+                                                    <span>Pay Simulator</span>
+                                                </a>
                                             @endif
                                         </div>
                                     @elseif($app->status === 'INELIGIBLE')
-                                        <div class="flex-col gap-2" style="background: var(--danger-light); padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--danger-glow);">
-                                            <p style="color: #fca5a5; font-size: 0.82rem; max-width: 250px;">
-                                                <strong>Reason:</strong> {{ $app->disqualification_reason }}
+                                        <div class="flex-col gap-2" style="background: var(--danger-light); padding: 0.75rem 0.95rem; border-radius: var(--radius-sm); border: 1px solid var(--danger-glow); max-width: 280px;">
+                                            <p style="color: #fca5a5; font-size: 0.8rem; line-height: 1.4; margin: 0;">
+                                                <strong>Scrutiny Notice:</strong> {{ $app->disqualification_reason ?: 'Criteria mismatch detected.' }}
                                             </p>
                                             <button type="button" class="btn btn-danger btn-sm" wire:click="openAppealForm({{ $app->id }})">
                                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -247,17 +505,32 @@
                                         </div>
                                     @elseif($app->status === 'APPEALED')
                                         <div style="background: var(--secondary-light); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--secondary-glow);">
-                                            <p style="color: #67e8f9; font-size: 0.82rem;">Under Review by Appellate Panel</p>
+                                            <p style="color: #67e8f9; font-size: 0.8rem; margin: 0;">
+                                                Formal appeal active. Under review by Appellate Desk.
+                                            </p>
                                         </div>
+                                    @elseif($app->status === 'PAID')
+                                        <span style="font-size: 0.82rem; color: var(--color-text-secondary); display: inline-flex; align-items: center; gap: 0.35rem;">
+                                            <span class="badge-dot" style="background: var(--success);"></span>
+                                            Challan settled. Scrutiny queued.
+                                        </span>
                                     @else
-                                        <span style="color: var(--color-text-muted); font-size: 0.85rem;">No action required</span>
+                                        <span style="color: var(--color-text-muted); font-size: 0.82rem;">No pending action</span>
                                     @endif
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center" style="color: var(--color-text-muted); padding: 2.5rem;">
-                                    No applications registered yet. <a href="/applicant/wizard" style="color: var(--secondary); text-decoration: underline;">Launch profile wizard</a>.
+                                <td colspan="7" class="text-center" style="color: var(--color-text-muted); padding: 3rem 1.5rem;">
+                                    <div style="max-width: 380px; margin: 0 auto;">
+                                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-dim)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 0.75rem;">
+                                            <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/>
+                                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                                        </svg>
+                                        <p style="font-size: 0.95rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: 0.25rem;">No Applications Submitted</p>
+                                        <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin-bottom: 1rem;">Complete your dossier in the wizard to apply for active university campaigns.</p>
+                                        <a href="/applicant/wizard" class="btn btn-primary btn-sm">Launch Wizard</a>
+                                    </div>
                                 </td>
                             </tr>
                         @endforelse
@@ -267,41 +540,82 @@
         </div>
     @endif
 
-    <!-- Appeal Form Modal Drawer -->
+    <!-- ============================================================== -->
+    <!-- GRIEVANCE APPEAL MODAL DRAWER                                  -->
+    <!-- ============================================================== -->
     @if($showAppealForm)
         <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1.5rem;">
-            <div class="card" style="width: 100%; max-width: 580px; border-color: var(--border-color); box-shadow: var(--shadow-lg);">
-                <div class="flex justify-between align-center mb-4" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
-                    <h3 class="card-title" style="color: var(--warning); margin: 0;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
-                            <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
-                            <path d="M7 21h10"/>
-                            <path d="M12 3v18"/>
-                        </svg>
-                        Lodge Formal Grievance Appeal
-                    </h3>
-                    <button type="button" class="btn btn-secondary btn-sm" wire:click="$set('showAppealForm', false)">Close</button>
+            <div class="card" style="width: 100%; max-width: 620px; border-color: var(--border-color); box-shadow: var(--shadow-lg); background: var(--bg-card-solid);">
+                <div class="flex justify-between align-center mb-4" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+                    <div>
+                        <h3 class="card-title" style="color: var(--warning); margin: 0; font-size: 1.2rem;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+                                <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+                                <path d="M7 21h10"/>
+                                <path d="M12 3v18"/>
+                            </svg>
+                            Formal Grievance Redressal Appeal
+                        </h3>
+                        <p class="card-subtitle">Statutory appeal within 7 calendar days under University Recruitment Regulations.</p>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm" wire:click="$set('showAppealForm', false)">✕</button>
+                </div>
+
+                <div class="card mb-4" style="background: rgba(245, 158, 11, 0.08); border-color: var(--warning-glow); padding: 0.85rem 1rem;">
+                    <p style="color: #fde68a; font-size: 0.82rem; margin: 0; line-height: 1.45;">
+                        <strong>Statutory Requirement:</strong> Please explain the grounds for your appeal (e.g. HEC degree equivalence, attested experience certificate, publication citation). You must attach supporting documentary evidence.
+                    </p>
                 </div>
                 
                 <form wire:submit.prevent="submitAppeal">
                     <div class="form-group mb-4">
-                        <label class="form-label">Explain your case / Provide justification (Min 20 characters)</label>
-                        <textarea class="form-control" rows="5" wire:model="appealText" placeholder="Specify equivalence, missing document clarifications, or credentials reference logs..."></textarea>
-                        @error('appealText') <span style="color: var(--danger); font-size: 0.82rem; margin-top: 0.25rem; display: block;">{{ $message }}</span> @enderror
+                        <label class="form-label">Grounds of Appeal / Justification Narrative * (Min 20 characters)</label>
+                        <textarea class="form-control" rows="5" wire:model="appealText" placeholder="Specify equivalence details, missing document clarification, or credentials reference logs..."></textarea>
+                        @error('appealText') <span style="color: var(--danger); font-size: 0.82rem; margin-top: 0.35rem; display: block; font-weight: 500;">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="form-group mb-6">
-                        <label class="form-label">Upload Equivalence / Proof Document (PDF/Image)</label>
+                        <label class="form-label">Supporting Proof / Equivalence Certificate * (PDF or Image, max 2MB)</label>
                         <input type="file" class="form-control" wire:model="appealProof">
-                        @error('appealProof') <span style="color: var(--danger); font-size: 0.82rem; margin-top: 0.25rem; display: block;">{{ $message }}</span> @enderror
+                        <div wire:loading wire:target="appealProof" style="color: var(--secondary); font-size: 0.8rem; margin-top: 0.35rem;">
+                            Uploading file, please wait...
+                        </div>
+                        @error('appealProof') <span style="color: var(--danger); font-size: 0.82rem; margin-top: 0.35rem; display: block; font-weight: 500;">{{ $message }}</span> @enderror
                     </div>
 
-                    <button type="submit" class="btn btn-danger" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.95rem;">
-                        <span>Submit Formal Appeal</span>
-                    </button>
+                    <div class="flex justify-between align-center" style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                        <button type="button" class="btn btn-secondary" wire:click="$set('showAppealForm', false)">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-danger" wire:loading.attr="disabled">
+                            <span wire:loading.remove wire:target="submitAppeal">Submit Formal Appeal</span>
+                            <span wire:loading wire:target="submitAppeal">Submitting...</span>
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
     @endif
 </div>
+
+<script>
+    function copyConsumerId(consumerId, el) {
+        if (!navigator.clipboard) {
+            const input = document.createElement('input');
+            input.value = consumerId;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+        } else {
+            navigator.clipboard.writeText(consumerId);
+        }
+
+        const originalText = el.innerHTML;
+        el.innerHTML = '<span>✓ Copied!</span>';
+        setTimeout(() => {
+            el.innerHTML = originalText;
+        }, 1800);
+    }
+</script>

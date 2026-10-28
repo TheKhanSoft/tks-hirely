@@ -518,6 +518,11 @@ html:not(.light) .theme-btn.active {
     50% { opacity: 0.4; transform: scale(0.85); }
 }
 
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 /* Content Container */
 .container {
     max-width: 1400px;
@@ -1109,6 +1114,250 @@ html:not(.light) .theme-btn.active {
 .mt-2 { margin-top: 0.5rem; }
 .mt-4 { margin-top: 1rem; }
 .mt-6 { margin-top: 1.5rem; }
+
+/* ==========================================================
+   Applicant Portal Premium Executive UI System
+   ========================================================== */
+.applicant-hero {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(6, 182, 212, 0.08) 50%, var(--bg-card) 100%);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem 2.25rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+.applicant-hero::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.applicant-avatar {
+    width: 68px;
+    height: 68px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 1.65rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px var(--primary-glow);
+    flex-shrink: 0;
+    position: relative;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.applicant-avatar-verified {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    background: var(--success);
+    color: #ffffff;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--bg-primary);
+    box-shadow: 0 2px 6px var(--success-glow);
+}
+
+.progress-track-container {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border-color);
+    border-radius: 9999px;
+    height: 9px;
+    overflow: hidden;
+    position: relative;
+}
+
+html.light .progress-track-container {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+.progress-track-bar {
+    height: 100%;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary), var(--success));
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 10px var(--secondary-glow);
+}
+
+/* Recruitment Lifecycle Journey Visualizer */
+.lifecycle-tracker {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    padding: 1.5rem 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.lifecycle-tracker::-webkit-scrollbar {
+    display: none;
+}
+
+.lifecycle-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    min-width: 120px;
+    text-align: center;
+    cursor: default;
+}
+
+.lifecycle-node {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--bg-surface);
+    border: 2px solid var(--border-color);
+    color: var(--color-text-muted);
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 0.5rem;
+}
+
+.lifecycle-step.completed .lifecycle-node {
+    background: var(--success);
+    border-color: var(--success);
+    color: #ffffff;
+    box-shadow: 0 0 12px var(--success-glow);
+}
+
+.lifecycle-step.active .lifecycle-node {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 0 16px var(--primary-glow);
+    animation: beaconPulse 2s infinite;
+}
+
+.lifecycle-label {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    line-height: 1.25;
+}
+
+.lifecycle-step.completed .lifecycle-label {
+    color: var(--color-text-primary);
+}
+
+.lifecycle-step.active .lifecycle-label {
+    color: var(--primary);
+    font-weight: 800;
+}
+
+.lifecycle-connector {
+    flex: 1;
+    height: 2px;
+    background: var(--border-color);
+    position: relative;
+    top: -16px;
+    z-index: 1;
+    min-width: 28px;
+}
+
+.lifecycle-connector.filled {
+    background: linear-gradient(90deg, var(--success), var(--secondary));
+}
+
+/* Copyable Monospace Chip */
+.copyable-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(6, 182, 212, 0.1);
+    border: 1px solid var(--secondary-glow);
+    padding: 0.3rem 0.65rem;
+    border-radius: var(--radius-xs);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: var(--secondary);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.copyable-chip:hover {
+    background: rgba(6, 182, 212, 0.2);
+    border-color: var(--secondary);
+    transform: translateY(-1px);
+}
+
+.copyable-chip:active {
+    transform: scale(0.97);
+}
+
+/* Institutional Challan Slip */
+.challan-sheet {
+    background: var(--bg-card-solid);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    position: relative;
+}
+
+.challan-header {
+    background: linear-gradient(135deg, var(--bg-surface), rgba(6, 182, 212, 0.08));
+    border-bottom: 2px dashed var(--border-color);
+    padding: 1.5rem 2rem;
+    position: relative;
+}
+
+.challan-watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-15deg);
+    font-size: 4.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.03);
+    letter-spacing: 0.2em;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+html.light .challan-watermark {
+    color: rgba(0, 0, 0, 0.03);
+}
+
+.challan-grid-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.9rem;
+}
+
+.challan-grid-row:last-child {
+    border-bottom: none;
+}
 
 /* Responsive adjustments */
 @media (max-width: 1024px) {

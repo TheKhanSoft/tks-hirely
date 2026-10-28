@@ -23,6 +23,23 @@
                 </div>
             @endfor
         </div>
+
+        <div class="flex justify-between align-center" style="margin-top: 0.5rem; padding: 0.75rem 0.5rem 0; border-top: 1px solid var(--border-color);">
+            <div class="flex align-center gap-2">
+                <span class="badge badge-appealed" style="font-size: 0.72rem; font-weight: 800;">
+                    SECTION {{ $currentStep }} OF {{ $totalSteps }}
+                </span>
+                <span style="font-size: 0.85rem; font-weight: 700; color: var(--color-text-primary);">
+                    {{ $stepLabels[$currentStep] }}
+                </span>
+            </div>
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-muted);">
+                {{ round(($currentStep / $totalSteps) * 100) }}% Dossier Progress
+            </span>
+        </div>
+        <div class="progress-track-container mt-2">
+            <div class="progress-track-bar" style="width: {{ round(($currentStep / $totalSteps) * 100) }}%;"></div>
+        </div>
     </x-card>
 
     @if($basicInfo && $basicInfo->is_locked && $currentStep < 8)
@@ -1188,57 +1205,137 @@
                             $appCampaign = $userApp?->campaign ?? $this->selectedCampaignModel;
                         @endphp
                         
-                        <div class="challan-box" style="width: 100%; max-width: 600px;">
-                            <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;" class="flex justify-between align-center">
-                                <div>
-                                    <strong style="color: var(--color-text-primary); font-size: 1.25rem;">HIRELY PROCESSING VOUCHER</strong>
-                                    @if($appCampaign)
-                                        <div style="font-size: 0.85rem; color: var(--secondary); font-weight: 600;">Position: {{ $appCampaign->title }} ({{ $appCampaign->job_code }})</div>
-                                    @endif
-                                </div>
-                                <x-badge :type="$billing?->status === 'SETTLED' ? 'paid' : 'pending'">
-                                    {{ $billing?->status === 'SETTLED' ? '✓ Voucher PAID' : '⚡ PENDING PAYMENT' }}
-                                </x-badge>
-                            </div>
+                        <div class="challan-sheet" style="width: 100%; max-width: 720px; margin: 1.5rem auto;">
+                            <!-- Watermark Background -->
+                            <div class="challan-watermark">HIRELY OS</div>
 
-                            <p style="color: var(--color-text-secondary); text-align: left; font-size: 0.9rem;" class="mb-4">
-                                Use the 12-digit consumer reference ID listed below to pay your processing fee via the bank simulator switch, mobile banking, or OTG teller.
-                            </p>
-
-                            <div style="background: var(--bg-card-solid); padding: 1.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
-                                <small style="text-transform: uppercase; color: var(--color-text-secondary); letter-spacing: 1px; font-weight: 700; font-size: 0.75rem;">1Link / Kuickpay Consumer ID Reference</small>
-                                <h2 class="challan-id" style="margin: 0.75rem 0;">{{ $billing?->consumer_id ?? $consumer_id }}</h2>
-                                <div class="flex justify-between mt-4" style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
-                                    <span style="color: var(--color-text-secondary)">Total Processing Fee:</span>
-                                    <strong style="color: var(--warning); font-size: 1.25rem;">PKR {{ number_format($billing?->amount ?? $application_fee, 2) }}</strong>
-                                </div>
-                            </div>
-
-                            @if($billing?->status === 'SETTLED')
-                                <div style="margin-top: 1.5rem; background: var(--success-light); border: 1px solid var(--success-glow); border-radius: var(--radius-sm); padding: 1rem;">
-                                    <p style="color: #6ee7b7; font-weight: 700; margin: 0; font-size: 0.92rem;">
-                                        ✓ Payment Reconciled. Transaction ID: <code style="font-family: 'JetBrains Mono', monospace;">{{ $billing->transaction_id }}</code>. Your dossier has been queued for scrutiny committee verification.
-                                    </p>
-                                </div>
-                            @else
-                                <div style="margin-top: 1.5rem; background: var(--secondary-light); border: 1px dashed var(--secondary-glow); border-radius: var(--radius-sm); padding: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                            <!-- Institutional Header -->
+                            <div class="challan-header">
+                                <div class="flex justify-between align-center" style="flex-wrap: wrap; gap: 1rem;">
                                     <div>
-                                        <p style="color: #67e8f9; font-weight: 700; margin: 0; font-size: 0.95rem;">
-                                            Instant Sandbox Payment Available
-                                        </p>
-                                        <p style="color: var(--color-text-secondary); font-size: 0.82rem; margin: 0.2rem 0 0;">
-                                            Test real-time 1Link webhook reconciliation using our built-in simulator.
-                                        </p>
+                                        <div class="flex align-center gap-2 mb-1">
+                                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: var(--secondary-light); color: var(--secondary);">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
+                                                    <path d="M6 6h10"/>
+                                                    <path d="M6 10h10"/>
+                                                </svg>
+                                            </span>
+                                            <strong style="color: var(--color-text-primary); font-size: 1.15rem; letter-spacing: -0.02em;">
+                                                UNIVERSITY RECRUITMENT DEPOSIT CHALLAN
+                                            </strong>
+                                        </div>
+                                        <div style="font-size: 0.78rem; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">
+                                            1Link / Kuickpay Inter-Bank Switch • Electronic Processing Slip
+                                        </div>
                                     </div>
-                                    <a href="/bank/simulator?consumer_id={{ $billing?->consumer_id ?? $consumer_id }}" class="btn btn-primary btn-sm">
-                                        <span>Open Bank Switch Simulator</span>
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                            <line x1="5" x2="19" y1="12" y2="12"/>
-                                            <polyline points="12 5 19 12 12 19"/>
-                                        </svg>
-                                    </a>
+
+                                    <div>
+                                        <x-badge :type="$billing?->status === 'SETTLED' ? 'paid' : 'pending'">
+                                            {{ $billing?->status === 'SETTLED' ? '✓ VOUCHER PAID' : '⚡ AWAITING PAYMENT' }}
+                                        </x-badge>
+                                    </div>
                                 </div>
-                            @endif
+                            </div>
+
+                            <!-- Slip Body Content -->
+                            <div style="padding: 1.75rem 2rem;">
+                                <!-- Primary Reference Highlight -->
+                                <div style="background: rgba(6, 182, 212, 0.06); border: 1px solid var(--secondary-glow); border-radius: var(--radius-md); padding: 1.25rem; text-align: center; margin-bottom: 1.75rem;">
+                                    <small style="text-transform: uppercase; color: var(--color-text-secondary); letter-spacing: 1.5px; font-weight: 800; font-size: 0.72rem;">
+                                        1Link / Kuickpay 12-Digit Consumer Reference
+                                    </small>
+                                    <h2 class="challan-id" style="margin: 0.5rem 0; font-size: 2rem;">
+                                        {{ $billing?->consumer_id ?? $consumer_id }}
+                                    </h2>
+                                    <div class="flex justify-center gap-2 mt-2">
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="navigator.clipboard.writeText('{{ $billing?->consumer_id ?? $consumer_id }}'); alert('Consumer Reference Copied: {{ $billing?->consumer_id ?? $consumer_id }}');">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                                                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                                            </svg>
+                                            <span>Copy Consumer ID</span>
+                                        </button>
+                                        @if($billing?->status !== 'SETTLED')
+                                            <a href="/bank/simulator?consumer_id={{ $billing?->consumer_id ?? $consumer_id }}" class="btn btn-primary btn-sm">
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <rect width="20" height="14" x="2" y="5" rx="2"/>
+                                                    <line x1="2" x2="22" y1="10" y2="10"/>
+                                                </svg>
+                                                <span>Pay in 1Link Sandbox</span>
+                                            </a>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <!-- Metadata Specification Grid -->
+                                <div class="flex-col" style="gap: 0.25rem;">
+                                    <div class="challan-grid-row">
+                                        <span style="color: var(--color-text-secondary);">Candidate Full Name:</span>
+                                        <strong style="color: var(--color-text-primary);">
+                                            {{ $first_name }} {{ $last_name }}
+                                        </strong>
+                                    </div>
+
+                                    <div class="challan-grid-row">
+                                        <span style="color: var(--color-text-secondary);">Verified CNIC Number:</span>
+                                        <strong style="font-family: 'JetBrains Mono', monospace; color: var(--color-text-primary);">
+                                            {{ $cnic_number }}
+                                        </strong>
+                                    </div>
+
+                                    @if($appCampaign)
+                                        <div class="challan-grid-row">
+                                            <span style="color: var(--color-text-secondary);">Applied Position:</span>
+                                            <strong style="color: var(--color-text-primary);">
+                                                {{ $appCampaign->title }} ({{ $appCampaign->job_code }})
+                                            </strong>
+                                        </div>
+
+                                        <div class="challan-grid-row">
+                                            <span style="color: var(--color-text-secondary);">Recruitment Track / Dept:</span>
+                                            <span style="color: var(--color-text-primary); font-weight: 600;">
+                                                {{ $appCampaign->track_type }} Track • {{ $appCampaign->department }}
+                                            </span>
+                                        </div>
+                                    @endif
+
+                                    <div class="challan-grid-row" style="background: rgba(245, 158, 11, 0.04); padding: 0.85rem 0.5rem; border-radius: var(--radius-xs);">
+                                        <span style="font-weight: 700; color: var(--color-text-primary); font-size: 0.95rem;">Total Application Processing Fee:</span>
+                                        <strong style="color: var(--warning); font-size: 1.35rem; font-family: 'JetBrains Mono', monospace;">
+                                            PKR {{ number_format($billing?->amount ?? $application_fee, 2) }}
+                                        </strong>
+                                    </div>
+                                </div>
+
+                                <!-- Settlement State / Next Actions -->
+                                @if($billing?->status === 'SETTLED')
+                                    <div style="margin-top: 1.5rem; background: var(--success-light); border: 1px solid var(--success-glow); border-radius: var(--radius-sm); padding: 1.25rem;" class="flex align-center gap-3">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                            <polyline points="22 4 12 14.01 9 11.01"/>
+                                        </svg>
+                                        <div style="flex: 1;">
+                                            <strong style="color: #6ee7b7; font-size: 0.95rem;">Payment Reconciled & Dossier Transmitted</strong>
+                                            <p style="color: var(--color-text-secondary); font-size: 0.84rem; margin: 0.2rem 0 0;">
+                                                Transaction Reference: <code style="font-family: 'JetBrains Mono', monospace; color: var(--color-text-primary);">{{ $billing->transaction_id }}</code>. Your application is officially submitted and queued for scrutiny committee review.
+                                            </p>
+                                        </div>
+                                    </div>
+                                @else
+                                    <div style="margin-top: 1.5rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1.25rem;">
+                                        <strong style="color: var(--color-text-primary); font-size: 0.88rem; display: block; margin-bottom: 0.5rem;">
+                                            Payment Instructions (State Bank of Pakistan 1Link / Kuickpay Switch):
+                                        </strong>
+                                        <ol style="color: var(--color-text-secondary); font-size: 0.82rem; margin-left: 1.25rem; line-height: 1.6;">
+                                            <li>Open your preferred mobile banking app (HBL, Meezan, Easypaisa, JazzCash, etc.).</li>
+                                            <li>Navigate to <strong>Bill Payments / Kuickpay / 1Bill</strong>.</li>
+                                            <li>Enter the 12-digit Consumer Reference Number: <strong style="font-family: 'JetBrains Mono', monospace; color: var(--secondary);">{{ $billing?->consumer_id ?? $consumer_id }}</strong>.</li>
+                                            <li>Verify fee amount and authorize payment. The Hirely portal updates in real-time upon switch webhook confirmation!</li>
+                                        </ol>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
                     @endif
                 </div>
