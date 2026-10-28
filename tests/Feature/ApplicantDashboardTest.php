@@ -158,4 +158,209 @@ class ApplicantDashboardTest extends TestCase
             'appeal_letter' => 'I am submitting the duly attested HEC equivalence certificate along with employer experience certificate.',
         ]);
     }
+
+    public function test_applicant_can_apply_for_multiple_positions_with_unique_consumer_ids(): void
+    {
+        $this->seed(\Database\Seeders\SpatieRoleAndPermissionSeeder::class);
+
+        $user = User::factory()->create();
+        $user->assignRole('applicant');
+
+        $basicInfo = BasicInfo::create([
+            'user_id' => $user->id,
+            'first_name' => 'Usman',
+            'last_name' => 'Ghani',
+            'father_name' => 'Abdul Ghani',
+            'gender' => 'Male',
+            'date_of_birth' => '1992-03-10',
+            'cnic_number' => '37405-9988776-5',
+            'phone_number' => '0300-9988776',
+            'place_of_birth' => 'Peshawar',
+            'nationality' => 'Pakistan',
+            'religion' => 'Islam',
+            'domicile' => 'KPK',
+            'permanent_address' => 'University Town, Peshawar',
+            'track_type' => 'ACADEMIC',
+            'is_locked' => false,
+        ]);
+
+        $camp1 = Campaign::create([
+            'job_code' => 'CS-LEC-01',
+            'title' => 'Lecturer Computer Science',
+            'track_type' => 'ACADEMIC',
+            'department' => 'CS',
+            'opening_date' => now()->subDay(),
+            'closing_date' => now()->addDays(20),
+            'application_fee' => 1500.00,
+            'is_active' => true,
+        ]);
+
+        $camp2 = Campaign::create([
+            'job_code' => 'SE-AP-02',
+            'title' => 'Assistant Professor Software Eng',
+            'track_type' => 'ACADEMIC',
+            'department' => 'SE',
+            'opening_date' => now()->subDay(),
+            'closing_date' => now()->addDays(20),
+            'application_fee' => 2000.00,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($user);
+
+        // 1. Apply for Position 1
+        Livewire::test(Dashboard::class)
+            ->call('openApplyModal')
+            ->assertSet('showApplyModal', true)
+            ->call('selectCampaignForModal', $camp1->id)
+            ->assertSet('selectedCampaignIdForModal', $camp1->id)
+            ->call('submitNewApplication')
+            ->assertSet('showApplyModal', false);
+
+        // 2. Apply for Position 2
+        Livewire::test(Dashboard::class)
+            ->call('openApplyModal')
+            ->assertSet('showApplyModal', true)
+            ->call('selectCampaignForModal', $camp2->id)
+            ->assertSet('selectedCampaignIdForModal', $camp2->id)
+            ->call('submitNewApplication')
+            ->assertSet('showApplyModal', false);
+
+        // Assert 2 applications exist
+        $this->assertCount(2, $user->applications);
+
+        $app1 = $user->applications()->where('campaign_id', $camp1->id)->first();
+        $app2 = $user->applications()->where('campaign_id', $camp2->id)->first();
+
+        $this->assertNotNull($app1);
+        $this->assertNotNull($app2);
+
+        // Assert unique consumer references
+        $this->assertNotEmpty($app1->billingLedger->consumer_id);
+        $this->assertNotEmpty($app2->billingLedger->consumer_id);
+        $this->assertNotEquals($app1->billingLedger->consumer_id, $app2->billingLedger->consumer_id);
+
+        // Assert basicInfo was locked
+        $basicInfo->refresh();
+        $this->assertTrue($basicInfo->is_locked);
+    }
+
+    public function test_applicant_cannot_reapply_for_same_position_duplicate_prevention(): void
+    {
+        $this->seed(\Database\Seeders\SpatieRoleAndPermissionSeeder::class);
+
+        $user = User::factory()->create();
+        $user->assignRole('applicant');
+
+        BasicInfo::create([
+            'user_id' => $user->id,
+            'first_name' => 'Ayesha',
+            'last_name' => 'Malik',
+            'father_name' => 'Malik Tariq',
+            'gender' => 'Female',
+            'date_of_birth' => '1994-06-25',
+            'cnic_number' => '37405-5544332-1',
+            'phone_number' => '0300-5544332',
+            'place_of_birth' => 'Multan',
+            'nationality' => 'Pakistan',
+            'religion' => 'Islam',
+            'domicile' => 'Punjab',
+            'permanent_address' => 'Cantt, Multan',
+            'track_type' => 'ACADEMIC',
+            'is_locked' => true,
+        ]);
+
+        $campaign = Campaign::create([
+            'job_code' => 'BIO-LEC-05',
+            'title' => 'Lecturer Biotechnology',
+            'track_type' => 'ACADEMIC',
+            'department' => 'Bio Sciences',
+            'opening_date' => now()->subDay(),
+            'closing_date' => now()->addDays(20),
+            'application_fee' => 1500.00,
+            'is_active' => true,
+        ]);
+
+        // First application
+        Application::create([
+            'user_id' => $user->id,
+            'campaign_id' => $campaign->id,
+            'status' => 'SUBMITTED',
+            'submission_timestamp' => now(),
+        ]);
+
+        $this->actingAs($user);
+
+        // Attempting to select or submit for the same campaign in Dashboard modal fails
+        Livewire::test(Dashboard::class)
+            ->call('openApplyModal')
+            ->call('selectCampaignForModal', $campaign->id)
+            ->assertHasErrors(['selectedCampaignIdForModal']);
+
+        $this->assertEquals(1, $user->applications()->where('campaign_id', $campaign->id)->count());
+    }
+
+    public function test_applicant_can_open_official_3_part_bank_slip_modal(): void
+    {
+        $this->seed(\Database\Seeders\SpatieRoleAndPermissionSeeder::class);
+
+        $user = User::factory()->create();
+        $user->assignRole('applicant');
+
+        BasicInfo::create([
+            'user_id' => $user->id,
+            'first_name' => 'Kamran',
+            'last_name' => 'Akram',
+            'father_name' => 'Akram Khan',
+            'gender' => 'Male',
+            'date_of_birth' => '1991-09-12',
+            'cnic_number' => '37405-1122334-9',
+            'phone_number' => '0300-1122334',
+            'place_of_birth' => 'Rawalpindi',
+            'nationality' => 'Pakistan',
+            'religion' => 'Islam',
+            'domicile' => 'Punjab',
+            'permanent_address' => 'Saddar, Rawalpindi',
+            'track_type' => 'SUPPORT',
+            'is_locked' => true,
+        ]);
+
+        $campaign = Campaign::create([
+            'job_code' => 'SUPP-TECH-01',
+            'title' => 'Lab Technician',
+            'track_type' => 'SUPPORT',
+            'department' => 'Physics',
+            'opening_date' => now()->subDay(),
+            'closing_date' => now()->addDays(15),
+            'application_fee' => 1000.00,
+            'is_active' => true,
+        ]);
+
+        $application = Application::create([
+            'user_id' => $user->id,
+            'campaign_id' => $campaign->id,
+            'status' => 'SUBMITTED',
+            'submission_timestamp' => now(),
+        ]);
+
+        BillingLedger::create([
+            'application_id' => $application->id,
+            'consumer_id' => '100077889900',
+            'amount' => 1000.00,
+            'status' => 'PENDING',
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Dashboard::class)
+            ->call('openSlipModal', $application->id)
+            ->assertSet('showSlipModal', true)
+            ->assertSee('Official Bank Challan / Deposit Slip')
+            ->assertSee('100077889900')
+            ->assertSee('1. CANDIDATE COPY')
+            ->assertSee('2. BANK BRANCH COPY')
+            ->assertSee('3. UNIVERSITY TREASURY COPY')
+            ->call('closeSlipModal')
+            ->assertSet('showSlipModal', false);
+    }
 }

@@ -444,4 +444,73 @@ class ProfileWizardTest extends TestCase
             ->assertSee('Record Peer-Reviewed Publication')
             ->assertSee('Academic Publications Log');
     }
+
+    public function test_step8_allows_multiple_positions_and_prevents_duplicate_campaign_selection(): void
+    {
+        $this->seed(\Database\Seeders\SpatieRoleAndPermissionSeeder::class);
+
+        $user = User::factory()->create();
+        $user->assignRole('applicant');
+
+        $basicInfo = BasicInfo::create([
+            'user_id' => $user->id,
+            'first_name' => 'Farhan',
+            'last_name' => 'Qureshi',
+            'father_name' => 'Qureshi Sahab',
+            'gender' => 'Male',
+            'date_of_birth' => '1988-04-12',
+            'cnic_number' => '37405-3344556-7',
+            'phone_number' => '0300-3344556',
+            'place_of_birth' => 'Islamabad',
+            'nationality' => 'Pakistan',
+            'religion' => 'Islam',
+            'domicile' => 'Islamabad',
+            'permanent_address' => 'G-9, Islamabad',
+            'track_type' => 'ACADEMIC',
+            'is_locked' => false,
+        ]);
+
+        $camp1 = Campaign::create([
+            'job_code' => 'CS-PROF-99',
+            'title' => 'Professor Computing',
+            'track_type' => 'ACADEMIC',
+            'department' => 'CS',
+            'opening_date' => now()->subDay(),
+            'closing_date' => now()->addDays(20),
+            'application_fee' => 3000.00,
+            'is_active' => true,
+        ]);
+
+        $camp2 = Campaign::create([
+            'job_code' => 'CS-ASSOC-99',
+            'title' => 'Associate Professor Computing',
+            'track_type' => 'ACADEMIC',
+            'department' => 'CS',
+            'opening_date' => now()->subDay(),
+            'closing_date' => now()->addDays(20),
+            'application_fee' => 2500.00,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($user);
+
+        // 1. Submit first campaign in wizard
+        $component = Livewire::test(ProfileWizard::class)
+            ->set('currentStep', 8)
+            ->set('campaign_id', $camp1->id)
+            ->call('generateChallan')
+            ->assertHasNoErrors();
+
+        // 2. Attempting to submit for the same campaign again fails validation
+        $component->set('campaign_id', $camp1->id)
+            ->call('generateChallan')
+            ->assertHasErrors(['campaign_id']);
+
+        // 3. Submitting for a different campaign succeeds
+        $component->set('campaign_id', $camp2->id)
+            ->call('generateChallan')
+            ->assertHasNoErrors();
+
+        $this->assertCount(2, $user->fresh()->applications);
+    }
 }

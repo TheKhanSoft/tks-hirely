@@ -2,15 +2,18 @@
     <!-- Flash Success Notification -->
     @if (session()->has('message'))
         <div class="card" style="background: rgba(16, 185, 129, 0.1); border-color: var(--success); padding: 1rem 1.25rem;">
-            <div class="flex align-center gap-3">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                    <polyline points="22 4 12 14.01 9 11.01"/>
-                </svg>
-                <div style="flex: 1;">
-                    <strong style="color: #6ee7b7; font-size: 0.95rem;">Action Successful</strong>
-                    <p style="color: var(--color-text-secondary); font-size: 0.88rem; margin: 0.15rem 0 0;">{{ session('message') }}</p>
+            <div class="flex align-center justify-between" style="gap: 1rem;">
+                <div class="flex align-center gap-3">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                    <div>
+                        <strong style="color: #6ee7b7; font-size: 0.95rem;">Action Successful</strong>
+                        <p style="color: var(--color-text-secondary); font-size: 0.88rem; margin: 0.15rem 0 0;">{{ session('message') }}</p>
+                    </div>
                 </div>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="this.closest('.card').remove()">✕</button>
             </div>
         </div>
     @endif
@@ -44,9 +47,9 @@
                 <div style="background: var(--bg-card-solid); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
                     <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
                         <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--secondary-light); color: var(--secondary); font-weight: 800; font-size: 0.8rem;">2</span>
-                        <strong style="font-size: 0.95rem; color: var(--color-text-primary);">Select Campaign</strong>
+                        <strong style="font-size: 0.95rem; color: var(--color-text-primary);">Select Campaigns</strong>
                     </div>
-                    <p style="color: var(--color-text-muted); font-size: 0.82rem; margin: 0;">Choose the open faculty or staff vacancy, review criteria, and submit your dossier.</p>
+                    <p style="color: var(--color-text-muted); font-size: 0.82rem; margin: 0;">Choose one or multiple vacancies, review criteria, and submit your dossier.</p>
                 </div>
 
                 <div style="background: var(--bg-card-solid); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
@@ -121,7 +124,7 @@
                 </div>
 
                 <!-- Profile Completeness Gauge & Primary Action -->
-                <div style="min-width: 260px; max-width: 320px; width: 100%;">
+                <div style="min-width: 260px; max-width: 340px; width: 100%;">
                     <div class="flex justify-between align-center mb-2">
                         <span style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-secondary);">
                             Dossier Completeness
@@ -144,20 +147,19 @@
                     </p>
 
                     <div class="flex gap-2">
-                        <a href="/applicant/wizard" class="btn btn-primary btn-sm" style="flex: 1;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-                                <path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1Z"/>
-                                <path d="m9 14 2 2 4-4"/>
+                        <button type="button" class="btn btn-primary btn-sm" wire:click="openApplyModal" style="flex: 1;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
                             </svg>
-                            <span>{{ $basicInfo->is_locked ? 'View Dossier' : 'Continue Wizard' }}</span>
+                            <span>Apply for Position</span>
+                        </button>
+
+                        <a href="/applicant/wizard" class="btn btn-secondary btn-sm" title="Open Dossier Wizard">
+                            <span>Dossier</span>
                         </a>
 
                         <a href="/bank/simulator" class="btn btn-secondary btn-sm" title="Open 1Link Sandbox Switch">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect width="20" height="14" x="2" y="5" rx="2"/>
-                                <line x1="2" x2="22" y1="10" y2="10"/>
-                            </svg>
                             <span>1Link Sim</span>
                         </a>
                     </div>
@@ -226,7 +228,7 @@
             <!-- Application Pipeline -->
             <div class="metric-card" style="--card-accent: var(--primary);">
                 <div class="metric-header">
-                    <span class="metric-label">Active Applications</span>
+                    <span class="metric-label">Applications Submitted</span>
                     <div class="metric-icon-wrap" style="background: var(--primary-light); color: var(--primary);">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                             <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/>
@@ -273,10 +275,10 @@
         <!-- RECRUITMENT LIFECYCLE ROADMAP (APPLICATION JOURNEY)             -->
         <!-- ============================================================== -->
         @php
-            $hasSubmitted = $applications->count() > 0;
-            $hasPaid = $applications->whereIn('status', ['PAID', 'ELIGIBLE', 'APPROVED'])->count() > 0;
-            $hasEligible = $applications->whereIn('status', ['ELIGIBLE', 'APPROVED'])->count() > 0;
-            $hasApproved = $applications->where('status', 'APPROVED')->count() > 0;
+            $hasSubmitted = $allApplications->count() > 0;
+            $hasPaid = $allApplications->whereIn('status', ['PAID', 'ELIGIBLE', 'APPROVED'])->count() > 0;
+            $hasEligible = $allApplications->whereIn('status', ['ELIGIBLE', 'APPROVED'])->count() > 0;
+            $hasApproved = $allApplications->where('status', 'APPROVED')->count() > 0;
         @endphp
         <div class="card">
             <div class="flex justify-between align-center mb-2">
@@ -362,19 +364,53 @@
                             <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/>
                             <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
                         </svg>
-                        Job Applications & Fee Invoices
+                        Submitted Job Applications & Invoices
                     </h3>
-                    <p class="card-subtitle">Real-time status of your submissions, consumer reference numbers, and administrative scrutiny notes.</p>
+                    <p class="card-subtitle">Manage all positions applied for, track individual 1Link payment switch reconciliations, and review eligibility.</p>
                 </div>
 
-                @if(!$basicInfo->is_locked)
-                    <a href="/applicant/wizard" class="btn btn-secondary btn-sm">
+                <div class="flex align-center gap-2">
+                    <button type="button" class="btn btn-primary btn-sm" wire:click="openApplyModal">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"/>
                             <line x1="5" y1="12" x2="19" y2="12"/>
                         </svg>
                         <span>Apply for Another Position</span>
-                    </a>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Segmented Status Filter Tabs -->
+            <div class="filter-pills mb-4">
+                <button type="button" class="filter-pill {{ $statusFilter === 'ALL' ? 'active' : '' }}" wire:click="setStatusFilter('ALL')">
+                    <span>All Applications</span>
+                    <span class="filter-pill-count">{{ $totalApplications }}</span>
+                </button>
+
+                <button type="button" class="filter-pill {{ $statusFilter === 'PENDING' ? 'active' : '' }}" wire:click="setStatusFilter('PENDING')">
+                    <span class="badge-dot" style="background: var(--warning);"></span>
+                    <span>Pending Payment</span>
+                    <span class="filter-pill-count">{{ $pendingCount }}</span>
+                </button>
+
+                <button type="button" class="filter-pill {{ $statusFilter === 'PAID' ? 'active' : '' }}" wire:click="setStatusFilter('PAID')">
+                    <span class="badge-dot" style="background: var(--success);"></span>
+                    <span>Paid / In Scrutiny</span>
+                    <span class="filter-pill-count">{{ $paidCount }}</span>
+                </button>
+
+                <button type="button" class="filter-pill {{ $statusFilter === 'ELIGIBLE' ? 'active' : '' }}" wire:click="setStatusFilter('ELIGIBLE')">
+                    <span class="badge-dot" style="background: var(--secondary);"></span>
+                    <span>Board Eligible</span>
+                    <span class="filter-pill-count">{{ $eligibleCount }}</span>
+                </button>
+
+                @if($ineligibleCount > 0)
+                    <button type="button" class="filter-pill {{ $statusFilter === 'INELIGIBLE' ? 'active' : '' }}" wire:click="setStatusFilter('INELIGIBLE')">
+                        <span class="badge-dot" style="background: var(--danger);"></span>
+                        <span>Appeals / Disqualified</span>
+                        <span class="filter-pill-count">{{ $ineligibleCount }}</span>
+                    </button>
                 @endif
             </div>
 
@@ -388,7 +424,7 @@
                             <th>1Link Consumer ID</th>
                             <th>Processing Fee</th>
                             <th>Current Status</th>
-                            <th>Actions & Review</th>
+                            <th>Official Slip & Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -446,7 +482,7 @@
                                     @elseif($app->status === 'PAID')
                                         <span class="badge badge-paid">
                                             <span class="badge-dot" style="background: var(--success);"></span>
-                                            Paid / Under Scrutiny
+                                            Paid / In Scrutiny
                                         </span>
                                     @elseif($app->status === 'ELIGIBLE')
                                         <span class="badge badge-eligible">
@@ -473,49 +509,36 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if($app->status === 'SUBMITTED')
-                                        <div class="flex gap-2 align-center">
-                                            <a href="/applicant/wizard" class="btn btn-secondary btn-sm" title="View Challan Slip">
-                                                <span>Slip</span>
-                                            </a>
-                                            @if($app->billingLedger)
-                                                <a href="/bank/simulator?consumer_id={{ $app->billingLedger->consumer_id }}" class="btn btn-primary btn-sm" style="font-size: 0.78rem;">
-                                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <rect width="20" height="14" x="2" y="5" rx="2"/>
-                                                        <line x1="2" x2="22" y1="10" y2="10"/>
-                                                    </svg>
-                                                    <span>Pay Simulator</span>
-                                                </a>
-                                            @endif
-                                        </div>
-                                    @elseif($app->status === 'INELIGIBLE')
-                                        <div class="flex-col gap-2" style="background: var(--danger-light); padding: 0.75rem 0.95rem; border-radius: var(--radius-sm); border: 1px solid var(--danger-glow); max-width: 280px;">
-                                            <p style="color: #fca5a5; font-size: 0.8rem; line-height: 1.4; margin: 0;">
-                                                <strong>Scrutiny Notice:</strong> {{ $app->disqualification_reason ?: 'Criteria mismatch detected.' }}
-                                            </p>
-                                            <button type="button" class="btn btn-danger btn-sm" wire:click="openAppealForm({{ $app->id }})">
-                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
-                                                    <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
-                                                    <path d="M7 21h10"/>
-                                                    <path d="M12 3v18"/>
+                                    <div class="flex gap-2 align-center">
+                                        <!-- View Official Slip Button -->
+                                        <button type="button" class="btn btn-secondary btn-sm" wire:click="openSlipModal({{ $app->id }})" title="View / Print Official 3-Part Bank Slip">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M6 9V2h12v7"/>
+                                                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                                                <path d="M6 14h12v8H6z"/>
+                                            </svg>
+                                            <span>Official Slip</span>
+                                        </button>
+
+                                        @if($app->status === 'SUBMITTED' && $app->billingLedger)
+                                            <a href="/bank/simulator?consumer_id={{ $app->billingLedger->consumer_id }}" class="btn btn-primary btn-sm" style="font-size: 0.78rem;">
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <rect width="20" height="14" x="2" y="5" rx="2"/>
+                                                    <line x1="2" x2="22" y1="10" y2="10"/>
                                                 </svg>
-                                                <span>Lodge Appeal (7 Days)</span>
+                                                <span>Pay Sim</span>
+                                            </a>
+                                        @elseif($app->status === 'INELIGIBLE')
+                                            <button type="button" class="btn btn-danger btn-sm" wire:click="openAppealForm({{ $app->id }})">
+                                                <span>Appeal</span>
                                             </button>
-                                        </div>
-                                    @elseif($app->status === 'APPEALED')
-                                        <div style="background: var(--secondary-light); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--secondary-glow);">
-                                            <p style="color: #67e8f9; font-size: 0.8rem; margin: 0;">
-                                                Formal appeal active. Under review by Appellate Desk.
-                                            </p>
-                                        </div>
-                                    @elseif($app->status === 'PAID')
-                                        <span style="font-size: 0.82rem; color: var(--color-text-secondary); display: inline-flex; align-items: center; gap: 0.35rem;">
-                                            <span class="badge-dot" style="background: var(--success);"></span>
-                                            Challan settled. Scrutiny queued.
-                                        </span>
-                                    @else
-                                        <span style="color: var(--color-text-muted); font-size: 0.82rem;">No pending action</span>
+                                        @endif
+                                    </div>
+
+                                    @if($app->status === 'INELIGIBLE' && $app->disqualification_reason)
+                                        <small style="color: #fca5a5; display: block; margin-top: 0.35rem; font-size: 0.75rem;">
+                                            Reason: {{ $app->disqualification_reason }}
+                                        </small>
                                     @endif
                                 </td>
                             </tr>
@@ -527,9 +550,9 @@
                                             <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/>
                                             <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
                                         </svg>
-                                        <p style="font-size: 0.95rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: 0.25rem;">No Applications Submitted</p>
-                                        <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin-bottom: 1rem;">Complete your dossier in the wizard to apply for active university campaigns.</p>
-                                        <a href="/applicant/wizard" class="btn btn-primary btn-sm">Launch Wizard</a>
+                                        <p style="font-size: 0.95rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: 0.25rem;">No Applications Found</p>
+                                        <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin-bottom: 1rem;">No applications match the current filter selection.</p>
+                                        <button type="button" class="btn btn-primary btn-sm" wire:click="openApplyModal">Apply for Position</button>
                                     </div>
                                 </td>
                             </tr>
@@ -541,7 +564,270 @@
     @endif
 
     <!-- ============================================================== -->
-    <!-- GRIEVANCE APPEAL MODAL DRAWER                                  -->
+    <!-- MODAL 1: APPLY FOR ANOTHER POSITION                            -->
+    <!-- ============================================================== -->
+    @if($showApplyModal)
+        <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1.5rem;">
+            <div class="card" style="width: 100%; max-width: 820px; max-height: 90vh; display: flex; flex-direction: column; border-color: var(--border-color); box-shadow: var(--shadow-lg); background: var(--bg-card-solid); overflow: hidden;">
+                <!-- Modal Header -->
+                <div class="flex justify-between align-center" style="padding: 1.5rem; border-bottom: 1px solid var(--border-color);">
+                    <div>
+                        <h3 class="card-title" style="margin: 0; font-size: 1.25rem;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="16"/>
+                                <line x1="8" y1="12" x2="16" y2="12"/>
+                            </svg>
+                            Apply for University Recruitment Position
+                        </h3>
+                        <p class="card-subtitle" style="margin: 0.25rem 0 0;">
+                            Select an available campaign. Positions you have already applied for are locked to prevent duplicate submissions.
+                        </p>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm" wire:click="closeApplyModal">✕</button>
+                </div>
+
+                <!-- Search Filter & Notice -->
+                <div style="padding: 1rem 1.5rem; background: var(--bg-surface); border-bottom: 1px solid var(--border-color);">
+                    <div style="position: relative;">
+                        <input type="text" class="form-control" wire:model.live.debounce.250ms="campaignSearch" placeholder="Filter positions by title, job code, or department..." style="padding-left: 2.5rem; font-size: 0.88rem;">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); pointer-events: none;">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.3-4.3"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Vacancies Selection Grid -->
+                <div style="padding: 1.5rem; overflow-y: auto; flex: 1;">
+                    @error('selectedCampaignIdForModal')
+                        <div class="card mb-3" style="background: var(--danger-light); border-color: var(--danger-glow); padding: 0.75rem 1rem;">
+                            <span style="color: #fca5a5; font-size: 0.84rem; font-weight: 600;">{{ $message }}</span>
+                        </div>
+                    @enderror
+
+                    <div class="vacancy-grid">
+                        @forelse($availableCampaigns as $camp)
+                            @php
+                                $alreadyApplied = in_array($camp->id, $appliedCampaignIds);
+                                $isSelected = $selectedCampaignIdForModal == $camp->id;
+                            @endphp
+                            <div class="vacancy-card {{ $alreadyApplied ? 'disabled' : ($isSelected ? 'selected' : '') }}"
+                                 wire:key="modal-camp-{{ $camp->id }}"
+                                 @if(!$alreadyApplied) wire:click="selectCampaignForModal({{ $camp->id }})" @endif>
+                                <div>
+                                    <div class="flex justify-between align-center mb-2">
+                                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; background: var(--primary-light); color: var(--primary); padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 700;">
+                                            {{ $camp->job_code }}
+                                        </span>
+                                        <x-badge type="appealed" style="font-size: 0.65rem;">{{ $camp->track_type }}</x-badge>
+                                    </div>
+
+                                    <strong style="color: var(--color-text-primary); font-size: 0.95rem; display: block; margin-bottom: 0.35rem; line-height: 1.35;">
+                                        {{ $camp->title }}
+                                    </strong>
+                                    <span style="color: var(--color-text-secondary); font-size: 0.8rem; display: block;">
+                                        {{ $camp->department }}
+                                    </span>
+                                </div>
+
+                                <div style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem;" class="flex justify-between align-center">
+                                    <div>
+                                        <small style="color: var(--color-text-muted); font-size: 0.7rem; text-transform: uppercase;">Processing Fee</small><br>
+                                        <strong style="color: var(--warning); font-size: 0.95rem;">PKR {{ number_format($camp->application_fee) }}</strong>
+                                    </div>
+
+                                    <div>
+                                        @if($alreadyApplied)
+                                            <span class="badge badge-paid" style="font-size: 0.65rem;">
+                                                <span class="badge-dot" style="background: var(--success);"></span>
+                                                Already Applied
+                                            </span>
+                                        @elseif($isSelected)
+                                            <span class="badge badge-eligible" style="font-size: 0.65rem;">
+                                                ✓ Selected
+                                            </span>
+                                        @else
+                                            <span class="btn btn-secondary btn-sm" style="font-size: 0.72rem; padding: 0.25rem 0.6rem;">
+                                                Select
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div style="grid-column: 1 / -1; text-align: center; color: var(--color-text-muted); padding: 2rem;">
+                                No open positions match your search query.
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="flex justify-between align-center" style="padding: 1.25rem 1.5rem; border-top: 1px solid var(--border-color); background: var(--bg-surface);">
+                    <div>
+                        @if($selectedCampaignIdForModal)
+                            @php
+                                $chosenCampaign = $availableCampaigns->firstWhere('id', $selectedCampaignIdForModal);
+                            @endphp
+                            <span style="font-size: 0.85rem; color: var(--color-text-secondary);">Selected Position:</span>
+                            <strong style="color: var(--color-text-primary); font-size: 0.95rem; margin-left: 0.35rem;">
+                                {{ $chosenCampaign?->title }}
+                            </strong>
+                            <span style="color: var(--warning); font-weight: 700; margin-left: 0.5rem;">
+                                (PKR {{ number_format($chosenCampaign?->application_fee ?? 0) }})
+                            </span>
+                        @else
+                            <span style="font-size: 0.82rem; color: var(--color-text-muted);">
+                                Click a vacancy card above to select it for application.
+                            </span>
+                        @endif
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button type="button" class="btn btn-secondary" wire:click="closeApplyModal">Cancel</button>
+                        <button type="button" class="btn btn-primary" wire:click="submitNewApplication" wire:loading.attr="disabled" :disabled="!$selectedCampaignIdForModal">
+                            <span wire:loading.remove wire:target="submitNewApplication">Submit Application & Generate Voucher</span>
+                            <span wire:loading wire:target="submitNewApplication">Generating 1Link Slip...</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- ============================================================== -->
+    <!-- MODAL 2: PRINT-READY OFFICIAL 3-PART BANK CHALLAN SLIP         -->
+    <!-- ============================================================== -->
+    @if($showSlipModal && $selectedSlipApp)
+        <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 1050; padding: 1.5rem; overflow-y: auto;">
+            <div class="card print-area" style="width: 100%; max-width: 960px; max-height: 92vh; display: flex; flex-direction: column; background: #ffffff; color: #0f172a; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); overflow: hidden; padding: 0;">
+                <!-- Top Toolbar (Hidden on print) -->
+                <div class="no-print flex justify-between align-center" style="padding: 1rem 1.5rem; background: var(--bg-surface); border-bottom: 1px solid var(--border-color); color: var(--color-text-primary);">
+                    <div class="flex align-center gap-2">
+                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: var(--secondary-light); color: var(--secondary);">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
+                                <path d="M6 6h10"/>
+                                <path d="M6 10h10"/>
+                            </svg>
+                        </span>
+                        <strong style="font-size: 1.05rem;">Official Bank Challan / Deposit Slip</strong>
+                    </div>
+
+                    <div class="flex align-center gap-2">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 6 2 18 2 18 9"/>
+                                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                                <rect width="12" height="8" x="6" y="14"/>
+                            </svg>
+                            <span>Print Slip</span>
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-sm" wire:click="closeSlipModal">✕ Close</button>
+                    </div>
+                </div>
+
+                <!-- 3-Part Perforated Institutional Slip Body -->
+                <div style="padding: 1.5rem; overflow-y: auto; flex: 1;">
+                    <div class="slip-triplicate">
+                        @php
+                            $copies = [
+                                1 => '1. CANDIDATE COPY',
+                                2 => '2. BANK BRANCH COPY',
+                                3 => '3. UNIVERSITY TREASURY COPY'
+                            ];
+                        @endphp
+
+                        @foreach($copies as $copyNum => $copyTitle)
+                            <div class="slip-part">
+                                <div class="slip-part-watermark">HIRELY</div>
+
+                                <!-- Slip Header -->
+                                <div style="text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 0.65rem; margin-bottom: 0.75rem;">
+                                    <div style="font-weight: 800; font-size: 0.85rem; letter-spacing: -0.02em; color: #0f172a;">HIRELY RECRUITMENT</div>
+                                    <div style="font-size: 0.68rem; text-transform: uppercase; font-weight: 700; color: #475569;">1Link / Kuickpay Switch</div>
+                                    <div style="background: #0f172a; color: #ffffff; font-weight: 800; font-size: 0.65rem; padding: 0.15rem 0.4rem; border-radius: 3px; display: inline-block; margin-top: 0.35rem; letter-spacing: 0.05em;">
+                                        {{ $copyTitle }}
+                                    </div>
+                                </div>
+
+                                <!-- Monospace Reference Box -->
+                                <div style="background: #f1f5f9; border: 1px dashed #94a3b8; border-radius: 4px; padding: 0.5rem; text-align: center; margin-bottom: 0.75rem;">
+                                    <span style="font-size: 0.62rem; text-transform: uppercase; font-weight: 700; color: #64748b; letter-spacing: 0.05em;">1Link Consumer ID</span>
+                                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; font-weight: 800; color: #0284c7; letter-spacing: 1px;">
+                                        {{ $selectedSlipApp->billingLedger?->consumer_id }}
+                                    </div>
+                                    <div style="font-size: 0.62rem; color: #475569; margin-top: 2px;">Payable at any Bank App / ATM</div>
+                                </div>
+
+                                <!-- Data Grid -->
+                                <div style="display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.74rem;">
+                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
+                                        <span style="color: #64748b;">Candidate:</span>
+                                        <strong style="color: #0f172a; text-align: right;">{{ $selectedSlipApp->user->basicInfo?->first_name }} {{ $selectedSlipApp->user->basicInfo?->last_name }}</strong>
+                                    </div>
+
+                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
+                                        <span style="color: #64748b;">CNIC:</span>
+                                        <strong style="font-family: 'JetBrains Mono', monospace; color: #0f172a;">{{ $selectedSlipApp->user->basicInfo?->cnic_number }}</strong>
+                                    </div>
+
+                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
+                                        <span style="color: #64748b;">Position:</span>
+                                        <strong style="color: #0f172a; text-align: right; max-width: 140px;">{{ $selectedSlipApp->campaign->title }}</strong>
+                                    </div>
+
+                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
+                                        <span style="color: #64748b;">Job Code:</span>
+                                        <strong style="font-family: 'JetBrains Mono', monospace; color: #0f172a;">{{ $selectedSlipApp->campaign->job_code }}</strong>
+                                    </div>
+
+                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
+                                        <span style="color: #64748b;">Department:</span>
+                                        <span style="color: #0f172a; text-align: right;">{{ $selectedSlipApp->campaign->department }}</span>
+                                    </div>
+
+                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
+                                        <span style="color: #64748b;">Due Date:</span>
+                                        <span style="color: #0f172a;">{{ $selectedSlipApp->campaign->closing_date?->format('d M Y') }}</span>
+                                    </div>
+
+                                    <div style="display: flex; justify-content: space-between; background: #fef3c7; padding: 0.4rem; border-radius: 4px; margin-top: 0.35rem;">
+                                        <span style="font-weight: 700; color: #92400e;">Fee Amount:</span>
+                                        <strong style="font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; color: #b45309;">
+                                            PKR {{ number_format($selectedSlipApp->billingLedger?->amount ?? $selectedSlipApp->campaign->application_fee) }}
+                                        </strong>
+                                    </div>
+
+                                    <div style="text-align: center; margin-top: 0.5rem;">
+                                        @if($selectedSlipApp->billingLedger?->status === 'SETTLED')
+                                            <span style="background: #dcfce7; color: #15803d; font-weight: 800; font-size: 0.68rem; padding: 0.2rem 0.5rem; border-radius: 4px; border: 1px solid #86efac; display: inline-block;">
+                                                ✓ PAID (TXN: {{ substr($selectedSlipApp->billingLedger->transaction_id, 0, 14) }})
+                                            </span>
+                                        @else
+                                            <span style="background: #fef3c7; color: #b45309; font-weight: 800; font-size: 0.68rem; padding: 0.2rem 0.5rem; border-radius: 4px; border: 1px solid #fde68a; display: inline-block;">
+                                                ⚡ PAYMENT PENDING
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <!-- Signature Lines -->
+                                <div style="display: flex; justify-content: space-between; margin-top: 1.5rem; font-size: 0.65rem; color: #64748b; border-top: 1px solid #cbd5e1; padding-top: 0.5rem;">
+                                    <span>Officer Signature</span>
+                                    <span>Bank Stamp</span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- ============================================================== -->
+    <!-- MODAL 3: GRIEVANCE APPEAL DRAWER                               -->
     <!-- ============================================================== -->
     @if($showAppealForm)
         <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1.5rem;">

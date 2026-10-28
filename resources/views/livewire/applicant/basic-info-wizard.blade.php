@@ -1152,7 +1152,7 @@
             <div wire:key="step-wrapper-8">
                 <x-card wire:key="step-card-8" title="Step 8: Processing Voucher & Submission Lock">
                 <div class="flex-col gap-6 align-center text-center">
-                    @if (!$challanGenerated && !$basicInfo?->is_locked)
+                    @if ($userApplications->isEmpty() && !$challanGenerated)
                         <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); width: 100%; text-align: left;" class="mb-4">
                             <h4 style="color: var(--secondary); font-weight: 700; margin-bottom: 1rem;">🎯 Target Recruitment Position</h4>
                             
@@ -1160,7 +1160,12 @@
                                 <select class="form-control form-select" wire:model.live="campaign_id">
                                     <option value="">-- Choose Position / Vacancy --</option>
                                     @foreach ($campaigns as $camp)
-                                        <option value="{{ $camp->id }}">{{ $camp->title }} (Job Code: {{ $camp->job_code }} | Track: {{ $camp->track_type }})</option>
+                                        @php
+                                            $isAlreadyApplied = in_array($camp->id, $appliedCampaignIds);
+                                        @endphp
+                                        <option value="{{ $camp->id }}" {{ $isAlreadyApplied ? 'disabled' : '' }}>
+                                            {{ $isAlreadyApplied ? '✓ [ALREADY APPLIED] ' : '' }}{{ $camp->title }} (Job Code: {{ $camp->job_code }} | Track: {{ $camp->track_type }})
+                                        </option>
                                     @endforeach
                                 </select>
                             </x-select>
@@ -1200,12 +1205,32 @@
                         </button>
                     @else
                         @php
-                            $userApp = Auth::user()->applications()->first();
+                            $userApp = $activeVoucherApp ?? $userApplications->first();
                             $billing = $userApp?->billingLedger;
                             $appCampaign = $userApp?->campaign ?? $this->selectedCampaignModel;
                         @endphp
+
+                        <!-- Voucher Tabs if Candidate Applied for Multiple Positions -->
+                        @if($userApplications->count() > 1)
+                            <div class="challan-tab-nav" style="width: 100%; max-width: 720px; margin: 0 auto 1.5rem;">
+                                @foreach($userApplications as $app)
+                                    <button type="button" 
+                                            wire:click="selectVoucherApp({{ $app->id }})" 
+                                            class="challan-tab-btn {{ ($activeVoucherApp?->id ?? $userApplications->first()?->id) === $app->id ? 'active' : '' }}">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <rect width="20" height="14" x="2" y="5" rx="2"/>
+                                            <line x1="2" x2="22" y1="10" y2="10"/>
+                                        </svg>
+                                        <span>{{ $app->campaign->title }}</span>
+                                        <span class="badge {{ $app->billingLedger?->status === 'SETTLED' ? 'badge-paid' : 'badge-pending' }}" style="font-size: 0.65rem; padding: 0.15rem 0.45rem;">
+                                            {{ $app->billingLedger?->status === 'SETTLED' ? 'PAID' : 'PENDING' }}
+                                        </span>
+                                    </button>
+                                @endforeach
+                            </div>
+                        @endif
                         
-                        <div class="challan-sheet" style="width: 100%; max-width: 720px; margin: 1.5rem auto;">
+                        <div class="challan-sheet" style="width: 100%; max-width: 720px; margin: 0 auto;">
                             <!-- Watermark Background -->
                             <div class="challan-watermark">HIRELY OS</div>
 
@@ -1337,6 +1362,67 @@
                                 @endif
                             </div>
                         </div>
+
+                        <!-- Apply for Another Position Card in Step 8 -->
+                        @php
+                            $unappliedCampaigns = $campaigns->filter(fn($c) => !in_array($c->id, $appliedCampaignIds));
+                        @endphp
+                        @if($unappliedCampaigns->isNotEmpty())
+                            <div class="card mt-6" style="width: 100%; max-width: 720px; margin: 2rem auto 0; text-align: left; border: 1px dashed var(--secondary-glow); background: rgba(15, 23, 42, 0.4);">
+                                <div class="flex justify-between align-center mb-3">
+                                    <h4 style="color: var(--secondary); font-weight: 700; margin: 0; font-size: 1.05rem;">
+                                        🎯 Apply for Another Open Position
+                                    </h4>
+                                    <span class="badge badge-appealed" style="font-size: 0.7rem;">
+                                        {{ $unappliedCampaigns->count() }} Available Vacancies
+                                    </span>
+                                </div>
+                                <p style="color: var(--color-text-secondary); font-size: 0.85rem; margin-bottom: 1.25rem; line-height: 1.5;">
+                                    Your candidate credentials and dossier are securely saved. You may apply for additional faculty or administrative positions by selecting an open vacancy below.
+                                </p>
+
+                                <x-select label="Select Additional Vacancy *" :error="$errors->first('campaign_id')">
+                                    <select class="form-control form-select" wire:model.live="campaign_id">
+                                        <option value="">-- Choose Position --</option>
+                                        @foreach ($campaigns as $camp)
+                                            @php
+                                                $isAlreadyApplied = in_array($camp->id, $appliedCampaignIds);
+                                            @endphp
+                                            <option value="{{ $camp->id }}" {{ $isAlreadyApplied ? 'disabled' : '' }}>
+                                                {{ $isAlreadyApplied ? '✓ [ALREADY APPLIED] ' : '' }}{{ $camp->title }} ({{ $camp->job_code }}) - PKR {{ number_format($camp->application_fee) }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </x-select>
+
+                                @if($this->selectedCampaignModel && !in_array($this->selectedCampaignModel->id, $appliedCampaignIds))
+                                    <div class="flex justify-between align-center mt-4" style="background: var(--bg-surface); padding: 1.25rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); flex-wrap: wrap; gap: 1rem;">
+                                        <div>
+                                            <span style="font-size: 0.82rem; color: var(--color-text-secondary); text-transform: uppercase; font-weight: 700;">Processing Fee:</span>
+                                            <strong style="color: var(--warning); font-size: 1.25rem; margin-left: 0.5rem; font-family: 'JetBrains Mono', monospace;">
+                                                PKR {{ number_format($this->selectedCampaignModel->application_fee, 2) }}
+                                            </strong>
+                                            <div style="font-size: 0.78rem; color: var(--color-text-muted); margin-top: 0.2rem;">
+                                                Department: {{ $this->selectedCampaignModel->department }} • Track: {{ $this->selectedCampaignModel->track_type }}
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-primary" wire:click="generateChallan">
+                                            <span>Generate Voucher for this Position</span>
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <line x1="5" x2="19" y1="12" y2="12"/>
+                                                <polyline points="12 5 19 12 12 19"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                @endif
+                            </div>
+                        @else
+                            <div class="card mt-6 text-center" style="width: 100%; max-width: 720px; margin: 2rem auto 0; background: rgba(16, 185, 129, 0.06); border-color: var(--success-glow);">
+                                <p style="color: #6ee7b7; font-weight: 700; margin: 0; font-size: 0.92rem;">
+                                    ✓ You have submitted applications for all currently open recruitment vacancies.
+                                </p>
+                            </div>
+                        @endif
                     @endif
                 </div>
             </x-card>

@@ -32,6 +32,7 @@ class ProfileWizard extends Component
     
     // Step 1: Bio-Data
     public $campaign_id;
+    public $selectedAppId;
     public $track_type = 'ACADEMIC';
     public $step4_active_tab = 'ACADEMIC';
     public $first_name;
@@ -1480,6 +1481,15 @@ class ProfileWizard extends Component
         }
     }
 
+    public function selectVoucherApp($appId)
+    {
+        $this->selectedAppId = $appId;
+        $app = Application::where('user_id', Auth::id())->where('id', $appId)->first();
+        if ($app) {
+            $this->campaign_id = $app->campaign_id;
+        }
+    }
+
     // Finalize basicInfo and Application in Step 8
     public function generateChallan()
     {
@@ -1501,54 +1511,67 @@ class ProfileWizard extends Component
             return;
         }
 
+        // Duplicate application check: prevent reapplying for the same campaign
+        $existing = Application::where('user_id', Auth::id())
+            ->where('campaign_id', $this->campaign_id)
+            ->first();
+        if ($existing) {
+            $this->addError('campaign_id', 'You have already applied for this position (Ref #' . ($existing->billingLedger?->consumer_id ?? 'N/A') . '). You cannot apply for the same position multiple times.');
+            return;
+        }
+
         // Lock basicInfo from further edits and assign final track type
         $basicInfo->update([
             'is_locked' => true,
             'track_type' => $campaign->track_type,
         ]);
 
-        // Generate 12-digit consumer ID
+        // Generate unique 12-digit consumer ID
         $this->consumer_id = '1000' . str_pad((string)rand(10000000, 99999999), 8, '0', STR_PAD_LEFT);
+        while (BillingLedger::where('consumer_id', $this->consumer_id)->exists()) {
+            $this->consumer_id = '1000' . str_pad((string)rand(10000000, 99999999), 8, '0', STR_PAD_LEFT);
+        }
         $this->application_fee = $campaign->application_fee;
 
-        // Create application record if not exists
-        $application = Application::firstOrCreate(
-            [
-                'user_id' => Auth::id(),
-                'campaign_id' => $campaign->id,
-            ],
-            [
-                'status' => 'SUBMITTED',
-                'submission_timestamp' => now(),
-            ]
-        );
-
-        // Update application status to SUBMITTED if draft
-        if ($application->status === 'DRAFT') {
-            $application->update([
-                'status' => 'SUBMITTED',
-                'submission_timestamp' => now()
-            ]);
-        }
+        // Create application record
+        $application = Application::create([
+            'user_id' => Auth::id(),
+            'campaign_id' => $campaign->id,
+            'status' => 'SUBMITTED',
+            'submission_timestamp' => now(),
+        ]);
 
         // Create Billing Ledger Entry
-        BillingLedger::updateOrCreate(
-            ['application_id' => $application->id],
-            [
-                'consumer_id' => $this->consumer_id,
-                'amount' => $campaign->application_fee,
-                'status' => 'PENDING',
-            ]
-        );
+        BillingLedger::create([
+            'application_id' => $application->id,
+            'consumer_id' => $this->consumer_id,
+            'amount' => $campaign->application_fee,
+            'status' => 'PENDING',
+        ]);
 
+        $this->selectedAppId = $application->id;
         $this->challanGenerated = true;
+        session()->flash('message', "Voucher for {$campaign->title} successfully generated: Consumer ID {$this->consumer_id}");
     }
 
     public function render()
     {
+        $user = Auth::user();
+        $userApplications = $user->applications()->with(['campaign', 'billingLedger'])->latest()->get();
+        $appliedCampaignIds = $userApplications->pluck('campaign_id')->toArray();
+
+        if (!$this->selectedAppId && $userApplications->isNotEmpty()) {
+            $this->selectedAppId = $userApplications->first()->id;
+        }
+
+        $activeVoucherApp = $userApplications->firstWhere('id', $this->selectedAppId) ?? $userApplications->first();
+
         return view('livewire.applicant.basic-info-wizard', [
             'campaigns' => Campaign::where('is_active', true)->get(),
-            'basicInfo' => Auth::user()->basicInfo,
+            'basicInfo' => $user->basicInfo,
+            'userApplications' => $userApplications,
+            'appliedCampaignIds' => $appliedCampaignIds,
+            'activeVoucherApp' => $activeVoucherApp,
         ])->layout('layouts.app');
     }
 }
