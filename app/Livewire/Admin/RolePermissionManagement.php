@@ -50,7 +50,12 @@ class RolePermissionManagement extends Component
 
     public function loadData()
     {
-        $this->roles = Role::with('permissions', 'users')->get();
+        // 🔒 Super-admin role is hidden from non-super-admins
+        $rolesQuery = Role::with('permissions', 'users');
+        if (!Auth::user()->hasRole('super-admin')) {
+            $rolesQuery->where('name', '!=', 'super-admin');
+        }
+        $this->roles = $rolesQuery->get();
         $this->permissions = Permission::orderBy('name')->get();
         $this->groupedPermissions = \App\Services\PermissionRegistry::catalogue();
     }
@@ -80,9 +85,13 @@ class RolePermissionManagement extends Component
     public function openEditRoleForm($id)
     {
         abort_unless(Auth::user()->can('edit-role') || Auth::user()->can('assign-role-permissions'), 403);
+        $role = Role::findOrFail($id);
+        if ($role->name === 'super-admin' && !Auth::user()->hasRole('super-admin')) {
+            abort(403, 'Unauthorized access to super administrator role.');
+        }
+
         $this->resetForm();
         $this->role_id = $id;
-        $role = Role::findOrFail($id);
         $this->role_name_input = $role->name;
         $this->selected_permissions = $role->permissions->pluck('name')->toArray();
         $this->isEditMode = true;
@@ -91,6 +100,10 @@ class RolePermissionManagement extends Component
 
     public function saveRole()
     {
+        if ($this->role_name_input === 'super-admin' && !Auth::user()->hasRole('super-admin')) {
+            abort(403, 'Unauthorized modification to super-admin role.');
+        }
+
         if ($this->isEditMode) {
             abort_unless(Auth::user()->can('edit-role') || Auth::user()->can('assign-role-permissions'), 403);
             $this->validate([

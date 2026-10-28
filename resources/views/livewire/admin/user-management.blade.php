@@ -160,8 +160,6 @@
                     $country = $u->reviewerProfile?->country 
                         ?? ($u->basicInfo?->nationality ?: 'Domestic / Local');
                 @endphp
-                        ?? ($u->basicInfo?->nationality ?: 'Domestic / Local');
-                @endphp
                 <tr>
                     <td>
                         <div style="display: flex; align-items: center; gap: 0.65rem;">

@@ -360,6 +360,7 @@ class ReviewerManagement extends Component
     {
         // 1. Query Reviewer Profiles (Tab 1)
         $reviewersQuery = ReviewerProfile::with(['user', 'creator'])
+            ->whereDoesntHave('user.roles', fn($rq) => $rq->where('name', 'super-admin'))
             ->withCount('reviews');
 
         if (!empty($this->search)) {

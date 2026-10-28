@@ -176,12 +176,15 @@ class CandidateProfileManagement extends Component
         // Only queries genuine job applicants/candidates.
         // Users holding ANY non-applicant role (dean, provost, registrar, committee, reviewer, or ANY custom role)
         // are automatically excluded without any hardcoded role lists!
-        $query = BasicInfo::whereHas('user', function ($uq) {
+        $applicantScope = function ($uq) {
             $uq->where(function ($sub) {
                 $sub->whereHas('roles', fn($rq) => $rq->where('name', 'applicant'))
                     ->orWhereHas('applications');
             })->whereDoesntHave('roles', fn($rq) => $rq->where('name', '!=', 'applicant'));
-        })->with(['user.roles', 'user.applications.campaign', 'degrees']);
+        };
+
+        $query = BasicInfo::whereHas('user', $applicantScope)
+            ->with(['user.roles', 'user.applications.campaign', 'degrees']);
 
         if (!empty($this->trackFilter)) {
             $query->where('track_type', $this->trackFilter);
@@ -205,17 +208,14 @@ class CandidateProfileManagement extends Component
 
         $profiles = $query->orderBy('first_name')->get();
 
-        // Dynamic Candidate Metrics
+        // Dynamic Candidate Metrics strictly scoped to genuine applicant pool
+        $baseCandidateQuery = BasicInfo::whereHas('user', $applicantScope);
+
         $stats = [
-            'total' => BasicInfo::whereHas('user', function ($uq) {
-                $uq->where(function ($sub) {
-                    $sub->whereHas('roles', fn($rq) => $rq->where('name', 'applicant'))
-                        ->orWhereHas('applications');
-                })->whereDoesntHave('roles', fn($rq) => $rq->where('name', '!=', 'applicant'));
-            })->count(),
-            'with_applications' => BasicInfo::whereHas('user.applications')->count(),
-            'academic' => BasicInfo::where('track_type', 'ACADEMIC')->count(),
-            'locked' => BasicInfo::where('is_locked', true)->count(),
+            'total' => (clone $baseCandidateQuery)->count(),
+            'with_applications' => (clone $baseCandidateQuery)->whereHas('user.applications')->count(),
+            'academic' => (clone $baseCandidateQuery)->where('track_type', 'ACADEMIC')->count(),
+            'locked' => (clone $baseCandidateQuery)->where('is_locked', true)->count(),
         ];
 
         return view('livewire.admin.candidate-profile-management', [

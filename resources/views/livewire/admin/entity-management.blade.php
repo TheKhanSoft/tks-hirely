@@ -93,6 +93,13 @@
                 <span>Campaigns</span>
             </button>
         @endcan
+        @can('tune-constitution')
+            <a href="/admin/criteria" class="btn"
+               style="padding: 0.45rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; gap: 0.45rem; transition: var(--transition-base); background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
+                <span>Criteria</span>
+            </a>
+        @endcan
         @can('view-application')
             <button type="button" class="btn" wire:click="setTab('applications')"
                     style="padding: 0.45rem 1rem; font-size: 0.85rem; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; gap: 0.45rem; transition: var(--transition-base); {{ $activeTab === 'applications' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">

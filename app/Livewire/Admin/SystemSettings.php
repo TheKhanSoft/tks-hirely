@@ -46,7 +46,7 @@ class SystemSettings extends Component
 
     public function mount()
     {
-        abort_unless(Auth::check() && (Auth::user()->hasAnyRole(['super-admin', 'registrar']) || Auth::user()->can('manage-settings')), 403);
+        abort_unless(Auth::check() && (Auth::user()->hasRole('super-admin') || Auth::user()->can('manage-settings')), 403);
         $this->loadSettings();
     }
 

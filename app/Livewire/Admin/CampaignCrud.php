@@ -66,8 +66,10 @@ class CampaignCrud extends Component
     public $constitution_required_external = 2;
     public $constitution_required_international = 1;
     public $constitution_required_independent = 0;
+    public $constitution_required_peer_reviewers = 3;
     public $constitution_title = '';
     public $constitution_description = '';
+    public $constitution_rules = [];
     
     // Lists
     public $committee_users = [];
@@ -357,8 +359,119 @@ class CampaignCrud extends Component
             $this->constitution_required_external = (int)($constitution['required_external'] ?? 2);
             $this->constitution_required_international = (int)($constitution['required_international'] ?? 1);
             $this->constitution_required_independent = (int)($constitution['required_independent'] ?? 0);
+            $this->constitution_required_peer_reviewers = (int)($constitution['required_peer_reviewers'] ?? 3);
             $this->constitution_title = $constitution['title'] ?? 'Statutory Operational Committee Constitution';
             $this->constitution_description = $constitution['description'] ?? 'Statutory member quota breakdown.';
+
+            $sourceRules = $constitution['rules'] ?? $constitution['roles_breakdown'] ?? [];
+            if (!empty($sourceRules)) {
+                $this->constitution_rules = array_map(function($r, $idx) {
+                    return [
+                        'id' => $r['id'] ?? ('rule_' . uniqid() . '_' . $idx),
+                        'name' => $r['name'] ?? $r['role'] ?? 'Committee Member',
+                        'count' => max(1, (int)($r['count'] ?? 1)),
+                        'category' => in_array($r['category'] ?? '', ['INTERNAL', 'EXTERNAL', 'INTERNATIONAL', 'INDEPENDENT']) ? $r['category'] : 'INTERNAL',
+                        'cadre' => $r['cadre'] ?? 'FACULTY',
+                        'role_nature' => $r['role_nature'] ?? 'MEMBER',
+                        'is_mandatory' => !empty($r['is_mandatory']),
+                        'notes' => $r['notes'] ?? '',
+                    ];
+                }, $sourceRules, array_keys($sourceRules));
+            } else {
+                $this->constitution_rules = [];
+                if ($this->constitution_required_internal > 0) {
+                    $this->constitution_rules[] = [
+                        'id' => 'rule_' . uniqid(),
+                        'name' => 'Internal Organization / Faculty Member',
+                        'count' => $this->constitution_required_internal,
+                        'category' => 'INTERNAL',
+                        'cadre' => 'FACULTY',
+                        'role_nature' => 'CONVENER',
+                        'is_mandatory' => true,
+                        'notes' => '',
+                    ];
+                }
+                if ($this->constitution_required_external > 0) {
+                    $this->constitution_rules[] = [
+                        'id' => 'rule_' . uniqid(),
+                        'name' => 'External Subject Expert (Other Institution)',
+                        'count' => $this->constitution_required_external,
+                        'category' => 'EXTERNAL',
+                        'cadre' => 'FACULTY',
+                        'role_nature' => 'MEMBER',
+                        'is_mandatory' => false,
+                        'notes' => '',
+                    ];
+                }
+                if ($this->constitution_required_international > 0) {
+                    $this->constitution_rules[] = [
+                        'id' => 'rule_' . uniqid(),
+                        'name' => 'International / Overseas Specialist',
+                        'count' => $this->constitution_required_international,
+                        'category' => 'INTERNATIONAL',
+                        'cadre' => 'EXPERT',
+                        'role_nature' => 'EXPERT',
+                        'is_mandatory' => false,
+                        'notes' => '',
+                    ];
+                }
+                if ($this->constitution_required_independent > 0) {
+                    $this->constitution_rules[] = [
+                        'id' => 'rule_' . uniqid(),
+                        'name' => 'Independent Legal Arbiter',
+                        'count' => $this->constitution_required_independent,
+                        'category' => 'INDEPENDENT',
+                        'cadre' => 'LEGAL',
+                        'role_nature' => 'ARBITER',
+                        'is_mandatory' => false,
+                        'notes' => '',
+                    ];
+                }
+            }
+        }
+    }
+
+    public function addConstitutionRule()
+    {
+        $this->constitution_rules[] = [
+            'id' => 'rule_' . uniqid(),
+            'name' => '',
+            'count' => 1,
+            'category' => 'INTERNAL',
+            'cadre' => 'FACULTY',
+            'role_nature' => 'MEMBER',
+            'is_mandatory' => false,
+            'notes' => '',
+        ];
+        $this->recalculateConstitutionTotals();
+    }
+
+    public function removeConstitutionRule($index)
+    {
+        if (isset($this->constitution_rules[$index])) {
+            unset($this->constitution_rules[$index]);
+            $this->constitution_rules = array_values($this->constitution_rules);
+            $this->recalculateConstitutionTotals();
+        }
+    }
+
+    public function updateConstitutionRuleCount($index, $delta)
+    {
+        if (isset($this->constitution_rules[$index])) {
+            $cur = (int)($this->constitution_rules[$index]['count'] ?? 1);
+            $this->constitution_rules[$index]['count'] = max(1, min(50, $cur + $delta));
+            $this->recalculateConstitutionTotals();
+        }
+    }
+
+    public function recalculateConstitutionTotals()
+    {
+        if (!empty($this->constitution_rules)) {
+            $this->constitution_required_total = (int)collect($this->constitution_rules)->sum('count');
+            $this->constitution_required_internal = (int)collect($this->constitution_rules)->where('category', 'INTERNAL')->sum('count');
+            $this->constitution_required_external = (int)collect($this->constitution_rules)->where('category', 'EXTERNAL')->sum('count');
+            $this->constitution_required_international = (int)collect($this->constitution_rules)->where('category', 'INTERNATIONAL')->sum('count');
+            $this->constitution_required_independent = (int)collect($this->constitution_rules)->where('category', 'INDEPENDENT')->sum('count');
         }
     }
 
@@ -415,54 +528,96 @@ class CampaignCrud extends Component
             $this->constitution_required_external = 1;
             $this->constitution_required_international = 0;
             $this->constitution_required_independent = 0;
+            $this->constitution_required_peer_reviewers = 3;
             $this->constitution_title = 'Statutory Selection Committee for Assistant Professor';
             $this->constitution_description = 'Statutory Criteria: 3 External Subject Experts for peer review. Selection Committee: Dean (Convener), Concerned Dept Head, 3 Internal Faculty from same institution, 1 External Professor from other institution.';
+            $this->constitution_rules = [
+                ['id' => 'rule_' . uniqid(), 'name' => 'Dean of Faculty (Convener)', 'count' => 1, 'category' => 'INTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'CONVENER', 'is_mandatory' => true, 'notes' => 'Faculty Dean / Official Convener of the Selection Committee'],
+                ['id' => 'rule_' . uniqid(), 'name' => 'Department Head (Concerned)', 'count' => 1, 'category' => 'INTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'CONVENER', 'is_mandatory' => true, 'notes' => 'Concerned Department Head / Ex-Officio Member'],
+                ['id' => 'rule_' . uniqid(), 'name' => 'Internal Subject Faculty (Same Institution)', 'count' => 3, 'category' => 'INTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'notes' => '3 Senior Professors/Associate Professors from same institution'],
+                ['id' => 'rule_' . uniqid(), 'name' => 'External Subject Professor (Other Institution)', 'count' => 1, 'category' => 'EXTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'notes' => '1 External Professor from another university/institution'],
+            ];
         } elseif ($preset === 'academic_prof') {
             $this->constitution_required_total = 6;
             $this->constitution_required_internal = 4;
             $this->constitution_required_external = 2;
             $this->constitution_required_international = 1;
             $this->constitution_required_independent = 0;
+            $this->constitution_required_peer_reviewers = 3;
             $this->constitution_title = 'Statutory Professorial Selection Board (Associate & Full Professor)';
             $this->constitution_description = '3 External/Overseas Referees. Selection Board: 4 Internal Senior Leaders, 2 External Specialists (including 1 Overseas Specialist).';
+            $this->constitution_rules = [
+                ['id' => 'rule_' . uniqid(), 'name' => 'Vice-Chancellor / Dean (Convener)', 'count' => 1, 'category' => 'INTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'CONVENER', 'is_mandatory' => true, 'notes' => 'Statutory Convener of Professorial Board'],
+                ['id' => 'rule_' . uniqid(), 'name' => 'Internal Subject Specialists (Same Institution)', 'count' => 3, 'category' => 'INTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'notes' => '3 Senior Internal Professors from same university'],
+                ['id' => 'rule_' . uniqid(), 'name' => 'External Subject Expert (Other Institution)', 'count' => 1, 'category' => 'EXTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'notes' => '1 External Professor from another accredited university'],
+                ['id' => 'rule_' . uniqid(), 'name' => 'International / Overseas Subject Specialist', 'count' => 1, 'category' => 'INTERNATIONAL', 'cadre' => 'EXPERT', 'role_nature' => 'EXPERT', 'is_mandatory' => false, 'notes' => '1 Overseas Subject Specialist from foreign university'],
+            ];
         } elseif ($preset === 'corporate_board') {
             $this->constitution_required_total = 5;
             $this->constitution_required_internal = 3;
             $this->constitution_required_external = 2;
             $this->constitution_required_international = 0;
             $this->constitution_required_independent = 0;
+            $this->constitution_required_peer_reviewers = 0;
             $this->constitution_title = 'Corporate Executive Selection & Evaluation Panel';
             $this->constitution_description = '3 Internal Company Executives (MD, HR, Division Head), 2 External Industry Advisors / Board Specialists.';
+            $this->constitution_rules = [
+                ['id' => 'rule_' . uniqid(), 'name' => 'Managing Director / Executive Convener', 'count' => 1, 'category' => 'INTERNAL', 'cadre' => 'EXECUTIVE', 'role_nature' => 'CONVENER', 'is_mandatory' => true, 'notes' => 'Managing Director / Panel Convener'],
+                ['id' => 'rule_' . uniqid(), 'name' => 'Internal Division Heads / HR Director', 'count' => 2, 'category' => 'INTERNAL', 'cadre' => 'OFFICER', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'notes' => '2 Internal Officers / Division Leaders'],
+                ['id' => 'rule_' . uniqid(), 'name' => 'External Industry Advisors / Board Delegates', 'count' => 2, 'category' => 'EXTERNAL', 'cadre' => 'EXPERT', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'notes' => '2 External Industry Advisors / Specialists from other companies'],
+            ];
         } elseif ($preset === 'public_sector') {
             $this->constitution_required_total = 4;
             $this->constitution_required_internal = 2;
             $this->constitution_required_external = 1;
             $this->constitution_required_international = 0;
             $this->constitution_required_independent = 1;
+            $this->constitution_required_peer_reviewers = 0;
             $this->constitution_title = 'Public Sector Service Selection Board';
             $this->constitution_description = '2 Internal Departmental Officers, 1 External Public Service Delegate, 1 Independent Legal Arbiter.';
+            $this->constitution_rules = [
+                ['id' => 'rule_' . uniqid(), 'name' => 'Departmental Representative / Chairman', 'count' => 1, 'category' => 'INTERNAL', 'cadre' => 'OFFICER', 'role_nature' => 'CONVENER', 'is_mandatory' => true, 'notes' => 'Ex-Officio Chairman / Departmental Representative'],
+                ['id' => 'rule_' . uniqid(), 'name' => 'Internal Service Member', 'count' => 1, 'category' => 'INTERNAL', 'cadre' => 'OFFICER', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'notes' => 'Internal Civil / Administrative Service Officer'],
+                ['id' => 'rule_' . uniqid(), 'name' => 'External Public Service Specialist', 'count' => 1, 'category' => 'EXTERNAL', 'cadre' => 'OFFICER', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'notes' => '1 Public Service Delegate from external agency'],
+                ['id' => 'rule_' . uniqid(), 'name' => 'Independent Legal / Governance Arbiter', 'count' => 1, 'category' => 'INDEPENDENT', 'cadre' => 'LEGAL', 'role_nature' => 'ARBITER', 'is_mandatory' => false, 'notes' => '1 Independent Legal or Governance Arbiter'],
+            ];
         } elseif ($preset === 'executive_admin') {
             $this->constitution_required_total = 4;
             $this->constitution_required_internal = 2;
             $this->constitution_required_external = 1;
             $this->constitution_required_international = 0;
             $this->constitution_required_independent = 1;
+            $this->constitution_required_peer_reviewers = 0;
             $this->constitution_title = 'Executive & Operational Selection Board (Director / Officers)';
             $this->constitution_description = '2 Internal Leadership Officers, 1 External Industry/Office Delegate, 1 Independent Governance Member.';
+            $this->constitution_rules = [
+                ['id' => 'rule_' . uniqid(), 'name' => 'Internal Director / Convener', 'count' => 1, 'category' => 'INTERNAL', 'cadre' => 'OFFICER', 'role_nature' => 'CONVENER', 'is_mandatory' => true, 'notes' => 'Director / Convener'],
+                ['id' => 'rule_' . uniqid(), 'name' => 'Internal Executive Officer', 'count' => 1, 'category' => 'INTERNAL', 'cadre' => 'OFFICER', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'notes' => 'Internal Officer'],
+                ['id' => 'rule_' . uniqid(), 'name' => 'External Public / Office Delegate', 'count' => 1, 'category' => 'EXTERNAL', 'cadre' => 'OFFICER', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'notes' => 'External Officer'],
+                ['id' => 'rule_' . uniqid(), 'name' => 'Independent Governance Member', 'count' => 1, 'category' => 'INDEPENDENT', 'cadre' => 'LEGAL', 'role_nature' => 'ARBITER', 'is_mandatory' => false, 'notes' => 'Governance Member'],
+            ];
         } elseif ($preset === 'expert_heavy') {
             $this->constitution_required_total = 5;
             $this->constitution_required_internal = 1;
             $this->constitution_required_external = 3;
             $this->constitution_required_international = 1;
             $this->constitution_required_independent = 0;
+            $this->constitution_required_peer_reviewers = 3;
             $this->constitution_title = 'External-Led Expert Scrutiny Panel';
             $this->constitution_description = '1 Internal Convener, 3 External Subject Experts (Other Universities/Offices), 1 Overseas Specialist.';
+            $this->constitution_rules = [
+                ['id' => 'rule_' . uniqid(), 'name' => 'Internal Convener / Head', 'count' => 1, 'category' => 'INTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'CONVENER', 'is_mandatory' => true, 'notes' => 'Internal Convener'],
+                ['id' => 'rule_' . uniqid(), 'name' => 'External Subject Experts (Other Universities)', 'count' => 3, 'category' => 'EXTERNAL', 'cadre' => 'EXPERT', 'role_nature' => 'EXPERT', 'is_mandatory' => false, 'notes' => '3 External Experts'],
+                ['id' => 'rule_' . uniqid(), 'name' => 'International / Overseas Specialist', 'count' => 1, 'category' => 'INTERNATIONAL', 'cadre' => 'EXPERT', 'role_nature' => 'EXPERT', 'is_mandatory' => false, 'notes' => '1 Overseas Specialist'],
+            ];
         }
+        $this->recalculateConstitutionTotals();
     }
 
     public function saveConstitution()
     {
         abort_unless(Auth::user()->can('tune-constitution'), 403);
+
         $this->validate([
             'selected_campaign_id' => 'required|exists:campaigns,id',
             'constitution_required_total' => 'required|integer|min:1',
@@ -490,9 +645,12 @@ class CampaignCrud extends Component
             'required_external' => (int)$this->constitution_required_external,
             'required_international' => (int)$this->constitution_required_international,
             'required_independent' => (int)$this->constitution_required_independent,
+            'required_peer_reviewers' => (int)$this->constitution_required_peer_reviewers,
             'title' => $this->constitution_title ?: 'Statutory Committee Constitution',
             'description' => $this->constitution_description ?: 'Statutory quota specification.',
             'enforce_strict_quota' => true,
+            'rules' => $this->constitution_rules,
+            'roles_breakdown' => $this->constitution_rules,
         ];
 
         $campaign->update(['scoring_rules' => $rules]);

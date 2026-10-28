@@ -68,12 +68,19 @@ class Campaign extends Model
     {
         $rules = $this->scoring_rules ?? [];
         if (!empty($rules['committee_constitution'])) {
-            return $rules['committee_constitution'];
+            $constitution = $rules['committee_constitution'];
+            if (empty($constitution['rules']) && !empty($constitution['roles_breakdown'])) {
+                $constitution['rules'] = $constitution['roles_breakdown'];
+            }
+            return $constitution;
         }
 
         // Dynamically resolve preset constitution based on post title & track from SystemSetting
         $preset = SystemSetting::getConstitutionPresetForPost($this->title, $this->track_type);
         $preset['enforce_strict_quota'] = SystemSetting::get('enforce_strict_committee_quorum', true);
+        if (empty($preset['rules']) && !empty($preset['roles_breakdown'])) {
+            $preset['rules'] = $preset['roles_breakdown'];
+        }
 
         return $preset;
     }
@@ -104,12 +111,15 @@ class Campaign extends Model
             ($internationalCount === $requiredInternational) &&
             ($independentCount === $requiredIndependent);
 
+        $rulesList = $constitution['rules'] ?? $constitution['roles_breakdown'] ?? [];
+
         return [
             'constitution' => $constitution,
             'total_assigned' => $totalAssigned,
             'required_total' => $requiredTotal,
             'is_complete' => $isComplete,
             'is_over_allocated' => $totalAssigned > $requiredTotal,
+            'rules' => $rulesList,
             'categories' => [
                 'INTERNAL' => [
                     'label' => 'Internal Organization / Staff',

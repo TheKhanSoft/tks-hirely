@@ -49,7 +49,12 @@ class UserManagement extends Component
 
     public function loadAuxiliaryData()
     {
-        $this->roles = Role::all();
+        // 🔒 Super Admin role is strictly hidden from non-super-admins during role assignment
+        $rolesQuery = Role::query();
+        if (!Auth::user()->hasRole('super-admin')) {
+            $rolesQuery->where('name', '!=', 'super-admin');
+        }
+        $this->roles = $rolesQuery->get();
     }
 
     public function resetForm()
@@ -69,6 +74,7 @@ class UserManagement extends Component
     {
         abort_unless(Auth::user()->can('create-user'), 403);
         $this->resetForm();
+        $this->loadAuxiliaryData();
         $this->isEditMode = false;
         $this->isFormOpen = true;
     }
@@ -79,6 +85,13 @@ class UserManagement extends Component
         $this->resetForm();
         $this->user_id = $id;
         $user = User::findOrFail($id);
+        
+        // 🔒 Non-super-admins cannot edit super-admin accounts
+        if ($user->hasRole('super-admin') && !Auth::user()->hasRole('super-admin')) {
+            abort(403, 'Unauthorized access to super administrator account.');
+        }
+
+        $this->loadAuxiliaryData();
         $this->email = $user->email;
         $this->is_active = (bool)$user->is_active;
         $this->role_name = $user->roles->first()?->name ?? 'applicant';
@@ -88,6 +101,11 @@ class UserManagement extends Component
 
     public function saveUser()
     {
+        // 🔒 Non-super-admins cannot assign or elevate to super-admin
+        if (!Auth::user()->hasRole('super-admin') && $this->role_name === 'super-admin') {
+            abort(403, 'Unauthorized to assign super-admin role.');
+        }
+
         if ($this->isEditMode) {
             abort_unless(Auth::user()->can('edit-user'), 403);
             $this->validate([
@@ -97,6 +115,10 @@ class UserManagement extends Component
             ]);
 
             $user = User::findOrFail($this->user_id);
+            if ($user->hasRole('super-admin') && !Auth::user()->hasRole('super-admin')) {
+                abort(403, 'Unauthorized to modify super administrator account.');
+            }
+
             $data = ['email' => $this->email, 'is_active' => $this->is_active];
             if (!empty($this->password)) {
                 $data['password'] = Hash::make($this->password);
@@ -131,7 +153,11 @@ class UserManagement extends Component
             session()->flash('error', 'Safety gate: You cannot delete your logged in session.');
             return;
         }
-        User::destroy($id);
+        $user = User::findOrFail($id);
+        if ($user->hasRole('super-admin') && !Auth::user()->hasRole('super-admin')) {
+            abort(403, 'Unauthorized to delete super administrator account.');
+        }
+        $user->delete();
         session()->flash('message', 'User account deleted successfully.');
     }
 
@@ -143,6 +169,9 @@ class UserManagement extends Component
             return;
         }
         $user = User::findOrFail($id);
+        if ($user->hasRole('super-admin') && !Auth::user()->hasRole('super-admin')) {
+            abort(403, 'Unauthorized to modify super administrator account.');
+        }
         $user->update(['is_active' => !$user->is_active]);
         session()->flash('message', 'User active status updated.');
     }
@@ -175,6 +204,10 @@ class UserManagement extends Component
     {
         abort_unless(Auth::user()->can('assign-user-permissions') || Auth::user()->can('edit-user'), 403);
         $user = User::with(['roles.permissions', 'permissions'])->findOrFail($userId);
+        if ($user->hasRole('super-admin') && !Auth::user()->hasRole('super-admin')) {
+            abort(403, 'Unauthorized access to super administrator permissions.');
+        }
+
         $this->targetUserIdForPermissions = $userId;
         $this->targetUserDirectPermissions = $user->getDirectPermissions()->pluck('name')->toArray();
         $this->targetUserRolePermissions = $user->getPermissionsViaRoles()->pluck('name')->toArray();
@@ -195,6 +228,10 @@ class UserManagement extends Component
     {
         abort_unless(Auth::user()->can('assign-user-permissions') || Auth::user()->can('edit-user'), 403);
         $user = User::findOrFail($this->targetUserIdForPermissions);
+        if ($user->hasRole('super-admin') && !Auth::user()->hasRole('super-admin')) {
+            abort(403, 'Unauthorized to modify super administrator permissions.');
+        }
+
         $user->syncPermissions($this->targetUserDirectPermissions);
         $this->isDirectPermissionsModalOpen = false;
         session()->flash('message', 'Direct extra permissions updated successfully for ' . $user->email);
@@ -209,18 +246,28 @@ class UserManagement extends Component
 
     public function render()
     {
+        $isSuperAdmin = Auth::user()->hasRole('super-admin');
         $query = User::with(['roles', 'basicInfo', 'reviewerProfile', 'committees.campaign', 'permissions']);
+
+        // 🔒 Super Admin is strictly hidden from non-super-admins in user directory
+        if (!$isSuperAdmin) {
+            $query->whereDoesntHave('roles', fn($q) => $q->where('name', 'super-admin'));
+        }
 
         // Personnel Classification Filter
         if ($this->categorySection === 'STAFF') {
-            $query->whereHas('roles', function($q) {
-                $q->whereNotIn('name', [
+            $query->whereHas('roles', function($q) use ($isSuperAdmin) {
+                $excluded = [
                     'applicant',
                     'scrutiny-committee', 'scrutiny',
                     'appellate-committee', 'appellate',
                     'selection-board-member', 'board-member', 'board',
                     'academic-reviewer', 'reviewer',
-                ]);
+                ];
+                if (!$isSuperAdmin) {
+                    $excluded[] = 'super-admin';
+                }
+                $q->whereNotIn('name', $excluded);
             });
         } elseif ($this->categorySection === 'COMMITTEES') {
             $query->where(function($q) {
@@ -268,30 +315,38 @@ class UserManagement extends Component
         $users = $query->orderBy('created_at', 'desc')->get();
 
         // Categorized Counts for directory pills (Dynamic, supports any new roles)
-        $staffCount = User::whereHas('roles', function($q) {
-            $q->whereNotIn('name', [
+        $staffCount = User::whereHas('roles', function($q) use ($isSuperAdmin) {
+            $excluded = [
                 'applicant',
                 'scrutiny-committee', 'scrutiny',
                 'appellate-committee', 'appellate',
                 'selection-board-member', 'board-member', 'board',
                 'academic-reviewer', 'reviewer',
-            ]);
+            ];
+            if (!$isSuperAdmin) {
+                $excluded[] = 'super-admin';
+            }
+            $q->whereNotIn('name', $excluded);
         })->count();
 
-        $committeeCount = User::whereHas('roles', fn($q) => $q->whereIn('name', [
-            'scrutiny-committee', 'scrutiny',
-            'appellate-committee', 'appellate',
-            'selection-board-member', 'board-member', 'board',
-        ]))->orWhereHas('committees')->count();
+        $committeeCount = User::where(function($q) {
+            $q->whereHas('roles', fn($rq) => $rq->whereIn('name', [
+                'scrutiny-committee', 'scrutiny',
+                'appellate-committee', 'appellate',
+                'selection-board-member', 'board-member', 'board',
+            ]))->orWhereHas('committees');
+        })->when(!$isSuperAdmin, fn($q) => $q->whereDoesntHave('roles', fn($rq) => $rq->where('name', 'super-admin')))->count();
 
-        $reviewerCount = User::whereHas('roles', fn($q) => $q->whereIn('name', ['academic-reviewer', 'reviewer']))
-            ->orWhereHas('reviewerProfile')->count();
+        $reviewerCount = User::where(function($q) {
+            $q->whereHas('roles', fn($rq) => $rq->whereIn('name', ['academic-reviewer', 'reviewer']))
+              ->orWhereHas('reviewerProfile');
+        })->when(!$isSuperAdmin, fn($q) => $q->whereDoesntHave('roles', fn($rq) => $rq->where('name', 'super-admin')))->count();
 
         $applicantCount = User::whereHas('roles', fn($q) => $q->where('name', 'applicant'))
             ->whereDoesntHave('roles', fn($q) => $q->where('name', '!=', 'applicant'))
             ->count();
 
-        $totalCount = User::count();
+        $totalCount = User::when(!$isSuperAdmin, fn($q) => $q->whereDoesntHave('roles', fn($rq) => $rq->where('name', 'super-admin')))->count();
 
         return view('livewire.admin.user-management', [
             'users' => $users,

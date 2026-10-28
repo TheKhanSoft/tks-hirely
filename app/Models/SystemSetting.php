@@ -137,6 +137,13 @@ class SystemSetting extends Model
 
         // 1. Assistant Professor: 3 External Experts; Committee: 1 Dean/Convener (Int), 1 Dept Head (Int), 3 Senior Faculty (Int), 1 Professor (Ext) -> 5 Internal, 1 External (Total 6)
         if (str_contains($lower, 'assistant professor') || str_contains($lower, 'asst professor') || str_contains($lower, 'ap computer') || str_contains($lower, 'ap -')) {
+            $roles = [
+                ['name' => 'Dean of Faculty (Convener)', 'role' => 'Dean of Faculty / Convener', 'category' => 'INTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'CONVENER', 'is_mandatory' => true, 'count' => 1, 'notes' => 'Faculty Dean / Official Convener of the Selection Board'],
+                ['name' => 'Department Head (Concerned)', 'role' => 'Department Head / Chairperson', 'category' => 'INTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'CONVENER', 'is_mandatory' => true, 'count' => 1, 'notes' => 'Concerned Department Head / Ex-Officio Member'],
+                ['name' => 'Internal Subject Faculty (Same Institution)', 'role' => 'Internal Subject Professors (Same Institution)', 'category' => 'INTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'count' => 3, 'notes' => '3 Senior Professors/Associate Professors from same institution'],
+                ['name' => 'External Subject Professor (Other Institution)', 'role' => 'External Subject Professor (Other Institution)', 'category' => 'EXTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'count' => 1, 'notes' => '1 External Professor from another university/institution'],
+            ];
+
             return [
                 'required_peer_reviewers' => (int) self::get('asst_prof_required_peer_reviewers', 3),
                 'required_total' => 6,
@@ -146,17 +153,20 @@ class SystemSetting extends Model
                 'required_independent' => 0,
                 'title' => 'Statutory Selection Committee for Assistant Professor',
                 'description' => 'Statutory Criteria: 3 External Subject Experts for peer review. Selection Committee: Dean (Convener), Concerned Dept Head, 3 Internal Faculty from same institution, 1 External Professor from other institution.',
-                'roles_breakdown' => [
-                    ['role' => 'Dean of Faculty / Convener', 'category' => 'INTERNAL', 'count' => 1],
-                    ['role' => 'Department Head / Chairperson', 'category' => 'INTERNAL', 'count' => 1],
-                    ['role' => 'Internal Subject Professors (Same Institution)', 'category' => 'INTERNAL', 'count' => 3],
-                    ['role' => 'External Subject Professor (Other Institution)', 'category' => 'EXTERNAL', 'count' => 1],
-                ],
+                'roles_breakdown' => $roles,
+                'rules' => $roles,
             ];
         }
 
         // 2. Associate Professor / Full Professor: 3 Peer Reviewers; Committee: 4 Internal, 2 External (Total 6)
         if (str_contains($lower, 'professor') || str_contains($lower, 'associate professor') || str_contains($lower, 'assoc professor')) {
+            $roles = [
+                ['name' => 'Vice-Chancellor / Dean (Convener)', 'role' => 'Vice-Chancellor / Dean / Convener', 'category' => 'INTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'CONVENER', 'is_mandatory' => true, 'count' => 1, 'notes' => 'Statutory Chairperson/Convener'],
+                ['name' => 'Internal Subject Specialists (Same Institution)', 'role' => 'Internal Subject Specialists (Same Institution)', 'category' => 'INTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'count' => 3, 'notes' => '3 Internal Senior Professors from same university'],
+                ['name' => 'External Subject Expert (Other Institution)', 'role' => 'External Subject Expert (Other Institution)', 'category' => 'EXTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'count' => 1, 'notes' => '1 External Professor from another accredited university'],
+                ['name' => 'International / Overseas Subject Specialist', 'role' => 'International / Overseas Subject Specialist', 'category' => 'INTERNATIONAL', 'cadre' => 'EXPERT', 'role_nature' => 'EXPERT', 'is_mandatory' => false, 'count' => 1, 'notes' => '1 Overseas Subject Specialist from foreign university'],
+            ];
+
             return [
                 'required_peer_reviewers' => (int) self::get('prof_required_peer_reviewers', 3),
                 'required_total' => 6,
@@ -166,17 +176,19 @@ class SystemSetting extends Model
                 'required_independent' => 0,
                 'title' => 'Statutory Professorial Selection Board',
                 'description' => 'Statutory Criteria: 3 External / International Subject Referees. Selection Board: Vice-Chancellor / Dean, 3 Internal Senior Leaders, 2 External Subject Specialists (including 1 Overseas).',
-                'roles_breakdown' => [
-                    ['role' => 'Vice-Chancellor / Dean / Convener', 'category' => 'INTERNAL', 'count' => 1],
-                    ['role' => 'Internal Subject Specialists (Same Institution)', 'category' => 'INTERNAL', 'count' => 3],
-                    ['role' => 'External Subject Expert (Other Institution)', 'category' => 'EXTERNAL', 'count' => 1],
-                    ['role' => 'International / Overseas Subject Specialist', 'category' => 'INTERNATIONAL', 'count' => 1],
-                ],
+                'roles_breakdown' => $roles,
+                'rules' => $roles,
             ];
         }
 
         // 3. Lecturer / Teaching Assistant: 0 (or 2) Peer Reviewers; Committee: 4 Internal, 1 External (Total 5)
         if (str_contains($lower, 'lecturer') || str_contains($lower, 'instructor') || str_contains($lower, 'teaching fellow')) {
+            $roles = [
+                ['name' => 'Department Head (Convener)', 'role' => 'Department Head / Convener', 'category' => 'INTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'CONVENER', 'is_mandatory' => true, 'count' => 1, 'notes' => 'Concerned Department Head / Convener'],
+                ['name' => 'Internal Faculty Members (Same Institution)', 'role' => 'Internal Faculty Members (Same Institution)', 'category' => 'INTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'count' => 3, 'notes' => '3 Internal Faculty Members from same department/faculty'],
+                ['name' => 'External Subject Expert (Other Institution)', 'role' => 'External Subject Expert (Other Institution)', 'category' => 'EXTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'count' => 1, 'notes' => '1 External Faculty Expert from partner institution'],
+            ];
+
             return [
                 'required_peer_reviewers' => (int) self::get('lecturer_required_peer_reviewers', 0),
                 'required_total' => 5,
@@ -186,16 +198,19 @@ class SystemSetting extends Model
                 'required_independent' => 0,
                 'title' => 'Academic Selection Committee for Lecturer / Faculty',
                 'description' => 'Statutory Criteria: 4 Internal Faculty/Leadership Members, 1 External Subject Expert from partner institution.',
-                'roles_breakdown' => [
-                    ['role' => 'Department Head / Convener', 'category' => 'INTERNAL', 'count' => 1],
-                    ['role' => 'Internal Faculty Members (Same Institution)', 'category' => 'INTERNAL', 'count' => 3],
-                    ['role' => 'External Subject Expert (Other Institution)', 'category' => 'EXTERNAL', 'count' => 1],
-                ],
+                'roles_breakdown' => $roles,
+                'rules' => $roles,
             ];
         }
 
         // 4. Non-academic: Corporate / Executive / Commercial / Industrial
         if ($trackType === 'ADMINISTRATIVE' || $trackType === 'EXECUTIVE' || str_contains($lower, 'director') || str_contains($lower, 'manager') || str_contains($lower, 'executive') || str_contains($lower, 'lead') || str_contains($lower, 'head of')) {
+            $roles = [
+                ['name' => 'Managing Director / Executive Convener', 'role' => 'Managing Director / Executive Convener', 'category' => 'INTERNAL', 'cadre' => 'EXECUTIVE', 'role_nature' => 'CONVENER', 'is_mandatory' => true, 'count' => 1, 'notes' => 'Executive Director / Convener of the Committee'],
+                ['name' => 'Internal Division Heads / HR Director', 'role' => 'Internal Division Heads / HR Director', 'category' => 'INTERNAL', 'cadre' => 'OFFICER', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'count' => 2, 'notes' => '2 Internal Officers / Division Leaders'],
+                ['name' => 'External Industry Specialists / Board Delegates', 'role' => 'External Industry Specialists / Board Delegates', 'category' => 'EXTERNAL', 'cadre' => 'EXPERT', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'count' => 2, 'notes' => '2 External Industry Advisors / Specialists from other companies'],
+            ];
+
             return [
                 'required_peer_reviewers' => 0,
                 'required_total' => 5,
@@ -205,16 +220,20 @@ class SystemSetting extends Model
                 'required_independent' => 0,
                 'title' => 'Executive & Operational Selection Board',
                 'description' => 'Enterprise Criteria: Managing Director/Lead, 2 Internal Executive Officers, 2 External Industry Advisors / Technical Specialists.',
-                'roles_breakdown' => [
-                    ['role' => 'Managing Director / Executive Convener', 'category' => 'INTERNAL', 'count' => 1],
-                    ['role' => 'Internal Division Heads / HR Director', 'category' => 'INTERNAL', 'count' => 2],
-                    ['role' => 'External Industry Specialists / Board Delegates', 'category' => 'EXTERNAL', 'count' => 2],
-                ],
+                'roles_breakdown' => $roles,
+                'rules' => $roles,
             ];
         }
 
         // 5. Public Sector / Government Agency / Civil Service
         if ($trackType === 'GOVERNMENT' || str_contains($lower, 'officer') || str_contains($lower, 'inspector') || str_contains($lower, 'superintendent') || str_contains($lower, 'assistant director')) {
+            $roles = [
+                ['name' => 'Departmental Representative / Chairman', 'role' => 'Departmental Representative / Chairman', 'category' => 'INTERNAL', 'cadre' => 'OFFICER', 'role_nature' => 'CONVENER', 'is_mandatory' => true, 'count' => 1, 'notes' => 'Ex-Officio Chairman / Departmental Representative'],
+                ['name' => 'Internal Service Member', 'role' => 'Internal Service Member', 'category' => 'INTERNAL', 'cadre' => 'OFFICER', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'count' => 1, 'notes' => 'Internal Civil / Administrative Service Officer'],
+                ['name' => 'External Public Service Specialist', 'role' => 'External Public Service Specialist', 'category' => 'EXTERNAL', 'cadre' => 'OFFICER', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'count' => 1, 'notes' => '1 Public Service Delegate from external agency'],
+                ['name' => 'Independent Legal / Governance Arbiter', 'role' => 'Independent Legal / Governance Arbiter', 'category' => 'INDEPENDENT', 'cadre' => 'LEGAL', 'role_nature' => 'ARBITER', 'is_mandatory' => false, 'count' => 1, 'notes' => '1 Independent Legal or Governance Arbiter'],
+            ];
+
             return [
                 'required_peer_reviewers' => 0,
                 'required_total' => 4,
@@ -224,16 +243,18 @@ class SystemSetting extends Model
                 'required_independent' => 1,
                 'title' => 'Public Sector Service Selection Board',
                 'description' => 'Public Sector Criteria: 2 Departmental Members, 1 External Public Service Delegate, 1 Independent Legal Arbiter.',
-                'roles_breakdown' => [
-                    ['role' => 'Departmental Representative / Chairman', 'category' => 'INTERNAL', 'count' => 1],
-                    ['role' => 'Internal Service Member', 'category' => 'INTERNAL', 'count' => 1],
-                    ['role' => 'External Public Service Specialist', 'category' => 'EXTERNAL', 'count' => 1],
-                    ['role' => 'Independent Legal / Governance Arbiter', 'category' => 'INDEPENDENT', 'count' => 1],
-                ],
+                'roles_breakdown' => $roles,
+                'rules' => $roles,
             ];
         }
 
         // 6. Generic Default Fallback
+        $roles = [
+            ['name' => 'Internal Convener / Head', 'role' => 'Internal Convener / Head', 'category' => 'INTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'CONVENER', 'is_mandatory' => true, 'count' => 1, 'notes' => 'Internal Convener / Lead'],
+            ['name' => 'Internal Members (Same Organization)', 'role' => 'Internal Members (Same Organization)', 'category' => 'INTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'count' => 2, 'notes' => '2 Internal members from same organization/office'],
+            ['name' => 'External Subject Specialists (Other Institutions)', 'role' => 'External Subject Specialists (Other Institutions)', 'category' => 'EXTERNAL', 'cadre' => 'EXPERT', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'count' => 2, 'notes' => '2 External Specialists from outside institutions'],
+        ];
+
         return [
             'required_peer_reviewers' => $trackType === 'ACADEMIC' ? 3 : 0,
             'required_total' => 5,
@@ -243,11 +264,8 @@ class SystemSetting extends Model
             'required_independent' => 0,
             'title' => 'Standard Statutory Selection Committee',
             'description' => 'Standard Criteria: 3 Internal Members, 2 External Experts / Subject Specialists.',
-            'roles_breakdown' => [
-                ['role' => 'Internal Convener / Head', 'category' => 'INTERNAL', 'count' => 1],
-                ['role' => 'Internal Members (Same Organization)', 'category' => 'INTERNAL', 'count' => 2],
-                ['role' => 'External Subject Specialists (Other Institutions)', 'category' => 'EXTERNAL', 'count' => 2],
-            ],
+            'roles_breakdown' => $roles,
+            'rules' => $roles,
         ];
     }
 

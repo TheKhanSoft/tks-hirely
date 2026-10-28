@@ -299,6 +299,13 @@ class PermissionRegistry
                     'description' => 'Submit live rubric scores and candidate grading evaluations',
                 ],
             ],
+
+            'System & Workflow Settings' => [
+                'manage-settings' => [
+                    'label' => 'Manage System Settings',
+                    'description' => 'Configure recruitment pipelines, document requirements, statutory constitutions, and organization settings',
+                ],
+            ],
         ];
     }
 

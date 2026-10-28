@@ -391,13 +391,26 @@
 
                     @if($currentCampaign)
                         @can('tune-constitution')
-                            <div style="align-self: flex-end;">
+                            <div style="align-self: flex-end; display: flex; gap: 0.5rem;">
+                                @php
+                                    $criteriaUrl = (auth()->user()->hasRole('registrar') && !auth()->user()->hasRole('super-admin')) ? '/registrar/criteria' : '/admin/criteria';
+                                @endphp
+                                <a href="{{ $criteriaUrl }}?campaign_id={{ $selected_campaign_id }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.65rem 1rem; font-size: 0.84rem;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+                                        <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+                                        <path d="M7 21h10"/>
+                                        <path d="M12 3v18"/>
+                                        <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+                                    </svg>
+                                    <span>Criteria Desk ↗</span>
+                                </a>
                                 <button type="button" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.65rem 1rem; font-size: 0.84rem;" wire:click="openConstitutionModal">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <circle cx="12" cy="12" r="3"></circle>
                                         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                                     </svg>
-                                    <span>Tune Constitution Criteria</span>
+                                    <span>Tune Modal</span>
                                 </button>
                             </div>
                         @endcan
@@ -907,9 +920,14 @@
                                 Define required statutory quotas for: <strong>{{ $currentCampaign?->title }}</strong>
                             </p>
                         </div>
-                        <button type="button" class="btn btn-secondary" style="padding: 0.35rem 0.65rem;" wire:click="closeConstitutionModal">
-                            ✕
-                        </button>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <a href="{{ $criteriaUrl }}?campaign_id={{ $selected_campaign_id }}" class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.3rem;">
+                                <span>⚖️ Full Criteria Desk ↗</span>
+                            </a>
+                            <button type="button" class="btn btn-secondary" style="padding: 0.35rem 0.65rem;" wire:click="closeConstitutionModal">
+                                ✕
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Preset Buttons -->
@@ -969,6 +987,58 @@
                             <x-input label="Constitution Title" :error="$errors->first('constitution_title')">
                                 <input type="text" class="form-control" wire:model="constitution_title" placeholder="e.g. Statutory Selection Board Constitution">
                             </x-input>
+                        </div>
+
+                        <!-- Dynamic Member Rules Repeater -->
+                        <div style="margin-bottom: 1.5rem; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--color-text-muted); letter-spacing: 0.05em;">
+                                    DYNAMIC COMMITTEE RULE SLOTS
+                                </span>
+                                <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.25rem 0.65rem;" wire:click="addConstitutionRule">
+                                    + Add Slot
+                                </button>
+                            </div>
+
+                            @if(!empty($constitution_rules))
+                                <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                    @foreach($constitution_rules as $rIdx => $rItem)
+                                        <div style="display: grid; grid-template-columns: 80px 1.5fr 1fr 1fr 35px; gap: 0.5rem; align-items: center; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: var(--radius-sm);">
+                                            <!-- Count Stepper -->
+                                            <div style="display: flex; align-items: center; gap: 0.2rem;">
+                                                <button type="button" class="btn btn-secondary" style="padding: 0.15rem 0.35rem; font-size: 0.75rem;" wire:click="updateConstitutionRuleCount({{ $rIdx }}, -1)">-</button>
+                                                <input type="number" min="1" max="50" class="form-control" wire:model.live="constitution_rules.{{ $rIdx }}.count" style="width: 38px; text-align: center; padding: 0.2rem 0.1rem; font-weight: 700; font-size: 0.8rem;">
+                                                <button type="button" class="btn btn-secondary" style="padding: 0.15rem 0.35rem; font-size: 0.75rem;" wire:click="updateConstitutionRuleCount({{ $rIdx }}, 1)">+</button>
+                                            </div>
+
+                                            <!-- Role / Title -->
+                                            <input type="text" class="form-control" wire:model="constitution_rules.{{ $rIdx }}.name" placeholder="Role (e.g. Dean, Dept Head, Faculty)" style="font-size: 0.8rem; padding: 0.3rem 0.5rem;">
+
+                                            <!-- Scope -->
+                                            <select class="form-control form-select" wire:model.live="constitution_rules.{{ $rIdx }}.category" wire:change="recalculateConstitutionTotals" style="font-size: 0.75rem; padding: 0.3rem 0.4rem;">
+                                                <option value="INTERNAL">🏢 Inside Org</option>
+                                                <option value="EXTERNAL">🌐 Outside Org</option>
+                                                <option value="INTERNATIONAL">✈️ Overseas</option>
+                                                <option value="INDEPENDENT">⚖️ Arbiter</option>
+                                            </select>
+
+                                            <!-- Cadre -->
+                                            <select class="form-control form-select" wire:model.live="constitution_rules.{{ $rIdx }}.cadre" style="font-size: 0.75rem; padding: 0.3rem 0.4rem;">
+                                                <option value="FACULTY">🎓 Faculty</option>
+                                                <option value="OFFICER">👔 Officer</option>
+                                                <option value="EXPERT">🔬 Expert</option>
+                                                <option value="LEGAL">⚖️ Legal</option>
+                                                <option value="ANY">👤 Any</option>
+                                            </select>
+
+                                            <!-- Remove -->
+                                            <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.45rem; font-size: 0.75rem;" wire:click="removeConstitutionRule({{ $rIdx }})">
+                                                ✕
+                                            </button>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
 
                         <div class="grid grid-cols-2 gap-4 mb-4">

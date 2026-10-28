@@ -58,91 +58,124 @@
                         $baseRoute = $isRegistrar && !$isSuperAdmin ? '/registrar' : '/admin';
                     @endphp
 
-                    {{-- 1. Operations Menu: Visible ONLY to Super Admin and Registrar --}}
-                    @if($isSuperAdmin || $isRegistrar)
+                    {{-- 1. Operations Menu: Visible based on granular permissions --}}
+                    @if($isSuperAdmin || $isRegistrar || $user->can('view-campaign') || $user->can('view-application') || $user->can('view-basic-info') || $user->can('view-payment') || $user->can('manage-reviewers') || $user->can('tune-constitution'))
                         <div class="sidebar-section-title">Operations</div>
-                        <a href="{{ $baseRoute }}/dashboard" class="sidebar-link {{ request()->is('admin/dashboard*') || request()->is('registrar/dashboard*') ? 'active' : '' }}">
-                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect width="7" height="9" x="3" y="3" rx="1"/>
-                                <rect width="7" height="5" x="14" y="3" rx="1"/>
-                                <rect width="7" height="9" x="14" y="12" rx="1"/>
-                                <rect width="7" height="5" x="3" y="16" rx="1"/>
-                            </svg>
-                            <span>Operations Desk</span>
-                        </a>
+                        @if($isSuperAdmin || $isRegistrar)
+                            <a href="{{ $baseRoute }}/dashboard" class="sidebar-link {{ request()->is('admin/dashboard*') || request()->is('registrar/dashboard*') ? 'active' : '' }}">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="7" height="9" x="3" y="3" rx="1"/>
+                                    <rect width="7" height="5" x="14" y="3" rx="1"/>
+                                    <rect width="7" height="9" x="14" y="12" rx="1"/>
+                                    <rect width="7" height="5" x="3" y="16" rx="1"/>
+                                </svg>
+                                <span>Operations Desk</span>
+                            </a>
+                        @endif
 
-                        <a href="{{ $baseRoute }}/campaigns" class="sidebar-link {{ request()->is('admin/campaigns*') || request()->is('registrar/campaigns*') ? 'active' : '' }}">
-                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="m3 11 18-5v12L3 14v-3z"/>
-                                <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
-                            </svg>
-                            <span>Job Campaigns</span>
-                        </a>
+                        @can('view-campaign')
+                            <a href="{{ $baseRoute }}/campaigns" class="sidebar-link {{ request()->is('admin/campaigns*') || request()->is('registrar/campaigns*') ? 'active' : '' }}">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m3 11 18-5v12L3 14v-3z"/>
+                                    <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
+                                </svg>
+                                <span>Job Campaigns</span>
+                            </a>
+                        @endcan
 
-                        <a href="{{ $baseRoute }}/applications" class="sidebar-link {{ request()->is('admin/applications*') || request()->is('registrar/applications*') ? 'active' : '' }}">
-                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14 2 14 8 20 8"/>
-                                <line x1="16" y1="13" x2="8" y2="13"/>
-                                <line x1="16" y1="17" x2="8" y2="17"/>
-                            </svg>
-                            <span>Applications</span>
-                        </a>
+                        @can('tune-constitution')
+                            <a href="{{ $baseRoute }}/criteria" class="sidebar-link {{ request()->is('admin/criteria*') || request()->is('registrar/criteria*') ? 'active' : '' }}">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+                                    <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+                                    <path d="M7 21h10"/>
+                                    <path d="M12 3v18"/>
+                                    <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+                                </svg>
+                                <span>Criteria</span>
+                            </a>
+                        @endcan
 
-                        <a href="{{ $baseRoute }}/candidates" class="sidebar-link {{ request()->is('admin/candidates*') || request()->is('registrar/candidates*') ? 'active' : '' }}">
-                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                                <circle cx="12" cy="7" r="4"/>
-                            </svg>
-                            <span>Candidate Profiles</span>
-                        </a>
+                        @can('view-application')
+                            <a href="{{ $baseRoute }}/applications" class="sidebar-link {{ request()->is('admin/applications*') || request()->is('registrar/applications*') ? 'active' : '' }}">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                </svg>
+                                <span>Applications</span>
+                            </a>
+                        @endcan
 
-                        <a href="{{ $baseRoute }}/payments" class="sidebar-link {{ request()->is('admin/payments*') || request()->is('registrar/payments*') ? 'active' : '' }}">
-                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect width="20" height="14" x="2" y="5" rx="2"/>
-                                <line x1="2" x2="22" y1="10" y2="10"/>
-                            </svg>
-                            <span>Vouchers & Ledger</span>
-                        </a>
+                        @can('view-basic-info')
+                            <a href="{{ $baseRoute }}/candidates" class="sidebar-link {{ request()->is('admin/candidates*') || request()->is('registrar/candidates*') ? 'active' : '' }}">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                                <span>Candidate Profiles</span>
+                            </a>
+                        @endcan
 
-                        <a href="{{ $baseRoute }}/reviewers" class="sidebar-link {{ request()->is('admin/reviewers*') || request()->is('registrar/reviewers*') ? 'active' : '' }}">
-                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                                <circle cx="9" cy="7" r="4"/>
-                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                            </svg>
-                            <span>Academic Reviewers</span>
-                        </a>
+                        @can('view-payment')
+                            <a href="{{ $baseRoute }}/payments" class="sidebar-link {{ request()->is('admin/payments*') || request()->is('registrar/payments*') ? 'active' : '' }}">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="20" height="14" x="2" y="5" rx="2"/>
+                                    <line x1="2" x2="22" y1="10" y2="10"/>
+                                </svg>
+                                <span>Vouchers & Ledger</span>
+                            </a>
+                        @endcan
 
-                        {{-- Administration Menu --}}
+                        @can('manage-reviewers')
+                            <a href="{{ $baseRoute }}/reviewers" class="sidebar-link {{ request()->is('admin/reviewers*') || request()->is('registrar/reviewers*') ? 'active' : '' }}">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
+                                <span>Academic Reviewers</span>
+                            </a>
+                        @endcan
+                    @endif
+
+                    {{-- Administration Menu --}}
+                    @if($isSuperAdmin || $isRegistrar || $user->can('view-user') || $user->can('view-role') || $user->can('view-permission') || $user->can('view-audit-log'))
                         <div class="sidebar-section-title">Administration</div>
-                        <a href="{{ $baseRoute }}/users" class="sidebar-link {{ request()->is('admin/users*') || request()->is('registrar/users*') ? 'active' : '' }}">
-                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                                <circle cx="9" cy="7" r="4"/>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                            </svg>
-                            <span>User Accounts</span>
-                        </a>
+                        @can('view-user')
+                            <a href="{{ $baseRoute }}/users" class="sidebar-link {{ request()->is('admin/users*') || request()->is('registrar/users*') ? 'active' : '' }}">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
+                                <span>User Accounts</span>
+                            </a>
+                        @endcan
 
-                        <a href="{{ $baseRoute }}/roles" class="sidebar-link {{ request()->is('admin/roles*') || request()->is('registrar/roles*') ? 'active' : '' }}">
-                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                            </svg>
-                            <span>Roles & Access</span>
-                        </a>
+                        @if($isSuperAdmin || $user->can('view-role') || $user->can('view-permission'))
+                            <a href="{{ $baseRoute }}/roles" class="sidebar-link {{ request()->is('admin/roles*') || request()->is('registrar/roles*') ? 'active' : '' }}">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                </svg>
+                                <span>Roles & Access</span>
+                            </a>
+                        @endif
 
-                        <a href="{{ $baseRoute }}/audit-logs" class="sidebar-link {{ request()->is('admin/audit-logs*') || request()->is('registrar/audit-logs*') ? 'active' : '' }}">
-                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <line x1="16" y1="13" x2="8" y2="13"/>
-                                <line x1="16" y1="17" x2="8" y2="17"/>
-                                <polyline points="10 9 9 9 8 9"/>
-                            </svg>
-                            <span>Security Audit Logs</span>
-                        </a>
+                        @can('view-audit-log')
+                            <a href="{{ $baseRoute }}/audit-logs" class="sidebar-link {{ request()->is('admin/audit-logs*') || request()->is('registrar/audit-logs*') ? 'active' : '' }}">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                    <polyline points="10 9 9 9 8 9"/>
+                                </svg>
+                                <span>Security Audit Logs</span>
+                            </a>
+                        @endcan
 
                         <a href="{{ $baseRoute }}/settings" class="sidebar-link {{ request()->is('admin/settings*') || request()->is('registrar/settings*') ? 'active' : '' }}">
                             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -154,7 +187,7 @@
                     @endif
 
                     {{-- 2. Scrutiny Committee Desk --}}
-                    @if($isSuperAdmin || $isScrutiny)
+                    @if($isSuperAdmin || $isScrutiny || $user->can('scrutinize-application'))
                         <div class="sidebar-section-title">Scrutiny Desk</div>
                         <a href="/scrutiny/dashboard" class="sidebar-link {{ request()->is('scrutiny*') ? 'active' : '' }}">
                             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -168,7 +201,7 @@
                     @endif
 
                     {{-- 3. Selection Board Desk --}}
-                    @if($isSuperAdmin || $isBoard)
+                    @if($isSuperAdmin || $isBoard || $user->can('access-board-grading') || $user->can('evaluate-application'))
                         <div class="sidebar-section-title">Selection Board</div>
                         <a href="/board/dashboard" class="sidebar-link {{ request()->is('board*') ? 'active' : '' }}">
                             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -179,7 +212,7 @@
                     @endif
 
                     {{-- 4. Appellate Committee Desk --}}
-                    @if($isSuperAdmin || $isAppellate)
+                    @if($isSuperAdmin || $isAppellate || $user->can('view-appeal') || $user->can('process-appeal'))
                         <div class="sidebar-section-title">Appellate Desk</div>
                         <a href="/appellate/dashboard" class="sidebar-link {{ request()->is('appellate*') || request()->is('admin/appeals*') ? 'active' : '' }}">
                             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -194,7 +227,7 @@
                     @endif
 
                     {{-- 5. Academic Reviewer Peer Review Desk --}}
-                    @if($isSuperAdmin || $isReviewer)
+                    @if($isSuperAdmin || $isReviewer || $user->can('evaluate-academic-dossier'))
                         <div class="sidebar-section-title">Peer Review</div>
                         <a href="/reviewer/dashboard" class="sidebar-link {{ request()->is('reviewer*') ? 'active' : '' }}">
                             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -259,31 +292,6 @@
                 @endauth
             </nav>
 
-            <!-- Modern Segmented Theme Switcher -->
-            <div class="theme-switcher-box">
-                <div class="theme-segmented-group">
-                    <button type="button" class="theme-btn" data-theme-val="light" title="Light Mode">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="4"/>
-                            <path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
-                        </svg>
-                        Light
-                    </button>
-                    <button type="button" class="theme-btn" data-theme-val="dark" title="Dark Mode">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
-                        </svg>
-                        Dark
-                    </button>
-                    <button type="button" class="theme-btn" data-theme-val="system" title="System Auto">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>
-                        </svg>
-                        Auto
-                    </button>
-                </div>
-            </div>
-
             @auth
                 <!-- User Profile Card -->
                 <div class="sidebar-user-card">
@@ -343,6 +351,7 @@
                             @elseif(request()->is('admin/users*') || request()->is('registrar/users*')) User Accounts Management
                             @elseif(request()->is('admin/roles*') || request()->is('registrar/roles*')) Roles & Access Governance
                             @elseif(request()->is('admin/audit-logs*') || request()->is('registrar/audit-logs*')) Security Audit Logs
+                            @elseif(request()->is('admin/settings*') || request()->is('registrar/settings*')) System Settings & Workflows
                             @elseif(request()->is('bank/simulator*')) 1Link / Kuickpay Switch Sandbox
                             @else University Recruitment OS @endif
                         </strong>
@@ -350,17 +359,59 @@
                 </div>
 
                 <div class="topbar-actions">
-                    <div class="status-beacon">
-                        <span class="beacon-dot"></span>
-                        <span>System Online</span>
+                    <!-- Modern Segmented Theme Switcher in Topbar -->
+                    <div class="theme-segmented-group" style="padding: 2px;">
+                        <button type="button" class="theme-btn" data-theme-val="light" title="Light Mode" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="4"/>
+                                <path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+                            </svg>
+                            <span>Light</span>
+                        </button>
+                        <button type="button" class="theme-btn" data-theme-val="dark" title="Dark Mode" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+                            </svg>
+                            <span>Dark</span>
+                        </button>
+                        <button type="button" class="theme-btn" data-theme-val="system" title="System Auto" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>
+                            </svg>
+                            <span>Auto</span>
+                        </button>
                     </div>
 
                     @auth
-                        <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 700; color: var(--color-text-secondary); display: flex; align-items: center; gap: 0.4rem;">
-                            <span style="color: var(--secondary);">ROLE:</span>
-                            <span style="color: var(--color-text-primary); text-transform: uppercase;">
-                                {{ str_replace('-', ' ', auth()->user()->roles->first()?->name ?? 'Guest') }}
-                            </span>
+                        @php
+                            $topUser = auth()->user();
+                            $topName = $topUser->basicInfo ? trim($topUser->basicInfo->first_name . ' ' . $topUser->basicInfo->last_name) : null;
+                            $topRole = $topUser->roles->first()?->name ?? 'User';
+                            $topInitial = strtoupper(substr($topUser->basicInfo?->first_name ?: $topUser->email, 0, 1));
+                        @endphp
+                        <!-- User Detail in Topbar -->
+                        <div class="topbar-user-badge" style="display: flex; align-items: center; gap: 0.65rem; background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.25rem 0.65rem 0.25rem 0.35rem; border-radius: 9999px;">
+                            <div class="user-avatar-circle" style="width: 32px; height: 32px; font-size: 0.82rem; font-weight: 700; flex-shrink: 0;">
+                                {{ $topInitial }}
+                            </div>
+                            <div style="display: flex; flex-direction: column; text-align: left; line-height: 1.15; max-width: 170px;">
+                                <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $topUser->email }}">
+                                    {{ $topName ?: $topUser->email }}
+                                </span>
+                                <span style="font-size: 0.65rem; font-weight: 700; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.03em;">
+                                    {{ str_replace('-', ' ', $topRole) }}
+                                </span>
+                            </div>
+                            <form action="/logout" method="POST" style="margin: 0; padding-left: 0.2rem;">
+                                @csrf
+                                <button type="submit" class="btn-logout-icon" title="Log out session" style="width: 28px; height: 28px; background: transparent; border: none; color: var(--color-text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: var(--transition-fast);">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                        <polyline points="16 17 21 12 16 7"/>
+                                        <line x1="21" x2="9" y1="12" y2="12"/>
+                                    </svg>
+                                </button>
+                            </form>
                         </div>
                     @endauth
                 </div>

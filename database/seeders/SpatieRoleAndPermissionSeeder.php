@@ -89,6 +89,9 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'delete-reviewer',
             'assign-reviewer',
             'view-review-reports',
+
+            // System Settings & Workflows
+            'manage-settings',
         ]);
 
         $scrutinyPanel = Role::firstOrCreate(['name' => 'scrutiny-committee', 'guard_name' => 'web']);

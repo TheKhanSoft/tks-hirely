@@ -262,7 +262,9 @@ class AcademicDisciplineMatcher
         string $disciplineFilter = '',
         bool $filterByFieldOnly = true
     ): Builder {
-        $query = ReviewerProfile::with(['user', 'reviews'])->where('is_active', true);
+        $query = ReviewerProfile::with(['user', 'reviews'])
+            ->where('is_active', true)
+            ->whereDoesntHave('user.roles', fn($rq) => $rq->where('name', 'super-admin'));
 
         // 1. Direct Discipline filter if explicitly selected
         if (!empty($disciplineFilter)) {
