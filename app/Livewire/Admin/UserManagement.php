@@ -18,6 +18,11 @@ class UserManagement extends Component
     public $search = '';
     public $roleFilter = '';
     public $statusFilter = '';
+    public $categorySection = 'ALL'; // 'ALL', 'STAFF', 'COMMITTEES', 'REVIEWERS', 'APPLICANTS'
+
+    // Personnel Details Modal
+    public $isPersonnelModalOpen = false;
+    public $selectedPersonnel = null;
 
     // Collections
     public $roles = [];
@@ -135,9 +140,47 @@ class UserManagement extends Component
         session()->flash('message', 'User active status updated.');
     }
 
+    public function filterCategory($section)
+    {
+        $this->categorySection = $section;
+    }
+
+    public function viewPersonnelDetails($id)
+    {
+        $this->selectedPersonnel = User::with([
+            'roles',
+            'basicInfo',
+            'reviewerProfile',
+            'committees.campaign',
+            'applications.campaign',
+        ])->findOrFail($id);
+        $this->isPersonnelModalOpen = true;
+    }
+
+    public function closePersonnelModal()
+    {
+        $this->isPersonnelModalOpen = false;
+        $this->selectedPersonnel = null;
+    }
+
     public function render()
     {
-        $query = User::with('roles');
+        $query = User::with(['roles', 'basicInfo', 'reviewerProfile', 'committees.campaign']);
+
+        // Personnel Classification Filter
+        if ($this->categorySection === 'STAFF') {
+            $query->whereHas('roles', fn($q) => $q->whereIn('name', ['registrar', 'super-admin']));
+        } elseif ($this->categorySection === 'COMMITTEES') {
+            $query->whereHas('roles', fn($q) => $q->whereIn('name', ['scrutiny-committee', 'appellate-committee', 'selection-board-member']));
+        } elseif ($this->categorySection === 'REVIEWERS') {
+            $query->where(function($q) {
+                $q->whereHas('roles', fn($rq) => $rq->where('name', 'academic-reviewer'))
+                  ->orWhereHas('reviewerProfile');
+            });
+        } elseif ($this->categorySection === 'APPLICANTS') {
+            $query->whereHas('roles', fn($q) => $q->where('name', 'applicant'))
+                  ->whereDoesntHave('roles', fn($q) => $q->whereIn('name', ['super-admin', 'registrar', 'scrutiny-committee', 'appellate-committee', 'selection-board-member', 'academic-reviewer']));
+        }
 
         if (!empty($this->roleFilter)) {
             $query->role($this->roleFilter);
@@ -149,13 +192,39 @@ class UserManagement extends Component
 
         if (!empty($this->search)) {
             $searchTerm = '%' . $this->search . '%';
-            $query->where('email', 'like', $searchTerm);
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('email', 'like', $searchTerm)
+                  ->orWhereHas('basicInfo', function($bq) use ($searchTerm) {
+                      $bq->where('first_name', 'like', $searchTerm)
+                         ->orWhere('last_name', 'like', $searchTerm)
+                         ->orWhere('cnic_number', 'like', $searchTerm);
+                  })
+                  ->orWhereHas('reviewerProfile', function($rq) use ($searchTerm) {
+                      $rq->where('name', 'like', $searchTerm)
+                         ->orWhere('university', 'like', $searchTerm)
+                         ->orWhere('country', 'like', $searchTerm);
+                  });
+            });
         }
 
         $users = $query->orderBy('created_at', 'desc')->get();
 
+        // Categorized Counts for directory pills
+        $staffCount = User::role(['registrar', 'super-admin'])->count();
+        $committeeCount = User::role(['scrutiny-committee', 'appellate-committee', 'selection-board-member'])->count();
+        $reviewerCount = User::whereHas('roles', fn($q) => $q->where('name', 'academic-reviewer'))->orWhereHas('reviewerProfile')->count();
+        $applicantCount = User::whereHas('roles', fn($q) => $q->where('name', 'applicant'))
+            ->whereDoesntHave('roles', fn($q) => $q->whereIn('name', ['super-admin', 'registrar', 'scrutiny-committee', 'appellate-committee', 'selection-board-member', 'academic-reviewer']))
+            ->count();
+        $totalCount = User::count();
+
         return view('livewire.admin.user-management', [
             'users' => $users,
-        ])->layout('layouts.app', ['title' => 'User Management - Hirely']);
+            'staffCount' => $staffCount,
+            'committeeCount' => $committeeCount,
+            'reviewerCount' => $reviewerCount,
+            'applicantCount' => $applicantCount,
+            'totalCount' => $totalCount,
+        ])->layout('layouts.app', ['title' => 'User & Personnel Directory - Hirely']);
     }
 }

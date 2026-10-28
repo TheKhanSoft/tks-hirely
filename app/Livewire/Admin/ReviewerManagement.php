@@ -41,6 +41,7 @@ class ReviewerManagement extends Component
 
     // Application Review Dispatch Modal Properties
     public $showDispatchModal = false;
+    public $showEmpanelAndAssignModal = false;
     public $showInlineEmpanel = false;
     public $targetApplicationId;
     public $targetApplication;
@@ -149,30 +150,40 @@ class ReviewerManagement extends Component
             Log::warning("Could not dispatch reviewer credentials email via SMTP: " . $e->getMessage());
         }
 
-        // If empanelled while in Dispatch modal, auto-select this new reviewer
-        if ($this->showDispatchModal && $this->targetApplication) {
+        // If empanelled while in Dispatch modal or via Empanel & Assign modal, auto-select this new reviewer
+        if ($this->showEmpanelAndAssignModal || ($this->showDispatchModal && $this->targetApplication)) {
             if (!in_array($user->id, $this->selectedReviewerIds)) {
                 $this->selectedReviewerIds[] = $user->id;
             }
-            session()->flash('message', "Academic Reviewer '{$profile->name}' empanelled successfully and selected for review dispatch! Credentials dispatched to {$user->email}.");
+            session()->flash('message', "Academic Subject Expert '{$profile->name}' empanelled successfully and assigned to this review dispatch! Credentials dispatched to {$user->email}.");
         } else {
             session()->flash('message', "Academic Reviewer '{$profile->name}' empanelled successfully! Credentials and evaluation guidance dispatched to {$user->email}. (Temporary Password: {$plainPassword})");
         }
 
         $this->showCreateModal = false;
+        $this->showEmpanelAndAssignModal = false;
         $this->showInlineEmpanel = false;
+    }
+
+    public function openEmpanelAndAssignModal($prefilledSubject = null)
+    {
+        $this->reset(['name', 'email', 'university', 'phone', 'specialization']);
+        $this->subject = $prefilledSubject ?: ($this->targetApplication?->campaign?->department ?? '');
+        $this->academic_rank = 'Professor';
+        $this->country = 'Pakistan';
+        $this->resetErrorBag();
+        $this->showEmpanelAndAssignModal = true;
+    }
+
+    public function closeEmpanelAndAssignModal()
+    {
+        $this->showEmpanelAndAssignModal = false;
+        $this->resetErrorBag();
     }
 
     public function toggleInlineEmpanel($prefilledSubject = null)
     {
-        $this->showInlineEmpanel = !$this->showInlineEmpanel;
-        if ($this->showInlineEmpanel) {
-            $this->reset(['name', 'email', 'university', 'phone', 'specialization']);
-            $this->subject = $prefilledSubject ?: ($this->targetApplication?->campaign?->department ?? '');
-            $this->academic_rank = 'Professor';
-            $this->country = 'Pakistan';
-            $this->resetErrorBag();
-        }
+        $this->openEmpanelAndAssignModal($prefilledSubject);
     }
 
     public function toggleReviewerStatus($profileId)
@@ -204,6 +215,7 @@ class ReviewerManagement extends Component
     public function closeDispatchModal()
     {
         $this->showDispatchModal = false;
+        $this->showEmpanelAndAssignModal = false;
         $this->showInlineEmpanel = false;
         $this->targetApplicationId = null;
         $this->targetApplication = null;

@@ -56,20 +56,24 @@ class AuthController extends Controller
     {
         $user = Auth::user();
         
-        if ($user->hasRole('super-admin') || $user->hasRole('registrar')) {
+        if ($user->hasRole('super-admin')) {
             return redirect()->intended('/admin/dashboard');
+        }
+
+        if ($user->hasRole('registrar')) {
+            return redirect()->intended('/registrar/dashboard');
         }
 
         if ($user->hasRole('scrutiny-committee')) {
-            return redirect()->intended('/admin/dashboard');
+            return redirect()->intended('/scrutiny/dashboard');
         }
 
         if ($user->hasRole('appellate-committee')) {
-            return redirect()->intended('/admin/appeals');
+            return redirect()->intended('/appellate/dashboard');
         }
 
         if ($user->hasRole('selection-board-member')) {
-            return redirect()->intended('/admin/dashboard');
+            return redirect()->intended('/board/dashboard');
         }
 
         if ($user->hasRole('academic-reviewer')) {

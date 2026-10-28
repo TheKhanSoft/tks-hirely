@@ -84,11 +84,40 @@
             </form>
         </div>
     @else
+        <!-- Directory Category Tabs -->
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+            <button type="button" class="btn {{ $categorySection === 'ALL' ? 'btn-primary' : 'btn-secondary' }}" 
+                    style="padding: 0.45rem 0.85rem; font-size: 0.82rem; border-radius: var(--radius-sm);"
+                    wire:click="filterCategory('ALL')">
+                All User Accounts ({{ $totalCount }})
+            </button>
+            <button type="button" class="btn {{ $categorySection === 'STAFF' ? 'btn-primary' : 'btn-secondary' }}" 
+                    style="padding: 0.45rem 0.85rem; font-size: 0.82rem; border-radius: var(--radius-sm);"
+                    wire:click="filterCategory('STAFF')">
+                🏛️ Institutional Staff & Leadership ({{ $staffCount }})
+            </button>
+            <button type="button" class="btn {{ $categorySection === 'COMMITTEES' ? 'btn-primary' : 'btn-secondary' }}" 
+                    style="padding: 0.45rem 0.85rem; font-size: 0.82rem; border-radius: var(--radius-sm);"
+                    wire:click="filterCategory('COMMITTEES')">
+                👥 Committee Panelists ({{ $committeeCount }})
+            </button>
+            <button type="button" class="btn {{ $categorySection === 'REVIEWERS' ? 'btn-primary' : 'btn-secondary' }}" 
+                    style="padding: 0.45rem 0.85rem; font-size: 0.82rem; border-radius: var(--radius-sm);"
+                    wire:click="filterCategory('REVIEWERS')">
+                🌐 Empanelled Reviewers ({{ $reviewerCount }})
+            </button>
+            <button type="button" class="btn {{ $categorySection === 'APPLICANTS' ? 'btn-primary' : 'btn-secondary' }}" 
+                    style="padding: 0.45rem 0.85rem; font-size: 0.82rem; border-radius: var(--radius-sm);"
+                    wire:click="filterCategory('APPLICANTS')">
+                🎓 Job Applicants ({{ $applicantCount }})
+            </button>
+        </div>
+
         <!-- Filter Bar -->
         <div class="card mb-4" style="padding: 1rem 1.25rem;">
             <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 250px;">
-                    <input type="text" class="form-control" wire:model.live.debounce.300ms="search" placeholder="Search users by email address...">
+                    <input type="text" class="form-control" wire:model.live.debounce.300ms="search" placeholder="Search by name, email, department, or CNIC...">
                 </div>
                 <div style="width: 200px;">
                     <select class="form-control form-select" wire:model.live="roleFilter">
@@ -107,29 +136,80 @@
                 </div>
                 <div>
                     <span style="font-size: 0.85rem; color: var(--color-text-secondary); font-weight: 600;">
-                        Showing {{ count($users) }} user{{ count($users) === 1 ? '' : 's' }}
+                        Showing {{ count($users) }} record{{ count($users) === 1 ? '' : 's' }}
                     </span>
                 </div>
             </div>
         </div>
 
         <!-- Users Table -->
-        <x-table :headers="['Email Address Reference', 'Mapped Role', 'Active Status', 'Date Created', 'Actions']">
+        <x-table :headers="['Personnel / User Reference', 'Classification', 'Department / Institution', 'Role', 'Status', 'Actions']">
             @forelse($users as $u)
+                @php
+                    $isStaff = $u->hasAnyRole(['registrar', 'super-admin']);
+                    $isCommittee = $u->hasAnyRole(['scrutiny-committee', 'appellate-committee', 'selection-board-member']);
+                    $isReviewer = $u->hasRole('academic-reviewer') || $u->reviewerProfile;
+                    $isApplicant = $u->hasRole('applicant') && !$isStaff && !$isCommittee && !$isReviewer;
+
+                    $displayName = $u->reviewerProfile?->name 
+                        ?? ($u->basicInfo?->first_name ? ($u->basicInfo->first_name . ' ' . $u->basicInfo->last_name) : null);
+                    
+                    $affiliation = $u->reviewerProfile?->university 
+                        ?? ($isStaff || $isCommittee ? 'Main Campus / Head Office' : null);
+
+                    $country = $u->reviewerProfile?->country 
+                        ?? ($u->basicInfo?->nationality ?: 'Domestic / Local');
+                @endphp
                 <tr>
                     <td>
-                        <div style="display: flex; align-items: center; gap: 0.6rem;">
-                            <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(99,102,241,0.15); color: var(--primary); font-weight: 700; font-size: 0.8rem; display: flex; align-items: center; justify-content: center;">
-                                {{ strtoupper(substr($u->email, 0, 1)) }}
+                        <div style="display: flex; align-items: center; gap: 0.65rem;">
+                            <div style="width: 34px; height: 34px; border-radius: 50%; background: rgba(99,102,241,0.15); color: var(--primary); font-weight: 800; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                {{ strtoupper(substr($displayName ?: $u->email, 0, 1)) }}
                             </div>
-                            <strong style="color: var(--color-text-primary)">{{ $u->email }}</strong>
-                            @if(auth()->id() === $u->id)
-                                <span class="badge" style="background: rgba(6,182,212,0.15); color: var(--secondary); font-size: 0.7rem;">You</span>
-                            @endif
+                            <div style="overflow: hidden;">
+                                @if($displayName)
+                                    <div style="font-weight: 700; color: var(--color-text-primary); font-size: 0.92rem;">
+                                        {{ $displayName }}
+                                    </div>
+                                @endif
+                                <div style="font-size: 0.8rem; color: var(--color-text-secondary); display: flex; align-items: center; gap: 0.35rem;">
+                                    <span>{{ $u->email }}</span>
+                                    @if(auth()->id() === $u->id)
+                                        <span class="badge" style="background: rgba(6,182,212,0.15); color: var(--secondary); font-size: 0.68rem; padding: 0.1rem 0.35rem;">You</span>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
                     </td>
                     <td>
-                        <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25); text-transform: capitalize;">
+                        @if($isStaff)
+                            <span class="member-category-badge internal" style="font-size: 0.72rem;">
+                                🏛️ Leadership & Staff
+                            </span>
+                        @elseif($isCommittee)
+                            <span class="member-category-badge internal" style="font-size: 0.72rem;">
+                                👥 Committee Panelist
+                            </span>
+                        @elseif($isReviewer)
+                            <span class="member-category-badge external" style="font-size: 0.72rem;">
+                                🌐 External Reviewer
+                            </span>
+                        @else
+                            <span class="badge" style="background: rgba(255,255,255,0.06); color: var(--color-text-secondary); font-size: 0.72rem; border: 1px solid var(--border-color);">
+                                🎓 Job Applicant
+                            </span>
+                        @endif
+                    </td>
+                    <td>
+                        @if($affiliation)
+                            <div style="font-size: 0.85rem; font-weight: 600; color: var(--color-text-primary);">{{ $affiliation }}</div>
+                            <span class="country-pill" style="font-size: 0.7rem; margin-top: 0.15rem;">{{ $country }}</span>
+                        @else
+                            <span style="font-size: 0.8rem; color: var(--color-text-muted);">Independent / Direct Account</span>
+                        @endif
+                    </td>
+                    <td>
+                        <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25); text-transform: capitalize; font-size: 0.75rem;">
                             {{ str_replace('-', ' ', $u->roles->first()?->name ?? 'None') }}
                         </span>
                     </td>
@@ -143,20 +223,133 @@
                             {{ $u->is_active ? 'Active' : 'Blocked' }}
                         </button>
                     </td>
-                    <td><span style="font-size: 0.85rem; color: var(--color-text-secondary); font-family: monospace;">{{ $u->created_at?->format('Y-m-d H:i') ?: 'System default' }}</span></td>
                     <td>
                         <div class="flex gap-2">
-                            <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditUserForm({{ $u->id }})">Edit</button>
+                            <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.3rem;" wire:click="viewPersonnelDetails({{ $u->id }})">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                <span>Dossier</span>
+                            </button>
+                            <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.78rem;" wire:click="openEditUserForm({{ $u->id }})">Edit</button>
                             @if(auth()->id() !== $u->id)
-                                <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deleteUser({{ $u->id }})" onclick="confirm('Are you sure you want to delete this user?') || event.stopImmediatePropagation()">Delete</button>
+                                <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.78rem;" wire:click="deleteUser({{ $u->id }})" onclick="confirm('Are you sure you want to delete this user?') || event.stopImmediatePropagation()">Delete</button>
                             @endif
                         </div>
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="5" class="text-center" style="padding: 2.5rem; color: var(--color-text-secondary);">No user accounts found.</td></tr>
+                <tr><td colspan="6" class="text-center" style="padding: 2.5rem; color: var(--color-text-secondary);">No user accounts found matching your filter criteria.</td></tr>
             @endforelse
         </x-table>
+    @endif
+
+    <!-- Personnel Profile Dossier Modal -->
+    @if($isPersonnelModalOpen && $selectedPersonnel)
+        @php
+            $pName = $selectedPersonnel->reviewerProfile?->name 
+                ?? ($selectedPersonnel->basicInfo?->first_name ? ($selectedPersonnel->basicInfo->first_name . ' ' . $selectedPersonnel->basicInfo->last_name) : $selectedPersonnel->email);
+            $pAffil = $selectedPersonnel->reviewerProfile?->university 
+                ?? ($selectedPersonnel->hasAnyRole(['registrar', 'super-admin', 'scrutiny-committee', 'selection-board-member', 'appellate-committee']) ? 'Main Campus / Head Office' : 'Independent');
+            $pCountry = $selectedPersonnel->reviewerProfile?->country 
+                ?? ($selectedPersonnel->basicInfo?->nationality ?: 'Domestic / Local');
+        @endphp
+        <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1.5rem; backdrop-filter: blur(8px);">
+            <div class="card" style="width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; border-color: var(--primary); box-shadow: 0 20px 48px -10px rgba(0, 0, 0, 0.8), 0 0 20px var(--primary-glow);">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.25rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(99,102,241,0.2); color: var(--primary); font-weight: 800; font-size: 1.15rem; display: flex; align-items: center; justify-content: center;">
+                            {{ strtoupper(substr($pName, 0, 1)) }}
+                        </div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: var(--color-text-primary);">
+                                {{ $pName }}
+                            </h3>
+                            <div style="font-size: 0.82rem; color: var(--color-text-secondary);">
+                                {{ $selectedPersonnel->email }} &bull; Account #{{ $selectedPersonnel->id }}
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary" style="padding: 0.35rem 0.65rem;" wire:click="closePersonnelModal">
+                        ✕
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem;">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700; color: var(--color-text-muted);">Affiliation & Office</div>
+                        <div style="font-weight: 700; color: var(--color-text-primary); margin-top: 0.2rem;">{{ $pAffil }}</div>
+                        <span class="country-pill" style="margin-top: 0.35rem;">{{ $pCountry }}</span>
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem;">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700; color: var(--color-text-muted);">Assigned System Role</div>
+                        <div style="font-weight: 700; color: var(--primary); margin-top: 0.2rem; text-transform: capitalize;">
+                            {{ str_replace('-', ' ', $selectedPersonnel->roles->pluck('name')->join(', ') ?: 'No Role') }}
+                        </div>
+                        <div style="font-size: 0.78rem; color: var(--color-text-secondary); margin-top: 0.25rem;">
+                            Status: <strong style="color: {{ $selectedPersonnel->is_active ? 'var(--success)' : 'var(--danger)' }}">{{ $selectedPersonnel->is_active ? 'Active' : 'Blocked' }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Details -->
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem; margin-bottom: 1rem;">
+                    <div style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700; color: var(--color-text-muted); margin-bottom: 0.5rem;">Contact & Identification Reference</div>
+                    <div class="grid grid-cols-2 gap-3" style="font-size: 0.84rem;">
+                        <div>
+                            <span style="color: var(--color-text-muted);">Phone:</span> 
+                            <strong style="color: var(--color-text-primary);">{{ $selectedPersonnel->basicInfo?->phone_number ?? ($selectedPersonnel->reviewerProfile?->phone ?? 'N/A') }}</strong>
+                        </div>
+                        <div>
+                            <span style="color: var(--color-text-muted);">CNIC / Passport:</span> 
+                            <strong style="color: var(--color-text-primary);">{{ $selectedPersonnel->basicInfo?->cnic_number ?? 'N/A' }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Committee Panels Assignment Ledger -->
+                @if($selectedPersonnel->committees && $selectedPersonnel->committees->isNotEmpty())
+                    <div style="background: rgba(6,182,212,0.05); border: 1px solid rgba(6,182,212,0.25); border-radius: var(--radius-sm); padding: 0.85rem; margin-bottom: 1rem;">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--secondary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                            <span>Active Committee Panel Assignments</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            @foreach($selectedPersonnel->committees as $comm)
+                                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; background: rgba(255,255,255,0.03); padding: 0.4rem 0.6rem; border-radius: 4px;">
+                                    <div>
+                                        <strong style="color: var(--color-text-primary);">{{ $comm->campaign?->title ?? 'Campaign #'.$comm->campaign_id }}</strong>
+                                        <span style="font-size: 0.72rem; color: var(--color-text-muted); margin-left: 0.3rem;">({{ $comm->campaign?->job_code }})</span>
+                                    </div>
+                                    <span class="badge" style="background: {{ $comm->is_appellate_panel ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)' }}; color: {{ $comm->is_appellate_panel ? 'var(--warning)' : 'var(--success)' }}; font-size: 0.7rem;">
+                                        {{ $comm->is_appellate_panel ? 'Appellate Panel' : 'Scrutiny Panel' }}
+                                    </span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Reviewer Dossier if applicable -->
+                @if($selectedPersonnel->reviewerProfile)
+                    <div style="background: rgba(139,92,246,0.05); border: 1px solid rgba(139,92,246,0.25); border-radius: var(--radius-sm); padding: 0.85rem; margin-bottom: 1rem;">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: #c084fc; margin-bottom: 0.4rem;">
+                            Empanelled Academic Reviewer Dossier
+                        </div>
+                        <div style="font-size: 0.82rem; color: var(--color-text-secondary); line-height: 1.5;">
+                            <div>Rank: <strong style="color: var(--color-text-primary);">{{ $selectedPersonnel->reviewerProfile->academic_rank }}</strong></div>
+                            <div>Field / Subject: <strong style="color: var(--color-text-primary);">{{ $selectedPersonnel->reviewerProfile->subject }}</strong></div>
+                            <div>Specialization: <strong style="color: var(--color-text-primary);">{{ $selectedPersonnel->reviewerProfile->specialization ?: 'Generalist' }}</strong></div>
+                        </div>
+                    </div>
+                @endif
+
+                <div style="display: flex; justify-content: flex-end; margin-top: 1.25rem;">
+                    <button type="button" class="btn btn-secondary" wire:click="closePersonnelModal">
+                        Close Dossier
+                    </button>
+                </div>
+            </div>
+        </div>
     @endif
 </div>
 

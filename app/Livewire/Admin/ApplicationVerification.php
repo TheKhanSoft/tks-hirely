@@ -103,7 +103,8 @@ class ApplicationVerification extends Component
         ]);
 
         session()->flash('message', 'Candidate marked as ELIGIBLE successfully.');
-        return redirect()->to('/admin/dashboard');
+        $redirectUrl = auth()->user()->hasRole('scrutiny-committee') ? '/scrutiny/dashboard' : '/admin/dashboard';
+        return redirect()->to($redirectUrl);
     }
 
     public function openDisqualificationForm()
@@ -126,7 +127,8 @@ class ApplicationVerification extends Component
 
         session()->flash('message', 'Candidate disqualified and marked as INELIGIBLE. 7-day appellate window has opened.');
         $this->showDisqualificationModal = false;
-        return redirect()->to('/admin/dashboard');
+        $redirectUrl = auth()->user()->hasRole('scrutiny-committee') ? '/scrutiny/dashboard' : '/admin/dashboard';
+        return redirect()->to($redirectUrl);
     }
 
     public function render()

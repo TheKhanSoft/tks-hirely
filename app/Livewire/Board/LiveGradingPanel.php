@@ -148,7 +148,8 @@ class LiveGradingPanel extends Component
         );
 
         session()->flash('message', 'Candidate evaluation marks submitted successfully.');
-        return redirect()->to('/admin/dashboard');
+        $redirectUrl = auth()->user()->hasRole('selection-board-member') ? '/board/dashboard' : '/admin/dashboard';
+        return redirect()->to($redirectUrl);
     }
 
     public function render()

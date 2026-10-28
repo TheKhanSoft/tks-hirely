@@ -121,12 +121,31 @@
         </div>
 
         <!-- Profiles Table -->
-        <x-table :headers="['Candidate Reference', 'Track Type', 'CNIC Number Reference', 'Lock Status', 'Action']">
+        <x-table :headers="['Candidate Reference', 'Applied Vacancies', 'Track Type', 'CNIC Reference', 'Lock Status', 'Action']">
             @forelse($profiles as $basicInfo)
                 <tr>
                     <td>
                         <strong style="color: var(--color-text-primary)">{{ $basicInfo->first_name }} {{ $basicInfo->last_name }}</strong><br>
                         <small style="color: var(--color-text-secondary)">{{ $basicInfo->user->email }}</small>
+                    </td>
+                    <td>
+                        @php
+                            $apps = $basicInfo->user->applications ?? collect();
+                        @endphp
+                        @if($apps->isNotEmpty())
+                            @foreach($apps->take(2) as $app)
+                                <div style="margin-bottom: 0.25rem;">
+                                    <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); font-size: 0.72rem; border: 1px solid rgba(6,182,212,0.25);">
+                                        {{ $app->campaign?->title ?? 'Campaign #'.$app->campaign_id }}
+                                    </span>
+                                </div>
+                            @endforeach
+                            @if($apps->count() > 2)
+                                <small style="color: var(--color-text-muted);">+{{ $apps->count() - 2 }} more application(s)</small>
+                            @endif
+                        @else
+                            <span style="font-size: 0.78rem; color: var(--color-text-muted);">Dossier registered (No application yet)</span>
+                        @endif
                     </td>
                     <td>
                         <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25);">
@@ -152,7 +171,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="5" class="text-center" style="padding: 2.5rem; color: var(--color-text-secondary);">No candidate profiles found.</td></tr>
+                <tr><td colspan="6" class="text-center" style="padding: 2.5rem; color: var(--color-text-secondary);">No applicant candidate profiles found.</td></tr>
             @endforelse
         </x-table>
     @endif

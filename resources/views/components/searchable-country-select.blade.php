@@ -52,7 +52,6 @@
     @if($label)
         <label for="{{ $id }}" class="form-label" style="display: flex; align-items: center; justify-content: space-between; font-size: 0.86rem; font-weight: 700; color: var(--color-text-secondary); margin-bottom: 0.4rem;">
             <span>{{ $label }}</span>
-            <span style="font-size: 0.72rem; color: var(--secondary); font-weight: 600;">Searchable List</span>
         </label>
     @endif
 
@@ -136,9 +135,6 @@
                         <span x-text="country"></span>
                     </div>
 
-                    <template x-if="priority.includes(country) && selected !== country">
-                        <span style="font-size: 0.68rem; padding: 0.1rem 0.4rem; border-radius: 4px; background: rgba(99, 102, 241, 0.1); color: var(--primary); font-weight: 600;">Priority</span>
-                    </template>
                     <template x-if="selected === country">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="20 6 9 17 4 12"></polyline>

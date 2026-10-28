@@ -24,7 +24,7 @@
                 <span>•</span>
                 <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary);">{{ $application->campaign->track_type }} Track</span>
             </div>
-            @if($application->campaign->track_type === 'ACADEMIC')
+            @if($application->campaign->track_type === 'ACADEMIC' && (auth()->user()->can('manage-reviewers') || auth()->user()->hasAnyRole(['super-admin', 'registrar'])))
                 <div style="margin-top: 0.75rem; padding: 0.5rem 0.75rem; background: rgba(6,182,212,0.08); border: 1px solid var(--secondary-glow); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--secondary);">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">

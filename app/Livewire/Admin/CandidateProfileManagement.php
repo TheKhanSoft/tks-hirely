@@ -42,7 +42,18 @@ class CandidateProfileManagement extends Component
 
     public function loadAuxiliaryData()
     {
-        $this->availableUsers = User::doesntHave('basicInfo')->role('applicant')->get();
+        // Strictly applicant accounts who are true job candidates (excluding institutional staff/committee/reviewers)
+        $this->availableUsers = User::doesntHave('basicInfo')
+            ->role('applicant')
+            ->whereDoesntHave('roles', fn($q) => $q->whereIn('name', [
+                'super-admin',
+                'registrar',
+                'scrutiny-committee',
+                'appellate-committee',
+                'selection-board-member',
+                'academic-reviewer',
+            ]))
+            ->get();
     }
 
     public function resetForm()
@@ -167,7 +178,21 @@ class CandidateProfileManagement extends Component
 
     public function render()
     {
-        $query = BasicInfo::with('user');
+        // 🔒 STRICT SEPARATION: Only query genuine job applicants and recruitment candidates.
+        // Institutional employees, committee members, and academic reviewers are managed in User Accounts & Reviewer Directory.
+        $query = BasicInfo::whereHas('user', function ($uq) {
+            $uq->where(function ($sub) {
+                $sub->whereHas('roles', fn($rq) => $rq->where('name', 'applicant'))
+                    ->orWhereHas('applications');
+            })->whereDoesntHave('roles', fn($rq) => $rq->whereIn('name', [
+                'super-admin',
+                'registrar',
+                'scrutiny-committee',
+                'appellate-committee',
+                'selection-board-member',
+                'academic-reviewer',
+            ]));
+        })->with(['user.roles', 'user.applications.campaign', 'degrees']);
 
         if (!empty($this->trackFilter)) {
             $query->where('track_type', $this->trackFilter);
