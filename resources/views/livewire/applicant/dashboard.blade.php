@@ -697,22 +697,34 @@
     @endif
 
     <!-- ============================================================== -->
-    <!-- MODAL 2: PRINT-READY OFFICIAL 3-PART BANK CHALLAN SLIP         -->
+    <!-- MODAL 2: PRINT-READY OFFICIAL CHALLAN / PAYMENT RECEIPT        -->
     <!-- ============================================================== -->
     @if($showSlipModal && $selectedSlipApp)
+        @php
+            $isPaid = ($selectedSlipApp->billingLedger?->status === 'SETTLED');
+        @endphp
         <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 1050; padding: 1.5rem; overflow-y: auto;">
-            <div class="card print-area" style="width: 100%; max-width: 960px; max-height: 92vh; display: flex; flex-direction: column; background: #ffffff; color: #0f172a; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); overflow: hidden; padding: 0;">
+            <div class="card print-area" style="width: 100%; max-width: {{ $isPaid ? '780px' : '960px' }}; max-height: 92vh; display: flex; flex-direction: column; background: #ffffff; color: #0f172a; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); overflow: hidden; padding: 0;">
                 <!-- Top Toolbar (Hidden on print) -->
                 <div class="no-print flex justify-between align-center" style="padding: 1rem 1.5rem; background: var(--bg-surface); border-bottom: 1px solid var(--border-color); color: var(--color-text-primary);">
                     <div class="flex align-center gap-2">
-                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: var(--secondary-light); color: var(--secondary);">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
-                                <path d="M6 6h10"/>
-                                <path d="M6 10h10"/>
-                            </svg>
+                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: {{ $isPaid ? 'rgba(16,185,129,0.15)' : 'var(--secondary-light)' }}; color: {{ $isPaid ? 'var(--success)' : 'var(--secondary)' }};">
+                            @if($isPaid)
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                    <polyline points="22 4 12 14.01 9 11.01"/>
+                                </svg>
+                            @else
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
+                                    <path d="M6 6h10"/>
+                                    <path d="M6 10h10"/>
+                                </svg>
+                            @endif
                         </span>
-                        <strong style="font-size: 1.05rem;">Official Bank Challan / Deposit Slip</strong>
+                        <strong style="font-size: 1.05rem;">
+                            {{ $isPaid ? 'Official Fee Payment Receipt & Deposit Acknowledgement' : 'Official Bank Challan / Deposit Slip' }}
+                        </strong>
                     </div>
 
                     <div class="flex align-center gap-2">
@@ -722,105 +734,239 @@
                                 <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
                                 <rect width="12" height="8" x="6" y="14"/>
                             </svg>
-                            <span>Print Slip</span>
+                            <span>{{ $isPaid ? 'Print Official Receipt' : 'Print Slip' }}</span>
                         </button>
                         <button type="button" class="btn btn-secondary btn-sm" wire:click="closeSlipModal">✕ Close</button>
                     </div>
                 </div>
 
-                <!-- 3-Part Perforated Institutional Slip Body -->
+                <!-- Body Area -->
                 <div style="padding: 1.5rem; overflow-y: auto; flex: 1;">
-                    <div class="slip-triplicate">
-                        @php
-                            $copies = [
-                                1 => '1. CANDIDATE COPY',
-                                2 => '2. BANK BRANCH COPY',
-                                3 => '3. UNIVERSITY TREASURY COPY'
-                            ];
-                        @endphp
+                    @if($isPaid)
+                        <!-- ============================================================== -->
+                        <!-- PAID STATE: SINGLE OFFICIAL PAYMENT RECEIPT                    -->
+                        <!-- ============================================================== -->
+                        <div style="border: 2px solid #0f172a; border-radius: 8px; padding: 2rem; position: relative; background: #ffffff; color: #0f172a;">
+                            <!-- Watermark Seal -->
+                            <div style="position: absolute; right: 2rem; top: 7rem; opacity: 0.08; pointer-events: none; font-size: 5rem; font-weight: 900; transform: rotate(-25deg); color: #059669; border: 6px dashed #059669; padding: 0.5rem 1.5rem; border-radius: 12px;">
+                                PAID
+                            </div>
 
-                        @foreach($copies as $copyNum => $copyTitle)
-                            <div class="slip-part">
-                                <div class="slip-part-watermark">HIRELY</div>
-
-                                <!-- Slip Header -->
-                                <div style="text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 0.65rem; margin-bottom: 0.75rem;">
-                                    <div style="font-weight: 800; font-size: 0.85rem; letter-spacing: -0.02em; color: #0f172a;">HIRELY RECRUITMENT</div>
-                                    <div style="font-size: 0.68rem; text-transform: uppercase; font-weight: 700; color: #475569;">1Link / Kuickpay Switch</div>
-                                    <div style="background: #0f172a; color: #ffffff; font-weight: 800; font-size: 0.65rem; padding: 0.15rem 0.4rem; border-radius: 3px; display: inline-block; margin-top: 0.35rem; letter-spacing: 0.05em;">
-                                        {{ $copyTitle }}
-                                    </div>
+                            <!-- Institutional Header -->
+                            <div style="text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 1.25rem; margin-bottom: 1.5rem;">
+                                <div style="display: inline-block; font-size: 0.72rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.15em; color: #475569; margin-bottom: 0.25rem;">
+                                    Office of the Treasurer & Registrar Secretariat
                                 </div>
+                                <h2 style="font-size: 1.6rem; font-weight: 900; letter-spacing: -0.02em; color: #0f172a; margin: 0;">
+                                    OFFICIAL APPLICATION FEE PAYMENT RECEIPT
+                                </h2>
+                                <p style="font-size: 0.82rem; color: #64748b; margin: 0.35rem 0 0;">
+                                    Electronic Fee Settlement & Clearance Certificate (1Link / Kuickpay Switch)
+                                </p>
+                            </div>
 
-                                <!-- Monospace Reference Box -->
-                                <div style="background: #f1f5f9; border: 1px dashed #94a3b8; border-radius: 4px; padding: 0.5rem; text-align: center; margin-bottom: 0.75rem;">
-                                    <span style="font-size: 0.62rem; text-transform: uppercase; font-weight: 700; color: #64748b; letter-spacing: 0.05em;">1Link Consumer ID</span>
-                                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; font-weight: 800; color: #0284c7; letter-spacing: 1px;">
+                            <!-- Reference Numbers Bar -->
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 6px; padding: 0.85rem 1rem; margin-bottom: 1.5rem; font-size: 0.82rem;">
+                                <div>
+                                    <span style="font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: #64748b; display: block;">1Link Consumer ID</span>
+                                    <strong style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; color: #0284c7;">
                                         {{ $selectedSlipApp->billingLedger?->consumer_id }}
-                                    </div>
-                                    <div style="font-size: 0.62rem; color: #475569; margin-top: 2px;">Payable at any Bank App / ATM</div>
+                                    </strong>
                                 </div>
+                                <div>
+                                    <span style="font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: #64748b; display: block;">Bank Transaction Ref</span>
+                                    <strong style="font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; color: #0f172a;">
+                                        {{ $selectedSlipApp->billingLedger?->transaction_id ?? 'N/A' }}
+                                    </strong>
+                                </div>
+                                <div>
+                                    <span style="font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: #64748b; display: block;">Settlement Date / Time</span>
+                                    <strong style="font-size: 0.9rem; color: #0f172a;">
+                                        {{ $selectedSlipApp->billingLedger?->updated_at?->format('d M Y, h:i A') ?? now()->format('d M Y') }}
+                                    </strong>
+                                </div>
+                            </div>
 
-                                <!-- Data Grid -->
-                                <div style="display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.74rem;">
-                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
-                                        <span style="color: #64748b;">Candidate:</span>
-                                        <strong style="color: #0f172a; text-align: right;">{{ $selectedSlipApp->user->basicInfo?->first_name }} {{ $selectedSlipApp->user->basicInfo?->last_name }}</strong>
-                                    </div>
-
-                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
-                                        <span style="color: #64748b;">CNIC:</span>
-                                        <strong style="font-family: 'JetBrains Mono', monospace; color: #0f172a;">{{ $selectedSlipApp->user->basicInfo?->cnic_number }}</strong>
-                                    </div>
-
-                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
-                                        <span style="color: #64748b;">Position:</span>
-                                        <strong style="color: #0f172a; text-align: right; max-width: 140px;">{{ $selectedSlipApp->campaign->title }}</strong>
-                                    </div>
-
-                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
-                                        <span style="color: #64748b;">Job Code:</span>
-                                        <strong style="font-family: 'JetBrains Mono', monospace; color: #0f172a;">{{ $selectedSlipApp->campaign->job_code }}</strong>
-                                    </div>
-
-                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
-                                        <span style="color: #64748b;">Department:</span>
-                                        <span style="color: #0f172a; text-align: right;">{{ $selectedSlipApp->campaign->department }}</span>
-                                    </div>
-
-                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
-                                        <span style="color: #64748b;">Due Date:</span>
-                                        <span style="color: #0f172a;">{{ $selectedSlipApp->campaign->closing_date?->format('d M Y') }}</span>
-                                    </div>
-
-                                    <div style="display: flex; justify-content: space-between; background: #fef3c7; padding: 0.4rem; border-radius: 4px; margin-top: 0.35rem;">
-                                        <span style="font-weight: 700; color: #92400e;">Fee Amount:</span>
-                                        <strong style="font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; color: #b45309;">
-                                            PKR {{ number_format($selectedSlipApp->billingLedger?->amount ?? $selectedSlipApp->campaign->application_fee) }}
+                            <!-- Candidate & Position Data Grid -->
+                            <div style="border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; margin-bottom: 1.5rem; font-size: 0.85rem;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid #e2e8f0;">
+                                    <div style="padding: 0.65rem 1rem; border-right: 1px solid #e2e8f0; background: #fafafa;">
+                                        <span style="color: #64748b; font-size: 0.75rem; display: block;">Candidate Full Name:</span>
+                                        <strong style="color: #0f172a; font-size: 0.95rem;">
+                                            {{ $selectedSlipApp->user->basicInfo ? trim($selectedSlipApp->user->basicInfo->first_name . ' ' . $selectedSlipApp->user->basicInfo->last_name) : $selectedSlipApp->user->email }}
                                         </strong>
                                     </div>
+                                    <div style="padding: 0.65rem 1rem; background: #fafafa;">
+                                        <span style="color: #64748b; font-size: 0.75rem; display: block;">CNIC / National Identity:</span>
+                                        <strong style="font-family: 'JetBrains Mono', monospace; color: #0f172a; font-size: 0.95rem;">
+                                            {{ $selectedSlipApp->user->basicInfo?->cnic_number ?? 'N/A' }}
+                                        </strong>
+                                    </div>
+                                </div>
 
-                                    <div style="text-align: center; margin-top: 0.5rem;">
-                                        @if($selectedSlipApp->billingLedger?->status === 'SETTLED')
-                                            <span style="background: #dcfce7; color: #15803d; font-weight: 800; font-size: 0.68rem; padding: 0.2rem 0.5rem; border-radius: 4px; border: 1px solid #86efac; display: inline-block;">
-                                                ✓ PAID (TXN: {{ substr($selectedSlipApp->billingLedger->transaction_id, 0, 14) }})
-                                            </span>
-                                        @else
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid #e2e8f0;">
+                                    <div style="padding: 0.65rem 1rem; border-right: 1px solid #e2e8f0;">
+                                        <span style="color: #64748b; font-size: 0.75rem; display: block;">Position Applied For:</span>
+                                        <strong style="color: #0f172a;">{{ $selectedSlipApp->campaign->title }}</strong>
+                                    </div>
+                                    <div style="padding: 0.65rem 1rem;">
+                                        <span style="color: #64748b; font-size: 0.75rem; display: block;">Job Code & Track:</span>
+                                        <strong style="font-family: 'JetBrains Mono', monospace; color: #0284c7;">
+                                            {{ $selectedSlipApp->campaign->job_code }} ({{ $selectedSlipApp->campaign->track_type }} Track)
+                                        </strong>
+                                    </div>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1fr 1fr;">
+                                    <div style="padding: 0.65rem 1rem; border-right: 1px solid #e2e8f0;">
+                                        <span style="color: #64748b; font-size: 0.75rem; display: block;">Academic Discipline / Department:</span>
+                                        <strong style="color: #0f172a;">{{ $selectedSlipApp->campaign->department }}</strong>
+                                    </div>
+                                    <div style="padding: 0.65rem 1rem;">
+                                        <span style="color: #64748b; font-size: 0.75rem; display: block;">Application Dossier Status:</span>
+                                        <span style="color: #059669; font-weight: 700; text-transform: uppercase;">
+                                            Fee Settled ({{ $selectedSlipApp->status }})
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Financial Breakdown -->
+                            <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 6px; padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                                <div>
+                                    <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: #166534; display: block;">
+                                        Application Processing Fee (Total Paid)
+                                    </span>
+                                    <strong style="font-family: 'JetBrains Mono', monospace; font-size: 1.45rem; color: #15803d;">
+                                        PKR {{ number_format($selectedSlipApp->billingLedger?->amount ?? $selectedSlipApp->campaign->application_fee, 2) }}
+                                    </strong>
+                                </div>
+
+                                <div style="text-align: right;">
+                                    <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: #15803d; color: #ffffff; padding: 0.45rem 0.9rem; border-radius: 9999px; font-weight: 800; font-size: 0.82rem; letter-spacing: 0.05em;">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="20 6 9 17 4 12"/>
+                                        </svg>
+                                        <span>PAID & CLEARED</span>
+                                    </div>
+                                    <div style="font-size: 0.72rem; color: #166534; margin-top: 0.35rem; font-weight: 600;">
+                                        Method: 1Link / Kuickpay Switch
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Institutional Attestation & Signatures -->
+                            <div style="border-top: 1.5px solid #cbd5e1; padding-top: 1.25rem; margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: flex-end; font-size: 0.75rem; color: #64748b;">
+                                <div style="max-width: 440px; line-height: 1.5;">
+                                    <strong style="color: #0f172a; display: block; margin-bottom: 0.2rem;">Official Electronic Acknowledgement:</strong>
+                                    This computer-generated receipt confirms the successful clearance of recruitment examination and processing fees. It is valid without physical treasury signatures. Please retain for scrutiny and interview records.
+                                </div>
+                                <div style="text-align: center; border-top: 1px solid #94a3b8; padding-top: 0.4rem; min-width: 170px;">
+                                    <strong style="color: #0f172a; font-size: 0.82rem; display: block;">Treasurer Secretariat</strong>
+                                    <span style="font-size: 0.7rem; color: #64748b;">University Recruitment OS</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    @else
+                        <!-- ============================================================== -->
+                        <!-- UNPAID STATE: 3-PART PERFORATED BANK CHALLAN SLIP             -->
+                        <!-- ============================================================== -->
+                        <div class="slip-triplicate">
+                            @php
+                                $copies = [
+                                    1 => '1. CANDIDATE COPY',
+                                    2 => '2. BANK BRANCH COPY',
+                                    3 => '3. UNIVERSITY TREASURY COPY'
+                                ];
+                            @endphp
+
+                            @foreach($copies as $copyNum => $copyTitle)
+                                <div class="slip-part">
+                                    <div class="slip-part-watermark">HIRELY</div>
+
+                                    <!-- Slip Header -->
+                                    <div style="text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 0.65rem; margin-bottom: 0.75rem;">
+                                        <div style="font-weight: 800; font-size: 0.85rem; letter-spacing: -0.02em; color: #0f172a;">HIRELY RECRUITMENT</div>
+                                        <div style="font-size: 0.68rem; text-transform: uppercase; font-weight: 700; color: #475569;">1Link / Kuickpay Switch</div>
+                                        <div style="background: #0f172a; color: #ffffff; font-weight: 800; font-size: 0.65rem; padding: 0.15rem 0.4rem; border-radius: 3px; display: inline-block; margin-top: 0.35rem; letter-spacing: 0.05em;">
+                                            {{ $copyTitle }}
+                                        </div>
+                                    </div>
+
+                                    <!-- Monospace Reference Box -->
+                                    <div style="background: #f1f5f9; border: 1px dashed #94a3b8; border-radius: 4px; padding: 0.5rem; text-align: center; margin-bottom: 0.75rem;">
+                                        <span style="font-size: 0.62rem; text-transform: uppercase; font-weight: 700; color: #64748b; letter-spacing: 0.05em;">1Link Consumer ID</span>
+                                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; font-weight: 800; color: #0284c7; letter-spacing: 1px;">
+                                            {{ $selectedSlipApp->billingLedger?->consumer_id }}
+                                        </div>
+                                        <div style="font-size: 0.62rem; color: #475569; margin-top: 2px;">Payable at any Bank App / ATM</div>
+                                    </div>
+
+                                    <!-- Data Grid -->
+                                    <div style="display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.74rem;">
+                                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
+                                            <span style="color: #64748b;">Candidate:</span>
+                                            <strong style="color: #0f172a; text-align: right;">{{ $selectedSlipApp->user->basicInfo?->first_name }} {{ $selectedSlipApp->user->basicInfo?->last_name }}</strong>
+                                        </div>
+
+                                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
+                                            <span style="color: #64748b;">CNIC:</span>
+                                            <strong style="font-family: 'JetBrains Mono', monospace; color: #0f172a;">{{ $selectedSlipApp->user->basicInfo?->cnic_number }}</strong>
+                                        </div>
+
+                                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
+                                            <span style="color: #64748b;">Position:</span>
+                                            <strong style="color: #0f172a; text-align: right; max-width: 140px;">{{ $selectedSlipApp->campaign->title }}</strong>
+                                        </div>
+
+                                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
+                                            <span style="color: #64748b;">Job Code:</span>
+                                            <strong style="font-family: 'JetBrains Mono', monospace; color: #0f172a;">{{ $selectedSlipApp->campaign->job_code }}</strong>
+                                        </div>
+
+                                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
+                                            <span style="color: #64748b;">Department:</span>
+                                            <span style="color: #0f172a; text-align: right;">{{ $selectedSlipApp->campaign->department }}</span>
+                                        </div>
+
+                                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
+                                            <span style="color: #64748b;">Due Date:</span>
+                                            <span style="color: #0f172a;">{{ $selectedSlipApp->campaign->closing_date?->format('d M Y') }}</span>
+                                        </div>
+
+                                        <div style="display: flex; justify-content: space-between; background: #fef3c7; padding: 0.4rem; border-radius: 4px; margin-top: 0.35rem;">
+                                            <span style="font-weight: 700; color: #92400e;">Fee Amount:</span>
+                                            <strong style="font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; color: #b45309;">
+                                                PKR {{ number_format($selectedSlipApp->billingLedger?->amount ?? $selectedSlipApp->campaign->application_fee) }}
+                                            </strong>
+                                        </div>
+
+                                        <!-- Differentiated Show vs Print Badge -->
+                                        <!-- ON SCREEN (SHOW): Web badge with reminder -->
+                                        <div class="screen-only" style="text-align: center; margin-top: 0.5rem;">
                                             <span style="background: #fef3c7; color: #b45309; font-weight: 800; font-size: 0.68rem; padding: 0.2rem 0.5rem; border-radius: 4px; border: 1px solid #fde68a; display: inline-block;">
                                                 ⚡ PAYMENT PENDING
                                             </span>
-                                        @endif
+                                            <span style="display: block; font-size: 0.65rem; color: #64748b; margin-top: 2px;">Pay via ATM / App or Bank Counter</span>
+                                        </div>
+
+                                        <!-- ON PRINT: Official deposit instructions without the web emoji badge -->
+                                        <div class="print-only" style="border: 1px dashed #cbd5e1; border-radius: 4px; padding: 0.35rem; margin-top: 0.4rem; text-align: center; font-size: 0.65rem; color: #475569;">
+                                            <strong style="color: #0f172a; text-transform: uppercase;">Amount Due: PKR {{ number_format($selectedSlipApp->billingLedger?->amount ?? $selectedSlipApp->campaign->application_fee) }}</strong>
+                                            <div style="font-size: 0.6rem; color: #64748b;">Depositor / Cashier Validation Required</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Signature Lines -->
+                                    <div style="display: flex; justify-content: space-between; margin-top: 1.5rem; font-size: 0.65rem; color: #64748b; border-top: 1px solid #cbd5e1; padding-top: 0.5rem;">
+                                        <span>Depositor Signature</span>
+                                        <span>Bank Stamp & Signature</span>
                                     </div>
                                 </div>
-
-                                <!-- Signature Lines -->
-                                <div style="display: flex; justify-content: space-between; margin-top: 1.5rem; font-size: 0.65rem; color: #64748b; border-top: 1px solid #cbd5e1; padding-top: 0.5rem;">
-                                    <span>Officer Signature</span>
-                                    <span>Bank Stamp</span>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

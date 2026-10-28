@@ -8,6 +8,8 @@ use Illuminate\Database\Seeder;
 
 use Illuminate\Support\Facades\Hash;
 use App\Models\Campaign;
+use App\Models\ReviewerProfile;
+use App\Models\BasicInfo;
 
 class DatabaseSeeder extends Seeder
 {
@@ -40,6 +42,127 @@ class DatabaseSeeder extends Seeder
                 ['password' => Hash::make('password'), 'is_active' => true]
             );
             $user->assignRole($role);
+        }
+
+        // Seed basic info for internal members
+        $internalStaff = [
+            'scrutiny1@university.edu' => ['first_name' => 'Dr. Usman', 'last_name' => 'Qureshi'],
+            'scrutiny2@university.edu' => ['first_name' => 'Engr. Fatima', 'last_name' => 'Zahra'],
+            'board1@university.edu' => ['first_name' => 'Prof. Dr. Tariq', 'last_name' => 'Mansoor'],
+            'board2@university.edu' => ['first_name' => 'Dr. Zainab', 'last_name' => 'Akhtar'],
+            'board3@university.edu' => ['first_name' => 'Dr. Hamza', 'last_name' => 'Bilal'],
+            'appellate1@university.edu' => ['first_name' => 'Barrister Bilal', 'last_name' => 'Sheikh'],
+            'appellate2@university.edu' => ['first_name' => 'Dr. Ayesha', 'last_name' => 'Siddiqa'],
+            'registrar@university.edu' => ['first_name' => 'Malik', 'last_name' => 'Javed Iqbal'],
+        ];
+
+        foreach ($internalStaff as $email => $info) {
+            $u = User::where('email', $email)->first();
+            if ($u && !$u->basicInfo) {
+                BasicInfo::create([
+                    'user_id' => $u->id,
+                    'track_type' => 'ACADEMIC',
+                    'first_name' => $info['first_name'],
+                    'last_name' => $info['last_name'],
+                    'cnic_number' => '37405-123456' . $u->id . '-1',
+                    'nationality' => 'Pakistan',
+                    'date_of_birth' => '1980-01-01',
+                    'gender' => 'Male',
+                    'father_name' => 'Father',
+                    'marital_status' => 'Married',
+                    'phone_number' => '+92-300-1234567',
+                    'permanent_address' => 'Main Campus Office, Islamabad',
+                    'mailing_address' => 'Main Campus Office, Islamabad',
+                    'same_address' => true,
+                    'is_locked' => true,
+                ]);
+            }
+        }
+
+        // Seed External Experts & International Specialists (Other universities, offices, countries)
+        $externalExperts = [
+            [
+                'email' => 'dr.sarah.connor@mit.edu',
+                'name' => 'Prof. Dr. Sarah Connor',
+                'subject' => 'Artificial Intelligence & Systems',
+                'rank' => 'Tenured Professor',
+                'institution' => 'Massachusetts Institute of Technology (MIT)',
+                'country' => 'United States',
+                'specialization' => 'Deep Learning, Scalable Systems & Computing Architectures',
+                'role' => 'selection-board-member'
+            ],
+            [
+                'email' => 'dr.elena.rostova@oxford.ac.uk',
+                'name' => 'Dr. Elena Rostova',
+                'subject' => 'Cybersecurity & Cryptography',
+                'rank' => 'Principal Research Fellow',
+                'institution' => 'University of Oxford',
+                'country' => 'United Kingdom',
+                'specialization' => 'Applied Cryptography and Cyber Defense Infrastructure',
+                'role' => 'selection-board-member'
+            ],
+            [
+                'email' => 'dr.kenji.sato@u-tokyo.ac.jp',
+                'name' => 'Prof. Dr. Kenji Sato',
+                'subject' => 'Computer Science & Robotics',
+                'rank' => 'Senior Chair Professor',
+                'institution' => 'University of Tokyo',
+                'country' => 'Japan',
+                'specialization' => 'Robotics, Distributed Control & Embedded Real-Time Systems',
+                'role' => 'academic-reviewer'
+            ],
+            [
+                'email' => 'prof.ahmad.khan@lums.edu.pk',
+                'name' => 'Prof. Dr. Ahmad Khan',
+                'subject' => 'Computer Science',
+                'rank' => 'Professor & Department Chair',
+                'institution' => 'Lahore University of Management Sciences (LUMS)',
+                'country' => 'Pakistan',
+                'specialization' => 'High Performance Computing, Algorithms & Cloud Architectures',
+                'role' => 'selection-board-member'
+            ],
+            [
+                'email' => 'engr.tariq.aziz@telecom.gov.pk',
+                'name' => 'Engr. Tariq Aziz',
+                'subject' => 'Information Technology & Networks',
+                'rank' => 'Director Technology Operations',
+                'institution' => 'Federal Telecommunications Authority / Partner Office',
+                'country' => 'Pakistan',
+                'specialization' => 'National IT Infrastructure, Cyber Policy & Telecom Engineering',
+                'role' => 'selection-board-member'
+            ],
+            [
+                'email' => 'dr.amira.hassan@aus.edu',
+                'name' => 'Dr. Amira Hassan',
+                'subject' => 'Computer Engineering',
+                'rank' => 'Associate Dean of Engineering',
+                'institution' => 'American University of Sharjah',
+                'country' => 'United Arab Emirates',
+                'specialization' => 'Edge Computing, VLSI Design & AI Accelerators',
+                'role' => 'academic-reviewer'
+            ]
+        ];
+
+        foreach ($externalExperts as $exp) {
+            $user = User::firstOrCreate(
+                ['email' => $exp['email']],
+                ['password' => Hash::make('password'), 'is_active' => true]
+            );
+            $user->assignRole($exp['role']);
+
+            ReviewerProfile::firstOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'name' => $exp['name'],
+                    'subject' => $exp['subject'],
+                    'academic_rank' => $exp['rank'],
+                    'university' => $exp['institution'],
+                    'country' => $exp['country'],
+                    'phone' => '+1-555-0199',
+                    'specialization' => $exp['specialization'],
+                    'is_active' => true,
+                ]
+            );
         }
 
         // 3. Seed Default Campaigns

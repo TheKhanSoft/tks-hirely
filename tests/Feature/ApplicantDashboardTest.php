@@ -360,6 +360,74 @@ class ApplicantDashboardTest extends TestCase
             ->assertSee('1. CANDIDATE COPY')
             ->assertSee('2. BANK BRANCH COPY')
             ->assertSee('3. UNIVERSITY TREASURY COPY')
+            ->assertSee('screen-only')
+            ->assertSee('print-only')
+            ->call('closeSlipModal')
+            ->assertSet('showSlipModal', false);
+    }
+
+    public function test_paid_application_renders_single_official_payment_receipt_without_triplicate_copies(): void
+    {
+        $this->seed(\Database\Seeders\SpatieRoleAndPermissionSeeder::class);
+
+        $user = User::factory()->create();
+        $user->assignRole('applicant');
+
+        BasicInfo::create([
+            'user_id' => $user->id,
+            'first_name' => 'Nadeem',
+            'last_name' => 'Ullah Khan',
+            'father_name' => 'Khan',
+            'gender' => 'Male',
+            'date_of_birth' => '1990-01-01',
+            'cnic_number' => '16201-1234567-1',
+            'phone_number' => '0300-1234567',
+            'place_of_birth' => 'Islamabad',
+            'nationality' => 'Pakistan',
+            'religion' => 'Islam',
+            'domicile' => 'Islamabad',
+            'permanent_address' => 'House 1, Islamabad',
+            'track_type' => 'ACADEMIC',
+            'is_locked' => true,
+        ]);
+
+        $campaign = Campaign::create([
+            'job_code' => 'CS-FAC-2026',
+            'title' => 'Assistant Professor - Computer Science',
+            'track_type' => 'ACADEMIC',
+            'department' => 'Department of Computer Science',
+            'opening_date' => now()->subDay(),
+            'closing_date' => now()->addDays(15),
+            'application_fee' => 3000.00,
+            'is_active' => true,
+        ]);
+
+        $application = Application::create([
+            'user_id' => $user->id,
+            'campaign_id' => $campaign->id,
+            'status' => 'PAID',
+            'submission_timestamp' => now(),
+        ]);
+
+        BillingLedger::create([
+            'application_id' => $application->id,
+            'consumer_id' => '100035881358',
+            'transaction_id' => 'TXN-198144-2026',
+            'amount' => 3000.00,
+            'status' => 'SETTLED',
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Dashboard::class)
+            ->call('openSlipModal', $application->id)
+            ->assertSet('showSlipModal', true)
+            ->assertSee('OFFICIAL APPLICATION FEE PAYMENT RECEIPT')
+            ->assertSee('PAID & CLEARED', false)
+            ->assertSee('TXN-198144-2026')
+            ->assertDontSee('1. CANDIDATE COPY')
+            ->assertDontSee('2. BANK BRANCH COPY')
+            ->assertDontSee('3. UNIVERSITY TREASURY COPY')
             ->call('closeSlipModal')
             ->assertSet('showSlipModal', false);
     }

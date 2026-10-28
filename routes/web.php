@@ -11,6 +11,12 @@ use App\Livewire\Admin\ApplicationVerification;
 use App\Livewire\Admin\AppellateReview;
 use App\Livewire\Admin\EntityManagement;
 use App\Livewire\Admin\ReviewerManagement;
+use App\Livewire\Admin\ApplicationManagement;
+use App\Livewire\Admin\CandidateProfileManagement;
+use App\Livewire\Admin\PaymentManagement;
+use App\Livewire\Admin\UserManagement;
+use App\Livewire\Admin\RolePermissionManagement;
+use App\Livewire\Admin\AuditLogManagement;
 use App\Livewire\Reviewer\EvaluationDesk;
 use App\Livewire\Board\LiveGradingPanel;
 use App\Livewire\Bank\PaymentSimulator;
@@ -56,9 +62,34 @@ Route::middleware('auth')->group(function () {
     // Administrative dashboard & operations
     Route::get('/admin/dashboard', AdminDashboard::class);
     Route::get('/admin/campaigns', CampaignCrud::class);
+    Route::get('/admin/applications', ApplicationManagement::class);
+    Route::get('/admin/candidates', CandidateProfileManagement::class);
+    Route::get('/admin/candidate-profiles', function() { return redirect('/admin/candidates'); });
+    Route::get('/admin/payments', PaymentManagement::class);
+    Route::get('/admin/vouchers', function() { return redirect('/admin/payments'); });
     Route::get('/admin/reviewers', ReviewerManagement::class);
-    Route::get('/admin/management', EntityManagement::class);
-    Route::get('/admin/users', function() { return redirect('/admin/management'); });
+
+    // Administrative governance & access control
+    Route::get('/admin/users', UserManagement::class);
+    Route::get('/admin/roles', RolePermissionManagement::class);
+    Route::get('/admin/permissions', function() { return redirect('/admin/roles?tab=permissions'); });
+    Route::get('/admin/audit-logs', AuditLogManagement::class);
+
+    // Legacy fallback redirect for /admin/management
+    Route::get('/admin/management', function () {
+        $tab = request('tab');
+        return match ($tab) {
+            'campaigns' => redirect('/admin/campaigns'),
+            'applications' => redirect('/admin/applications'),
+            'basic_infos' => redirect('/admin/candidates'),
+            'payments' => redirect('/admin/payments'),
+            'roles' => redirect('/admin/roles?tab=roles'),
+            'permissions' => redirect('/admin/roles?tab=permissions'),
+            'logs' => redirect('/admin/audit-logs'),
+            default => redirect('/admin/users'),
+        };
+    });
+
     Route::get('/admin/verification/{id}', ApplicationVerification::class);
     Route::get('/admin/appeals', AppellateReview::class);
 

@@ -217,16 +217,9 @@
                         <div class="grid grid-cols-3 gap-4 mt-4">
                             <x-select label="Country of Degree *" :error="$errors->first('new_degree_country')">
                                 <select class="form-control form-select" wire:model="new_degree_country" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
-                                    <option value="Pakistan">Pakistan</option>
-                                    <option value="United Kingdom">United Kingdom</option>
-                                    <option value="United States">United States</option>
-                                    <option value="Canada">Canada</option>
-                                    <option value="Australia">Australia</option>
-                                    <option value="Germany">Germany</option>
-                                    <option value="China">China</option>
-                                    <option value="Saudi Arabia">Saudi Arabia</option>
-                                    <option value="UAE">United Arab Emirates</option>
-                                    <option value="Other">Other</option>
+                                    @foreach($this->countries as $c)
+                                        <option value="{{ $c }}">{{ $c }}</option>
+                                    @endforeach
                                 </select>
                             </x-select>
                             <x-input label="Board / University *" :error="$errors->first('new_degree_board')">
@@ -835,9 +828,13 @@
                                 </x-input>
                             </div>
                             <div class="grid grid-cols-2 gap-4 mt-4 align-center">
-                                <x-input label="Country of Registry" :error="$errors->first('new_pat_country')">
-                                    <input type="text" class="form-control" wire:model="new_pat_country" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
-                                </x-input>
+                                <x-select label="Country of Registry" :error="$errors->first('new_pat_country')">
+                                    <select class="form-control form-select" wire:model="new_pat_country" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
+                                        @foreach($this->countries as $c)
+                                            <option value="{{ $c }}">{{ $c }}</option>
+                                        @endforeach
+                                    </select>
+                                </x-select>
                                 <x-input label="Patent Certificate (PDF)" :error="$errors->first('new_pat_proof')">
                                     <input type="file" class="form-control" wire:model="new_pat_proof" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
                                 </x-input>

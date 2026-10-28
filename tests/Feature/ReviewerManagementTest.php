@@ -311,6 +311,79 @@ class ReviewerManagementTest extends TestCase
         ]);
     }
 
+    public function test_country_service_returns_comprehensive_list_and_searches(): void
+    {
+        $countries = \App\Services\CountryService::all();
+        $this->assertContains('Pakistan', $countries);
+        $this->assertContains('United Kingdom', $countries);
+        $this->assertContains('United States', $countries);
+        $this->assertGreaterThan(150, count($countries));
+
+        $searchResults = \App\Services\CountryService::search('pak');
+        $this->assertContains('Pakistan', $searchResults);
+    }
+
+    public function test_empanel_modal_prefills_department_and_auto_selects_when_opened_from_dispatch(): void
+    {
+        Mail::fake();
+
+        $registrar = User::factory()->create();
+        $registrar->assignRole('registrar');
+
+        $candidate = User::factory()->create();
+        $candidate->assignRole('applicant');
+        BasicInfo::create([
+            'user_id' => $candidate->id,
+            'first_name' => 'Nadeem',
+            'last_name' => 'Ullah Khan',
+            'date_of_birth' => '1990-01-01',
+            'cnic_number' => '16201-1234567-1',
+            'track_type' => 'ACADEMIC',
+            'is_locked' => true,
+        ]);
+
+        $campaign = Campaign::create([
+            'job_code' => 'CS-FAC-2026',
+            'title' => 'Assistant Professor - Computer Science',
+            'department' => 'Department of Computer Science',
+            'track_type' => 'ACADEMIC',
+            'opening_date' => now()->subDay(),
+            'closing_date' => now()->addDays(30),
+            'application_fee' => 3000.00,
+            'is_active' => true,
+        ]);
+
+        $application = Application::create([
+            'user_id' => $candidate->id,
+            'campaign_id' => $campaign->id,
+            'status' => 'SUBMITTED',
+            'submission_timestamp' => now(),
+        ]);
+
+        $this->actingAs($registrar);
+
+        // Test dispatch modal opening and nested empanel action
+        Livewire::test(ReviewerManagement::class)
+            ->call('openDispatchModal', $application->id)
+            ->assertSet('showDispatchModal', true)
+            ->call('openCreateModal', 'Department of Computer Science')
+            ->assertSet('showCreateModal', true)
+            ->assertSet('subject', 'Department of Computer Science')
+            ->set('name', 'Dr. Donald Knuth')
+            ->set('email', 'knuth@stanford.edu')
+            ->set('academic_rank', 'Distinguished Professor')
+            ->set('university', 'Stanford University')
+            ->set('country', 'United States')
+            ->call('createReviewer')
+            ->assertHasNoErrors()
+            ->assertSet('showCreateModal', false)
+            ->assertSet('showDispatchModal', true);
+
+        // Check reviewer was created and pre-selected in the dispatch queue
+        $newReviewer = User::where('email', 'knuth@stanford.edu')->first();
+        $this->assertNotNull($newReviewer);
+    }
+
     public function test_unauthorized_applicant_cannot_access_reviewer_management(): void
     {
         $applicant = User::factory()->create();

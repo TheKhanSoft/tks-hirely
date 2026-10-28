@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Services\CountryService;
 
 class ReviewerManagement extends Component
 {
@@ -75,9 +76,18 @@ class ReviewerManagement extends Component
         $this->resetPage();
     }
 
-    public function openCreateModal()
+    public function openCreateModal($prefilledSubject = null)
     {
-        $this->reset(['name', 'email', 'subject', 'university', 'phone', 'specialization']);
+        $this->reset(['name', 'email', 'university', 'phone', 'specialization']);
+        
+        if (!empty($prefilledSubject)) {
+            $this->subject = $prefilledSubject;
+        } elseif ($this->showDispatchModal && $this->targetApplication && $this->targetApplication->campaign) {
+            $this->subject = $this->targetApplication->campaign->department;
+        } else {
+            $this->subject = '';
+        }
+
         $this->academic_rank = 'Professor';
         $this->country = 'Pakistan';
         $this->resetErrorBag();
@@ -138,7 +148,15 @@ class ReviewerManagement extends Component
             Log::warning("Could not dispatch reviewer credentials email via SMTP: " . $e->getMessage());
         }
 
-        session()->flash('message', "Academic Reviewer '{$profile->name}' empanelled successfully! Credentials and evaluation guidance dispatched to {$user->email}. (Temporary Password: {$plainPassword})");
+        // If empanelled while in Dispatch modal, auto-select this new reviewer
+        if ($this->showDispatchModal && $this->targetApplication) {
+            if (!in_array($user->id, $this->selectedReviewerIds)) {
+                $this->selectedReviewerIds[] = $user->id;
+            }
+            session()->flash('message', "Academic Reviewer '{$profile->name}' empanelled successfully and selected for review dispatch! Credentials dispatched to {$user->email}.");
+        } else {
+            session()->flash('message', "Academic Reviewer '{$profile->name}' empanelled successfully! Credentials and evaluation guidance dispatched to {$user->email}. (Temporary Password: {$plainPassword})");
+        }
 
         $this->showCreateModal = false;
     }
@@ -320,6 +338,8 @@ class ReviewerManagement extends Component
             'academicApplications' => $academicApplications,
             'fieldMatchedReviewers' => $fieldMatchedReviewers,
             'availableSubjects' => $availableSubjects,
+            'countries' => CountryService::all(),
+            'priorityCountries' => CountryService::priority(),
         ])->layout('layouts.app');
     }
 }

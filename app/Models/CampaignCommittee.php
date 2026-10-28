@@ -15,6 +15,10 @@ class CampaignCommittee extends Model
         'campaign_id',
         'user_id',
         'is_appellate_panel',
+        'member_category',
+        'role_designation',
+        'affiliation',
+        'country',
         'assigned_at',
     ];
 
@@ -22,6 +26,20 @@ class CampaignCommittee extends Model
         'is_appellate_panel' => 'boolean',
         'assigned_at' => 'datetime',
     ];
+
+    /**
+     * Get human-readable category label.
+     */
+    public function getCategoryLabelAttribute(): string
+    {
+        return match($this->member_category) {
+            'INTERNAL' => 'Internal Organization / Staff',
+            'EXTERNAL' => 'External Expert / Other Office',
+            'INTERNATIONAL' => 'International / Overseas Specialist',
+            'INDEPENDENT' => 'Independent Arbiter / Governance',
+            default => 'Committee Member',
+        };
+    }
 
     /**
      * Parent job campaign.

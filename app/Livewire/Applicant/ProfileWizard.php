@@ -364,49 +364,7 @@ class ProfileWizard extends Component
 
     public function getCountriesProperty()
     {
-        return [
-            'Pakistan',
-            'United States',
-            'United Kingdom',
-            'Canada',
-            'Australia',
-            'Saudi Arabia',
-            'United Arab Emirates',
-            'China',
-            'Germany',
-            'France',
-            'Turkey',
-            'Malaysia',
-            'Qatar',
-            'Oman',
-            'Kuwait',
-            'Bahrain',
-            'Singapore',
-            'Japan',
-            'South Korea',
-            'India',
-            'Bangladesh',
-            'Sri Lanka',
-            'Nepal',
-            'Afghanistan',
-            'Iran',
-            'Egypt',
-            'South Africa',
-            'Nigeria',
-            'Kenya',
-            'Italy',
-            'Spain',
-            'Netherlands',
-            'Switzerland',
-            'Sweden',
-            'Norway',
-            'Denmark',
-            'Finland',
-            'Ireland',
-            'New Zealand',
-            'Brazil',
-            'Other Country',
-        ];
+        return \App\Services\CountryService::all();
     }
 
     public function getStatesProperty()
