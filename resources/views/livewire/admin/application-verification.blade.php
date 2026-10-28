@@ -24,6 +24,22 @@
                 <span>•</span>
                 <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary);">{{ $application->campaign->track_type }} Track</span>
             </div>
+            @if($application->campaign->track_type === 'ACADEMIC')
+                <div style="margin-top: 0.75rem; padding: 0.5rem 0.75rem; background: rgba(6,182,212,0.08); border: 1px solid var(--secondary-glow); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--secondary);">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        <span>Academic Position • Requires Peer Review</span>
+                    </div>
+                    <a href="/admin/reviewers" class="btn btn-secondary btn-sm" style="padding: 0.2rem 0.6rem; font-size: 0.75rem;">
+                        <span>Reviewer Desk</span>
+                    </a>
+                </div>
+            @endif
         </div>
 
         <!-- 1. Bio-Data Checklist -->

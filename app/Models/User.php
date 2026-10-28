@@ -74,4 +74,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(CampaignCommittee::class);
     }
+
+    /**
+     * Reviewer profile if user is an academic referee/expert.
+     */
+    public function reviewerProfile(): HasOne
+    {
+        return $this->hasOne(ReviewerProfile::class);
+    }
+
+    /**
+     * Academic reviews assigned to the user.
+     */
+    public function assignedReviews(): HasMany
+    {
+        return $this->hasMany(ApplicationReview::class, 'reviewer_id');
+    }
 }

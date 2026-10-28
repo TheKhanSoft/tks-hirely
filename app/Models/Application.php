@@ -57,4 +57,12 @@ class Application extends Model
     {
         return $this->hasMany(LiveEvaluation::class);
     }
+
+    /**
+     * External academic peer reviews for this application.
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(ApplicationReview::class);
+    }
 }

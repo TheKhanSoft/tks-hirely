@@ -10,6 +10,8 @@ use App\Livewire\Admin\CampaignCrud;
 use App\Livewire\Admin\ApplicationVerification;
 use App\Livewire\Admin\AppellateReview;
 use App\Livewire\Admin\EntityManagement;
+use App\Livewire\Admin\ReviewerManagement;
+use App\Livewire\Reviewer\EvaluationDesk;
 use App\Livewire\Board\LiveGradingPanel;
 use App\Livewire\Bank\PaymentSimulator;
 
@@ -25,6 +27,9 @@ Route::get('/', function () {
         }
         if ($user->hasRole('selection-board-member')) {
             return redirect('/admin/dashboard');
+        }
+        if ($user->hasRole('academic-reviewer')) {
+            return redirect('/reviewer/dashboard');
         }
         return redirect('/applicant/dashboard');
     }
@@ -51,6 +56,7 @@ Route::middleware('auth')->group(function () {
     // Administrative dashboard & operations
     Route::get('/admin/dashboard', AdminDashboard::class);
     Route::get('/admin/campaigns', CampaignCrud::class);
+    Route::get('/admin/reviewers', ReviewerManagement::class);
     Route::get('/admin/management', EntityManagement::class);
     Route::get('/admin/users', function() { return redirect('/admin/management'); });
     Route::get('/admin/verification/{id}', ApplicationVerification::class);
@@ -58,4 +64,7 @@ Route::middleware('auth')->group(function () {
 
     // Live board candidate grading panel
     Route::get('/board/evaluate/{id}', LiveGradingPanel::class);
+
+    // Academic external reviewer evaluation desk
+    Route::get('/reviewer/dashboard', EvaluationDesk::class);
 });

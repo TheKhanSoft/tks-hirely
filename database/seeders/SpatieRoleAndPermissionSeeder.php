@@ -79,6 +79,12 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'verify-publication',
             'verify-project',
             'verify-event',
+
+            // External Academic Reviewers
+            'manage-reviewers',
+            'assign-reviewer',
+            'view-review-reports',
+            'evaluate-academic-dossier',
         ];
 
         foreach ($permissions as $permission) {
@@ -141,6 +147,11 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             // Audit Logs
             'view-audit-log',
             'delete-audit-log',
+
+            // Academic Reviewer Management
+            'manage-reviewers',
+            'assign-reviewer',
+            'view-review-reports',
         ]);
 
         $scrutinyPanel = Role::firstOrCreate(['name' => 'scrutiny-committee', 'guard_name' => 'web']);
@@ -171,6 +182,12 @@ class SpatieRoleAndPermissionSeeder extends Seeder
         $applicant->syncPermissions([
             'submit-applications',
             'view-application',
+        ]);
+
+        $reviewer = Role::firstOrCreate(['name' => 'academic-reviewer', 'guard_name' => 'web']);
+        $reviewer->syncPermissions([
+            'view-application',
+            'evaluate-academic-dossier',
         ]);
     }
 }
