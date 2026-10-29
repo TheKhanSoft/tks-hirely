@@ -140,9 +140,21 @@
                 :title="$st->label"
                 :subtitle="'Node: ' . $st->code"
                 :tag="$st->is_system_default ? 'System Default' : ($st->is_terminal ? 'Terminal' : 'Node #' . $st->order)"
-                :status-badge="$st->is_active ? 'Active' : 'Disabled'"
-                :status-class="$st->is_active ? 'badge-paid' : 'badge-draft'"
+                :is-active="$st->is_active"
             >
+                <x-slot:badge>
+                    <button type="button" 
+                            class="entity-card-status-toggle-btn"
+                            wire:click="toggleStatusActive({{ $st->id }})" 
+                            style="font-size: 0.74rem; font-weight: 800; cursor: pointer; color: {{ $st->is_active ? '#10b981' : '#ef4444' }};"
+                            title="Click to toggle status node">
+                        <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                            <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: {{ $st->is_active ? '#10b981' : '#ef4444' }}; box-shadow: 0 0 8px {{ $st->is_active ? 'rgba(16, 185, 129, 0.9)' : 'rgba(239, 68, 68, 0.9)' }};"></span>
+                            <span>{{ $st->is_active ? 'ACTIVE NODE' : 'DISABLED NODE' }}</span>
+                        </span>
+                        <span style="font-size: 0.68rem; opacity: 0.75; font-weight: 700; text-transform: uppercase;">Click to toggle ↻</span>
+                    </button>
+                </x-slot:badge>
                 <x-slot:body>
                     <div class="entity-card-metric-row">
                         <span class="entity-card-metric-label">Scope Engine</span>

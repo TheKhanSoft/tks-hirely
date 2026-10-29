@@ -111,6 +111,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/registrar/criteria', ConstitutionCriteriaManagement::class);
     Route::get('/registrar/constitution', function() { return redirect('/registrar/criteria'); });
     Route::get('/registrar/constitutions', ConstitutionCriteriaManagement::class);
+    Route::get('/registrar/pipelines', ConstitutionCriteriaManagement::class);
+    Route::get('/registrar/pipeline/{pipeline}', ConstitutionCriteriaManagement::class);
+    Route::get('/registrar/pipeline/{pipeline}/edit', ConstitutionCriteriaManagement::class);
     Route::get('/registrar/statuses', WorkflowStatusManagement::class);
     Route::get('/registrar/applications', ApplicationManagement::class);
     Route::get('/registrar/candidates', CandidateProfileManagement::class);
@@ -133,6 +136,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/criteria', ConstitutionCriteriaManagement::class);
     Route::get('/admin/constitution', function() { return redirect('/admin/criteria'); });
     Route::get('/admin/constitutions', ConstitutionCriteriaManagement::class);
+    Route::get('/admin/pipelines', ConstitutionCriteriaManagement::class);
+    Route::get('/admin/pipeline/{pipeline}', ConstitutionCriteriaManagement::class);
+    Route::get('/admin/pipeline/{pipeline}/edit', ConstitutionCriteriaManagement::class);
+    Route::get('/pipeline/{pipeline}', ConstitutionCriteriaManagement::class);
+    Route::get('/pipeline/{pipeline}/edit', ConstitutionCriteriaManagement::class);
+    Route::get('/criteria/{pipeline}', ConstitutionCriteriaManagement::class);
+    Route::get('/criteria/{pipeline}/edit', ConstitutionCriteriaManagement::class);
     Route::get('/admin/statuses', WorkflowStatusManagement::class);
     Route::get('/admin/applications', ApplicationManagement::class);
     Route::get('/admin/candidates', CandidateProfileManagement::class);

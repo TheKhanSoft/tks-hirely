@@ -200,36 +200,40 @@
                     avatar-class="avatar-theme-purple"
                     :avatar-badge="($rev->country ?? '') === 'Pakistan' ? 'National' : 'Intl'"
                     :subtitle="$rev->university"
+                    :is-active="$rev->is_active"
                 >
                     <x-slot:titleSlot>
                         <div style="display: flex; flex-direction: column; min-width: 0;">
                             @if(!empty($parsed['prefix']))
-                                <span style="font-size: 0.72rem; font-weight: 800; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.2;">
+                                <span style="font-size: 0.74rem; font-weight: 800; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.2;">
                                     {{ $parsed['prefix'] }}
                                 </span>
                             @endif
-                            <div style="font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); line-height: 1.25; word-break: break-word;" title="{{ $rev->name }}">
+                            <div style="font-size: 1.08rem; font-weight: 800; color: var(--color-text-primary); line-height: 1.28; word-break: break-word;" title="{{ $rev->name }}">
                                 {{ $parsed['full_name'] }}
                             </div>
                         </div>
                     </x-slot:titleSlot>
 
-                    <!-- Interactive Click-to-Toggle Status Badge -->
+                    <!-- Interactive Status Strip (Positioned above the action footer) -->
                     <x-slot:badge>
                         @if(auth()->user()->can('edit-reviewer') || auth()->user()->can('manage-reviewers'))
                             <button type="button" 
+                                    class="entity-card-status-toggle-btn"
                                     wire:click="toggleReviewerStatus({{ $rev->id }})"
-                                    style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.28rem 0.65rem; font-size: 0.72rem; font-weight: 800; border-radius: 9999px; cursor: pointer; transition: all 0.2s ease; border: 1px solid; {{ $rev->is_active ? 'background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.35); box-shadow: 0 0 10px rgba(16, 185, 129, 0.15);' : 'background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.35); box-shadow: 0 0 10px rgba(239, 68, 68, 0.15);' }}"
                                     title="Status: {{ $rev->is_active ? 'Active' : 'Inactive' }} (Click to toggle)"
                                     aria-label="Toggle status for {{ $rev->name }}">
-                                <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: {{ $rev->is_active ? '#10b981' : '#ef4444' }}; box-shadow: 0 0 6px {{ $rev->is_active ? 'rgba(16, 185, 129, 0.8)' : 'rgba(239, 68, 68, 0.8)' }};"></span>
-                                <span>{{ $rev->is_active ? 'ACTIVE' : 'INACTIVE' }}</span>
+                                <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                                    <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: {{ $rev->is_active ? '#10b981' : '#ef4444' }}; box-shadow: 0 0 8px {{ $rev->is_active ? 'rgba(16, 185, 129, 0.9)' : 'rgba(239, 68, 68, 0.9)' }};"></span>
+                                    <span>{{ $rev->is_active ? 'ACTIVE' : 'INACTIVE' }}</span>
+                                </span>
+                                <span style="font-size: 0.68rem; opacity: 0.75; font-weight: 700; text-transform: uppercase;">Click to toggle ↻</span>
                             </button>
                         @else
-                            <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.28rem 0.65rem; font-size: 0.72rem; font-weight: 800; border-radius: 9999px; border: 1px solid; {{ $rev->is_active ? 'background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.35);' : 'background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.35);' }}">
-                                <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: {{ $rev->is_active ? '#10b981' : '#ef4444' }};"></span>
+                            <div style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                                <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: {{ $rev->is_active ? '#10b981' : '#ef4444' }};"></span>
                                 <span>{{ $rev->is_active ? 'ACTIVE' : 'INACTIVE' }}</span>
-                            </span>
+                            </div>
                         @endif
                     </x-slot:badge>
 
@@ -242,7 +246,7 @@
                     <x-slot:body>
                         <div class="entity-card-metric-row">
                             <span class="entity-card-metric-label">Discipline</span>
-                            <span class="badge badge-indigo" style="font-weight: 700; font-size: 0.72rem; padding: 0.15rem 0.45rem;">
+                            <span class="badge badge-indigo" style="font-weight: 700; font-size: 0.72rem; padding: 0.18rem 0.5rem; word-break: break-word; white-space: normal; text-align: right; max-width: 68%;">
                                 {{ $rev->subject }}
                             </span>
                         </div>

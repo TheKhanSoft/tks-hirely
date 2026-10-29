@@ -104,6 +104,15 @@
                                 </svg>
                                 <span>Boards & Constitutions</span>
                             </a>
+
+                            <a href="{{ $baseRoute }}/pipelines" class="sidebar-link {{ request()->is('*pipeline*') ? 'active' : '' }}">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                                    <polyline points="2 17 12 22 22 17"/>
+                                    <polyline points="2 12 12 17 22 12"/>
+                                </svg>
+                                <span>Recruitment Pipelines</span>
+                            </a>
                         @endcan
 
                         @if($isSuperAdmin || $isRegistrar || $user->can('manage-statuses') || $user->can('manage-settings'))
@@ -388,6 +397,8 @@
                             @elseif(request()->is('reviewer*')) Peer Review Evaluation Desk
                             @elseif(request()->is('applicant/dashboard*')) Candidate Space
                             @elseif(request()->is('applicant/wizard*')) Application Dossier Wizard
+                            @elseif(request()->is('*pipeline*')) Recruitment Pipeline Flows
+                            @elseif(request()->is('*criteria*') || request()->is('*constitution*')) Boards & Statutory Criteria
                             @elseif(request()->is('admin/reviewers*') || request()->is('registrar/reviewers*')) Academic Reviewers Desk
                             @elseif(request()->is('admin/advertisements*') || request()->is('registrar/advertisements*')) Official Advertisements & Dates
                             @elseif(request()->is('admin/campaigns*') || request()->is('registrar/campaigns*')) Recruitment Campaigns

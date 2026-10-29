@@ -487,13 +487,19 @@
                             :title="$camp->title" 
                             :subtitle="$camp->department"
                             :avatar="substr($camp->job_code, 0, 2)"
-                            :avatarClass="$campTheme">
+                            :avatarClass="$campTheme"
+                            :is-active="now()->lte($camp->closing_date)">
                             
-                            <!-- Badge Slot: Application Fee -->
+                            <!-- Badge Slot: Application Fee & Recruitment Status (Above action strip) -->
                             <x-slot:badge>
-                                <span class="badge badge-amber" style="font-size: 0.72rem; font-weight: 800; font-family: 'JetBrains Mono', monospace;">
-                                    PKR {{ number_format($camp->application_fee, 0) }}
-                                </span>
+                                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                                    <span class="badge badge-amber" style="font-size: 0.72rem; font-weight: 800; font-family: 'JetBrains Mono', monospace;">
+                                        PKR {{ number_format($camp->application_fee, 0) }}
+                                    </span>
+                                    <span style="font-size: 0.72rem; font-weight: 800; color: {{ now()->lte($camp->closing_date) ? '#10b981' : '#ef4444' }};">
+                                        {{ now()->lte($camp->closing_date) ? '● ACTIVE POSITION' : '● CLOSED' }}
+                                    </span>
+                                </div>
                             </x-slot:badge>
 
                             <!-- Tag Slot: Recruitment Track -->

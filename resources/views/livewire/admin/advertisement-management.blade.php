@@ -145,34 +145,39 @@
                 avatar-class="avatar-theme-indigo"
                 :avatar-badge="(string)$ad->year"
                 :subtitle="$ad->newspaper_reference ?: 'Direct Notification'"
+                :is-active="$ad->is_active && !$isExpired"
             >
                 <x-slot:titleSlot>
                     <div style="display: flex; flex-direction: column; min-width: 0;">
-                        <span style="font-size: 0.72rem; font-weight: 800; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.2;">
+                        <span style="font-size: 0.74rem; font-weight: 800; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.2;">
                             {{ $ad->advertisement_no }}
                         </span>
-                        <div style="font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); line-height: 1.25; word-break: break-word;" title="{{ $ad->title }}">
+                        <div style="font-size: 1.08rem; font-weight: 800; color: var(--color-text-primary); line-height: 1.28; word-break: break-word;" title="{{ $ad->title }}">
                             {{ $ad->title }}
                         </div>
                     </div>
                 </x-slot:titleSlot>
 
-                <!-- Interactive Click-to-Toggle Status Badge -->
+                <!-- Interactive Status Strip (Above action footer) -->
                 <x-slot:badge>
                     @can('edit-campaign')
                         <button type="button" 
+                                class="entity-card-status-toggle-btn"
                                 wire:click="toggleAdvertisementStatus({{ $ad->id }})"
-                                style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.28rem 0.65rem; font-size: 0.72rem; font-weight: 800; border-radius: 9999px; cursor: pointer; transition: all 0.2s ease; border: 1px solid {{ $badge['border'] }}; background: {{ $badge['bg'] }}; color: {{ $badge['color'] }};"
+                                style="font-size: 0.74rem; font-weight: 800; cursor: pointer; color: {{ $badge['color'] }};"
                                 title="Click to toggle status"
                                 aria-label="Toggle status for {{ $ad->advertisement_no }}">
-                            <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: {{ $badge['color'] }};"></span>
-                            <span>{{ $badge['label'] }}</span>
+                            <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                                <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: {{ $badge['color'] }}; box-shadow: 0 0 8px {{ $badge['color'] }};"></span>
+                                <span>{{ $badge['label'] }}</span>
+                            </span>
+                            <span style="font-size: 0.68rem; opacity: 0.75; font-weight: 700; text-transform: uppercase;">Click to toggle ↻</span>
                         </button>
                     @else
-                        <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.28rem 0.65rem; font-size: 0.72rem; font-weight: 800; border-radius: 9999px; border: 1px solid {{ $badge['border'] }}; background: {{ $badge['bg'] }}; color: {{ $badge['color'] }};">
-                            <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: {{ $badge['color'] }};"></span>
+                        <div style="display: inline-flex; align-items: center; gap: 0.4rem; color: {{ $badge['color'] }}; font-weight: 800;">
+                            <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: {{ $badge['color'] }};"></span>
                             <span>{{ $badge['label'] }}</span>
-                        </span>
+                        </div>
                     @endcan
                 </x-slot:badge>
 

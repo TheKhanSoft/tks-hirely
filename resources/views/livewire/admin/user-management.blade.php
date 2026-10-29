@@ -304,19 +304,25 @@
                         :title="$displayName ?: $u->email" 
                         :subtitle="$displayName ? $u->email : 'Registered User'"
                         :avatar="strtoupper(substr($displayName ?: $u->email, 0, 1))"
-                        :avatarClass="$avatarTheme">
+                        :avatarClass="$avatarTheme"
+                        :is-active="$u->is_active">
                         
-                        <!-- Badge Slot: Active / Blocked Status -->
+                        <!-- Badge Slot: Active / Blocked Status (Above action strip) -->
                         <x-slot:badge>
                             @can('toggle-user-status')
                                 <button type="button" 
-                                        class="btn {{ $u->is_active ? 'btn-success' : 'btn-danger' }}" 
-                                        style="padding: 0.2rem 0.65rem; font-size: 0.72rem; border-radius: 999px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;" 
+                                        class="entity-card-status-toggle-btn"
+                                        style="font-size: 0.74rem; font-weight: 800; cursor: pointer;" 
                                         wire:click="toggleUserStatus({{ $u->id }})" 
                                         :disabled="auth()->id() == $u->id"
-                                        title="{{ auth()->id() == $u->id ? 'Cannot deactivate yourself' : 'Toggle status' }}">
-                                    <span class="pulse-dot {{ $u->is_active ? 'online' : 'offline' }}"></span>
-                                    <span>{{ $u->is_active ? 'Active' : 'Blocked' }}</span>
+                                        title="{{ auth()->id() == $u->id ? 'Cannot deactivate yourself' : 'Click to toggle user status' }}">
+                                    <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                                        <span class="pulse-dot {{ $u->is_active ? 'online' : 'offline' }}"></span>
+                                        <span>{{ $u->is_active ? 'ACTIVE' : 'BLOCKED' }}</span>
+                                    </span>
+                                    @if(auth()->id() != $u->id)
+                                        <span style="font-size: 0.68rem; opacity: 0.75; font-weight: 700; text-transform: uppercase;">Click to toggle ↻</span>
+                                    @endif
                                 </button>
                             @else
                                 <span class="badge" style="background: {{ $u->is_active ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)' }}; color: {{ $u->is_active ? 'var(--success)' : 'var(--danger)' }}; font-size: 0.72rem; border-radius: 999px; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem;">

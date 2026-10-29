@@ -67,7 +67,7 @@
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
                     </svg>
-                    <span>Process Flow Engine ({{ count($flow_stages) }})</span>
+                    <span>Recruitment Pipelines ({{ $processFlows->count() }})</span>
                 </button>
                 <button type="button" 
                     wire:click="setTab('campaign_constitution')" 
@@ -496,63 +496,262 @@
     <!-- TAB 2: END-TO-END DYNAMIC RECRUITMENT PROCESS FLOW ENGINE                  -->
     <!-- ========================================================================= -->
     @if($activeTab === 'process_flow')
-        <!-- Pipeline Control Bar -->
-        <div class="card mb-6" style="padding: 1.25rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-                <!-- Pipeline Selector -->
-                <div style="display: flex; align-items: center; gap: 0.85rem; flex: 1; min-width: 320px;">
-                    <div style="flex: 1;">
-                        <label style="display: block; font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: var(--color-text-muted); margin-bottom: 0.3rem; letter-spacing: 0.05em;">
-                            ACTIVE RECRUITMENT PIPELINE FLOW
-                        </label>
-                        <select class="form-control form-select" wire:model.live="selected_flow_id" style="font-weight: 700; font-size: 0.92rem;">
-                            @foreach($processFlows as $pFlow)
-                                <option value="{{ $pFlow->id }}">
-                                    {{ $pFlow->name }} [{{ $pFlow->sector }}]{{ $pFlow->is_default ? ' ★ (System Default)' : '' }}
-                                </option>
-                            @endforeach
-                        </select>
+        @if($pipelineViewMode === 'list')
+            <!-- Pipeline Directory Header Bar -->
+            <div class="card mb-6" style="padding: 1.25rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 0.35rem 0; line-height: 1.2;">
+                            Recruitment Pipeline Flows
+                        </h2>
+                        <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin: 0;">
+                            Configure end-to-end multi-stage recruitment pipelines, statutory gating criteria, reviewer thresholds, and committee handoffs.
+                        </p>
                     </div>
-                </div>
 
-                <!-- Pipeline Action Buttons -->
-                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                    <button type="button" class="btn btn-secondary" wire:click="createNewFlowPipeline" style="font-size: 0.8rem; font-weight: 700; padding: 0.55rem 0.9rem;">
-                        ➕ New Pipeline
-                    </button>
-                    @if($selected_flow_id)
-                        <button type="button" class="btn btn-secondary" wire:click="cloneProcessFlow({{ $selected_flow_id }})" style="font-size: 0.8rem; font-weight: 600; padding: 0.55rem 0.85rem;" title="Duplicate Pipeline">
-                            📋 Duplicate
+                    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-primary" wire:click="createNewFlowPipeline" style="font-size: 0.82rem; font-weight: 700; padding: 0.55rem 1.15rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            <span>+ New Pipeline Flow</span>
                         </button>
-                        <button type="button" class="btn btn-secondary" wire:click="setFlowAsDefault({{ $selected_flow_id }})" style="font-size: 0.8rem; font-weight: 600; padding: 0.55rem 0.85rem;" title="Set as System Default Pipeline">
-                            ⭐ Make Default
-                        </button>
-                    @endif
-                    <button type="button" class="btn btn-primary" wire:click="addNewStage" style="font-size: 0.82rem; font-weight: 700; padding: 0.55rem 1.15rem; display: inline-flex; align-items: center; gap: 0.4rem;">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                        <span>+ Add Pipeline Stage</span>
-                    </button>
-                    <button type="button" class="btn btn-secondary" wire:click="saveProcessFlow" style="font-size: 0.82rem; font-weight: 700; padding: 0.55rem 1rem; color: #10b981; border-color: rgba(16, 185, 129, 0.3);">
-                        💾 Save Pipeline
-                    </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Pipeline Description Strip -->
-            @if($flow_description)
-                <div style="margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px solid rgba(255, 255, 255, 0.06); font-size: 0.82rem; color: var(--color-text-secondary); display: flex; align-items: center; gap: 0.5rem;">
-                    <span style="color: var(--primary); font-weight: 800;">ℹ️ PIPELINE BLUEPRINT:</span>
-                    <span>{{ $flow_description }}</span>
-                </div>
-            @endif
-        </div>
+            <!-- Pipelines Card Grid -->
+            <div class="entity-cards-grid">
+                @foreach($processFlows as $pFlow)
+                    @php
+                        $sectorBadge = match($pFlow->sector) {
+                            'ACADEMIC' => ['bg' => 'rgba(99, 102, 241, 0.15)', 'color' => 'var(--primary)', 'icon' => '🎓'],
+                            'CORPORATE' => ['bg' => 'rgba(6, 182, 212, 0.15)', 'color' => 'var(--secondary)', 'icon' => '🏢'],
+                            'HEALTHCARE' => ['bg' => 'rgba(16, 185, 129, 0.15)', 'color' => '#10b981', 'icon' => '🏥'],
+                            'PUBLIC_SECTOR' => ['bg' => 'rgba(245, 158, 11, 0.15)', 'color' => '#f59e0b', 'icon' => '🏛️'],
+                            default => ['bg' => 'rgba(148, 163, 184, 0.15)', 'color' => '#cbd5e1', 'icon' => '⚙️'],
+                        };
+                        $stagesCount = count($pFlow->stages ?? []);
+                        $campaignsCount = $pFlow->campaigns()->count();
+                    @endphp
 
-        <!-- Sequential Visual Flow Canvas -->
-        <div style="display: flex; flex-direction: column; gap: 1.25rem; margin-bottom: 2.5rem;">
-            @forelse($flow_stages as $sIdx => $stage)
+                    <x-entity-card
+                        :key="'pipeline-flow-card-'.$pFlow->id"
+                        :avatar-initial="$sectorBadge['icon']"
+                        avatar-class="avatar-theme-indigo"
+                        :title="$pFlow->name"
+                        :subtitle="'Sector: ' . $pFlow->sector . ' • ID: ' . ($pFlow->public_id ?? $pFlow->slug)"
+                        :is-active="$pFlow->is_active"
+                    >
+                        <x-slot:titleSlot>
+                            <div style="display: flex; flex-direction: column; min-width: 0;">
+                                <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.2rem;">
+                                    <span class="badge" style="background: {{ $sectorBadge['bg'] }}; color: {{ $sectorBadge['color'] }}; font-weight: 800; font-size: 0.7rem;">
+                                        {{ $sectorBadge['icon'] }} {{ $pFlow->sector }}
+                                    </span>
+                                    @if($pFlow->is_default)
+                                        <span class="badge badge-amber" style="font-weight: 800; font-size: 0.68rem;">
+                                            ★ SYSTEM DEFAULT
+                                        </span>
+                                    @endif
+                                </div>
+                                <div style="font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); line-height: 1.3; word-break: break-word;">
+                                    {{ $pFlow->name }}
+                                </div>
+                            </div>
+                        </x-slot:titleSlot>
+
+                        <!-- Status Strip Above Action Footer (Interactive Click-to-Toggle) -->
+                        <x-slot:badge>
+                            <button type="button" 
+                                    class="entity-card-status-toggle-btn"
+                                    wire:click="toggleFlowActive({{ $pFlow->id }})"
+                                    style="font-size: 0.74rem; font-weight: 800; cursor: pointer; color: {{ $pFlow->is_active ? '#10b981' : '#ef4444' }};"
+                                    title="Click to toggle pipeline status">
+                                <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                                    <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: {{ $pFlow->is_active ? '#10b981' : '#ef4444' }}; box-shadow: 0 0 8px {{ $pFlow->is_active ? 'rgba(16, 185, 129, 0.9)' : 'rgba(239, 68, 68, 0.9)' }};"></span>
+                                    <span>{{ $pFlow->is_active ? 'ACTIVE PIPELINE' : 'INACTIVE PIPELINE' }}</span>
+                                </span>
+                                <span style="font-size: 0.68rem; opacity: 0.75; font-weight: 700; text-transform: uppercase;">Click to toggle ↻</span>
+                            </button>
+                        </x-slot:badge>
+
+                        <x-slot:body>
+                            <div class="entity-card-metric-row">
+                                <span class="entity-card-metric-label">Pipeline Depth</span>
+                                <span class="badge badge-cyan" style="font-weight: 800; font-size: 0.72rem;">
+                                    {{ $stagesCount }} Sequential Stages
+                                </span>
+                            </div>
+
+                            <!-- Visual Stage Progression Strip -->
+                            <div style="margin: 0.4rem 0;">
+                                <div style="display: flex; flex-wrap: wrap; gap: 0.28rem;">
+                                    @foreach($pFlow->stages ?? [] as $s)
+                                        <span class="badge" style="background: rgba(99, 102, 241, 0.12); color: var(--primary); font-size: 0.68rem; font-weight: 700; line-height: 1.2;">
+                                            {{ $loop->iteration }}. {{ $s['name'] ?? 'Stage' }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <div class="entity-card-metric-row">
+                                <span class="entity-card-metric-label">Linked Job Positions</span>
+                                @if($campaignsCount > 0)
+                                    <span class="badge badge-indigo" style="font-weight: 800; font-size: 0.72rem;">
+                                        💼 {{ $campaignsCount }} Campaign{{ $campaignsCount === 1 ? '' : 's' }}
+                                    </span>
+                                @else
+                                    <span style="font-size: 0.72rem; color: var(--color-text-muted);">
+                                        Unassigned
+                                    </span>
+                                @endif
+                            </div>
+
+                            @if($pFlow->description)
+                                <div class="entity-card-metric-row" style="margin-top: 0.2rem;">
+                                    <span class="entity-card-metric-label">Blueprint</span>
+                                    <span class="entity-card-metric-value" style="font-size: 0.72rem; color: var(--color-text-secondary); max-width: 155px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $pFlow->description }}">
+                                        {{ $pFlow->description }}
+                                    </span>
+                                </div>
+                            @endif
+                        </x-slot:body>
+
+                        <!-- Quick Hover Actions -->
+                        <x-slot:quickActions>
+                            <button type="button" 
+                                    class="action-btn action-btn-view" 
+                                    wire:click="viewPipelineDesign({{ $pFlow->id }})" 
+                                    data-tooltip="Open Visual Stage Designer Canvas" 
+                                    aria-label="Design Pipeline Flow">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                            </button>
+
+                            <button type="button" 
+                                    class="action-btn action-btn-edit" 
+                                    wire:click="openEditPipelineModal({{ $pFlow->id }})" 
+                                    data-tooltip="Rename & Edit Pipeline Details" 
+                                    aria-label="Edit Pipeline Info">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            </button>
+                        </x-slot:quickActions>
+
+                        <!-- 3-Dot Options Menu -->
+                        <x-slot:menuItems>
+                            <x-entity-card-menu-item 
+                                wire-click="viewPipelineDesign({{ $pFlow->id }})"
+                                label="Open Stage Designer Canvas"
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                            </x-entity-card-menu-item>
+
+                            <x-entity-card-menu-item 
+                                wire-click="openEditPipelineModal({{ $pFlow->id }})"
+                                label="Rename & Edit Pipeline Info"
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            </x-entity-card-menu-item>
+
+                            <x-entity-card-menu-item 
+                                wire-click="cloneProcessFlow({{ $pFlow->id }})"
+                                label="Duplicate Pipeline Flow"
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                            </x-entity-card-menu-item>
+
+                            @if(!$pFlow->is_default)
+                                <x-entity-card-menu-item 
+                                    wire-click="setFlowAsDefault({{ $pFlow->id }})"
+                                    label="Make System Default Flow"
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                </x-entity-card-menu-item>
+                            @endif
+
+                            <div class="entity-card-menu-divider"></div>
+
+                            <x-entity-card-menu-item 
+                                wire-click="requestDeleteProcessFlow({{ $pFlow->id }})"
+                                label="Delete Pipeline"
+                                theme="danger"
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                            </x-entity-card-menu-item>
+                        </x-slot:menuItems>
+                    </x-entity-card>
+                @endforeach
+            </div>
+        @else
+            <!-- Pipeline Design Header Bar -->
+            <div class="card mb-6" style="padding: 1.25rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <!-- Back Button & Pipeline Title -->
+                    <div style="flex: 1; min-width: 300px;">
+                        <button type="button" 
+                                class="btn btn-secondary btn-sm" 
+                                wire:click="showPipelineList" 
+                                style="margin-bottom: 0.5rem; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; font-size: 0.78rem;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                            <span>Back to All Pipelines</span>
+                        </button>
+
+                        <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+                            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--color-text-primary); margin: 0; line-height: 1.25;">
+                                {{ $flow_name }}
+                            </h2>
+                            <button type="button" 
+                                    class="btn btn-secondary btn-sm" 
+                                    wire:click="openEditPipelineModal({{ $selected_flow_id }})" 
+                                    style="padding: 0.3rem 0.65rem; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem;"
+                                    title="Rename or configure pipeline details">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                <span>Rename / Edit Info</span>
+                            </button>
+                            <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: var(--primary); font-weight: 800; font-size: 0.72rem;">
+                                {{ $flow_sector }}
+                            </span>
+                            @php
+                                $currentFlowRecord = $processFlows->firstWhere('id', $selected_flow_id);
+                            @endphp
+                            @if($currentFlowRecord?->is_default)
+                                <span class="badge badge-amber" style="font-weight: 800; font-size: 0.72rem;">
+                                    ★ SYSTEM DEFAULT
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Pipeline Action Buttons -->
+                    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-primary" wire:click="addNewStage" style="font-size: 0.82rem; font-weight: 700; padding: 0.55rem 1.15rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            <span>+ Add Pipeline Stage</span>
+                        </button>
+                        <button type="button" class="btn btn-secondary" wire:click="saveProcessFlow" style="font-size: 0.82rem; font-weight: 700; padding: 0.55rem 1rem; color: #10b981; border-color: rgba(16, 185, 129, 0.3);">
+                            💾 Save Pipeline
+                        </button>
+                        @if($selected_flow_id)
+                            <button type="button" class="btn btn-secondary" wire:click="cloneProcessFlow({{ $selected_flow_id }})" style="font-size: 0.8rem; font-weight: 600; padding: 0.55rem 0.85rem;" title="Duplicate Pipeline">
+                                📋 Duplicate
+                            </button>
+                            <button type="button" class="btn btn-secondary" wire:click="requestDeleteProcessFlow({{ $selected_flow_id }})" style="font-size: 0.8rem; font-weight: 600; padding: 0.55rem 0.85rem; color: #ef4444; border-color: rgba(239, 68, 68, 0.3);" title="Delete Pipeline">
+                                🗑️ Delete
+                            </button>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Pipeline Description Strip -->
+                @if($flow_description)
+                    <div style="margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px solid rgba(255, 255, 255, 0.06); font-size: 0.82rem; color: var(--color-text-secondary); display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="color: var(--primary); font-weight: 800;">ℹ️ PIPELINE BLUEPRINT:</span>
+                        <span>{{ $flow_description }}</span>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Sequential Visual Flow Canvas -->
+            <div style="display: flex; flex-direction: column; gap: 1.25rem; margin-bottom: 2.5rem;">
+                @forelse($flow_stages as $sIdx => $stage)
                 <div class="card" style="border-left: 4px solid {{ !empty($stage['is_enabled']) ? 'var(--primary)' : 'rgba(255, 255, 255, 0.2)' }}; padding: 1.35rem; background: {{ !empty($stage['is_enabled']) ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%)' : 'rgba(15, 23, 42, 0.4)' }}; position: relative; transition: border-color 0.2s ease;">
                     
                     <!-- Top Stage Header Row -->
@@ -766,6 +965,7 @@
                 </div>
             @endforelse
         </div>
+        @endif
     @endif
 
     <!-- ========================================================================= -->
@@ -1431,6 +1631,163 @@
                 <div style="display: flex; justify-content: flex-end; padding-top: 0.85rem; border-top: 1px solid rgba(255, 255, 255, 0.06);">
                     <button type="button" class="btn btn-secondary" wire:click="closeQuorumModal" style="padding: 0.5rem 1.25rem; font-size: 0.82rem;">
                         Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- ============================================================== -->
+    <!-- MODAL: EDIT RECRUITMENT PIPELINE INFO & RENAME                 -->
+    <!-- ============================================================== -->
+    @if($showEditPipelineModal)
+        <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1.5rem;"
+             wire:keydown.escape="closeEditPipelineModal">
+            <div class="card" style="width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; padding: 1.75rem; border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 20px 40px rgba(0,0,0,0.6);"
+                 @click.outside="$wire.closeEditPipelineModal()">
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                    <div>
+                        <span style="font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: var(--primary); letter-spacing: 0.05em;">
+                            PIPELINE CONFIGURATION
+                        </span>
+                        <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--color-text-primary); margin: 0.2rem 0 0 0;">
+                            Edit Recruitment Pipeline
+                        </h3>
+                    </div>
+                    <button type="button" wire:click="closeEditPipelineModal" style="background: transparent; border: none; color: var(--color-text-muted); cursor: pointer; padding: 0.25rem;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+
+                <form wire:submit.prevent="savePipelineInfo">
+                    <!-- Pipeline Name -->
+                    <div class="form-group mb-4">
+                        <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">
+                            Pipeline Name <span style="color: var(--danger);">*</span>
+                        </label>
+                        <input type="text" class="form-control" wire:model="edit_flow_name" placeholder="e.g. Tenured Faculty Recruitment Pipeline" style="font-weight: 600;">
+                        @error('edit_flow_name') <span style="color: var(--danger); font-size: 0.75rem;">{{ $message }}</span> @enderror
+                    </div>
+
+                    <!-- Sector -->
+                    <div class="form-group mb-4">
+                        <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">
+                            Organizational Sector <span style="color: var(--danger);">*</span>
+                        </label>
+                        <select class="form-control form-select" wire:model="edit_flow_sector" style="font-weight: 600;">
+                            <option value="ACADEMIC">🎓 Academic & Faculty Track</option>
+                            <option value="CORPORATE">🏢 Corporate & Commercial</option>
+                            <option value="HEALTHCARE">🏥 Healthcare & Clinical</option>
+                            <option value="PUBLIC_SECTOR">🏛️ Public Sector / Civil Service</option>
+                            <option value="JUDICIAL">⚖️ Judicial & Legal</option>
+                            <option value="DEFENSE">🛡️ Defense & Security</option>
+                            <option value="GENERAL">⚙️ General Recruitment Track</option>
+                        </select>
+                        @error('edit_flow_sector') <span style="color: var(--danger); font-size: 0.75rem;">{{ $message }}</span> @enderror
+                    </div>
+
+                    <!-- Blueprint Description -->
+                    <div class="form-group mb-4">
+                        <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">
+                            Pipeline Blueprint Description
+                        </label>
+                        <textarea class="form-control" wire:model="edit_flow_description" rows="3" placeholder="Describe the workflow requirements, governing bodies, and milestones..."></textarea>
+                        @error('edit_flow_description') <span style="color: var(--danger); font-size: 0.75rem;">{{ $message }}</span> @enderror
+                    </div>
+
+                    <!-- Settings Switches -->
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                        <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+                            <div>
+                                <span style="font-weight: 700; font-size: 0.85rem; color: var(--color-text-primary); display: block;">Pipeline Active Status</span>
+                                <small style="color: var(--color-text-secondary); font-size: 0.74rem;">When inactive, campaigns cannot attach to this workflow.</small>
+                            </div>
+                            <input type="checkbox" wire:model="edit_flow_is_active" style="width: 1.2rem; height: 1.2rem; accent-color: var(--primary);">
+                        </label>
+
+                        <div style="height: 1px; background: rgba(255, 255, 255, 0.06);"></div>
+
+                        <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+                            <div>
+                                <span style="font-weight: 700; font-size: 0.85rem; color: var(--color-text-primary); display: block;">System Default Pipeline</span>
+                                <small style="color: var(--color-text-secondary); font-size: 0.74rem;">Newly created job campaigns will link to this pipeline by default.</small>
+                            </div>
+                            <input type="checkbox" wire:model="edit_flow_is_default" style="width: 1.2rem; height: 1.2rem; accent-color: var(--primary);">
+                        </label>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                        <button type="button" class="btn btn-secondary" wire:click="closeEditPipelineModal">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary" style="font-weight: 700;">
+                            💾 Save Pipeline Details
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
+    <!-- ============================================================== -->
+    <!-- MODAL: PIPELINE DELETION WARNING & CAMPAIGN DETACHMENT         -->
+    <!-- ============================================================== -->
+    @if($showDeleteWarningModal)
+        <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1.5rem;"
+             wire:keydown.escape="cancelDeleteProcessFlow">
+            <div class="card" style="width: 100%; max-width: 520px; padding: 1.75rem; border: 1px solid rgba(239, 68, 68, 0.35); box-shadow: 0 20px 40px rgba(0,0,0,0.7); background: #0f172a;"
+                 @click.outside="$wire.cancelDeleteProcessFlow()">
+                
+                <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem;">
+                    <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.4rem;">
+                        ⚠️
+                    </div>
+                    <div>
+                        <h3 style="font-size: 1.2rem; font-weight: 800; color: #ef4444; margin: 0 0 0.35rem 0;">
+                            @if(count($deleteWarningCampaigns) > 0)
+                                Active Job Campaign Attachments Warning
+                            @else
+                                Delete Recruitment Pipeline
+                            @endif
+                        </h3>
+                        <p style="font-size: 0.85rem; color: var(--color-text-secondary); margin: 0; line-height: 1.4;">
+                            @if(count($deleteWarningCampaigns) > 0)
+                                This pipeline cannot be deleted silently. It is currently linked to <strong>{{ count($deleteWarningCampaigns) }} active job position(s)</strong>:
+                            @else
+                                Are you sure you want to permanently delete this recruitment pipeline? This action cannot be undone.
+                            @endif
+                        </p>
+                    </div>
+                </div>
+
+                @if(count($deleteWarningCampaigns) > 0)
+                    <!-- List of Linked Job Campaigns -->
+                    <div style="background: rgba(239, 68, 68, 0.06); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: var(--radius-md); padding: 0.85rem; margin-bottom: 1.25rem; max-height: 180px; overflow-y: auto;">
+                        <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.82rem; color: var(--color-text-primary);">
+                            @foreach($deleteWarningCampaigns as $c)
+                                <li style="margin-bottom: 0.35rem;">
+                                    <strong>[{{ $c['job_code'] ?? 'JOB' }}]</strong> {{ $c['title'] ?? 'Untitled Campaign' }}
+                                    @if(!empty($c['department']))
+                                        <span style="color: var(--color-text-muted);">({{ $c['department'] }})</span>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+
+                    <div style="font-size: 0.8rem; color: #f59e0b; margin-bottom: 1.25rem; line-height: 1.35;">
+                        ⚡ Proceeding will detach this pipeline from all linked positions. Candidates in these campaigns will retain existing progress.
+                    </div>
+                @endif
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                    <button type="button" class="btn btn-secondary" wire:click="cancelDeleteProcessFlow" style="font-weight: 600;">
+                        Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger" wire:click="confirmDeleteProcessFlow" style="font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        <span>{{ count($deleteWarningCampaigns) > 0 ? 'Detach & Delete Pipeline' : 'Delete Pipeline' }}</span>
                     </button>
                 </div>
             </div>

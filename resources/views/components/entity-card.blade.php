@@ -8,20 +8,34 @@
     'avatarBg' => null,
     'avatarClass' => null,
     'badge' => null,
+    'headerBadge' => null,
     'statusBadge' => null,
     'statusClass' => 'badge-paid',
     'tag' => null,
+    'status' => null,
+    'isActive' => null,
 ])
 
-<div class="entity-card" 
+@php
+    $cardStatusClass = '';
+    if ($isActive === false || $status === 'inactive') {
+        $cardStatusClass = 'status-inactive';
+    } elseif ($isActive === true || $status === 'active') {
+        $cardStatusClass = 'status-active';
+    } elseif ($status === 'warning' || $status === 'pending') {
+        $cardStatusClass = 'status-warning';
+    }
+@endphp
+
+<div class="entity-card {{ $cardStatusClass }}" 
      @if($id) wire:key="card-{{ $id }}" @endif
      x-data="{ menuOpen: false }"
      @click.outside="menuOpen = false">
     
-    <!-- Top Header -->
+    <!-- Top Header (Full width for Avatar + Title & Subtitle) -->
     <div>
         <div class="entity-card-header">
-            <div style="display: flex; align-items: center; gap: 0.65rem; min-width: 0; flex: 1;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; min-width: 0; flex: 1;">
                 @if(isset($avatarSlot))
                     {{ $avatarSlot }}
                 @elseif($avatar || $avatarInitial)
@@ -30,7 +44,7 @@
                     </div>
                 @endif
 
-                <div class="entity-card-info">
+                <div class="entity-card-info" style="flex: 1; min-width: 0;">
                     @if(isset($titleSlot))
                         {{ $titleSlot }}
                     @else
@@ -42,19 +56,13 @@
                 </div>
             </div>
 
-            @if(isset($badgeSlot))
+            @if(isset($headerBadgeSlot))
                 <div style="flex-shrink: 0;">
-                    {{ $badgeSlot }}
+                    {{ $headerBadgeSlot }}
                 </div>
-            @elseif(isset($badge))
+            @elseif($headerBadge)
                 <div style="flex-shrink: 0;">
-                    {!! $badge !!}
-                </div>
-            @elseif($statusBadge)
-                <div style="flex-shrink: 0;">
-                    <span class="badge {{ $statusClass }}" style="font-size: 0.72rem; font-weight: 700;">
-                        {{ $statusBadge }}
-                    </span>
+                    {!! $headerBadge !!}
                 </div>
             @endif
         </div>
@@ -80,6 +88,27 @@
     <div class="entity-card-body">
         {{ $body ?? $slot }}
     </div>
+
+    <!-- Dedicated Status Strip Above Action Footer -->
+    @if(isset($statusStrip))
+        <div class="entity-card-status-strip {{ ($isActive === false || $status === 'inactive') ? 'is-inactive' : 'is-active' }}">
+            {{ $statusStrip }}
+        </div>
+    @elseif(isset($badgeSlot))
+        <div class="entity-card-status-strip {{ ($isActive === false || $status === 'inactive') ? 'is-inactive' : 'is-active' }}">
+            {{ $badgeSlot }}
+        </div>
+    @elseif(isset($badge))
+        <div class="entity-card-status-strip {{ ($isActive === false || $status === 'inactive') ? 'is-inactive' : 'is-active' }}">
+            {!! $badge !!}
+        </div>
+    @elseif($statusBadge)
+        <div class="entity-card-status-strip {{ ($isActive === false || $status === 'inactive') ? 'is-inactive' : 'is-active' }}">
+            <span class="badge {{ $statusClass }}" style="font-size: 0.74rem; font-weight: 800; width: 100%; text-align: center;">
+                {{ $statusBadge }}
+            </span>
+        </div>
+    @endif
 
     <!-- Footer / Action Row -->
     <div class="entity-card-footer">

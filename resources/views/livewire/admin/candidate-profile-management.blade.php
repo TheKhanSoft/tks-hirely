@@ -237,24 +237,28 @@
                         :title="$basicInfo->first_name . ' ' . $basicInfo->last_name" 
                         :subtitle="$basicInfo->user?->email"
                         :avatar="strtoupper(substr($basicInfo->first_name ?: 'C', 0, 1))"
-                        :avatarClass="$trackTheme">
+                        :avatarClass="$trackTheme"
+                        :is-active="!$basicInfo->is_locked">
                         
-                        <!-- Badge Slot: Locked / Editable Status -->
+                        <!-- Badge Slot: Locked / Editable Status (Above action strip) -->
                         <x-slot:badge>
                             @can('lock-candidate-profile')
                                 <button type="button" 
                                         wire:click="toggleLock({{ $basicInfo->id }})"
-                                        class="btn" 
-                                        style="padding: 0.2rem 0.65rem; font-size: 0.72rem; border-radius: 999px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; {{ $basicInfo->is_locked ? 'background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3);' : 'background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3);' }}"
+                                        class="entity-card-status-toggle-btn" 
+                                        style="font-size: 0.74rem; font-weight: 800; cursor: pointer; color: {{ $basicInfo->is_locked ? '#ef4444' : '#10b981' }};"
                                         title="Click to toggle lock state">
-                                    <span class="pulse-dot {{ $basicInfo->is_locked ? 'offline' : 'online' }}"></span>
-                                    <span>{{ $basicInfo->is_locked ? '🔒 Locked' : '🔓 Editable' }}</span>
+                                    <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                                        <span class="pulse-dot {{ $basicInfo->is_locked ? 'offline' : 'online' }}"></span>
+                                        <span>{{ $basicInfo->is_locked ? '🔒 LOCKED DOSSIER' : '🔓 OPEN / EDITABLE' }}</span>
+                                    </span>
+                                    <span style="font-size: 0.68rem; opacity: 0.75; font-weight: 700; text-transform: uppercase;">Click to toggle ↻</span>
                                 </button>
                             @else
-                                <span class="badge" style="padding: 0.2rem 0.65rem; font-size: 0.72rem; border-radius: 999px; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; {{ $basicInfo->is_locked ? 'background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3);' : 'background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3);' }}">
+                                <div style="display: inline-flex; align-items: center; gap: 0.4rem; color: {{ $basicInfo->is_locked ? '#ef4444' : '#10b981' }}; font-weight: 800;">
                                     <span class="pulse-dot {{ $basicInfo->is_locked ? 'offline' : 'online' }}"></span>
-                                    <span>{{ $basicInfo->is_locked ? '🔒 Locked' : '🔓 Editable' }}</span>
-                                </span>
+                                    <span>{{ $basicInfo->is_locked ? '🔒 LOCKED' : '🔓 EDITABLE' }}</span>
+                                </div>
                             @endcan
                         </x-slot:badge>
 

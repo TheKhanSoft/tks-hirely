@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 class RecruitmentProcessFlow extends Model
 {
     protected $fillable = [
+        'public_id',
         'name',
         'slug',
         'sector',
@@ -30,11 +31,28 @@ class RecruitmentProcessFlow extends Model
     {
         parent::boot();
 
+        static::creating(function ($model) {
+            if (empty($model->public_id)) {
+                $model->public_id = 'pipe_' . strtolower(Str::random(10));
+            }
+        });
+
         static::saving(function ($model) {
+            if (empty($model->public_id)) {
+                $model->public_id = 'pipe_' . strtolower(Str::random(10));
+            }
             if (empty($model->slug)) {
                 $model->slug = Str::slug($model->name) . '-' . rand(1000, 9999);
             }
         });
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->where('public_id', $value)
+            ->orWhere('slug', $value)
+            ->orWhere('id', $value)
+            ->firstOrFail();
     }
 
     public function campaigns(): HasMany

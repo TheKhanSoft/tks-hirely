@@ -27,6 +27,7 @@ return new class extends Migration
         // 2. Create recruitment_process_flows table
         Schema::create('recruitment_process_flows', function (Blueprint $table) {
             $table->id();
+            $table->string('public_id', 32)->nullable()->unique();
             $table->string('name');
             $table->string('slug')->unique();
             $table->string('sector')->default('ACADEMIC'); // ACADEMIC, CORPORATE, HEALTHCARE, PUBLIC_SECTOR, GENERAL

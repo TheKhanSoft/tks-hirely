@@ -104,7 +104,22 @@ class ConstitutionCriteriaManagement extends Component
     public $stage_on_fail_require_justification = true;
     public $stage_on_fail_label = '';
 
-    public function mount($campaign_id = null)
+    // Pipeline Flow Views & CRUD State
+    public $pipelineViewMode = 'list'; // 'list', 'design', 'edit'
+    public $confirmingDeleteFlowId = null;
+    public $deleteWarningCampaigns = [];
+    public $showDeleteWarningModal = false;
+
+    // Pipeline Info Editing
+    public $showEditPipelineModal = false;
+    public $edit_flow_id = null;
+    public $edit_flow_name = '';
+    public $edit_flow_sector = 'GENERAL';
+    public $edit_flow_description = '';
+    public $edit_flow_is_default = false;
+    public $edit_flow_is_active = true;
+
+    public function mount($pipeline = null, $action = null, $campaign_id = null)
     {
         abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
 
@@ -117,10 +132,44 @@ class ConstitutionCriteriaManagement extends Component
             $this->selected_campaign_id = $firstActive ? $firstActive->id : Campaign::first()?->id;
         }
 
+        // Handle direct pipeline URL binding: /pipeline/{pipeline} or /pipeline/{pipeline}/edit
+        if ($pipeline) {
+            $flow = RecruitmentProcessFlow::where('public_id', $pipeline)
+                ->orWhere('slug', $pipeline)
+                ->orWhere('id', $pipeline)
+                ->first();
+
+            if ($flow) {
+                $this->activeTab = 'process_flow';
+                $this->selected_flow_id = $flow->id;
+                $this->loadProcessFlow($flow->id);
+
+                if ($action === 'edit' || str_ends_with(request()->path(), '/edit')) {
+                    $this->pipelineViewMode = 'design';
+                    $this->openEditPipelineModal($flow->id);
+                } else {
+                    $this->pipelineViewMode = 'design';
+                }
+            }
+        } elseif (request()->routeIs('*pipeline*') || request()->path() === 'admin/pipelines' || request()->path() === 'registrar/pipelines') {
+            $this->activeTab = 'process_flow';
+            $this->pipelineViewMode = 'list';
+        }
+
         if (request()->query('tab') === 'registry' || request()->query('tab') === 'boards') {
             $this->activeTab = 'board_registry';
-        } elseif (request()->query('tab') === 'flow' || request()->query('tab') === 'process_flow') {
+        } elseif (request()->query('tab') === 'flow' || request()->query('tab') === 'process_flow' || request()->query('tab') === 'pipelines') {
             $this->activeTab = 'process_flow';
+            if (request()->query('view') === 'design' && request()->query('flow_id')) {
+                $this->pipelineViewMode = 'design';
+                $this->selected_flow_id = (int)request()->query('flow_id');
+            } elseif (request()->query('view') === 'edit' && request()->query('flow_id')) {
+                $this->pipelineViewMode = 'design';
+                $this->selected_flow_id = (int)request()->query('flow_id');
+                $this->openEditPipelineModal($this->selected_flow_id);
+            } else {
+                $this->pipelineViewMode = 'list';
+            }
         } elseif (request()->query('tab') === 'campaign') {
             $this->activeTab = 'campaign_constitution';
         }
@@ -904,6 +953,7 @@ class ConstitutionCriteriaManagement extends Component
     public function createNewFlowPipeline()
     {
         $flow = RecruitmentProcessFlow::create([
+            'public_id' => 'pipe_' . strtolower(\Illuminate\Support\Str::random(10)),
             'name' => 'Custom Recruitment Pipeline ' . rand(100, 999),
             'sector' => 'GENERAL',
             'description' => 'Custom multi-stage recruitment pipeline.',
@@ -915,7 +965,81 @@ class ConstitutionCriteriaManagement extends Component
 
         $this->selected_flow_id = $flow->id;
         $this->loadProcessFlow($flow->id);
-        session()->flash('message', "New recruitment pipeline '{$flow->name}' initialized.");
+        $this->openEditPipelineModal($flow->id);
+        $this->pipelineViewMode = 'design';
+        session()->flash('message', "New recruitment pipeline '{$flow->name}' initialized. You can now customize details and stages.");
+    }
+
+    public function showPipelineList()
+    {
+        $this->pipelineViewMode = 'list';
+    }
+
+    public function viewPipelineDesign($flowId)
+    {
+        $this->selected_flow_id = $flowId;
+        $this->loadProcessFlow($flowId);
+        $this->pipelineViewMode = 'design';
+    }
+
+    public function openEditPipelineModal($flowId = null)
+    {
+        $id = $flowId ?: $this->selected_flow_id;
+        $flow = RecruitmentProcessFlow::findOrFail($id);
+
+        $this->edit_flow_id = $flow->id;
+        $this->edit_flow_name = $flow->name;
+        $this->edit_flow_sector = $flow->sector;
+        $this->edit_flow_description = $flow->description ?? '';
+        $this->edit_flow_is_default = (bool)$flow->is_default;
+        $this->edit_flow_is_active = (bool)$flow->is_active;
+
+        $this->showEditPipelineModal = true;
+    }
+
+    public function closeEditPipelineModal()
+    {
+        $this->showEditPipelineModal = false;
+        $this->edit_flow_id = null;
+    }
+
+    public function savePipelineInfo()
+    {
+        $this->validate([
+            'edit_flow_name' => 'required|string|min:3|max:200',
+            'edit_flow_sector' => 'required|string|in:ACADEMIC,CORPORATE,HEALTHCARE,PUBLIC_SECTOR,JUDICIAL,DEFENSE,GENERAL',
+            'edit_flow_description' => 'nullable|string|max:1000',
+        ]);
+
+        if ($this->edit_flow_id) {
+            $flow = RecruitmentProcessFlow::findOrFail($this->edit_flow_id);
+
+            if ($this->edit_flow_is_default && !$flow->is_default) {
+                RecruitmentProcessFlow::where('is_default', true)->update(['is_default' => false]);
+            }
+
+            $flow->update([
+                'name' => $this->edit_flow_name,
+                'sector' => $this->edit_flow_sector,
+                'description' => $this->edit_flow_description,
+                'is_default' => $this->edit_flow_is_default,
+                'is_active' => $this->edit_flow_is_active,
+            ]);
+
+            $this->flow_name = $flow->name;
+            $this->flow_sector = $flow->sector;
+            $this->flow_description = $flow->description;
+
+            $this->showEditPipelineModal = false;
+            session()->flash('message', "Pipeline '{$flow->name}' details updated successfully.");
+        }
+    }
+
+    public function toggleFlowActive($id)
+    {
+        $flow = RecruitmentProcessFlow::findOrFail($id);
+        $flow->update(['is_active' => !$flow->is_active]);
+        session()->flash('message', "Pipeline '{$flow->name}' status updated to " . ($flow->is_active ? 'Active' : 'Inactive') . ".");
     }
 
     public function cloneProcessFlow($id)
@@ -928,7 +1052,53 @@ class ConstitutionCriteriaManagement extends Component
 
         $this->selected_flow_id = $clone->id;
         $this->loadProcessFlow($clone->id);
+        $this->pipelineViewMode = 'design';
         session()->flash('message', "Recruitment pipeline duplicated successfully.");
+    }
+
+    public function requestDeleteProcessFlow($id)
+    {
+        $flow = RecruitmentProcessFlow::findOrFail($id);
+        if ($flow->is_default) {
+            session()->flash('error', 'Cannot delete default system pipeline. Please mark another pipeline as default first.');
+            return;
+        }
+
+        $this->confirmingDeleteFlowId = $id;
+        $this->deleteWarningCampaigns = $flow->campaigns()->get(['id', 'title', 'job_code', 'department'])->toArray();
+        $this->showDeleteWarningModal = true;
+    }
+
+    public function cancelDeleteProcessFlow()
+    {
+        $this->confirmingDeleteFlowId = null;
+        $this->deleteWarningCampaigns = [];
+        $this->showDeleteWarningModal = false;
+    }
+
+    public function confirmDeleteProcessFlow()
+    {
+        if (!$this->confirmingDeleteFlowId) {
+            return;
+        }
+
+        $flow = RecruitmentProcessFlow::findOrFail($this->confirmingDeleteFlowId);
+        $name = $flow->name;
+
+        // Detach linked campaigns
+        Campaign::where('process_flow_id', $flow->id)->update(['process_flow_id' => null]);
+
+        $flow->delete();
+
+        $this->confirmingDeleteFlowId = null;
+        $this->deleteWarningCampaigns = [];
+        $this->showDeleteWarningModal = false;
+        $this->pipelineViewMode = 'list';
+
+        $this->selected_flow_id = null;
+        $this->loadProcessFlow();
+
+        session()->flash('message', "Recruitment Pipeline '{$name}' deleted successfully.");
     }
 
     public function deleteProcessFlow($id)
@@ -938,6 +1108,13 @@ class ConstitutionCriteriaManagement extends Component
             session()->flash('error', 'Cannot delete default system pipeline.');
             return;
         }
+
+        $attached = $flow->campaigns()->count();
+        if ($attached > 0) {
+            $this->requestDeleteProcessFlow($id);
+            return;
+        }
+
         $name = $flow->name;
         $flow->delete();
 
