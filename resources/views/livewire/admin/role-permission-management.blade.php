@@ -50,6 +50,63 @@
         </div>
     @endif
 
+    <!-- Live Executive Security KPI Cards -->
+    @if(!$isFormOpen)
+        <div class="stat-kpi-grid">
+            <div class="metric-card" style="--card-accent: var(--primary); --metric-icon-bg: var(--primary-light); --metric-icon-color: var(--primary);">
+                <div class="metric-header">
+                    <span class="metric-label">Security Roles</span>
+                    <div class="metric-icon-wrap">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="metric-value" style="color: var(--primary);">{{ $totalRolesCount }}</div>
+                <div class="metric-subtext">Active access authority groups</div>
+            </div>
+
+            <div class="metric-card" style="--card-accent: var(--secondary); --metric-icon-bg: var(--secondary-light); --metric-icon-color: var(--secondary);">
+                <div class="metric-header">
+                    <span class="metric-label">Granular Permissions</span>
+                    <div class="metric-icon-wrap">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="metric-value" style="color: var(--secondary);">{{ $totalPermsCount }}</div>
+                <div class="metric-subtext">Individual authorization keys</div>
+            </div>
+
+            <div class="metric-card" style="--card-accent: #10b981; --metric-icon-bg: rgba(16,185,129,0.12); --metric-icon-color: #10b981;">
+                <div class="metric-header">
+                    <span class="metric-label">Policy Status</span>
+                    <div class="metric-icon-wrap">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="metric-value" style="color: #10b981; font-size: 1.6rem;">RBAC Strict</div>
+                <div class="metric-subtext">Direct & inherited security</div>
+            </div>
+
+            <div class="metric-card" style="--card-accent: #8b5cf6; --metric-icon-bg: rgba(139,92,246,0.12); --metric-icon-color: #8b5cf6;">
+                <div class="metric-header">
+                    <span class="metric-label">Super Admin Bypass</span>
+                    <div class="metric-icon-wrap">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="metric-value" style="color: #8b5cf6; font-size: 1.6rem;">Wildcard (*)</div>
+                <div class="metric-subtext">Master access authority</div>
+            </div>
+        </div>
+    @endif
+
     <!-- Sub-tab Bar -->
     <div style="display: flex; gap: 0.5rem; background: var(--bg-tertiary); padding: 0.35rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); width: fit-content; margin-bottom: 1.5rem;">
         <button type="button" class="btn" wire:click="setSubTab('roles')"
@@ -132,9 +189,19 @@
             >
                 <!-- Role Cards (3 to 5 per row) -->
                 @foreach($roles as $role)
+                    @php
+                        $roleTheme = match($role->name) {
+                            'super-admin' => 'avatar-theme-amber',
+                            'registrar' => 'avatar-theme-indigo',
+                            'academic-reviewer' => 'avatar-theme-purple',
+                            'applicant' => 'avatar-theme-emerald',
+                            default => 'avatar-theme-cyan',
+                        };
+                    @endphp
                     <x-entity-card
                         :key="'role-card-'.$role->id"
                         :avatar-initial="strtoupper(substr($role->name, 0, 1))"
+                        :avatar-class="$roleTheme"
                         :avatar-badge="in_array($role->name, ['super-admin', 'registrar', 'applicant']) ? 'Core' : 'Custom'"
                         :title="strtoupper(str_replace('-', ' ', $role->name))"
                         :subtitle="'Role Slug: ' . $role->name"

@@ -37,7 +37,7 @@
     </div>
 
     <!-- Live Executive KPI Summary Cards -->
-    <div class="grid grid-cols-4 gap-5 mb-6">
+    <div class="stat-kpi-grid">
         <div class="metric-card" style="--card-accent: var(--secondary); --metric-icon-bg: var(--secondary-light); --metric-icon-color: var(--secondary);">
             <div class="metric-header">
                 <span class="metric-label">Empanelled Experts</span>
@@ -188,20 +188,66 @@
 
             <!-- Responsive Card Grid (3 to 5 per row) -->
             @foreach($reviewers as $rev)
+                @php
+                    $parsed = $rev->parsed_name;
+                    $rankLower = strtolower($rev->academic_rank ?? '');
+                    if (str_contains($rankLower, 'assoc')) {
+                        $rankClass = 'badge-indigo';
+                    } elseif (str_contains($rankLower, 'asst') || str_contains($rankLower, 'assistant')) {
+                        $rankClass = 'badge-cyan';
+                    } else {
+                        $rankClass = 'badge-amber';
+                    }
+                @endphp
                 <x-entity-card 
                     :key="'reviewer-card-'.$rev->id"
-                    :avatar-initial="strtoupper(substr($rev->name, 0, 1))"
+                    :avatar-initial="strtoupper(substr($parsed['full_name'] ?: $rev->name, 0, 1))"
+                    avatar-class="avatar-theme-purple"
                     :avatar-badge="($rev->country ?? '') === 'Pakistan' ? 'National' : 'Intl'"
-                    :title="$rev->name"
                     :subtitle="$rev->university"
-                    :tag="$rev->academic_rank"
-                    :status-badge="$rev->is_active ? 'Active' : 'Inactive'"
-                    :status-class="$rev->is_active ? 'badge-paid' : 'badge-draft'"
                 >
+                    <x-slot:titleSlot>
+                        <div style="display: flex; flex-direction: column; min-width: 0;">
+                            @if(!empty($parsed['prefix']))
+                                <span style="font-size: 0.72rem; font-weight: 800; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.2;">
+                                    {{ $parsed['prefix'] }}
+                                </span>
+                            @endif
+                            <div style="font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); line-height: 1.25; word-break: break-word;" title="{{ $rev->name }}">
+                                {{ $parsed['full_name'] }}
+                            </div>
+                        </div>
+                    </x-slot:titleSlot>
+
+                    <!-- Interactive Click-to-Toggle Status Badge -->
+                    <x-slot:badge>
+                        @if(auth()->user()->can('edit-reviewer') || auth()->user()->can('manage-reviewers'))
+                            <button type="button" 
+                                    wire:click="toggleReviewerStatus({{ $rev->id }})"
+                                    style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.28rem 0.65rem; font-size: 0.72rem; font-weight: 800; border-radius: 9999px; cursor: pointer; transition: all 0.2s ease; border: 1px solid; {{ $rev->is_active ? 'background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.35); box-shadow: 0 0 10px rgba(16, 185, 129, 0.15);' : 'background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.35); box-shadow: 0 0 10px rgba(239, 68, 68, 0.15);' }}"
+                                    title="Status: {{ $rev->is_active ? 'Active' : 'Inactive' }} (Click to toggle)"
+                                    aria-label="Toggle status for {{ $rev->name }}">
+                                <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: {{ $rev->is_active ? '#10b981' : '#ef4444' }}; box-shadow: 0 0 6px {{ $rev->is_active ? 'rgba(16, 185, 129, 0.8)' : 'rgba(239, 68, 68, 0.8)' }};"></span>
+                                <span>{{ $rev->is_active ? 'ACTIVE' : 'INACTIVE' }}</span>
+                            </button>
+                        @else
+                            <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.28rem 0.65rem; font-size: 0.72rem; font-weight: 800; border-radius: 9999px; border: 1px solid; {{ $rev->is_active ? 'background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.35);' : 'background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.35);' }}">
+                                <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: {{ $rev->is_active ? '#10b981' : '#ef4444' }};"></span>
+                                <span>{{ $rev->is_active ? 'ACTIVE' : 'INACTIVE' }}</span>
+                            </span>
+                        @endif
+                    </x-slot:badge>
+
+                    <x-slot:tag>
+                        <span class="badge {{ $rankClass }}" style="font-weight: 700; font-size: 0.72rem;">
+                            {{ $rev->academic_rank }}
+                        </span>
+                    </x-slot:tag>
+
                     <x-slot:body>
                         <div class="entity-card-metric-row">
                             <span class="entity-card-metric-label">Discipline</span>
-                            <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25); font-weight: 700; font-size: 0.72rem; padding: 0.15rem 0.45rem;">
+                            <span class="badge badge-indigo" style="font-weight: 700; font-size: 0.72rem; padding: 0.15rem 0.45rem;">
                                 {{ $rev->subject }}
                             </span>
                         </div>
@@ -211,13 +257,13 @@
                         </div>
                         <div class="entity-card-metric-row">
                             <span class="entity-card-metric-label">Email</span>
-                            <span class="entity-card-metric-value" style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $rev->user->email ?? 'N/A' }}">
+                            <span class="mono-pill" style="max-width: 155px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $rev->user->email ?? 'N/A' }}">
                                 {{ $rev->user->email ?? 'N/A' }}
                             </span>
                         </div>
                         <div class="entity-card-metric-row">
                             <span class="entity-card-metric-label">Assigned</span>
-                            <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); font-weight: 800; border: 1px solid rgba(6,182,212,0.25); font-size: 0.72rem; padding: 0.15rem 0.45rem;">
+                            <span class="badge badge-cyan" style="font-weight: 800; font-size: 0.72rem; padding: 0.15rem 0.45rem;">
                                 {{ $rev->reviews_count }} Dossier{{ $rev->reviews_count === 1 ? '' : 's' }}
                             </span>
                         </div>
@@ -246,7 +292,30 @@
                                 </svg>
                             </a>
                         @endif
+
+                        <button type="button" 
+                                class="action-btn action-btn-view" 
+                                wire:click="openDetailsModal({{ $rev->id }})" 
+                                data-tooltip="View Reviewer Profile & Dossiers" 
+                                aria-label="View Reviewer Details">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+
                         @if(auth()->user()->can('edit-reviewer') || auth()->user()->can('manage-reviewers'))
+                            <button type="button" 
+                                    class="action-btn action-btn-edit" 
+                                    wire:click="openEditModal({{ $rev->id }})" 
+                                    data-tooltip="Edit Reviewer Profile" 
+                                    aria-label="Edit Reviewer">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                            </button>
+
                             <button type="button" 
                                     class="action-btn {{ $rev->is_active ? 'action-btn-success' : 'action-btn-delete' }}" 
                                     data-tooltip="{{ $rev->is_active ? 'Active (Click to Deactivate)' : 'Inactive (Click to Activate)' }}" 
@@ -263,17 +332,21 @@
 
                     <!-- Dropdown Options Menu [ICON + Text] -->
                     <x-slot:menuItems>
-                        @if(auth()->user()->hasRole('super-admin') && $rev->user && auth()->id() !== $rev->user->id && !$rev->user->hasRole('super-admin'))
-                            <x-entity-card-menu-item 
-                                :href="route('impersonate.start', $rev->user->id)"
-                                label="Impersonate Reviewer"
-                                theme="impersonate"
-                            >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                            </x-entity-card-menu-item>
-                        @endif
+                        <x-entity-card-menu-item 
+                            wire-click="openDetailsModal({{ $rev->id }})"
+                            label="View Profile & Dossiers"
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </x-entity-card-menu-item>
 
                         @if(auth()->user()->can('edit-reviewer') || auth()->user()->can('manage-reviewers'))
+                            <x-entity-card-menu-item 
+                                wire-click="openEditModal({{ $rev->id }})"
+                                label="Edit Reviewer Profile"
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            </x-entity-card-menu-item>
+
                             <x-entity-card-menu-item 
                                 wire-click="toggleReviewerStatus({{ $rev->id }})"
                                 label="{{ $rev->is_active ? 'Deactivate Empanelment' : 'Activate Empanelment' }}"
@@ -283,6 +356,16 @@
                                 @else
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                                 @endif
+                            </x-entity-card-menu-item>
+                        @endif
+
+                        @if(auth()->user()->hasRole('super-admin') && $rev->user && auth()->id() !== $rev->user->id && !$rev->user->hasRole('super-admin'))
+                            <x-entity-card-menu-item 
+                                :href="route('impersonate.start', $rev->user->id)"
+                                label="Impersonate Reviewer"
+                                theme="impersonate"
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                             </x-entity-card-menu-item>
                         @endif
                     </x-slot:menuItems>
@@ -301,20 +384,31 @@
                                 <th>Contact Particulars</th>
                                 <th>Research Focus</th>
                                 <th>Assigned Dossiers</th>
-                                <th style="text-align: right;">Status</th>
+                                <th>Status (Click to Toggle)</th>
+                                <th style="text-align: right;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($reviewers as $rev)
+                                @php
+                                    $parsed = $rev->parsed_name;
+                                @endphp
                                 <tr wire:key="reviewer-table-row-{{ $rev->id }}">
                                     <td>
                                         <div style="display: flex; align-items: center; gap: 0.85rem;">
-                                            <div class="user-avatar-circle" style="width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, rgba(6,182,212,0.2), rgba(99,102,241,0.2)); border: 1px solid rgba(6,182,212,0.3); color: var(--secondary); font-weight: 800; font-size: 0.88rem; display: flex; align-items: center; justify-content: center;">
-                                                {{ strtoupper(substr($rev->name, 0, 1)) }}
+                                            <div class="user-avatar-circle" style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, rgba(6,182,212,0.2), rgba(99,102,241,0.2)); border: 1px solid rgba(6,182,212,0.3); color: var(--secondary); font-weight: 800; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                {{ strtoupper(substr($parsed['full_name'] ?: $rev->name, 0, 1)) }}
                                             </div>
-                                            <div>
-                                                <strong style="color: var(--color-text-primary); font-size: 0.95rem;">{{ $rev->name }}</strong>
-                                                <div style="font-size: 0.78rem; color: var(--secondary); font-weight: 700; margin-top: 1px;">
+                                            <div style="min-width: 0;">
+                                                @if(!empty($parsed['prefix']))
+                                                    <span style="display: block; font-size: 0.72rem; font-weight: 800; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.04em; line-height: 1.1;">
+                                                        {{ $parsed['prefix'] }}
+                                                    </span>
+                                                @endif
+                                                <strong style="color: var(--color-text-primary); font-size: 0.98rem; font-weight: 800; display: block; line-height: 1.25;">
+                                                    {{ $parsed['full_name'] }}
+                                                </strong>
+                                                <div style="font-size: 0.78rem; color: var(--color-text-secondary); font-weight: 600; margin-top: 2px;">
                                                     {{ $rev->academic_rank }}
                                                 </div>
                                             </div>
@@ -335,7 +429,7 @@
                                     </td>
                                     <td>
                                         <div>
-                                            <code style="color: var(--color-text-primary); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace;">{{ $rev->user->email }}</code>
+                                            <code style="color: var(--color-text-primary); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace;">{{ $rev->user?->email }}</code>
                                             @if($rev->phone)
                                                 <div style="color: var(--color-text-muted); font-size: 0.76rem; margin-top: 2px;">{{ $rev->phone }}</div>
                                             @endif
@@ -351,14 +445,31 @@
                                             {{ $rev->reviews_count }} Dossier{{ $rev->reviews_count === 1 ? '' : 's' }}
                                         </span>
                                     </td>
+                                    <td>
+                                        @if(auth()->user()->can('edit-reviewer') || auth()->user()->can('manage-reviewers'))
+                                            <button type="button" 
+                                                    wire:click="toggleReviewerStatus({{ $rev->id }})"
+                                                    style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.28rem 0.65rem; font-size: 0.72rem; font-weight: 800; border-radius: 9999px; cursor: pointer; transition: all 0.2s ease; border: 1px solid; {{ $rev->is_active ? 'background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.35); box-shadow: 0 0 8px rgba(16, 185, 129, 0.15);' : 'background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.35); box-shadow: 0 0 8px rgba(239, 68, 68, 0.15);' }}"
+                                                    title="Status: {{ $rev->is_active ? 'Active' : 'Inactive' }} (Click to toggle)"
+                                                    aria-label="Toggle status for {{ $rev->name }}">
+                                                <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: {{ $rev->is_active ? '#10b981' : '#ef4444' }}; box-shadow: 0 0 6px {{ $rev->is_active ? 'rgba(16, 185, 129, 0.8)' : 'rgba(239, 68, 68, 0.8)' }};"></span>
+                                                <span>{{ $rev->is_active ? 'ACTIVE' : 'INACTIVE' }}</span>
+                                            </button>
+                                        @else
+                                            <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.28rem 0.65rem; font-size: 0.72rem; font-weight: 800; border-radius: 9999px; border: 1px solid; {{ $rev->is_active ? 'background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.35);' : 'background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.35);' }}">
+                                                <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: {{ $rev->is_active ? '#10b981' : '#ef4444' }};"></span>
+                                                <span>{{ $rev->is_active ? 'ACTIVE' : 'INACTIVE' }}</span>
+                                            </span>
+                                        @endif
+                                    </td>
                                     <td style="text-align: right;">
                                         <div class="action-btn-group justify-end">
                                             @if(auth()->user()->hasRole('super-admin') && $rev->user && auth()->id() !== $rev->user->id && !$rev->user->hasRole('super-admin'))
                                                 <a href="{{ route('impersonate.start', $rev->user->id) }}" 
                                                    class="action-btn action-btn-impersonate" 
-                                                   data-tooltip="Impersonate Reviewer ({{ $rev->name }})"
+                                                   data-tooltip="Impersonate ({{ $rev->name }})"
                                                    aria-label="Impersonate Reviewer">
-                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                                                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                                                         <circle cx="9" cy="7" r="4"/>
                                                         <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
@@ -366,29 +477,48 @@
                                                     </svg>
                                                 </a>
                                             @endif
+
+                                            <button type="button" 
+                                                    class="action-btn action-btn-view" 
+                                                    wire:click="openDetailsModal({{ $rev->id }})" 
+                                                    data-tooltip="View Reviewer Profile & Dossiers" 
+                                                    aria-label="View Reviewer Details">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                                    <circle cx="12" cy="12" r="3"/>
+                                                </svg>
+                                            </button>
+
                                             @if(auth()->user()->can('edit-reviewer') || auth()->user()->can('manage-reviewers'))
+                                                <button type="button" 
+                                                        class="action-btn action-btn-edit" 
+                                                        wire:click="openEditModal({{ $rev->id }})" 
+                                                        data-tooltip="Edit Reviewer Profile" 
+                                                        aria-label="Edit Reviewer">
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                                    </svg>
+                                                </button>
+
                                                 <button type="button" 
                                                         class="action-btn {{ $rev->is_active ? 'action-btn-success' : 'action-btn-delete' }}" 
                                                         data-tooltip="{{ $rev->is_active ? 'Active (Click to Deactivate)' : 'Inactive (Click to Activate)' }}" 
                                                         wire:click="toggleReviewerStatus({{ $rev->id }})" 
                                                         aria-label="Toggle Reviewer Status">
                                                     @if($rev->is_active)
-                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                                                     @else
-                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                                                     @endif
                                                 </button>
-                                            @else
-                                                <span class="badge {{ $rev->is_active ? 'badge-paid' : '' }}" style="font-size: 0.76rem;">
-                                                    {{ $rev->is_active ? 'Active' : 'Inactive' }}
-                                                </span>
                                             @endif
                                         </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-center" style="padding: 3rem 1.5rem; color: var(--color-text-muted);">
+                                    <td colspan="8" class="text-center" style="padding: 3rem 1.5rem; color: var(--color-text-muted);">
                                         No empanelled reviewers found matching criteria.
                                     </td>
                                 </tr>
@@ -1175,6 +1305,308 @@
                 <div class="flex justify-end mt-4" style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
                     <button type="button" class="btn btn-secondary" wire:click="closeReportsModal">Close Reports</button>
                 </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- ============================================================== -->
+    <!-- MODAL 5: REVIEWER PROFILE & DOSSIERS LEDGER MODAL             -->
+    <!-- ============================================================== -->
+    @if($showDetailsModal && $selectedReviewerForDetails)
+        @php
+            $detParsed = $selectedReviewerForDetails->parsed_name;
+            $detReviews = $selectedReviewerForDetails->reviews ?? collect();
+            $completedCount = $detReviews->where('status', 'SUBMITTED')->count();
+            $pendingCount = $detReviews->where('status', '!=', 'SUBMITTED')->count();
+            $avgScore = $completedCount > 0 ? $detReviews->where('status', 'SUBMITTED')->avg('overall_score') : null;
+        @endphp
+        <div class="modal-overlay-premium" style="z-index: 1650;">
+            <div class="modal-dialog-premium" style="width: 100%; max-width: 860px; max-height: 92vh; overflow-y: auto; padding: 2rem; border-color: rgba(6,182,212,0.4); box-shadow: 0 30px 80px rgba(0,0,0,0.85);">
+                <!-- Modal Header -->
+                <div class="flex justify-between align-center mb-4" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.25rem;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div class="user-avatar-circle" style="width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, rgba(6,182,212,0.25), rgba(99,102,241,0.25)); border: 1.5px solid rgba(6,182,212,0.4); color: var(--secondary); font-weight: 800; font-size: 1.35rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            {{ strtoupper(substr($detParsed['full_name'] ?: $selectedReviewerForDetails->name, 0, 1)) }}
+                        </div>
+                        <div>
+                            @if(!empty($detParsed['prefix']))
+                                <span style="display: block; font-size: 0.76rem; font-weight: 800; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.2;">
+                                    {{ $detParsed['prefix'] }}
+                                </span>
+                            @endif
+                            <h3 class="card-title" style="margin: 0; font-size: 1.35rem; font-weight: 800; color: var(--color-text-primary); line-height: 1.2;">
+                                {{ $detParsed['full_name'] }}
+                            </h3>
+                            <div style="display: flex; align-items: center; gap: 0.6rem; margin-top: 0.35rem; flex-wrap: wrap;">
+                                <span class="badge badge-amber" style="font-size: 0.74rem; font-weight: 700;">
+                                    {{ $selectedReviewerForDetails->academic_rank }}
+                                </span>
+                                <span class="badge badge-indigo" style="font-size: 0.74rem; font-weight: 700;">
+                                    {{ $selectedReviewerForDetails->subject }}
+                                </span>
+                                <span style="font-size: 0.8rem; color: var(--color-text-muted);">
+                                    📍 {{ $selectedReviewerForDetails->university }} ({{ $selectedReviewerForDetails->country }})
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        @if(auth()->user()->can('edit-reviewer') || auth()->user()->can('manage-reviewers'))
+                            <button type="button" 
+                                    wire:click="toggleReviewerStatus({{ $selectedReviewerForDetails->id }})"
+                                    style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.8rem; font-size: 0.76rem; font-weight: 800; border-radius: 9999px; cursor: pointer; transition: all 0.2s ease; border: 1px solid; {{ $selectedReviewerForDetails->is_active ? 'background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.35); box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);' : 'background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.35); box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);' }}"
+                                    title="Click to toggle status">
+                                <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: {{ $selectedReviewerForDetails->is_active ? '#10b981' : '#ef4444' }};"></span>
+                                <span>{{ $selectedReviewerForDetails->is_active ? 'ACTIVE' : 'INACTIVE' }}</span>
+                            </button>
+                        @endif
+                        <button type="button" class="btn btn-secondary btn-sm" wire:click="closeDetailsModal" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;">✕</button>
+                    </div>
+                </div>
+
+                <!-- Referee KPI Metrics Strip -->
+                <div class="grid grid-cols-4 gap-3 mb-4">
+                    <div class="card" style="background: rgba(0,0,0,0.25); border-color: var(--border-color); padding: 0.85rem 1rem; text-align: center;">
+                        <span style="font-size: 0.7rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Assigned Dossiers</span>
+                        <div style="font-size: 1.4rem; font-weight: 900; color: var(--secondary); margin-top: 2px;">
+                            {{ $detReviews->count() }}
+                        </div>
+                    </div>
+                    <div class="card" style="background: rgba(0,0,0,0.25); border-color: var(--border-color); padding: 0.85rem 1rem; text-align: center;">
+                        <span style="font-size: 0.7rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Completed</span>
+                        <div style="font-size: 1.4rem; font-weight: 900; color: #10b981; margin-top: 2px;">
+                            {{ $completedCount }}
+                        </div>
+                    </div>
+                    <div class="card" style="background: rgba(0,0,0,0.25); border-color: var(--border-color); padding: 0.85rem 1rem; text-align: center;">
+                        <span style="font-size: 0.7rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Pending Evaluation</span>
+                        <div style="font-size: 1.4rem; font-weight: 900; color: #f59e0b; margin-top: 2px;">
+                            {{ $pendingCount }}
+                        </div>
+                    </div>
+                    <div class="card" style="background: rgba(0,0,0,0.25); border-color: var(--border-color); padding: 0.85rem 1rem; text-align: center;">
+                        <span style="font-size: 0.7rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Avg Rating</span>
+                        <div style="font-size: 1.4rem; font-weight: 900; color: var(--primary); margin-top: 2px;">
+                            {{ $avgScore !== null ? number_format($avgScore, 1) . '/100' : 'N/A' }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Referee Particulars Grid -->
+                <div class="card mb-4" style="background: var(--bg-surface); border-color: var(--border-color); padding: 1.25rem;">
+                    <h5 style="font-size: 0.82rem; font-weight: 800; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 1rem 0;">
+                        Institutional Affiliation & Contact Details
+                    </h5>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <span style="font-size: 0.74rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700;">Institutional Email</span>
+                            <div style="color: var(--color-text-primary); font-size: 0.9rem; font-weight: 600; margin-top: 2px;">
+                                <code style="font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;">{{ $selectedReviewerForDetails->user?->email ?? 'Not linked' }}</code>
+                            </div>
+                        </div>
+                        <div>
+                            <span style="font-size: 0.74rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700;">Direct Phone</span>
+                            <div style="color: var(--color-text-primary); font-size: 0.9rem; font-weight: 600; margin-top: 2px;">
+                                {{ $selectedReviewerForDetails->phone ?: 'Not provided' }}
+                            </div>
+                        </div>
+                        <div>
+                            <span style="font-size: 0.74rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700;">Institution / University</span>
+                            <div style="color: var(--color-text-primary); font-size: 0.9rem; font-weight: 600; margin-top: 2px;">
+                                {{ $selectedReviewerForDetails->university }}
+                            </div>
+                        </div>
+                        <div>
+                            <span style="font-size: 0.74rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700;">Country of Residence</span>
+                            <div style="color: var(--color-text-primary); font-size: 0.9rem; font-weight: 600; margin-top: 2px;">
+                                📍 {{ $selectedReviewerForDetails->country }}
+                            </div>
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <span style="font-size: 0.74rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700;">Research Focus & Domain Expertise</span>
+                            <div style="color: var(--color-text-primary); font-size: 0.88rem; margin-top: 4px; line-height: 1.5; background: rgba(0,0,0,0.2); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                                {{ $selectedReviewerForDetails->specialization ?: 'General ' . $selectedReviewerForDetails->subject }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assigned Candidacies & Reviews Ledger -->
+                <div class="mb-4">
+                    <h5 style="font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 0.85rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2.3"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                        <span>Assigned Candidacy Dossiers ({{ $detReviews->count() }})</span>
+                    </h5>
+
+                    @if($detReviews->isNotEmpty())
+                        <div class="table-container" style="max-height: 280px; overflow-y: auto;">
+                            <table class="table" style="font-size: 0.82rem;">
+                                <thead>
+                                    <tr>
+                                        <th>Applicant Name & Tracking</th>
+                                        <th>Position / Campaign</th>
+                                        <th>Assigned / Due</th>
+                                        <th>Status</th>
+                                        <th>Score & Verdict</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($detReviews as $revAssignment)
+                                        <tr>
+                                            <td>
+                                                <strong style="color: var(--color-text-primary); font-size: 0.88rem;">
+                                                    {{ $revAssignment->application?->user?->basicInfo?->full_name ?: ($revAssignment->application?->user?->name ?: 'Applicant') }}
+                                                </strong>
+                                                <div style="font-size: 0.75rem; color: var(--color-text-muted); font-family: 'JetBrains Mono', monospace;">
+                                                    {{ $revAssignment->application?->tracking_number }}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span style="font-weight: 600; color: var(--color-text-primary);">
+                                                    {{ $revAssignment->application?->campaign?->title ?? 'N/A' }}
+                                                </span>
+                                                <div style="font-size: 0.74rem; color: var(--color-text-muted);">
+                                                    {{ $revAssignment->application?->campaign?->department ?? '' }}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span style="font-size: 0.76rem; color: var(--color-text-secondary);">
+                                                    {{ $revAssignment->assigned_at?->format('d M Y') }}
+                                                </span>
+                                                <div style="font-size: 0.72rem; color: var(--color-text-muted);">
+                                                    Due: {{ $revAssignment->due_date?->format('d M Y') ?: '14 days' }}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                @if($revAssignment->status === 'SUBMITTED')
+                                                    <span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; font-weight: 800; font-size: 0.72rem;">✓ Submitted</span>
+                                                @else
+                                                    <span class="badge" style="background: rgba(245,158,11,0.15); color: #f59e0b; font-weight: 800; font-size: 0.72rem;">⏳ In Progress</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if($revAssignment->status === 'SUBMITTED')
+                                                    <strong style="color: {{ $revAssignment->overall_score >= 80 ? '#10b981' : ($revAssignment->overall_score >= 60 ? '#f59e0b' : '#ef4444') }}; font-size: 0.95rem; font-weight: 800;">
+                                                        {{ $revAssignment->overall_score }} / 100
+                                                    </strong>
+                                                    <div style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 1px;">
+                                                        {{ str_replace('_', ' ', $revAssignment->recommendation ?? 'Completed') }}
+                                                    </div>
+                                                @else
+                                                    <span style="color: var(--color-text-muted); font-size: 0.76rem;">Pending</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div style="text-align: center; padding: 2rem 1rem; background: rgba(0,0,0,0.15); border: 1.5px dashed var(--border-color); border-radius: var(--radius-md); color: var(--color-text-muted); font-size: 0.85rem;">
+                            No candidacies or dossiers have been assigned to this expert referee yet.
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Modal Actions Footer -->
+                <div class="flex justify-between align-center" style="border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+                    <button type="button" class="btn btn-secondary" wire:click="closeDetailsModal">Close</button>
+                    @if(auth()->user()->can('edit-reviewer') || auth()->user()->can('manage-reviewers'))
+                        <button type="button" class="btn btn-primary" wire:click="openEditModal({{ $selectedReviewerForDetails->id }})" style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            <span>Edit Reviewer Particulars</span>
+                        </button>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- ============================================================== -->
+    <!-- MODAL 6: EDIT REVIEWER PROFILE                                -->
+    <!-- ============================================================== -->
+    @if($showEditModal)
+        <div class="modal-overlay-premium" style="z-index: 1750;">
+            <div class="modal-dialog-premium" style="width: 100%; max-width: 720px; max-height: 92vh; overflow-y: auto; padding: 1.75rem; border-color: var(--secondary-glow); box-shadow: 0 30px 80px rgba(0,0,0,0.9);">
+                <div class="flex justify-between align-center mb-4" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="brand-icon-box" style="width: 40px; height: 40px; border-radius: 10px; background: rgba(6,182,212,0.15); color: var(--secondary);">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="card-title" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--color-text-primary);">
+                                Edit Reviewer Profile
+                            </h3>
+                            <p class="card-subtitle" style="margin: 0.2rem 0 0; font-size: 0.82rem;">
+                                Update expert particulars, discipline specialization, and institutional contact details.
+                            </p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm" wire:click="closeEditModal" style="padding: 0.35rem 0.65rem;">✕</button>
+                </div>
+
+                <form wire:submit.prevent="updateReviewer">
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <x-input label="Full Name & Academic Title *" :error="$errors->first('edit_name')">
+                            <input type="text" class="form-control" wire:model="edit_name" placeholder="e.g. Prof. Dr. Tariq Mahmood">
+                        </x-input>
+
+                        <x-input label="Institutional Email Address *" :error="$errors->first('edit_email')">
+                            <input type="email" class="form-control" wire:model="edit_email" placeholder="e.g. tariq.mahmood@nust.edu.pk">
+                        </x-input>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <x-input label="Subject / Academic Discipline *" :error="$errors->first('edit_subject')">
+                            <input type="text" class="form-control" wire:model="edit_subject" placeholder="e.g. Computer Science, Biotechnology">
+                        </x-input>
+
+                        <x-select label="Current Academic Rank / Position *" :error="$errors->first('edit_academic_rank')">
+                            <select class="form-control form-select" wire:model="edit_academic_rank">
+                                <option value="Professor">Professor</option>
+                                <option value="Associate Professor">Associate Professor</option>
+                                <option value="Assistant Professor">Assistant Professor</option>
+                                <option value="Tenured Professor">Tenured Professor</option>
+                                <option value="Distinguished Professor">Distinguished Professor</option>
+                                <option value="Senior Scientist">Senior Scientist / Principal Investigator</option>
+                                <option value="Industry Fellow">Industry Fellow / Technical Advisor</option>
+                                <option value="Principal Consultant">Principal Consultant / Lead Specialist</option>
+                                <option value="Executive Director">Executive Director / Senior Director</option>
+                            </select>
+                        </x-select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <x-input label="Institutional Affiliation / Organization / University *" :error="$errors->first('edit_university')">
+                            <input type="text" class="form-control" wire:model="edit_university" placeholder="e.g. Oxford University, NUST">
+                        </x-input>
+
+                        <!-- Searchable Country Select -->
+                        <x-searchable-country-select wire:model="edit_country" label="Affiliated Country *" :error="$errors->first('edit_country')" placeholder="Search or select country..." />
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <x-input label="Contact Number (Optional)" :error="$errors->first('edit_phone')">
+                            <input type="text" class="form-control" wire:model="edit_phone" placeholder="e.g. +92 300 1234567">
+                        </x-input>
+
+                        <x-input label="Specialization / Sub-discipline (Optional)" :error="$errors->first('edit_specialization')">
+                            <input type="text" class="form-control" wire:model="edit_specialization" placeholder="e.g. Artificial Intelligence, NLP, Cyber Security">
+                        </x-input>
+                    </div>
+
+                    <div class="flex justify-between align-center" style="border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+                        <button type="button" class="btn btn-secondary" wire:click="closeEditModal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" wire:loading.attr="disabled">
+                            <span wire:loading.remove wire:target="updateReviewer">Save Changes</span>
+                            <span wire:loading wire:target="updateReviewer">Saving Changes...</span>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     @endif

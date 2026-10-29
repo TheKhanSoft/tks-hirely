@@ -50,4 +50,44 @@ class ReviewerProfile extends Model
     {
         return $this->hasMany(ApplicationReview::class, 'reviewer_id', 'user_id');
     }
+
+    /**
+     * Parse title prefix (e.g. Prof. Dr., Dr., Prof., Engr.) and remaining clean full name.
+     */
+    public function getParsedNameAttribute(): array
+    {
+        $raw = trim($this->name ?? '');
+        $prefixes = [
+            'Prof. Dr.',
+            'Professor Dr.',
+            'Prof.',
+            'Professor',
+            'Assoc. Prof. Dr.',
+            'Assoc. Prof.',
+            'Assistant Prof.',
+            'Asst. Prof.',
+            'Dr.',
+            'Doctor',
+            'Engr.',
+            'Engineer',
+            'Mr.',
+            'Ms.',
+            'Mrs.',
+        ];
+
+        foreach ($prefixes as $p) {
+            if (stripos($raw, $p) === 0) {
+                $clean = trim(substr($raw, strlen($p)));
+                return [
+                    'prefix' => $p,
+                    'full_name' => $clean ?: $raw,
+                ];
+            }
+        }
+
+        return [
+            'prefix' => '',
+            'full_name' => $raw,
+        ];
+    }
 }

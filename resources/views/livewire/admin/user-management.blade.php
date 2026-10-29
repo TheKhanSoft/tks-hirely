@@ -40,7 +40,7 @@
 
     <!-- Live Executive KPI Summary Cards -->
     @if(!$isFormOpen)
-        <div class="grid grid-cols-5 gap-4 mb-6">
+        <div class="stat-kpi-grid">
             <div class="metric-card" style="--card-accent: var(--primary); --metric-icon-bg: var(--primary-light); --metric-icon-color: var(--primary);">
                 <div class="metric-header">
                     <span class="metric-label">Total Accounts</span>
@@ -266,6 +266,7 @@
             <x-slot:cards>
                 @foreach($users as $u)
                     @php
+                        $isSuperAdmin = $u->hasRole('super-admin');
                         $isCommittee = $u->hasAnyRole(['scrutiny-committee', 'scrutiny', 'appellate-committee', 'appellate', 'selection-board-member', 'board-member', 'board']) || $u->committees->isNotEmpty();
                         $isReviewer = $u->hasAnyRole(['academic-reviewer', 'reviewer']) || $u->reviewerProfile;
                         $isApplicant = $u->hasRole('applicant') && !$u->hasAnyRoleOtherThan('applicant');
@@ -279,54 +280,65 @@
 
                         $country = $u->reviewerProfile?->country 
                             ?? ($u->basicInfo?->nationality ?: 'Domestic / Local');
+
+                        if ($isSuperAdmin) {
+                            $avatarTheme = 'avatar-theme-amber';
+                            $roleBadgeClass = 'badge-amber';
+                            $roleLabel = '👑 Super Admin';
+                        } elseif ($isStaff) {
+                            $avatarTheme = 'avatar-theme-indigo';
+                            $roleBadgeClass = 'badge-indigo';
+                            $roleLabel = '🏛️ Staff & Leadership';
+                        } elseif ($isCommittee) {
+                            $avatarTheme = 'avatar-theme-cyan';
+                            $roleBadgeClass = 'badge-cyan';
+                            $roleLabel = '👥 Committee Panelist';
+                        } elseif ($isReviewer) {
+                            $avatarTheme = 'avatar-theme-purple';
+                            $roleBadgeClass = 'badge-purple';
+                            $roleLabel = '🌐 External Reviewer';
+                        } else {
+                            $avatarTheme = 'avatar-theme-emerald';
+                            $roleBadgeClass = 'badge-emerald';
+                            $roleLabel = '🎓 Job Applicant';
+                        }
                     @endphp
 
                     <x-entity-card 
                         :id="$u->id" 
                         :title="$displayName ?: $u->email" 
                         :subtitle="$displayName ? $u->email : 'Registered User'"
-                        :avatar="strtoupper(substr($displayName ?: $u->email, 0, 1))">
+                        :avatar="strtoupper(substr($displayName ?: $u->email, 0, 1))"
+                        :avatarClass="$avatarTheme">
                         
                         <!-- Badge Slot: Active / Blocked Status -->
                         <x-slot:badge>
                             @can('toggle-user-status')
                                 <button type="button" 
                                         class="btn {{ $u->is_active ? 'btn-success' : 'btn-danger' }}" 
-                                        style="padding: 0.2rem 0.65rem; font-size: 0.72rem; border-radius: 999px; font-weight: 700; cursor: pointer;" 
+                                        style="padding: 0.2rem 0.65rem; font-size: 0.72rem; border-radius: 999px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;" 
                                         wire:click="toggleUserStatus({{ $u->id }})" 
                                         :disabled="auth()->id() == $u->id"
                                         title="{{ auth()->id() == $u->id ? 'Cannot deactivate yourself' : 'Toggle status' }}">
-                                    {{ $u->is_active ? '● Active' : '✕ Blocked' }}
+                                    <span class="pulse-dot {{ $u->is_active ? 'online' : 'offline' }}"></span>
+                                    <span>{{ $u->is_active ? 'Active' : 'Blocked' }}</span>
                                 </button>
                             @else
-                                <span class="badge" style="background: {{ $u->is_active ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)' }}; color: {{ $u->is_active ? 'var(--success)' : 'var(--danger)' }}; font-size: 0.72rem; border-radius: 999px; font-weight: 700;">
-                                    {{ $u->is_active ? '● Active' : '✕ Blocked' }}
+                                <span class="badge" style="background: {{ $u->is_active ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)' }}; color: {{ $u->is_active ? 'var(--success)' : 'var(--danger)' }}; font-size: 0.72rem; border-radius: 999px; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                    <span class="pulse-dot {{ $u->is_active ? 'online' : 'offline' }}"></span>
+                                    <span>{{ $u->is_active ? 'Active' : 'Blocked' }}</span>
                                 </span>
                             @endcan
                         </x-slot:badge>
 
                         <!-- Tag Slot: Classification -->
                         <x-slot:tag>
-                            @if($isStaff)
-                                <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25); font-weight: 700; font-size: 0.72rem;">
-                                    🏛️ Leadership & Staff
-                                </span>
-                            @elseif($isCommittee)
-                                <span class="badge" style="background: rgba(59,130,246,0.12); color: #3b82f6; border: 1px solid rgba(59,130,246,0.25); font-weight: 700; font-size: 0.72rem;">
-                                    👥 Committee Panelist
-                                </span>
-                            @elseif($isReviewer)
-                                <span class="badge" style="background: rgba(139,92,246,0.12); color: #8b5cf6; border: 1px solid rgba(139,92,246,0.25); font-weight: 700; font-size: 0.72rem;">
-                                    🌐 External Reviewer
-                                </span>
-                            @else
-                                <span class="badge" style="background: rgba(16,185,129,0.12); color: var(--success); border: 1px solid rgba(16,185,129,0.25); font-weight: 700; font-size: 0.72rem;">
-                                    🎓 Job Applicant
-                                </span>
-                            @endif
+                            <span class="badge {{ $roleBadgeClass }}" style="font-weight: 700; font-size: 0.72rem;">
+                                {{ $roleLabel }}
+                            </span>
 
                             @if(auth()->id() === $u->id)
-                                <span class="badge" style="background: rgba(6,182,212,0.15); color: var(--secondary); font-size: 0.68rem; padding: 0.1rem 0.35rem; font-weight: 700; margin-left: 0.25rem;">You</span>
+                                <span class="badge badge-cyan" style="font-size: 0.68rem; padding: 0.1rem 0.35rem; font-weight: 700; margin-left: 0.25rem;">You</span>
                             @endif
                         </x-slot:tag>
 

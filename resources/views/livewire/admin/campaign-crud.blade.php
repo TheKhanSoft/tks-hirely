@@ -66,6 +66,70 @@
         @endcan
     </div>
 
+    <!-- Live Executive Campaign KPI Cards -->
+    @if(!$isFormOpen && $activeTab === 'campaigns')
+        @php
+            $totalActiveCamp = $campaigns->where('is_active', true)->count();
+            $academicCamp = $campaigns->where('track_type', 'ACADEMIC')->count();
+            $adminCamp = $campaigns->where('track_type', '!=', 'ACADEMIC')->count();
+            $boardsLinked = $campaigns->whereNotNull('constitution_id')->count();
+        @endphp
+        <div class="stat-kpi-grid">
+            <div class="metric-card" style="--card-accent: var(--primary); --metric-icon-bg: var(--primary-light); --metric-icon-color: var(--primary);">
+                <div class="metric-header">
+                    <span class="metric-label">Active Campaigns</span>
+                    <div class="metric-icon-wrap">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="metric-value" style="color: var(--primary);">{{ $totalActiveCamp }}</div>
+                <div class="metric-subtext">Open recruitment drives</div>
+            </div>
+
+            <div class="metric-card" style="--card-accent: var(--secondary); --metric-icon-bg: var(--secondary-light); --metric-icon-color: var(--secondary);">
+                <div class="metric-header">
+                    <span class="metric-label">Academic Faculty</span>
+                    <div class="metric-icon-wrap">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="metric-value" style="color: var(--secondary);">{{ $academicCamp }}</div>
+                <div class="metric-subtext">Faculty positions with peer review</div>
+            </div>
+
+            <div class="metric-card" style="--card-accent: #8b5cf6; --metric-icon-bg: rgba(139,92,246,0.12); --metric-icon-color: #8b5cf6;">
+                <div class="metric-header">
+                    <span class="metric-label">Administrative / Staff</span>
+                    <div class="metric-icon-wrap">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 9h-6"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="metric-value" style="color: #8b5cf6;">{{ $adminCamp }}</div>
+                <div class="metric-subtext">Executive & support tracks</div>
+            </div>
+
+            <div class="metric-card" style="--card-accent: #10b981; --metric-icon-bg: rgba(16,185,129,0.12); --metric-icon-color: #10b981;">
+                <div class="metric-header">
+                    <span class="metric-label">Statutory Boards</span>
+                    <div class="metric-icon-wrap">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="metric-value" style="color: #10b981;">{{ $boardsLinked }}</div>
+                <div class="metric-subtext">Quorum matrices configured</div>
+            </div>
+        </div>
+    @endif
+
     <!-- ========================================== -->
     <!-- TAB 1: ACTIVE CAMPAIGNS BREAD -->
     <!-- ========================================== -->
@@ -306,17 +370,23 @@
                     @foreach($paginatedCampaigns as $camp)
                         @php
                             $criteriaUrl = (auth()->user()->hasRole('registrar') && !auth()->user()->hasRole('super-admin')) ? '/registrar/criteria' : '/admin/criteria';
+                            $campTheme = match($camp->track_type) {
+                                'ACADEMIC' => 'avatar-theme-indigo',
+                                'ADMINISTRATIVE' => 'avatar-theme-cyan',
+                                default => 'avatar-theme-emerald',
+                            };
                         @endphp
 
                         <x-entity-card 
                             :id="$camp->id" 
                             :title="$camp->title" 
                             :subtitle="$camp->department"
-                            :avatar="substr($camp->job_code, 0, 2)">
+                            :avatar="substr($camp->job_code, 0, 2)"
+                            :avatarClass="$campTheme">
                             
                             <!-- Badge Slot: Application Fee -->
                             <x-slot:badge>
-                                <span class="badge badge-paid" style="font-size: 0.72rem; font-weight: 700; font-family: 'JetBrains Mono', monospace;">
+                                <span class="badge badge-amber" style="font-size: 0.72rem; font-weight: 800; font-family: 'JetBrains Mono', monospace;">
                                     PKR {{ number_format($camp->application_fee, 0) }}
                                 </span>
                             </x-slot:badge>
@@ -324,15 +394,15 @@
                             <!-- Tag Slot: Recruitment Track -->
                             <x-slot:tag>
                                 @if($camp->track_type === 'ACADEMIC')
-                                    <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); border: 1px solid rgba(6,182,212,0.25); font-weight: 700; font-size: 0.72rem;">
+                                    <span class="badge badge-indigo" style="font-weight: 700; font-size: 0.72rem;">
                                         🎓 Academic Faculty Track
                                     </span>
                                 @elseif($camp->track_type === 'ADMINISTRATIVE')
-                                    <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25); font-weight: 700; font-size: 0.72rem;">
+                                    <span class="badge badge-cyan" style="font-weight: 700; font-size: 0.72rem;">
                                         🏛️ Administrative Track
                                     </span>
                                 @else
-                                    <span class="badge" style="background: rgba(148,163,184,0.12); color: var(--color-text-secondary); border: 1px solid rgba(148,163,184,0.25); font-weight: 700; font-size: 0.72rem;">
+                                    <span class="badge badge-emerald" style="font-weight: 700; font-size: 0.72rem;">
                                         ⚙️ Support Staff Track
                                     </span>
                                 @endif
@@ -341,9 +411,9 @@
                             <!-- Card Body Metrics -->
                             <div class="entity-card-metric-row">
                                 <span class="entity-card-metric-label">Job Code:</span>
-                                <code class="entity-card-metric-value" style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--primary);">
+                                <span class="mono-pill" style="color: var(--primary);">
                                     {{ $camp->job_code }}
-                                </code>
+                                </span>
                             </div>
 
                             <div class="entity-card-metric-row">

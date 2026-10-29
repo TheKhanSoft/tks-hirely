@@ -97,6 +97,60 @@
     <!-- TAB 1: STANDING GENERAL COMMITTEES & STATUTORY BOARDS (BASIC DETAILS LIST) -->
     <!-- ========================================================================= -->
     @if($activeTab === 'board_registry')
+        <div class="stat-kpi-grid">
+            <div class="metric-card" style="--card-accent: var(--primary); --metric-icon-bg: var(--primary-light); --metric-icon-color: var(--primary);">
+                <div class="metric-header">
+                    <span class="metric-label">Standing Bodies</span>
+                    <div class="metric-icon-wrap">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="metric-value" style="color: var(--primary);">{{ $registeredBoards->count() }}</div>
+                <div class="metric-subtext">Statutory councils & committees</div>
+            </div>
+
+            <div class="metric-card" style="--card-accent: var(--secondary); --metric-icon-bg: var(--secondary-light); --metric-icon-color: var(--secondary);">
+                <div class="metric-header">
+                    <span class="metric-label">Selection Boards</span>
+                    <div class="metric-icon-wrap">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="metric-value" style="color: var(--secondary);">{{ $registeredBoards->where('committee_type', 'SELECTION_BOARD')->count() }}</div>
+                <div class="metric-subtext">Interview & sanction panels</div>
+            </div>
+
+            <div class="metric-card" style="--card-accent: #8b5cf6; --metric-icon-bg: rgba(139,92,246,0.12); --metric-icon-color: #8b5cf6;">
+                <div class="metric-header">
+                    <span class="metric-label">Scrutiny & Review</span>
+                    <div class="metric-icon-wrap">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="metric-value" style="color: #8b5cf6;">{{ $registeredBoards->whereIn('committee_type', ['SCRUTINY_COMMITTEE', 'APPELLATE_COMMITTEE'])->count() }}</div>
+                <div class="metric-subtext">Vetting & appeals bodies</div>
+            </div>
+
+            <div class="metric-card" style="--card-accent: #10b981; --metric-icon-bg: rgba(16,185,129,0.12); --metric-icon-color: #10b981;">
+                <div class="metric-header">
+                    <span class="metric-label">Strict Quorum Policy</span>
+                    <div class="metric-icon-wrap">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="metric-value" style="color: #10b981;">{{ $registeredBoards->where('enforce_strict_quota', true)->count() }}</div>
+                <div class="metric-subtext">Statutory seats enforced</div>
+            </div>
+        </div>
+
         <x-entity-card-grid
             :items="$registeredBoards"
             :per-page="$perPage"
@@ -135,10 +189,18 @@
                 @php 
                     $typeBadge = $board->type_badge; 
                     $sectorBadge = $board->sector_badge;
+                    $boardTheme = match($board->committee_type) {
+                        'SELECTION_BOARD' => 'avatar-theme-indigo',
+                        'SCRUTINY_COMMITTEE' => 'avatar-theme-amber',
+                        'APPELLATE_COMMITTEE' => 'avatar-theme-purple',
+                        'SYNDICATE' => 'avatar-theme-emerald',
+                        default => 'avatar-theme-cyan',
+                    };
                 @endphp
                 <x-entity-card
                     :key="'board-card-'.$board->id"
                     :avatar-initial="substr($board->name, 0, 1)"
+                    :avatar-class="$boardTheme"
                     :avatar-badge="strtoupper(substr($board->organization_sector ?? 'GEN', 0, 3))"
                     :title="$board->name"
                     :subtitle="'#' . ($board->slug ?: 'board-'.$board->id)"

@@ -73,6 +73,22 @@ class ReviewerManagement extends Component
     public $viewingApplication;
     public $applicationReviews = [];
 
+    // Reviewer Full Profile Details Modal
+    public $showDetailsModal = false;
+    public $selectedReviewerForDetails = null;
+
+    // Reviewer Edit Modal
+    public $showEditModal = false;
+    public $editingReviewerId = null;
+    public $edit_name;
+    public $edit_email;
+    public $edit_subject;
+    public $edit_academic_rank = 'Professor';
+    public $edit_university;
+    public $edit_country = 'Pakistan';
+    public $edit_phone;
+    public $edit_specialization;
+
     protected $rules = [
         'name' => 'required|string|min:3|max:150',
         'email' => 'required|email|unique:users,email',
@@ -219,7 +235,85 @@ class ReviewerManagement extends Component
             $profile->user->save();
         }
 
+        if ($this->showDetailsModal && $this->selectedReviewerForDetails?->id === $profile->id) {
+            $this->selectedReviewerForDetails->refresh();
+        }
+
         session()->flash('message', "Reviewer '{$profile->name}' status updated to " . ($profile->is_active ? 'Active' : 'Inactive') . ".");
+    }
+
+    public function openDetailsModal($profileId)
+    {
+        abort_unless(Auth::user()->can('view-reviewer') || Auth::user()->can('manage-reviewers'), 403);
+        $this->selectedReviewerForDetails = ReviewerProfile::with(['user', 'creator', 'reviews.application.campaign', 'reviews.application.user.basicInfo'])->findOrFail($profileId);
+        $this->showDetailsModal = true;
+    }
+
+    public function closeDetailsModal()
+    {
+        $this->showDetailsModal = false;
+        $this->selectedReviewerForDetails = null;
+    }
+
+    public function openEditModal($profileId)
+    {
+        abort_unless(Auth::user()->can('edit-reviewer') || Auth::user()->can('manage-reviewers'), 403);
+        $profile = ReviewerProfile::with('user')->findOrFail($profileId);
+        $this->editingReviewerId = $profile->id;
+        $this->edit_name = $profile->name;
+        $this->edit_email = $profile->user?->email ?? '';
+        $this->edit_subject = $profile->subject;
+        $this->edit_academic_rank = $profile->academic_rank;
+        $this->edit_university = $profile->university;
+        $this->edit_country = $profile->country ?: 'Pakistan';
+        $this->edit_phone = $profile->phone;
+        $this->edit_specialization = $profile->specialization;
+        $this->resetErrorBag();
+        $this->showEditModal = true;
+    }
+
+    public function closeEditModal()
+    {
+        $this->showEditModal = false;
+        $this->editingReviewerId = null;
+        $this->resetErrorBag();
+    }
+
+    public function updateReviewer()
+    {
+        abort_unless(Auth::user()->can('edit-reviewer') || Auth::user()->can('manage-reviewers'), 403);
+        $profile = ReviewerProfile::with('user')->findOrFail($this->editingReviewerId);
+
+        $this->validate([
+            'edit_name' => 'required|string|min:3|max:150',
+            'edit_email' => 'required|email|unique:users,email,' . ($profile->user_id ?? 'NULL'),
+            'edit_subject' => 'required|string|min:2|max:100',
+            'edit_academic_rank' => 'required|string',
+            'edit_university' => 'required|string|min:2|max:150',
+            'edit_country' => 'required|string',
+            'edit_phone' => 'nullable|string|max:30',
+            'edit_specialization' => 'nullable|string|max:500',
+        ]);
+
+        $profile->update([
+            'name' => trim($this->edit_name),
+            'subject' => trim($this->edit_subject),
+            'academic_rank' => trim($this->edit_academic_rank),
+            'university' => trim($this->edit_university),
+            'country' => trim($this->edit_country),
+            'phone' => trim($this->edit_phone),
+            'specialization' => trim($this->edit_specialization),
+        ]);
+
+        if ($profile->user && $profile->user->email !== trim($this->edit_email)) {
+            $profile->user->update(['email' => trim($this->edit_email)]);
+        }
+
+        session()->flash('message', "Reviewer '{$profile->name}' profile updated successfully.");
+        $this->closeEditModal();
+        if ($this->showDetailsModal && $this->selectedReviewerForDetails?->id === $profile->id) {
+            $this->openDetailsModal($profile->id);
+        }
     }
 
     public function openDispatchModal($applicationId)

@@ -494,4 +494,133 @@ class ReviewerManagementTest extends TestCase
             $this->assertNotContains($excludedId, $matchedIds, "Reviewer ID {$excludedId} should NOT match Computer Science candidacy.");
         }
     }
+
+    public function test_reviewer_status_can_be_toggled_interactively(): void
+    {
+        $registrar = User::factory()->create();
+        $registrar->assignRole('registrar');
+
+        $revUser = User::factory()->create(['is_active' => true]);
+        $revUser->assignRole('academic-reviewer');
+
+        $profile = ReviewerProfile::create([
+            'user_id' => $revUser->id,
+            'name' => 'Prof. Dr. Kenji Sato',
+            'subject' => 'Robotics',
+            'academic_rank' => 'Professor',
+            'university' => 'Tokyo Institute of Technology',
+            'country' => 'Japan',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($registrar);
+
+        // Toggle from active to inactive
+        Livewire::test(ReviewerManagement::class)
+            ->call('toggleReviewerStatus', $profile->id)
+            ->assertHasNoErrors();
+
+        $this->assertFalse($profile->fresh()->is_active);
+        $this->assertFalse($revUser->fresh()->is_active);
+
+        // Toggle back from inactive to active
+        Livewire::test(ReviewerManagement::class)
+            ->call('toggleReviewerStatus', $profile->id)
+            ->assertHasNoErrors();
+
+        $this->assertTrue($profile->fresh()->is_active);
+        $this->assertTrue($revUser->fresh()->is_active);
+    }
+
+    public function test_reviewer_parsed_name_handles_titles_and_clean_full_name(): void
+    {
+        $profile1 = new ReviewerProfile(['name' => 'Prof. Dr. Kenji Sato']);
+        $this->assertEquals('Prof. Dr.', $profile1->parsed_name['prefix']);
+        $this->assertEquals('Kenji Sato', $profile1->parsed_name['full_name']);
+
+        $profile2 = new ReviewerProfile(['name' => 'Dr. Jane Goodall']);
+        $this->assertEquals('Dr.', $profile2->parsed_name['prefix']);
+        $this->assertEquals('Jane Goodall', $profile2->parsed_name['full_name']);
+
+        $profile3 = new ReviewerProfile(['name' => 'Ada Lovelace']);
+        $this->assertEquals('', $profile3->parsed_name['prefix']);
+        $this->assertEquals('Ada Lovelace', $profile3->parsed_name['full_name']);
+    }
+
+    public function test_reviewer_details_modal_loads_profile_and_dossier_ledger(): void
+    {
+        $registrar = User::factory()->create();
+        $registrar->assignRole('registrar');
+
+        $revUser = User::factory()->create();
+        $revUser->assignRole('academic-reviewer');
+
+        $profile = ReviewerProfile::create([
+            'user_id' => $revUser->id,
+            'name' => 'Prof. Dr. Tariq Mahmood',
+            'subject' => 'Computer Science',
+            'academic_rank' => 'Professor',
+            'university' => 'NUST',
+            'country' => 'Pakistan',
+            'specialization' => 'Machine Learning & Cyber Systems',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($registrar);
+
+        Livewire::test(ReviewerManagement::class)
+            ->call('openDetailsModal', $profile->id)
+            ->assertSet('showDetailsModal', true)
+            ->assertSee('Tariq Mahmood')
+            ->assertSee('Prof. Dr.')
+            ->assertSee('NUST')
+            ->assertSee('Machine Learning & Cyber Systems')
+            ->call('closeDetailsModal')
+            ->assertSet('showDetailsModal', false);
+    }
+
+    public function test_reviewer_can_be_edited_via_modal(): void
+    {
+        $registrar = User::factory()->create();
+        $registrar->assignRole('registrar');
+
+        $revUser = User::factory()->create(['email' => 'old.email@test.edu']);
+        $revUser->assignRole('academic-reviewer');
+
+        $profile = ReviewerProfile::create([
+            'user_id' => $revUser->id,
+            'name' => 'Dr. Old Name',
+            'subject' => 'Physics',
+            'academic_rank' => 'Associate Professor',
+            'university' => 'Old University',
+            'country' => 'Pakistan',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($registrar);
+
+        Livewire::test(ReviewerManagement::class)
+            ->call('openEditModal', $profile->id)
+            ->assertSet('showEditModal', true)
+            ->assertSet('edit_name', 'Dr. Old Name')
+            ->set('edit_name', 'Prof. Dr. Updated Name')
+            ->set('edit_email', 'updated.email@test.edu')
+            ->set('edit_subject', 'Applied Physics & Quantum Computing')
+            ->set('edit_academic_rank', 'Professor')
+            ->set('edit_university', 'Quaid-i-Azam University')
+            ->set('edit_country', 'Pakistan')
+            ->set('edit_phone', '+92 51 9064000')
+            ->set('edit_specialization', 'Quantum Information Theory')
+            ->call('updateReviewer')
+            ->assertHasNoErrors()
+            ->assertSet('showEditModal', false);
+
+        $profile->refresh();
+        $this->assertEquals('Prof. Dr. Updated Name', $profile->name);
+        $this->assertEquals('Applied Physics & Quantum Computing', $profile->subject);
+        $this->assertEquals('Professor', $profile->academic_rank);
+        $this->assertEquals('Quaid-i-Azam University', $profile->university);
+        $this->assertEquals('Quantum Information Theory', $profile->specialization);
+        $this->assertEquals('updated.email@test.edu', $revUser->fresh()->email);
+    }
 }

@@ -61,24 +61,52 @@
     </div>
 
     <!-- Live KPI Metrics Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div class="metric-card" style="border-left: 4px solid var(--primary);">
-            <div class="metric-label">{{ $activeScope }} STATUSES</div>
+    <div class="stat-kpi-grid">
+        <div class="metric-card" style="--card-accent: var(--primary); --metric-icon-bg: var(--primary-light); --metric-icon-color: var(--primary);">
+            <div class="metric-header">
+                <span class="metric-label">{{ $activeScope }} STATUSES</span>
+                <div class="metric-icon-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                </div>
+            </div>
             <div class="metric-value" style="color: var(--primary);">{{ $stats['total'] }}</div>
             <div class="metric-subtext">Active lifecycle nodes</div>
         </div>
-        <div class="metric-card" style="border-left: 4px solid #10b981;">
-            <div class="metric-label">OPERATIONAL STATUSES</div>
+        <div class="metric-card" style="--card-accent: #10b981; --metric-icon-bg: rgba(16,185,129,0.12); --metric-icon-color: #10b981;">
+            <div class="metric-header">
+                <span class="metric-label">OPERATIONAL NODES</span>
+                <div class="metric-icon-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                </div>
+            </div>
             <div class="metric-value" style="color: #10b981;">{{ $stats['active'] }}</div>
             <div class="metric-subtext">Available for transition</div>
         </div>
-        <div class="metric-card" style="border-left: 4px solid #8b5cf6;">
-            <div class="metric-label">LOCKED STATE NODES</div>
+        <div class="metric-card" style="--card-accent: #8b5cf6; --metric-icon-bg: rgba(139,92,246,0.12); --metric-icon-color: #8b5cf6;">
+            <div class="metric-header">
+                <span class="metric-label">LOCKED STATE NODES</span>
+                <div class="metric-icon-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                </div>
+            </div>
             <div class="metric-value" style="color: #8b5cf6;">{{ $stats['locked'] }}</div>
             <div class="metric-subtext">Candidate editing frozen</div>
         </div>
-        <div class="metric-card" style="border-left: 4px solid #f59e0b;">
-            <div class="metric-label">TERMINAL STAGES</div>
+        <div class="metric-card" style="--card-accent: #f59e0b; --metric-icon-bg: rgba(245,158,11,0.12); --metric-icon-color: #f59e0b;">
+            <div class="metric-header">
+                <span class="metric-label">TERMINAL STAGES</span>
+                <div class="metric-icon-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/>
+                    </svg>
+                </div>
+            </div>
             <div class="metric-value" style="color: #f59e0b;">{{ $stats['terminal'] }}</div>
             <div class="metric-subtext">Final pipeline resolutions</div>
         </div>
@@ -107,13 +135,16 @@
 
         <!-- Status Cards (3 to 5 per row) -->
         @foreach($statuses as $st)
-            @php $badge = $st->getBadgeStyle(); @endphp
+            @php 
+                $badge = $st->getBadgeStyle(); 
+                $nodeTheme = $st->is_terminal ? 'avatar-theme-amber' : ($st->is_locked_state ? 'avatar-theme-purple' : 'avatar-theme-indigo');
+            @endphp
             <x-entity-card
                 :key="'status-card-'.$st->id"
                 :avatar-initial="'#' . $st->order"
-                :avatar-badge="strtoupper(substr($st->badge_color, 0, 3))"
+                :avatar-class="$nodeTheme"
                 :title="$st->label"
-                :subtitle="'Code: ' . $st->code"
+                :subtitle="'Node: ' . $st->code"
                 :tag="$st->is_system_default ? 'System Default' : ($st->is_terminal ? 'Terminal' : 'Node #' . $st->order)"
                 :status-badge="$st->is_active ? 'Active' : 'Disabled'"
                 :status-class="$st->is_active ? 'badge-paid' : 'badge-draft'"

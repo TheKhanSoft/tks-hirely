@@ -6,6 +6,7 @@
     'avatarInitial' => null,
     'avatarBadge' => null,
     'avatarBg' => null,
+    'avatarClass' => null,
     'badge' => null,
     'statusBadge' => null,
     'statusClass' => 'badge-paid',
@@ -24,20 +25,28 @@
                 @if(isset($avatarSlot))
                     {{ $avatarSlot }}
                 @elseif($avatar || $avatarInitial)
-                    <div class="entity-card-avatar" @if($avatarBg) style="{{ $avatarBg }}" @endif>
+                    <div class="entity-card-avatar {{ $avatarClass }}" @if($avatarBg) style="{{ $avatarBg }}" @endif>
                         {{ $avatar ?: $avatarInitial }}
                     </div>
                 @endif
 
                 <div class="entity-card-info">
-                    <div class="entity-card-title" title="{{ $title }}">{{ $title }}</div>
+                    @if(isset($titleSlot))
+                        {{ $titleSlot }}
+                    @else
+                        <div class="entity-card-title" title="{{ $title }}">{{ $title }}</div>
+                    @endif
                     @if($subtitle)
                         <div class="entity-card-subtitle" title="{{ $subtitle }}">{{ $subtitle }}</div>
                     @endif
                 </div>
             </div>
 
-            @if(isset($badge))
+            @if(isset($badgeSlot))
+                <div style="flex-shrink: 0;">
+                    {{ $badgeSlot }}
+                </div>
+            @elseif(isset($badge))
                 <div style="flex-shrink: 0;">
                     {!! $badge !!}
                 </div>

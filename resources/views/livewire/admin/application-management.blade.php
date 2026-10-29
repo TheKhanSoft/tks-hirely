@@ -40,7 +40,7 @@
 
     <!-- Live Executive KPI Summary Cards -->
     @if(!$isFormOpen && !$isDetailsOpen)
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+        <div class="stat-kpi-grid">
             <div class="metric-card" style="--card-accent: var(--primary); --metric-icon-bg: var(--primary-light); --metric-icon-color: var(--primary);">
                 <div class="metric-header">
                     <span class="metric-label">Total Applications</span>
@@ -298,13 +298,15 @@
                         $reqReferees = $app->campaign->getRequiredPeerReviewersCount();
                         $displayName = $app->user->basicInfo ? ($app->user->basicInfo->first_name . ' ' . $app->user->basicInfo->last_name) : $app->user->email;
                         $isPaid = $app->billingLedger?->status === 'SETTLED';
+                        $avatarTheme = $isPaid ? 'avatar-theme-emerald' : 'avatar-theme-amber';
                     @endphp
 
                     <x-entity-card 
                         :id="$app->id" 
                         :title="$displayName" 
                         :subtitle="$app->campaign->title"
-                        :avatar="strtoupper(substr($app->user->basicInfo?->first_name ?: $app->user->email, 0, 1))">
+                        :avatar="strtoupper(substr($app->user->basicInfo?->first_name ?: $app->user->email, 0, 1))"
+                        :avatarClass="$avatarTheme">
                         
                         <!-- Badge Slot: Lifecycle Stage -->
                         <x-slot:badge>
@@ -317,15 +319,15 @@
                         <x-slot:tag>
                             <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
                                 @if($isPaid)
-                                    <span class="badge badge-paid" style="font-size: 0.68rem; font-weight: 700; padding: 0.1rem 0.4rem;">
-                                        ✓ PAID (PKR {{ number_format($app->billingLedger->amount, 0) }})
+                                    <span class="badge badge-emerald" style="font-size: 0.68rem; font-weight: 700; padding: 0.15rem 0.45rem; display: inline-flex; align-items: center; gap: 0.25rem;">
+                                        <span>✓ PAID (PKR {{ number_format($app->billingLedger->amount, 0) }})</span>
                                     </span>
                                 @else
-                                    <span class="badge" style="background: rgba(245,158,11,0.15); color: var(--warning); border: 1px solid rgba(245,158,11,0.3); font-size: 0.68rem; font-weight: 700; padding: 0.1rem 0.4rem;">
-                                        ⏳ PENDING FEE
+                                    <span class="badge badge-amber" style="font-size: 0.68rem; font-weight: 700; padding: 0.15rem 0.45rem; display: inline-flex; align-items: center; gap: 0.25rem;">
+                                        <span>⏳ PENDING FEE</span>
                                     </span>
                                 @endif
-                                <span class="badge" style="background: rgba(99,102,241,0.1); color: var(--primary); font-size: 0.68rem; padding: 0.1rem 0.4rem; font-weight: 700;">
+                                <span class="mono-pill" style="font-size: 0.68rem; padding: 0.15rem 0.45rem;">
                                     {{ $app->campaign->job_code }}
                                 </span>
                             </div>
@@ -334,9 +336,9 @@
                         <!-- Card Body Metrics -->
                         <div class="entity-card-metric-row">
                             <span class="entity-card-metric-label">Tracking:</span>
-                            <code class="entity-card-metric-value" style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--secondary);">
+                            <span class="mono-pill" style="color: var(--secondary); font-size: 0.74rem;">
                                 {{ $app->tracking_number }}
-                            </code>
+                            </span>
                         </div>
 
                         <div class="entity-card-metric-row">

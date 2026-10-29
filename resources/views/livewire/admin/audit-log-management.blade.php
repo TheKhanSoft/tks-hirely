@@ -36,6 +36,61 @@
         </div>
     @endif
 
+    <!-- Live Forensic Audit KPI Cards -->
+    <div class="stat-kpi-grid">
+        <div class="metric-card" style="--card-accent: var(--primary); --metric-icon-bg: var(--primary-light); --metric-icon-color: var(--primary);">
+            <div class="metric-header">
+                <span class="metric-label">Total Audit Events</span>
+                <div class="metric-icon-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="metric-value" style="color: var(--primary);">{{ $logs->total() }}</div>
+            <div class="metric-subtext">Security & forensic trail</div>
+        </div>
+
+        <div class="metric-card" style="--card-accent: #10b981; --metric-icon-bg: rgba(16,185,129,0.12); --metric-icon-color: #10b981;">
+            <div class="metric-header">
+                <span class="metric-label">Insertions (Created)</span>
+                <div class="metric-icon-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="metric-value" style="color: #10b981;">{{ $logs->where('action_type', 'CREATED')->count() }}</div>
+            <div class="metric-subtext">New database entities</div>
+        </div>
+
+        <div class="metric-card" style="--card-accent: var(--secondary); --metric-icon-bg: var(--secondary-light); --metric-icon-color: var(--secondary);">
+            <div class="metric-header">
+                <span class="metric-label">Modifications (Updated)</span>
+                <div class="metric-icon-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="metric-value" style="color: var(--secondary);">{{ $logs->where('action_type', 'UPDATED')->count() }}</div>
+            <div class="metric-subtext">State diff revisions</div>
+        </div>
+
+        <div class="metric-card" style="--card-accent: var(--danger); --metric-icon-bg: var(--danger-light); --metric-icon-color: var(--danger);">
+            <div class="metric-header">
+                <span class="metric-label">Purges (Deleted)</span>
+                <div class="metric-icon-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="metric-value" style="color: var(--danger);">{{ $logs->where('action_type', 'DELETED')->count() }}</div>
+            <div class="metric-subtext">Expunged records</div>
+        </div>
+    </div>
+
     <!-- Unified Dynamic Listing: Grid / Table / Per Page / Search / Export -->
     <x-entity-card-grid
         :items="$logs"
@@ -60,9 +115,18 @@
 
         <!-- Audit Log Cards (3 to 5 per row) -->
         @foreach($logs as $log)
+            @php
+                $logTheme = match($log->action_type) {
+                    'CREATED' => 'avatar-theme-emerald',
+                    'UPDATED' => 'avatar-theme-cyan',
+                    'DELETED' => 'avatar-theme-rose',
+                    default => 'avatar-theme-indigo',
+                };
+            @endphp
             <x-entity-card
                 :key="'log-card-'.$log->id"
                 :avatar-initial="substr($log->action_type, 0, 1)"
+                :avatar-class="$logTheme"
                 :avatar-badge="'#' . $log->id"
                 :title="$log->table_name . ' #' . $log->record_id"
                 :subtitle="$log->user?->email ?: 'Anonymous / System'"

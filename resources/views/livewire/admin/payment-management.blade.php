@@ -42,7 +42,7 @@
 
     <!-- Live Executive Financial KPI Cards -->
     @if(!$isFormOpen)
-        <div class="grid grid-cols-4 gap-5 mb-6">
+        <div class="stat-kpi-grid">
             <div class="metric-card" style="--card-accent: var(--primary); --metric-icon-bg: var(--primary-light); --metric-icon-color: var(--primary);">
                 <div class="metric-header">
                     <span class="metric-label">Total Billed Vouchers</span>
@@ -244,30 +244,39 @@
                     @php
                         $applicantName = ($pay->application?->user?->basicInfo?->first_name ?? '') . ' ' . ($pay->application?->user?->basicInfo?->last_name ?? '');
                         $applicantName = trim($applicantName) ?: ($pay->application?->user?->email ?? 'Applicant #'.$pay->application_id);
+                        $avatarTheme = match($pay->status) {
+                            'SETTLED' => 'avatar-theme-emerald',
+                            'PENDING' => 'avatar-theme-amber',
+                            'AUTHORIZED' => 'avatar-theme-cyan',
+                            default => 'avatar-theme-rose',
+                        };
                     @endphp
 
                     <x-entity-card 
                         :id="$pay->id" 
                         :title="$applicantName" 
                         :subtitle="$pay->application?->campaign?->title"
-                        avatar="PKR">
+                        avatar="PKR"
+                        :avatarClass="$avatarTheme">
                         
                         <!-- Badge Slot: Voucher Status -->
                         <x-slot:badge>
                             @if($pay->status === 'SETTLED')
-                                <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3); font-weight: 800; font-size: 0.72rem;">
-                                    ✓ SETTLED
+                                <span class="badge badge-emerald" style="font-weight: 800; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                    <span class="pulse-dot online"></span>
+                                    <span>✓ SETTLED</span>
                                 </span>
                             @elseif($pay->status === 'PENDING')
-                                <span class="badge" style="background: rgba(245,158,11,0.15); color: var(--warning); border: 1px solid rgba(245,158,11,0.3); font-weight: 800; font-size: 0.72rem;">
-                                    ⏳ PENDING
+                                <span class="badge badge-amber" style="font-weight: 800; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                    <span class="pulse-dot offline"></span>
+                                    <span>⏳ PENDING</span>
                                 </span>
                             @elseif($pay->status === 'AUTHORIZED')
-                                <span class="badge" style="background: rgba(6,182,212,0.15); color: var(--secondary); border: 1px solid rgba(6,182,212,0.3); font-weight: 800; font-size: 0.72rem;">
+                                <span class="badge badge-cyan" style="font-weight: 800; font-size: 0.72rem;">
                                     AUTHORIZED
                                 </span>
                             @else
-                                <span class="badge" style="background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); font-weight: 800; font-size: 0.72rem;">
+                                <span class="badge badge-rose" style="font-weight: 800; font-size: 0.72rem;">
                                     {{ $pay->status }}
                                 </span>
                             @endif
@@ -275,7 +284,7 @@
 
                         <!-- Tag Slot: 1Link Consumer ID -->
                         <x-slot:tag>
-                            <span style="font-size: 0.72rem; color: var(--secondary); font-family: 'JetBrains Mono', monospace; font-weight: 700; background: rgba(6,182,212,0.08); padding: 0.15rem 0.45rem; border-radius: 4px; border: 1px solid rgba(6,182,212,0.2);">
+                            <span class="mono-pill" style="color: var(--secondary);">
                                 1Link: {{ $pay->consumer_id }}
                             </span>
                         </x-slot:tag>
@@ -283,7 +292,7 @@
                         <!-- Card Body Metrics -->
                         <div class="entity-card-metric-row">
                             <span class="entity-card-metric-label">Fee Amount:</span>
-                            <span class="entity-card-metric-value" style="font-size: 0.88rem; color: {{ $pay->status === 'SETTLED' ? 'var(--success)' : 'var(--color-text-primary)' }};">
+                            <span class="entity-card-metric-value" style="font-size: 0.95rem; font-weight: 800; color: {{ $pay->status === 'SETTLED' ? 'var(--success)' : 'var(--color-text-primary)' }};">
                                 PKR {{ number_format($pay->amount, 2) }}
                             </span>
                         </div>

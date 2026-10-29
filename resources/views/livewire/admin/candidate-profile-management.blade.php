@@ -38,7 +38,7 @@
 
     <!-- Live Executive KPI Summary Cards -->
     @if(!$isFormOpen && !$isDetailsOpen)
-        <div class="grid grid-cols-4 gap-5 mb-6">
+        <div class="stat-kpi-grid">
             <div class="metric-card" style="--card-accent: var(--primary); --metric-icon-bg: var(--primary-light); --metric-icon-color: var(--primary);">
                 <div class="metric-header">
                     <span class="metric-label">Total Candidate Pool</span>
@@ -230,13 +230,19 @@
                 @foreach($profiles as $basicInfo)
                     @php
                         $apps = $basicInfo->user->applications ?? collect();
+                        $trackTheme = match($basicInfo->track_type) {
+                            'ACADEMIC' => 'avatar-theme-purple',
+                            'ADMINISTRATIVE' => 'avatar-theme-cyan',
+                            default => 'avatar-theme-emerald',
+                        };
                     @endphp
 
                     <x-entity-card 
                         :id="$basicInfo->id" 
                         :title="$basicInfo->first_name . ' ' . $basicInfo->last_name" 
                         :subtitle="$basicInfo->user?->email"
-                        :avatar="strtoupper(substr($basicInfo->first_name ?: 'C', 0, 1))">
+                        :avatar="strtoupper(substr($basicInfo->first_name ?: 'C', 0, 1))"
+                        :avatarClass="$trackTheme">
                         
                         <!-- Badge Slot: Locked / Editable Status -->
                         <x-slot:badge>
@@ -244,13 +250,15 @@
                                 <button type="button" 
                                         wire:click="toggleLock({{ $basicInfo->id }})"
                                         class="btn" 
-                                        style="padding: 0.2rem 0.65rem; font-size: 0.72rem; border-radius: 999px; font-weight: 700; cursor: pointer; {{ $basicInfo->is_locked ? 'background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3);' : 'background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3);' }}"
+                                        style="padding: 0.2rem 0.65rem; font-size: 0.72rem; border-radius: 999px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; {{ $basicInfo->is_locked ? 'background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3);' : 'background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3);' }}"
                                         title="Click to toggle lock state">
-                                    {{ $basicInfo->is_locked ? '🔒 Locked' : '🔓 Editable' }}
+                                    <span class="pulse-dot {{ $basicInfo->is_locked ? 'offline' : 'online' }}"></span>
+                                    <span>{{ $basicInfo->is_locked ? '🔒 Locked' : '🔓 Editable' }}</span>
                                 </button>
                             @else
-                                <span class="badge" style="padding: 0.2rem 0.65rem; font-size: 0.72rem; border-radius: 999px; font-weight: 700; {{ $basicInfo->is_locked ? 'background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3);' : 'background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3);' }}">
-                                    {{ $basicInfo->is_locked ? '🔒 Locked' : '🔓 Editable' }}
+                                <span class="badge" style="padding: 0.2rem 0.65rem; font-size: 0.72rem; border-radius: 999px; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; {{ $basicInfo->is_locked ? 'background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3);' : 'background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3);' }}">
+                                    <span class="pulse-dot {{ $basicInfo->is_locked ? 'offline' : 'online' }}"></span>
+                                    <span>{{ $basicInfo->is_locked ? '🔒 Locked' : '🔓 Editable' }}</span>
                                 </span>
                             @endcan
                         </x-slot:badge>
@@ -258,16 +266,16 @@
                         <!-- Tag Slot: Career Track -->
                         <x-slot:tag>
                             @if($basicInfo->track_type === 'ACADEMIC')
-                                <span class="badge" style="background: rgba(139,92,246,0.12); color: #8b5cf6; border: 1px solid rgba(139,92,246,0.3); font-weight: 700; font-size: 0.72rem;">
-                                    🎓 ACADEMIC TRACK
+                                <span class="badge badge-purple" style="font-weight: 700; font-size: 0.72rem;">
+                                    🎓 Academic Track
                                 </span>
                             @elseif($basicInfo->track_type === 'ADMINISTRATIVE')
-                                <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); border: 1px solid rgba(6,182,212,0.3); font-weight: 700; font-size: 0.72rem;">
-                                    🏛️ ADMINISTRATIVE
+                                <span class="badge badge-cyan" style="font-weight: 700; font-size: 0.72rem;">
+                                    🏛️ Administrative Track
                                 </span>
                             @else
-                                <span class="badge" style="background: rgba(16,185,129,0.12); color: var(--success); border: 1px solid rgba(16,185,129,0.3); font-weight: 700; font-size: 0.72rem;">
-                                    ⚙️ SUPPORT STAFF
+                                <span class="badge badge-emerald" style="font-weight: 700; font-size: 0.72rem;">
+                                    ⚙️ Support Staff
                                 </span>
                             @endif
                         </x-slot:tag>
@@ -275,9 +283,9 @@
                         <!-- Card Body Metrics -->
                         <div class="entity-card-metric-row">
                             <span class="entity-card-metric-label">CNIC:</span>
-                            <code class="entity-card-metric-value" style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;">
+                            <span class="mono-pill">
                                 {{ $basicInfo->cnic_number }}
-                            </code>
+                            </span>
                         </div>
 
                         <div class="entity-card-metric-row">
