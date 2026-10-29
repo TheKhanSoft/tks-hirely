@@ -84,200 +84,311 @@
         </div>
     </div>
 
-    <!-- Search & New Status Trigger Bar -->
-    <div class="card mb-6" style="padding: 1.15rem 1.25rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-            <div style="flex: 1; min-width: 260px; max-width: 420px; position: relative;">
-                <input type="text" class="form-control" wire:model.live.debounce.300ms="search" placeholder="Search statuses by code, label, or criteria..." style="font-size: 0.88rem; padding-left: 2.2rem;" />
-                <span style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--color-text-muted);">🔍</span>
-            </div>
-
-            <button type="button" class="btn btn-primary" wire:click="openCreateModal" style="display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.85rem; font-weight: 700; padding: 0.6rem 1.25rem;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Statuses Card Grid & Flow Matrix -->
+    <x-entity-card-grid
+        :items="$statuses"
+        :per-page="$perPage"
+        :view-mode="$viewMode"
+        :search="$search"
+        search-placeholder="Search statuses by code, label, or description..."
+        entity-name="Workflow Status Nodes"
+        :can-export="true"
+        :can-import="false"
+    >
+        <x-slot:headerActions>
+            <button type="button" class="btn btn-primary" wire:click="openCreateModal" style="display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 1rem;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19"/>
                     <line x1="5" y1="12" x2="19" y2="12"/>
                 </svg>
                 <span>+ Define New Status Node</span>
             </button>
-        </div>
-    </div>
+        </x-slot:headerActions>
 
-    <!-- Statuses Table & Flow Matrix -->
-    <div class="card mb-8" style="padding: 0; overflow: hidden; border-color: rgba(255, 255, 255, 0.08);">
-        <div style="padding: 1rem 1.25rem; background: rgba(15, 23, 42, 0.5); border-bottom: 1px solid rgba(255, 255, 255, 0.06); display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="font-size: 1rem; font-weight: 700; color: var(--color-text-primary); margin: 0; display: flex; align-items: center; gap: 0.4rem;">
-                <span>{{ $activeScope }} Lifecycle State Progression Matrix</span>
-            </h3>
-            <span style="font-size: 0.75rem; color: var(--color-text-muted);">
-                Showing {{ $statuses->count() }} registered state nodes
-            </span>
-        </div>
+        <!-- Status Cards (3 to 5 per row) -->
+        @foreach($statuses as $st)
+            @php $badge = $st->getBadgeStyle(); @endphp
+            <x-entity-card
+                :key="'status-card-'.$st->id"
+                :avatar-initial="'#' . $st->order"
+                :avatar-badge="strtoupper(substr($st->badge_color, 0, 3))"
+                :title="$st->label"
+                :subtitle="'Code: ' . $st->code"
+                :tag="$st->is_system_default ? 'System Default' : ($st->is_terminal ? 'Terminal' : 'Node #' . $st->order)"
+                :status-badge="$st->is_active ? 'Active' : 'Disabled'"
+                :status-class="$st->is_active ? 'badge-paid' : 'badge-draft'"
+            >
+                <x-slot:body>
+                    <div class="entity-card-metric-row">
+                        <span class="entity-card-metric-label">Scope Engine</span>
+                        <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.72rem; padding: 0.15rem 0.4rem;">
+                            {{ $st->scope }}
+                        </span>
+                    </div>
+                    <div class="entity-card-metric-row">
+                        <span class="entity-card-metric-label">Forward Paths</span>
+                        <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); font-size: 0.72rem; padding: 0.15rem 0.4rem;">
+                            {{ count($st->allowed_transitions ?? []) }} Next State{{ count($st->allowed_transitions ?? []) === 1 ? '' : 's' }}
+                        </span>
+                    </div>
+                    @if($st->description)
+                        <div class="entity-card-metric-row" style="margin-top: 0.2rem;">
+                            <span class="entity-card-metric-label">Policy</span>
+                            <span class="entity-card-metric-value" style="font-size: 0.72rem; color: var(--color-text-secondary); max-width: 155px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $st->description }}">
+                                {{ $st->description }}
+                            </span>
+                        </div>
+                    @endif
 
-        <div class="table-responsive">
-            <table class="table" style="margin: 0;">
-                <thead style="background: rgba(15, 23, 42, 0.8); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em;">
-                    <tr>
-                        <th style="width: 6%; text-align: center;">ORD</th>
-                        <th style="width: 22%;">STATUS IDENTIFIER & PREVIEW</th>
-                        <th style="width: 22%;">DESCRIPTION & REQUISITES</th>
-                        <th style="width: 28%;">ALLOWED NEXT TRANSITIONS</th>
-                        <th style="width: 10%; text-align: center;">FLAGS</th>
-                        <th style="width: 12%; text-align: right;">ACTIONS</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($statuses as $st)
-                        @php $badge = $st->getBadgeStyle(); @endphp
-                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
-                            <!-- Order Handle -->
-                            <td style="vertical-align: middle; text-align: center;">
-                                <span class="badge" style="background: rgba(255, 255, 255, 0.06); color: var(--color-text-secondary); font-weight: 800; font-size: 0.75rem;">
-                                    #{{ $st->order }}
-                                </span>
-                            </td>
+                    <!-- Requisites and Gate Flags -->
+                    @php $reqs = $st->requirements ?? []; @endphp
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.4rem;">
+                        @if(!empty($reqs['require_fee_paid']))
+                            <span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #10b981; font-size: 0.65rem;">💳 Fee Required</span>
+                        @endif
+                        @if(!empty($reqs['require_documents_verified']))
+                            <span class="badge" style="background: rgba(99, 102, 241, 0.12); color: #6366f1; font-size: 0.65rem;">📑 Docs Verified</span>
+                        @endif
+                        @if(!empty($reqs['require_peer_reviews']))
+                            <span class="badge" style="background: rgba(236, 72, 153, 0.12); color: #ec4899; font-size: 0.65rem;">🔬 Peer Reviews</span>
+                        @endif
+                        @if(!empty($reqs['lock_applicant_profile']) || $st->is_locked_state)
+                            <span class="badge" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6; font-size: 0.65rem;">🔒 Locked</span>
+                        @endif
+                        @if($st->is_terminal)
+                            <span class="badge" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; font-size: 0.65rem;">🏁 Terminal</span>
+                        @endif
+                    </div>
+                </x-slot:body>
 
-                            <!-- Code & Label Preview -->
-                            <td style="vertical-align: middle;">
-                                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                                    <div style="display: flex; align-items: center; gap: 0.45rem;">
-                                        <span class="badge" style="background: {{ $badge['bg'] }}; color: {{ $badge['text'] }}; border: 1px solid {{ $badge['border'] }}; font-weight: 700; font-size: 0.78rem;">
-                                            {{ $st->label }}
+                <x-slot:quickActions>
+                    <button type="button" 
+                            class="action-btn action-btn-edit" 
+                            wire:click="openEditModal({{ $st->id }})" 
+                            data-tooltip="Edit Status & Requirements"
+                            aria-label="Edit Status">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                    </button>
+                    <button type="button" 
+                            class="action-btn {{ $st->is_active ? 'action-btn-success' : 'action-btn-delete' }}" 
+                            wire:click="toggleStatusActive({{ $st->id }})" 
+                            data-tooltip="{{ $st->is_active ? 'Status: Active (Click to Disable)' : 'Status: Inactive (Click to Activate)' }}"
+                            aria-label="Toggle Status">
+                        @if($st->is_active)
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        @else
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        @endif
+                    </button>
+                    @if(!$st->is_system_default)
+                        <button type="button" 
+                                class="action-btn action-btn-delete" 
+                                wire:click="deleteStatus({{ $st->id }})" 
+                                wire:confirm="Remove this status node from workflow?" 
+                                data-tooltip="Delete Status Node"
+                                aria-label="Delete Status Node">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                <line x1="10" y1="11" x2="10" y2="17"/>
+                                <line x1="14" y1="11" x2="14" y2="17"/>
+                            </svg>
+                        </button>
+                    @endif
+                </x-slot:quickActions>
+
+                <x-slot:menuItems>
+                    <x-entity-card-menu-item 
+                        wire-click="openEditModal({{ $st->id }})"
+                        label="Edit Status Node & Gates"
+                    >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </x-entity-card-menu-item>
+
+                    <x-entity-card-menu-item 
+                        wire-click="toggleStatusActive({{ $st->id }})"
+                        label="{{ $st->is_active ? 'Disable Status Node' : 'Activate Status Node' }}"
+                    >
+                        @if($st->is_active)
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                        @else
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        @endif
+                    </x-entity-card-menu-item>
+
+                    @if(!$st->is_system_default)
+                        <x-entity-card-menu-item 
+                            wire-click="deleteStatus({{ $st->id }})"
+                            label="Delete Status Node"
+                            theme="danger"
+                            confirm-message="Remove this status node from workflow?"
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                        </x-entity-card-menu-item>
+                    @endif
+                </x-slot:menuItems>
+            </x-entity-card>
+        @endforeach
+
+        <!-- Preserved Table View Alternative -->
+        <x-slot:table>
+            <div class="table-responsive">
+                <table class="table" style="margin: 0;">
+                    <thead style="background: rgba(15, 23, 42, 0.8); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                        <tr>
+                            <th style="width: 6%; text-align: center;">ORD</th>
+                            <th style="width: 22%;">STATUS IDENTIFIER & PREVIEW</th>
+                            <th style="width: 22%;">DESCRIPTION & REQUISITES</th>
+                            <th style="width: 28%;">ALLOWED NEXT TRANSITIONS</th>
+                            <th style="width: 10%; text-align: center;">FLAGS</th>
+                            <th style="width: 12%; text-align: right;">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($statuses as $st)
+                            @php $badge = $st->getBadgeStyle(); @endphp
+                            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
+                                <td style="vertical-align: middle; text-align: center;">
+                                    <span class="badge" style="background: rgba(255, 255, 255, 0.06); color: var(--color-text-secondary); font-weight: 800; font-size: 0.75rem;">
+                                        #{{ $st->order }}
+                                    </span>
+                                </td>
+                                <td style="vertical-align: middle;">
+                                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                        <div style="display: flex; align-items: center; gap: 0.45rem;">
+                                            <span class="badge" style="background: {{ $badge['bg'] }}; color: {{ $badge['text'] }}; border: 1px solid {{ $badge['border'] }}; font-weight: 700; font-size: 0.78rem;">
+                                                {{ $st->label }}
+                                            </span>
+                                            @if($st->is_system_default)
+                                                <span class="badge" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6; font-size: 0.68rem; font-weight: 800;">
+                                                    DEFAULT
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <span style="font-family: monospace; font-size: 0.75rem; color: var(--color-text-muted); font-weight: 600;">
+                                            {{ $st->code }}
                                         </span>
-                                        @if($st->is_system_default)
-                                            <span class="badge" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6; font-size: 0.68rem; font-weight: 800;">
-                                                DEFAULT
+                                    </div>
+                                </td>
+                                <td style="vertical-align: middle;">
+                                    <p style="font-size: 0.8rem; color: var(--color-text-secondary); margin: 0 0 0.35rem 0; line-height: 1.4;">
+                                        {{ $st->description ?: 'No detailed description specified.' }}
+                                    </p>
+                                    @php $reqs = $st->requirements ?? []; @endphp
+                                    <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
+                                        @if(!empty($reqs['require_fee_paid']))
+                                            <span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #10b981; font-size: 0.68rem;">
+                                                💳 Fee Settled Required
+                                            </span>
+                                        @endif
+                                        @if(!empty($reqs['require_documents_verified']))
+                                            <span class="badge" style="background: rgba(99, 102, 241, 0.12); color: #6366f1; font-size: 0.68rem;">
+                                                📑 Transcripts Verified
+                                            </span>
+                                        @endif
+                                        @if(!empty($reqs['require_peer_reviews']))
+                                            <span class="badge" style="background: rgba(236, 72, 153, 0.12); color: #ec4899; font-size: 0.68rem;">
+                                                🔬 Quorum Reviews Met
+                                            </span>
+                                        @endif
+                                        @if(!empty($reqs['require_justification_reason']))
+                                            <span class="badge" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b; font-size: 0.68rem;">
+                                                📝 Justification Note Required
+                                            </span>
+                                        @endif
+                                        @if(!empty($reqs['lock_applicant_profile']))
+                                            <span class="badge" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6; font-size: 0.68rem;">
+                                                🔒 Freeze Candidate Edits
                                             </span>
                                         @endif
                                     </div>
-                                    <span style="font-family: monospace; font-size: 0.75rem; color: var(--color-text-muted); font-weight: 600;">
-                                        {{ $st->code }}
-                                    </span>
-                                </div>
-                            </td>
-
-                            <!-- Description & Gate Requisites -->
-                            <td style="vertical-align: middle;">
-                                <p style="font-size: 0.8rem; color: var(--color-text-secondary); margin: 0 0 0.35rem 0; line-height: 1.4;">
-                                    {{ $st->description ?: 'No detailed description specified.' }}
-                                </p>
-                                <!-- Gate Requirements Badges -->
-                                @php $reqs = $st->requirements ?? []; @endphp
-                                <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
-                                    @if(!empty($reqs['require_fee_paid']))
-                                        <span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #10b981; font-size: 0.68rem;">
-                                            💳 Fee Settled Required
+                                </td>
+                                <td style="vertical-align: middle;">
+                                    @php $targets = $st->allowed_transitions ?? []; @endphp
+                                    @if(!empty($targets))
+                                        <div style="display: flex; flex-wrap: wrap; gap: 0.3rem;">
+                                            @foreach($targets as $tCode)
+                                                <span class="badge" style="background: rgba(255, 255, 255, 0.05); color: var(--color-text-secondary); border: 1px solid rgba(255, 255, 255, 0.1); font-size: 0.72rem; font-family: monospace;">
+                                                    ➔ {{ $tCode }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <span style="font-size: 0.75rem; color: var(--color-text-muted); font-style: italic;">
+                                            Terminal State (No forward transitions)
                                         </span>
                                     @endif
-                                    @if(!empty($reqs['require_documents_verified']))
-                                        <span class="badge" style="background: rgba(99, 102, 241, 0.12); color: #6366f1; font-size: 0.68rem;">
-                                            📑 Transcripts Verified
-                                        </span>
-                                    @endif
-                                    @if(!empty($reqs['require_peer_reviews']))
-                                        <span class="badge" style="background: rgba(236, 72, 153, 0.12); color: #ec4899; font-size: 0.68rem;">
-                                            🔬 Quorum Reviews Met
-                                        </span>
-                                    @endif
-                                    @if(!empty($reqs['require_justification_reason']))
-                                        <span class="badge" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b; font-size: 0.68rem;">
-                                            📝 Justification Note Required
-                                        </span>
-                                    @endif
-                                    @if(!empty($reqs['lock_applicant_profile']))
-                                        <span class="badge" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6; font-size: 0.68rem;">
-                                            🔒 Freeze Candidate Edits
-                                        </span>
-                                    @endif
-                                </div>
-                            </td>
-
-                            <!-- Allowed Next Transitions -->
-                            <td style="vertical-align: middle;">
-                                @php $targets = $st->allowed_transitions ?? []; @endphp
-                                @if(!empty($targets))
-                                    <div style="display: flex; flex-wrap: wrap; gap: 0.3rem;">
-                                        @foreach($targets as $tCode)
-                                            <span class="badge" style="background: rgba(255, 255, 255, 0.05); color: var(--color-text-secondary); border: 1px solid rgba(255, 255, 255, 0.1); font-size: 0.72rem; font-family: monospace;">
-                                                ➔ {{ $tCode }}
+                                </td>
+                                <td style="vertical-align: middle; text-align: center;">
+                                    <div style="display: flex; flex-direction: column; gap: 0.25rem; align-items: center;">
+                                        @if($st->is_locked_state)
+                                            <span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6; font-size: 0.68rem;" title="Applicant dossier edit freeze">
+                                                🔒 Locked
                                             </span>
-                                        @endforeach
-                                    </div>
-                                @else
-                                    <span style="font-size: 0.75rem; color: var(--color-text-muted); font-style: italic;">
-                                        Terminal State (No forward transitions)
-                                    </span>
-                                @endif
-                            </td>
-
-                            <!-- State Flags -->
-                            <td style="vertical-align: middle; text-align: center;">
-                                <div style="display: flex; flex-direction: column; gap: 0.25rem; align-items: center;">
-                                    @if($st->is_locked_state)
-                                        <span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6; font-size: 0.68rem;" title="Applicant dossier edit freeze">
-                                            🔒 Locked
-                                        </span>
-                                    @endif
-                                    @if($st->is_terminal)
-                                        <span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; font-size: 0.68rem;" title="Terminal pipeline outcome">
-                                            🏁 Terminal
-                                        </span>
-                                    @endif
-                                </div>
-                            </td>
-
-                            <!-- Actions -->
-                            <td style="vertical-align: middle; text-align: right;">
-                                <div class="action-btn-group justify-end">
-                                    <button type="button" 
-                                            class="action-btn action-btn-edit" 
-                                            wire:click="openEditModal({{ $st->id }})" 
-                                            data-tooltip="Edit Status & Requirements"
-                                            aria-label="Edit Status">
-                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                        </svg>
-                                    </button>
-                                    <button type="button" 
-                                            class="action-btn {{ $st->is_active ? 'action-btn-success' : 'action-btn-delete' }}" 
-                                            wire:click="toggleStatusActive({{ $st->id }})" 
-                                            data-tooltip="{{ $st->is_active ? 'Status: Active (Click to Disable)' : 'Status: Inactive (Click to Activate)' }}"
-                                            aria-label="Toggle Status">
-                                        @if($st->is_active)
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                                        @else
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                                         @endif
-                                    </button>
-                                    @if(!$st->is_system_default)
+                                        @if($st->is_terminal)
+                                            <span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; font-size: 0.68rem;" title="Terminal pipeline outcome">
+                                                🏁 Terminal
+                                            </span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td style="vertical-align: middle; text-align: right;">
+                                    <div class="action-btn-group justify-end">
                                         <button type="button" 
-                                                class="action-btn action-btn-delete" 
-                                                wire:click="deleteStatus({{ $st->id }})" 
-                                                wire:confirm="Remove this status node from workflow?" 
-                                                data-tooltip="Delete Status Node"
-                                                aria-label="Delete Status Node">
+                                                class="action-btn action-btn-edit" 
+                                                wire:click="openEditModal({{ $st->id }})" 
+                                                data-tooltip="Edit Status & Requirements"
+                                                aria-label="Edit Status">
                                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                <polyline points="3 6 5 6 21 6"/>
-                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                                <line x1="10" y1="11" x2="10" y2="17"/>
-                                                <line x1="14" y1="11" x2="14" y2="17"/>
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                                             </svg>
                                         </button>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" style="text-align: center; padding: 2.5rem; color: var(--color-text-muted);">
-                                No workflow statuses found matching search in {{ $activeScope }} scope.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+                                        <button type="button" 
+                                                class="action-btn {{ $st->is_active ? 'action-btn-success' : 'action-btn-delete' }}" 
+                                                wire:click="toggleStatusActive({{ $st->id }})" 
+                                                data-tooltip="{{ $st->is_active ? 'Status: Active (Click to Disable)' : 'Status: Inactive (Click to Activate)' }}"
+                                                aria-label="Toggle Status">
+                                            @if($st->is_active)
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                            @else
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                            @endif
+                                        </button>
+                                        @if(!$st->is_system_default)
+                                            <button type="button" 
+                                                    class="action-btn action-btn-delete" 
+                                                    wire:click="deleteStatus({{ $st->id }})" 
+                                                    wire:confirm="Remove this status node from workflow?" 
+                                                    data-tooltip="Delete Status Node"
+                                                    aria-label="Delete Status Node">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="3 6 5 6 21 6"/>
+                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                                    <line x1="10" y1="11" x2="10" y2="17"/>
+                                                    <line x1="14" y1="11" x2="14" y2="17"/>
+                                                </svg>
+                                            </button>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 2.5rem; color: var(--color-text-muted);">
+                                    No workflow statuses found matching search in {{ $activeScope }} scope.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </x-slot:table>
+    </x-entity-card-grid>
 
     <!-- ========================================================================= -->
     <!-- MODAL: ADD / EDIT WORKFLOW STATUS NODE                                     -->

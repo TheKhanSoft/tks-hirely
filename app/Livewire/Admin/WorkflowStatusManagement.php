@@ -3,17 +3,20 @@
 namespace App\Livewire\Admin;
 
 use Livewire\Component;
+use App\Livewire\Traits\WithDynamicListing;
 use App\Models\WorkflowStatus;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class WorkflowStatusManagement extends Component
 {
+    use WithDynamicListing;
+
     // Active scope tab: 'APPLICATION', 'APPLICANT', 'SYSTEM'
     public $activeScope = 'APPLICATION';
 
-    // Search filter
-    public $search = '';
+    // Listing default (16 per page = 4x4 or 3-5 per row)
+    public $perPage = 16;
 
     // Modal state
     public $showModal = false;
@@ -47,6 +50,8 @@ class WorkflowStatusManagement extends Component
     public function setScope($scope)
     {
         $this->activeScope = strtoupper($scope);
+        $this->search = '';
+        $this->resetPage();
     }
 
     public function openCreateModal()
@@ -206,6 +211,44 @@ class WorkflowStatusManagement extends Component
         session()->flash('message', "Status '{$label}' removed from lifecycle.");
     }
 
+    public function exportCsv()
+    {
+        abort_unless(Auth::user()->can('manage-statuses') || Auth::user()->can('manage-settings') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        $query = WorkflowStatus::forScope($this->activeScope)->orderBy('order')->orderBy('code');
+
+        if (!empty($this->search)) {
+            $term = '%' . $this->search . '%';
+            $query->where(function ($q) use ($term) {
+                $q->where('code', 'like', $term)
+                  ->orWhere('label', 'like', $term)
+                  ->orWhere('description', 'like', $term);
+            });
+        }
+
+        $statuses = $query->get();
+
+        $rows = [];
+        foreach ($statuses as $st) {
+            $rows[] = [
+                $st->order,
+                $st->code,
+                $st->label,
+                $st->scope,
+                $st->badge_color,
+                $st->is_active ? 'Active' : 'Inactive',
+                $st->is_locked_state ? 'Locked' : 'Open',
+                $st->is_terminal ? 'Terminal' : 'In-Progress',
+                $st->is_system_default ? 'Yes' : 'No',
+                implode('; ', $st->allowed_transitions ?? []),
+                $st->description
+            ];
+        }
+
+        return $this->streamCsvDownload('lifecycle_statuses_' . strtolower($this->activeScope) . '_' . date('Y_m_d_His') . '.csv', [
+            'Order', 'Status Code', 'Label', 'Scope', 'Badge Color', 'Active Status', 'Profile Lock', 'Terminal Stage', 'System Default', 'Allowed Next Transitions', 'Description'
+        ], $rows);
+    }
+
     public function render()
     {
         $query = WorkflowStatus::forScope($this->activeScope)->orderBy('order')->orderBy('code');
@@ -219,7 +262,7 @@ class WorkflowStatusManagement extends Component
             });
         }
 
-        $statuses = $query->get();
+        $statuses = $query->paginate($this->perPage);
 
         // Scope sibling statuses for transition matrix checkboxes
         $allScopeStatuses = WorkflowStatus::forScope($this->activeScope)->where('is_active', true)->orderBy('order')->get();

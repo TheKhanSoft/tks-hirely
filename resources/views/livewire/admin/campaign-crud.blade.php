@@ -143,6 +143,57 @@
                         </label>
                     </div>
 
+                    <!-- Statutory Board Constitution & Recruitment Process Flow -->
+                    <div style="border: 1px solid rgba(99, 102, 241, 0.25); border-radius: var(--radius-md); padding: 1.25rem; background: rgba(99, 102, 241, 0.03); margin-top: 1.25rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.85rem;">
+                            <span style="font-size: 0.95rem; font-weight: 800; color: var(--color-text-primary);">
+                                🏛️ Statutory Board Constitution & Recruitment Process Pipeline
+                            </span>
+                            <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: var(--primary); font-size: 0.72rem; font-weight: 700;">
+                                DYNAMIC GOVERNANCE
+                            </span>
+                        </div>
+                        <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin: 0 0 1rem 0;">
+                            Link this position directly to its statutory committee constitution criteria (Scrutiny, Selection Board, Peer Referees) and end-to-end recruitment process pipeline.
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label" style="font-size: 0.78rem; font-weight: 700;">
+                                    STATUTORY SELECTION BOARD / COMMITTEE CONSTITUTION
+                                </label>
+                                <select class="form-control form-select" wire:model="constitution_id">
+                                    <option value="">-- General / Default Constitution (5 Members) --</option>
+                                    @foreach($statutoryBoards as $board)
+                                        <option value="{{ $board->id }}">
+                                            {{ $board->name }} [{{ $board->required_total }} Total • {{ $board->required_peer_reviewers }} Referees • {{ $board->required_internal }} Internal]
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <small style="display: block; margin-top: 0.25rem; font-size: 0.72rem; color: var(--color-text-muted);">
+                                    Defines exact quota limits, referee counts, and origin requirements during candidate evaluation.
+                                </small>
+                            </div>
+
+                            <div>
+                                <label class="form-label" style="font-size: 0.78rem; font-weight: 700;">
+                                    RECRUITMENT PROCESS FLOW (PIPELINE BLUEPRINT)
+                                </label>
+                                <select class="form-control form-select" wire:model="process_flow_id">
+                                    <option value="">-- Default Recruitment Pipeline Flow --</option>
+                                    @foreach($processFlows as $flow)
+                                        <option value="{{ $flow->id }}">
+                                            {{ $flow->name }} [{{ count($flow->stages ?? []) }} Stages]{{ $flow->is_default ? ' ★ (System Default)' : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <small style="display: block; margin-top: 0.25rem; font-size: 0.72rem; color: var(--color-text-muted);">
+                                    Governs stage sequences, scrutiny gating, pass/fail thresholds, and appellate routes.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- DYNAMIC RULE MAPPER SECTION -->
                     @if($track_type === 'ACADEMIC')
                         <div style="border: 1px solid var(--secondary-glow); border-radius: var(--radius-md); padding: 1.5rem; background: rgba(6,182,212,0.03); margin-top: 1.5rem;">
@@ -309,8 +360,33 @@
                                 </span>
                             </div>
 
+                            <div class="entity-card-metric-row">
+                                <span class="entity-card-metric-label">Statutory Board:</span>
+                                <span class="entity-card-metric-value" style="color: var(--primary); font-weight: 700; font-size: 0.78rem;">
+                                    {{ $camp->constitution?->name ?? 'Default (5 Members)' }}
+                                </span>
+                            </div>
+
+                            <div class="entity-card-metric-row">
+                                <span class="entity-card-metric-label">Process Flow:</span>
+                                <span class="entity-card-metric-value" style="color: #10b981; font-weight: 600; font-size: 0.78rem;">
+                                    {{ $camp->processFlow?->name ?? 'Default Standard Pipeline' }}
+                                </span>
+                            </div>
+
                             <!-- Quick Actions (Hover Reveal Icons) -->
                             <x-slot:quickActions>
+                                <button type="button" 
+                                    class="action-btn action-btn-view" 
+                                    wire:click="openLinkModal({{ $camp->id }})" 
+                                    data-tooltip="Link Statutory Board & Process Flow" 
+                                    aria-label="Link Board and Flow">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                                    </svg>
+                                </button>
+
                                 @can('tune-constitution')
                                     <a href="{{ $criteriaUrl }}?campaign_id={{ $camp->id }}" 
                                        class="action-btn action-btn-view" 
@@ -341,6 +417,13 @@
 
                             <!-- Kebab Dropdown Options Menu [ICON + TEXT] -->
                             <x-slot:menuActions>
+                                <x-entity-card-menu-item 
+                                    label="Link Board & Process Flow" 
+                                    click="openLinkModal({{ $camp->id }})">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
                                 @can('tune-constitution')
                                     <x-entity-card-menu-item 
                                         label="Statutory Criteria & Quotas" 
@@ -394,6 +477,7 @@
                                 <th>Job Code</th>
                                 <th>Title & Department</th>
                                 <th>Recruitment Track</th>
+                                <th>Statutory Board & Process Flow</th>
                                 <th>Closing Date</th>
                                 <th>Application Fee</th>
                                 <th style="text-align: right;">Actions</th>
@@ -433,6 +517,27 @@
                                         @endif
                                     </td>
                                     <td>
+                                        <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                                            <div style="display: flex; align-items: center; gap: 0.35rem;">
+                                                <span class="badge" style="background: rgba(99, 102, 241, 0.12); color: var(--primary); font-size: 0.72rem; font-weight: 700;">
+                                                    🏛️ {{ $camp->constitution?->name ?? 'Default Board (5 Members)' }}
+                                                </span>
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 0.35rem;">
+                                                <span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #10b981; font-size: 0.7rem; font-weight: 600;">
+                                                    🔄 {{ $camp->processFlow?->name ?? 'Standard Pipeline' }}
+                                                </span>
+                                                <button type="button" 
+                                                    class="btn btn-secondary" 
+                                                    wire:click="openLinkModal({{ $camp->id }})" 
+                                                    style="padding: 0.15rem 0.45rem; font-size: 0.68rem; font-weight: 700; border-radius: 4px;"
+                                                    title="Link / Change Statutory Board & Flow">
+                                                    🔗 Change
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
                                         <div style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; color: var(--color-text-secondary);">
                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -448,6 +553,16 @@
                                     </td>
                                     <td style="text-align: right;">
                                         <div class="action-btn-group justify-end">
+                                            <button type="button" 
+                                                class="action-btn action-btn-view" 
+                                                wire:click="openLinkModal({{ $camp->id }})" 
+                                                data-tooltip="Link Statutory Board & Process Flow"
+                                                aria-label="Link Board & Flow">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                                                </svg>
+                                            </button>
                                             @can('tune-constitution')
                                                 @php
                                                     $criteriaUrl = (auth()->user()->hasRole('registrar') && !auth()->user()->hasRole('super-admin')) ? '/registrar/criteria' : '/admin/criteria';
@@ -1232,5 +1347,73 @@
                 </div>
             </div>
         @endif
+    @endif
+
+    <!-- ========================================== -->
+    <!-- MODAL: LINK STATUTORY BOARD & PROCESS FLOW -->
+    <!-- ========================================== -->
+    @if($showLinkModal)
+        <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1.5rem;">
+            <div class="card" style="width: 100%; max-width: 650px; background: #0f172a; border-color: rgba(99, 102, 241, 0.35); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); padding: 1.75rem;">
+                <!-- Header -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem;">
+                            <span class="badge" style="background: rgba(99, 102, 241, 0.2); color: var(--primary); font-size: 0.72rem; font-weight: 800;">
+                                POSITION GOVERNANCE LINKAGE
+                            </span>
+                        </div>
+                        <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--color-text-primary); margin: 0;">
+                            Link Statutory Board & Process Flow
+                        </h3>
+                    </div>
+                    <button type="button" wire:click="closeLinkModal" style="background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 1.25rem;">✕</button>
+                </div>
+
+                <!-- Form -->
+                <form wire:submit.prevent="saveLinkedBoardAndFlow">
+                    <div class="mb-4">
+                        <label class="form-label" style="font-size: 0.78rem; font-weight: 700;">
+                            STATUTORY SELECTION BOARD / COMMITTEE CONSTITUTION
+                        </label>
+                        <select class="form-control form-select" wire:model="link_constitution_id" style="font-weight: 600;">
+                            <option value="">-- General / Default Constitution (5 Members) --</option>
+                            @foreach($statutoryBoards as $board)
+                                <option value="{{ $board->id }}">
+                                    {{ $board->name }} [{{ $board->required_total }} Total • {{ $board->required_peer_reviewers }} Referees • {{ $board->required_internal }} Internal]
+                                </option>
+                            @endforeach
+                        </select>
+                        <small style="display: block; margin-top: 0.35rem; font-size: 0.74rem; color: var(--color-text-muted);">
+                            Specifies member quota requirements, peer reviewer counts, and category rules for this job.
+                        </small>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label" style="font-size: 0.78rem; font-weight: 700;">
+                            DYNAMIC RECRUITMENT PROCESS FLOW (PIPELINE)
+                        </label>
+                        <select class="form-control form-select" wire:model="link_process_flow_id" style="font-weight: 600;">
+                            <option value="">-- Default Recruitment Pipeline Flow --</option>
+                            @foreach($processFlows as $flow)
+                                <option value="{{ $flow->id }}">
+                                    {{ $flow->name }} [{{ count($flow->stages ?? []) }} Stages]{{ $flow->is_default ? ' ★ (System Default)' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <small style="display: block; margin-top: 0.35rem; font-size: 0.74rem; color: var(--color-text-muted);">
+                            Governs sequential pipeline transitions, pass/fail gating, scrutiny requirements, and candidate notifications.
+                        </small>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+                        <button type="button" class="btn btn-secondary" wire:click="closeLinkModal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" style="font-weight: 700; padding: 0.6rem 1.5rem;">
+                            Save Linkage
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     @endif
 </div>

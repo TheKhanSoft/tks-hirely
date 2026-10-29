@@ -36,63 +36,125 @@
         </div>
     @endif
 
-    <!-- Filter Bar -->
-    <div class="card mb-4" style="padding: 1rem 1.25rem;">
-        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 250px;">
-                <input type="text" class="form-control" wire:model.live.debounce.300ms="search" placeholder="Search logs by table name, IP, record ID, or user email...">
-            </div>
-            <div style="width: 200px;">
-                <select class="form-control form-select" wire:model.live="actionFilter">
+    <!-- Unified Dynamic Listing: Grid / Table / Per Page / Search / Export -->
+    <x-entity-card-grid
+        :items="$logs"
+        :per-page="$perPage"
+        :view-mode="$viewMode"
+        :search="$search"
+        search-placeholder="Search logs by table name, IP, record ID, or user email..."
+        entity-name="Security Audit Logs"
+        :can-export="true"
+        :can-import="false"
+    >
+        <x-slot:filters>
+            <div style="width: 190px;">
+                <select class="form-control form-select" wire:model.live="actionFilter" style="background: var(--bg-card); color: var(--color-text-primary); font-size: 0.82rem;">
                     <option value="">All Action Types</option>
-                    <option value="CREATED">Created</option>
-                    <option value="UPDATED">Updated</option>
-                    <option value="DELETED">Deleted</option>
+                    <option value="CREATED">Created (Insert)</option>
+                    <option value="UPDATED">Updated (Diff)</option>
+                    <option value="DELETED">Deleted (Purge)</option>
                 </select>
             </div>
-            <div>
-                <span style="font-size: 0.85rem; color: var(--color-text-secondary); font-weight: 600;">
-                    Showing {{ count($logs) }} log{{ count($logs) === 1 ? '' : 's' }}
-                </span>
-            </div>
-        </div>
-    </div>
+        </x-slot:filters>
 
-    <!-- Audit Logs Table -->
-    <x-table :headers="['Action User', 'Access IP', 'Action Mode', 'Target Database Table', 'Record reference ID', 'Timestamp Logged', 'Action']">
-        @forelse($logs as $log)
-            <tr>
-                <td><strong>{{ $log->user?->email ?: 'Anonymous / Guest' }}</strong></td>
-                <td><code>{{ $log->ip_address }}</code></td>
-                <td>
-                    <span class="badge" style="background: {{ $log->action_type === 'DELETED' ? 'rgba(239,68,68,0.15)' : ($log->action_type === 'CREATED' ? 'rgba(16,185,129,0.15)' : 'rgba(99,102,241,0.15)') }}; color: {{ $log->action_type === 'DELETED' ? 'var(--danger)' : ($log->action_type === 'CREATED' ? 'var(--success)' : 'var(--primary)') }};">
-                        {{ $log->action_type }}
-                    </span>
-                </td>
-                <td><code>{{ $log->table_name }}</code></td>
-                <td><code>ID #{{ $log->record_id }}</code></td>
-                <td><small style="color: var(--color-text-secondary); font-family: monospace;">{{ $log->logged_at }}</small></td>
-                <td>
+        <!-- Audit Log Cards (3 to 5 per row) -->
+        @foreach($logs as $log)
+            <x-entity-card
+                :key="'log-card-'.$log->id"
+                :avatar-initial="substr($log->action_type, 0, 1)"
+                :avatar-badge="'#' . $log->id"
+                :title="$log->table_name . ' #' . $log->record_id"
+                :subtitle="$log->user?->email ?: 'Anonymous / System'"
+                :tag="$log->ip_address"
+                :status-badge="$log->action_type"
+                :status-class="$log->action_type === 'DELETED' ? 'badge-draft' : ($log->action_type === 'CREATED' ? 'badge-paid' : 'badge-submitted')"
+            >
+                <x-slot:body>
+                    <div class="entity-card-metric-row">
+                        <span class="entity-card-metric-label">Target Table</span>
+                        <code style="font-size: 0.76rem; background: rgba(99,102,241,0.1); color: var(--primary); padding: 0.1rem 0.35rem; border-radius: 4px;">{{ $log->table_name }}</code>
+                    </div>
+                    <div class="entity-card-metric-row">
+                        <span class="entity-card-metric-label">Record Reference</span>
+                        <code style="font-size: 0.74rem; color: var(--secondary);">ID #{{ $log->record_id }}</code>
+                    </div>
+                    <div class="entity-card-metric-row">
+                        <span class="entity-card-metric-label">Access Origin IP</span>
+                        <span class="entity-card-metric-value" style="font-family: 'JetBrains Mono', monospace; font-size: 0.74rem;">{{ $log->ip_address }}</span>
+                    </div>
+                    <div class="entity-card-metric-row">
+                        <span class="entity-card-metric-label">Timestamp</span>
+                        <span class="entity-card-metric-value" style="font-size: 0.72rem; color: var(--color-text-muted);">{{ $log->logged_at }}</span>
+                    </div>
+                </x-slot:body>
+
+                <x-slot:quickActions>
                     @can('view-audit-log')
-                        <div class="action-btn-group">
-                            <button type="button" 
-                                    class="action-btn action-btn-view" 
-                                    wire:click="viewLogDetails({{ $log->id }})"
-                                    data-tooltip="View Audit State Diff"
-                                    aria-label="View Audit State Diff">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-                                    <circle cx="12" cy="12" r="3"/>
-                                </svg>
-                            </button>
-                        </div>
+                        <button type="button" 
+                                class="action-btn action-btn-view" 
+                                wire:click="viewLogDetails({{ $log->id }})"
+                                data-tooltip="View Forensic State Diff"
+                                aria-label="View Audit State Diff">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
                     @endcan
-                </td>
-            </tr>
-        @empty
-            <tr><td colspan="7" class="text-center" style="padding: 2.5rem; color: var(--color-text-secondary);">No security audit records logged.</td></tr>
-        @endforelse
-    </x-table>
+                </x-slot:quickActions>
+
+                <x-slot:menuItems>
+                    @can('view-audit-log')
+                        <x-entity-card-menu-item 
+                            wire-click="viewLogDetails({{ $log->id }})"
+                            label="View Forensic State Diff"
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </x-entity-card-menu-item>
+                    @endcan
+                </x-slot:menuItems>
+            </x-entity-card>
+        @endforeach
+
+        <!-- Preserved Table View Alternative -->
+        <x-slot:table>
+            <x-table :headers="['Action User', 'Access IP', 'Action Mode', 'Target Database Table', 'Record reference ID', 'Timestamp Logged', 'Action']">
+                @forelse($logs as $log)
+                    <tr>
+                        <td><strong>{{ $log->user?->email ?: 'Anonymous / Guest' }}</strong></td>
+                        <td><code>{{ $log->ip_address }}</code></td>
+                        <td>
+                            <span class="badge" style="background: {{ $log->action_type === 'DELETED' ? 'rgba(239,68,68,0.15)' : ($log->action_type === 'CREATED' ? 'rgba(16,185,129,0.15)' : 'rgba(99,102,241,0.15)') }}; color: {{ $log->action_type === 'DELETED' ? 'var(--danger)' : ($log->action_type === 'CREATED' ? 'var(--success)' : 'var(--primary)') }};">
+                                {{ $log->action_type }}
+                            </span>
+                        </td>
+                        <td><code>{{ $log->table_name }}</code></td>
+                        <td><code>ID #{{ $log->record_id }}</code></td>
+                        <td><small style="color: var(--color-text-secondary); font-family: monospace;">{{ $log->logged_at }}</small></td>
+                        <td>
+                            @can('view-audit-log')
+                                <div class="action-btn-group justify-end">
+                                    <button type="button" 
+                                            class="action-btn action-btn-view" 
+                                            wire:click="viewLogDetails({{ $log->id }})"
+                                            data-tooltip="View Audit State Diff"
+                                            aria-label="View Audit State Diff">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                            <circle cx="12" cy="12" r="3"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            @endcan
+                        </td>
+                    </tr>
+                @empty
+                    <tr><td colspan="7" class="text-center" style="padding: 2.5rem; color: var(--color-text-secondary);">No security audit records logged.</td></tr>
+                @endforelse
+            </x-table>
+        </x-slot:table>
+    </x-entity-card-grid>
 
     <!-- Audit Details Modal -->
     <x-modal :show="$isDetailsOpen" title="Security Audit State Details Diff" closeAction="$set('isDetailsOpen', false)" style="max-width: 800px;">

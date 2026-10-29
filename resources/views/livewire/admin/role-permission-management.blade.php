@@ -56,13 +56,13 @@
                 style="padding: 0.45rem 1.25rem; font-size: 0.875rem; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; transition: var(--transition-base); {{ $activeSubTab === 'roles' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
             <span>Roles Registry</span>
-            <span style="font-size: 0.75rem; padding: 0.15rem 0.45rem; border-radius: 999px; background: rgba(99,102,241,0.15); color: var(--primary);">{{ count($roles) }}</span>
+            <span style="font-size: 0.75rem; padding: 0.15rem 0.45rem; border-radius: 999px; background: rgba(99,102,241,0.15); color: var(--primary);">{{ $totalRolesCount }}</span>
         </button>
         <button type="button" class="btn" wire:click="setSubTab('permissions')"
                 style="padding: 0.45rem 1.25rem; font-size: 0.875rem; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; transition: var(--transition-base); {{ $activeSubTab === 'permissions' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"></circle><path d="m21 2-9.6 9.6"></path><path d="m15.5 7.5 3 3L22 7l-3-3"></path></svg>
             <span>Permissions Catalog</span>
-            <span style="font-size: 0.75rem; padding: 0.15rem 0.45rem; border-radius: 999px; background: rgba(6,182,212,0.15); color: var(--secondary);">{{ count($permissions) }}</span>
+            <span style="font-size: 0.75rem; padding: 0.15rem 0.45rem; border-radius: 999px; background: rgba(6,182,212,0.15); color: var(--secondary);">{{ $totalPermsCount }}</span>
         </button>
     </div>
 
@@ -120,56 +120,159 @@
                 </form>
             </div>
         @else
-            <x-table :headers="['Role Name Reference', 'Synced Permissions Scope', 'Active Accounts Scope', 'Action']">
+            <x-entity-card-grid
+                :items="$roles"
+                :per-page="$perPage"
+                :view-mode="$viewMode"
+                :search="$search"
+                search-placeholder="Search security role by name slug..."
+                entity-name="Security Roles"
+                :can-export="true"
+                :can-import="false"
+            >
+                <!-- Role Cards (3 to 5 per row) -->
                 @foreach($roles as $role)
-                    <tr>
-                        <td>
-                            <strong style="color: var(--secondary); text-transform: uppercase;">{{ str_replace('-', ' ', $role->name) }}</strong>
-                        </td>
-                        <td>
-                            <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); border: 1px solid rgba(6,182,212,0.25);">
-                                {{ $role->name === 'super-admin' ? 'All (Wildcard Bypass *)' : $role->permissions->count() . ' permissions' }}
-                            </span>
-                        </td>
-                        <td>{{ $role->users->count() }} Accounts</td>
-                        <td>
-                            <div class="action-btn-group justify-end">
-                                @can('edit-role')
+                    <x-entity-card
+                        :key="'role-card-'.$role->id"
+                        :avatar-initial="strtoupper(substr($role->name, 0, 1))"
+                        :avatar-badge="in_array($role->name, ['super-admin', 'registrar', 'applicant']) ? 'Core' : 'Custom'"
+                        :title="strtoupper(str_replace('-', ' ', $role->name))"
+                        :subtitle="'Role Slug: ' . $role->name"
+                        :tag="$role->name === 'super-admin' ? 'Wildcard (*)' : $role->permissions->count() . ' Perms'"
+                        :status-badge="in_array($role->name, ['super-admin', 'registrar', 'applicant']) ? 'System Locked' : 'Configurable'"
+                        :status-class="in_array($role->name, ['super-admin', 'registrar', 'applicant']) ? 'badge-primary' : 'badge-paid'"
+                    >
+                        <x-slot:body>
+                            <div class="entity-card-metric-row">
+                                <span class="entity-card-metric-label">Permissions Scope</span>
+                                <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); border: 1px solid rgba(6,182,212,0.25); font-size: 0.72rem; padding: 0.15rem 0.45rem;">
+                                    {{ $role->name === 'super-admin' ? 'All (Wildcard Bypass *)' : $role->permissions->count() . ' assigned' }}
+                                </span>
+                            </div>
+                            <div class="entity-card-metric-row">
+                                <span class="entity-card-metric-label">Active Users</span>
+                                <span class="entity-card-metric-value" style="font-weight: 700; color: var(--color-text-primary);">
+                                    {{ $role->users->count() }} Accounts
+                                </span>
+                            </div>
+                            <div class="entity-card-metric-row">
+                                <span class="entity-card-metric-label">Guard Engine</span>
+                                <code style="font-size: 0.72rem; color: var(--color-text-muted);">{{ $role->guard_name }}</code>
+                            </div>
+                        </x-slot:body>
+
+                        <x-slot:quickActions>
+                            @can('edit-role')
+                                <button type="button" 
+                                        class="action-btn action-btn-edit" 
+                                        wire:click="openEditRoleForm({{ $role->id }})"
+                                        data-tooltip="Edit & Sync Role Permissions"
+                                        aria-label="Edit Role">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                </button>
+                            @endcan
+                            @if(!in_array($role->name, ['super-admin', 'registrar', 'applicant']))
+                                @can('delete-role')
                                     <button type="button" 
-                                            class="action-btn action-btn-edit" 
-                                            wire:click="openEditRoleForm({{ $role->id }})"
-                                            data-tooltip="Edit & Sync Role Permissions"
-                                            aria-label="Edit Role">
-                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                            class="action-btn action-btn-delete" 
+                                            wire:click="deleteRole({{ $role->id }})" 
+                                            onclick="confirm('Are you sure you want to delete this role?') || event.stopImmediatePropagation()"
+                                            data-tooltip="Delete Role"
+                                            aria-label="Delete Role">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="3 6 5 6 21 6"/>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                            <line x1="10" y1="11" x2="10" y2="17"/>
+                                            <line x1="14" y1="11" x2="14" y2="17"/>
                                         </svg>
                                     </button>
                                 @endcan
-                                @if(!in_array($role->name, ['super-admin', 'registrar', 'applicant']))
-                                    @can('delete-role')
-                                        <button type="button" 
-                                                class="action-btn action-btn-delete" 
-                                                wire:click="deleteRole({{ $role->id }})" 
-                                                onclick="confirm('Are you sure you want to delete this role?') || event.stopImmediatePropagation()"
-                                                data-tooltip="Delete Role"
-                                                aria-label="Delete Role">
-                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                <polyline points="3 6 5 6 21 6"/>
-                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                                <line x1="10" y1="11" x2="10" y2="17"/>
-                                                <line x1="14" y1="11" x2="14" y2="17"/>
-                                            </svg>
-                                        </button>
-                                    @endcan
-                                @else
-                                    <span class="badge" style="background: rgba(255,255,255,0.05); color: var(--color-text-muted); font-size: 0.72rem;">System Core Locked</span>
-                                @endif
-                            </div>
-                        </td>
-                    </tr>
+                            @endif
+                        </x-slot:quickActions>
+
+                        <x-slot:menuItems>
+                            @can('edit-role')
+                                <x-entity-card-menu-item 
+                                    wire-click="openEditRoleForm({{ $role->id }})"
+                                    label="Edit & Sync Permissions"
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                </x-entity-card-menu-item>
+                            @endcan
+
+                            @if(!in_array($role->name, ['super-admin', 'registrar', 'applicant']))
+                                @can('delete-role')
+                                    <x-entity-card-menu-item 
+                                        wire-click="deleteRole({{ $role->id }})"
+                                        label="Delete Security Role"
+                                        theme="danger"
+                                        confirm-message="Are you sure you want to delete this role?"
+                                    >
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                    </x-entity-card-menu-item>
+                                @endcan
+                            @endif
+                        </x-slot:menuItems>
+                    </x-entity-card>
                 @endforeach
-            </x-table>
+
+                <!-- Preserved Table View Alternative -->
+                <x-slot:table>
+                    <x-table :headers="['Role Name Reference', 'Synced Permissions Scope', 'Active Accounts Scope', 'Action']">
+                        @foreach($roles as $role)
+                            <tr>
+                                <td>
+                                    <strong style="color: var(--secondary); text-transform: uppercase;">{{ str_replace('-', ' ', $role->name) }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); border: 1px solid rgba(6,182,212,0.25);">
+                                        {{ $role->name === 'super-admin' ? 'All (Wildcard Bypass *)' : $role->permissions->count() . ' permissions' }}
+                                    </span>
+                                </td>
+                                <td>{{ $role->users->count() }} Accounts</td>
+                                <td>
+                                    <div class="action-btn-group justify-end">
+                                        @can('edit-role')
+                                            <button type="button" 
+                                                    class="action-btn action-btn-edit" 
+                                                    wire:click="openEditRoleForm({{ $role->id }})"
+                                                    data-tooltip="Edit & Sync Role Permissions"
+                                                    aria-label="Edit Role">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                                </svg>
+                                            </button>
+                                        @endcan
+                                        @if(!in_array($role->name, ['super-admin', 'registrar', 'applicant']))
+                                            @can('delete-role')
+                                                <button type="button" 
+                                                        class="action-btn action-btn-delete" 
+                                                        wire:click="deleteRole({{ $role->id }})" 
+                                                        onclick="confirm('Are you sure you want to delete this role?') || event.stopImmediatePropagation()"
+                                                        data-tooltip="Delete Role"
+                                                        aria-label="Delete Role">
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <polyline points="3 6 5 6 21 6"/>
+                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                                        <line x1="10" y1="11" x2="10" y2="17"/>
+                                                        <line x1="14" y1="11" x2="14" y2="17"/>
+                                                    </svg>
+                                                </button>
+                                            @endcan
+                                        @else
+                                            <span class="badge" style="background: rgba(255,255,255,0.05); color: var(--color-text-muted); font-size: 0.72rem;">System Core Locked</span>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </x-table>
+                </x-slot:table>
+            </x-entity-card-grid>
         @endif
 
     <!-- ========================================== -->
@@ -195,49 +298,144 @@
                 </form>
             </div>
         @else
-            <x-table :headers="['Permission Slug Name', 'Guard Engine Reference', 'Actions']">
-                @forelse($permissions as $perm)
-                    <tr>
-                        <td>
-                            <code style="background: rgba(99,102,241,0.1); color: var(--primary); padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 600;">{{ $perm->name }}</code>
-                        </td>
-                        <td><code>{{ $perm->guard_name }}</code></td>
-                        <td>
-                            <div class="action-btn-group justify-end">
-                                @can('edit-permission')
-                                    <button type="button" 
-                                            class="action-btn action-btn-edit" 
-                                            wire:click="openEditPermissionForm({{ $perm->id }})"
-                                            data-tooltip="Edit Permission Slug"
-                                            aria-label="Edit Permission">
-                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                        </svg>
-                                    </button>
-                                @endcan
-                                @can('delete-permission')
-                                    <button type="button" 
-                                            class="action-btn action-btn-delete" 
-                                            wire:click="deletePermission({{ $perm->id }})" 
-                                            onclick="confirm('Are you sure you want to delete this permission? This will revoke it from all roles.') || event.stopImmediatePropagation()"
-                                            data-tooltip="Delete System Permission"
-                                            aria-label="Delete Permission">
-                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                            <polyline points="3 6 5 6 21 6"/>
-                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                            <line x1="10" y1="11" x2="10" y2="17"/>
-                                            <line x1="14" y1="11" x2="14" y2="17"/>
-                                        </svg>
-                                    </button>
-                                @endcan
+            <x-entity-card-grid
+                :items="$permissions"
+                :per-page="$perPage"
+                :view-mode="$viewMode"
+                :search="$search"
+                search-placeholder="Search permission slug or capability..."
+                entity-name="System Permissions"
+                :can-export="true"
+                :can-import="false"
+            >
+                <!-- Permission Cards (3 to 5 per row) -->
+                @foreach($permissions as $perm)
+                    <x-entity-card
+                        :key="'perm-card-'.$perm->id"
+                        avatar-initial="P"
+                        :avatar-badge="'#' . $perm->id"
+                        :title="$perm->name"
+                        :subtitle="'Guard: ' . $perm->guard_name"
+                        tag="Security Action"
+                        status-badge="Active Policy"
+                        status-class="badge-paid"
+                    >
+                        <x-slot:body>
+                            <div class="entity-card-metric-row">
+                                <span class="entity-card-metric-label">Permission Slug</span>
+                                <code style="font-size: 0.76rem; background: rgba(99,102,241,0.1); color: var(--primary); padding: 0.15rem 0.4rem; border-radius: 4px; font-weight: 700;">{{ $perm->name }}</code>
                             </div>
-                        </td>
-                    </tr>
-                @empty
-                    <tr><td colspan="3" class="text-center" style="padding: 2.5rem; color: var(--color-text-secondary);">No system permissions registered.</td></tr>
-                @endforelse
-            </x-table>
+                            <div class="entity-card-metric-row">
+                                <span class="entity-card-metric-label">Guard Engine</span>
+                                <code style="font-size: 0.74rem; color: var(--color-text-muted);">{{ $perm->guard_name }}</code>
+                            </div>
+                            <div class="entity-card-metric-row">
+                                <span class="entity-card-metric-label">System ID</span>
+                                <span class="entity-card-metric-value" style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">#{{ $perm->id }}</span>
+                            </div>
+                        </x-slot:body>
+
+                        <x-slot:quickActions>
+                            @can('edit-permission')
+                                <button type="button" 
+                                        class="action-btn action-btn-edit" 
+                                        wire:click="openEditPermissionForm({{ $perm->id }})"
+                                        data-tooltip="Edit Permission Slug"
+                                        aria-label="Edit Permission">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                </button>
+                            @endcan
+                            @can('delete-permission')
+                                <button type="button" 
+                                        class="action-btn action-btn-delete" 
+                                        wire:click="deletePermission({{ $perm->id }})" 
+                                        onclick="confirm('Are you sure you want to delete this permission? This will revoke it from all roles.') || event.stopImmediatePropagation()"
+                                        data-tooltip="Delete System Permission"
+                                        aria-label="Delete Permission">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="3 6 5 6 21 6"/>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                        <line x1="10" y1="11" x2="10" y2="17"/>
+                                        <line x1="14" y1="11" x2="14" y2="17"/>
+                                    </svg>
+                                </button>
+                            @endcan
+                        </x-slot:quickActions>
+
+                        <x-slot:menuItems>
+                            @can('edit-permission')
+                                <x-entity-card-menu-item 
+                                    wire-click="openEditPermissionForm({{ $perm->id }})"
+                                    label="Edit Permission Slug"
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                </x-entity-card-menu-item>
+                            @endcan
+
+                            @can('delete-permission')
+                                <x-entity-card-menu-item 
+                                    wire-click="deletePermission({{ $perm->id }})"
+                                    label="Delete Permission"
+                                    theme="danger"
+                                    confirm-message="Are you sure you want to delete this permission? This will revoke it from all roles."
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                </x-entity-card-menu-item>
+                            @endcan
+                        </x-slot:menuItems>
+                    </x-entity-card>
+                @endforeach
+
+                <!-- Preserved Table View Alternative -->
+                <x-slot:table>
+                    <x-table :headers="['Permission Slug Name', 'Guard Engine Reference', 'Actions']">
+                        @forelse($permissions as $perm)
+                            <tr>
+                                <td>
+                                    <code style="background: rgba(99,102,241,0.1); color: var(--primary); padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 600;">{{ $perm->name }}</code>
+                                </td>
+                                <td><code>{{ $perm->guard_name }}</code></td>
+                                <td>
+                                    <div class="action-btn-group justify-end">
+                                        @can('edit-permission')
+                                            <button type="button" 
+                                                    class="action-btn action-btn-edit" 
+                                                    wire:click="openEditPermissionForm({{ $perm->id }})"
+                                                    data-tooltip="Edit Permission Slug"
+                                                    aria-label="Edit Permission">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                                </svg>
+                                            </button>
+                                        @endcan
+                                        @can('delete-permission')
+                                            <button type="button" 
+                                                    class="action-btn action-btn-delete" 
+                                                    wire:click="deletePermission({{ $perm->id }})" 
+                                                    onclick="confirm('Are you sure you want to delete this permission? This will revoke it from all roles.') || event.stopImmediatePropagation()"
+                                                    data-tooltip="Delete System Permission"
+                                                    aria-label="Delete Permission">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="3 6 5 6 21 6"/>
+                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                                    <line x1="10" y1="11" x2="10" y2="17"/>
+                                                    <line x1="14" y1="11" x2="14" y2="17"/>
+                                                </svg>
+                                            </button>
+                                        @endcan
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="3" class="text-center" style="padding: 2.5rem; color: var(--color-text-secondary);">No system permissions registered.</td></tr>
+                        @endforelse
+                    </x-table>
+                </x-slot:table>
+            </x-entity-card-grid>
         @endif
     @endif
 </div>

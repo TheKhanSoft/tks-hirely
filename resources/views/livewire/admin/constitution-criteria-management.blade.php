@@ -97,224 +97,326 @@
     <!-- TAB 1: STANDING GENERAL COMMITTEES & STATUTORY BOARDS (BASIC DETAILS LIST) -->
     <!-- ========================================================================= -->
     @if($activeTab === 'board_registry')
-        <!-- Action Header & Sector Filter Bar -->
-        <div class="card mb-5" style="padding: 1.15rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-                <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
-                    <span style="font-size: 0.74rem; text-transform: uppercase; font-weight: 700; color: var(--color-text-muted); margin-right: 0.25rem;">
-                        SECTOR FILTER:
-                    </span>
-                    @foreach(['ALL' => 'All Sectors', 'ACADEMIC' => '🎓 Higher Ed', 'CORPORATE' => '🏢 Corporate', 'HEALTHCARE' => '🩺 Healthcare', 'PUBLIC_SECTOR' => '🏛️ Public Sector', 'GENERAL' => '🌐 General'] as $secKey => $secLabel)
+        <x-entity-card-grid
+            :items="$registeredBoards"
+            :per-page="$perPage"
+            :view-mode="$viewMode"
+            :search="$search"
+            search-placeholder="Search boards or committees by name, slug, or type..."
+            entity-name="Statutory Committees & Boards"
+            :can-export="true"
+            :can-import="false"
+        >
+            <x-slot:filters>
+                <div style="width: 170px;">
+                    <select class="form-control form-select" wire:model.live="sectorFilter" style="background: var(--bg-card); color: var(--color-text-primary); font-size: 0.82rem;">
+                        <option value="ALL">All Sectors</option>
+                        <option value="ACADEMIC">Academic</option>
+                        <option value="CORPORATE">Corporate</option>
+                        <option value="PUBLIC_SECTOR">Public Sector</option>
+                        <option value="HEALTHCARE">Healthcare</option>
+                        <option value="JUDICIAL">Judicial</option>
+                    </select>
+                </div>
+            </x-slot:filters>
+
+            <x-slot:headerActions>
+                <button type="button" class="btn btn-primary" wire:click="openCreateBoardModal" style="display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 1rem;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    <span>+ Empanel Committee</span>
+                </button>
+            </x-slot:headerActions>
+
+            <!-- Cards (3 to 5 per row) -->
+            @foreach($registeredBoards as $board)
+                @php 
+                    $typeBadge = $board->type_badge; 
+                    $sectorBadge = $board->sector_badge;
+                @endphp
+                <x-entity-card
+                    :key="'board-card-'.$board->id"
+                    :avatar-initial="substr($board->name, 0, 1)"
+                    :avatar-badge="strtoupper(substr($board->organization_sector ?? 'GEN', 0, 3))"
+                    :title="$board->name"
+                    :subtitle="'#' . ($board->slug ?: 'board-'.$board->id)"
+                    :tag="$board->required_total . ' Members'"
+                    :status-badge="$board->enforce_strict_quota ? 'Strict Quota' : 'Flexible Quota'"
+                    :status-class="$board->enforce_strict_quota ? 'badge-primary' : 'badge-paid'"
+                >
+                    <x-slot:body>
+                        <div class="entity-card-metric-row">
+                            <span class="entity-card-metric-label">Committee Type</span>
+                            <span class="badge" style="background: {{ $typeBadge['bg'] }}; color: {{ $typeBadge['color'] }}; font-weight: 700; font-size: 0.72rem; padding: 0.15rem 0.4rem;">
+                                {{ $typeBadge['icon'] }} {{ $typeBadge['label'] }}
+                            </span>
+                        </div>
+                        <div class="entity-card-metric-row">
+                            <span class="entity-card-metric-label">Quorum Quota</span>
+                            <span class="entity-card-metric-value" style="font-weight: 700; color: var(--color-text-primary);">
+                                {{ $board->required_internal }} Internal • {{ $board->required_external }} External
+                            </span>
+                        </div>
+                        <div class="entity-card-metric-row">
+                            <span class="entity-card-metric-label">Responsible Stage</span>
+                            <span class="badge" style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--color-text-secondary); font-size: 0.7rem;">
+                                @if($board->responsible_stage === 'stage_scrutiny')
+                                    📑 Step 2: Scrutiny Vetting
+                                @elseif($board->responsible_stage === 'stage_peer_review')
+                                    🔬 Step 3: Peer Review
+                                @elseif($board->responsible_stage === 'stage_selection_board')
+                                    👥 Step 4: Selection Board
+                                @elseif($board->responsible_stage === 'stage_syndicate')
+                                    🏛️ Step 5: Syndicate Council
+                                @elseif($board->responsible_stage === 'stage_appellate')
+                                    ⚖️ Appellate Tribunal
+                                @else
+                                    ⚙️ General Board
+                                @endif
+                            </span>
+                        </div>
+                        @if($board->required_peer_reviewers > 0)
+                            <div class="entity-card-metric-row" style="margin-top: 0.2rem;">
+                                <span class="entity-card-metric-label">Peer Experts</span>
+                                <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); font-size: 0.7rem; padding: 0.1rem 0.35rem;">
+                                    {{ $board->required_peer_reviewers }} Referees
+                                </span>
+                            </div>
+                        @endif
+                    </x-slot:body>
+
+                    <x-slot:quickActions>
                         <button type="button" 
-                            wire:click="$set('sectorFilter', '{{ $secKey }}')" 
-                            class="btn {{ $sectorFilter === $secKey ? 'btn-primary' : 'btn-secondary' }}"
-                            style="padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 600;">
-                            {{ $secLabel }}
+                                class="action-btn action-btn-view" 
+                                wire:click="viewBoardQuorum({{ $board->id }})" 
+                                data-tooltip="View Quorum Breakdown"
+                                aria-label="View Quorum">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
                         </button>
-                    @endforeach
-                </div>
+                        <button type="button" 
+                                class="action-btn action-btn-edit" 
+                                wire:click="openEditBoardModal({{ $board->id }})" 
+                                data-tooltip="Configure Board Details & Rules"
+                                aria-label="Edit Board">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                        </button>
+                        <button type="button" 
+                                class="action-btn action-btn-view" 
+                                wire:click="cloneBoardModel({{ $board->id }})" 
+                                data-tooltip="Clone / Duplicate Board"
+                                aria-label="Clone Board">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                            </svg>
+                        </button>
+                        <button type="button" 
+                                class="action-btn action-btn-delete" 
+                                wire:click="deleteBoardModel({{ $board->id }})" 
+                                wire:confirm="Are you sure you want to delete this Statutory Board Constitution?" 
+                                data-tooltip="Delete Board"
+                                aria-label="Delete Board">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                        </button>
+                    </x-slot:quickActions>
 
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <button type="button" class="btn btn-primary" wire:click="openCreateBoardModal" style="display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.85rem; font-weight: 700; padding: 0.6rem 1.15rem;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                        <span>+ Empanel General Standing Committee / Board</span>
-                    </button>
-                </div>
-            </div>
-        </div>
+                    <x-slot:menuItems>
+                        <x-entity-card-menu-item 
+                            wire-click="viewBoardQuorum({{ $board->id }})"
+                            label="View Quorum Breakdown"
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </x-entity-card-menu-item>
 
-        <!-- Clean, Modern Listing Showing ONLY BASIC DETAILS -->
-        <div class="card mb-6" style="padding: 0; overflow: hidden; border-color: rgba(255, 255, 255, 0.08);">
-            <div style="padding: 1rem 1.25rem; background: rgba(15, 23, 42, 0.5); border-bottom: 1px solid rgba(255, 255, 255, 0.06); display: flex; justify-content: space-between; align-items: center;">
-                <div style="display: flex; align-items: center; gap: 0.6rem;">
-                    <span style="font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-secondary);">
-                        General Standing Committees & Statutory Boards Registry
-                    </span>
-                    <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: var(--primary); font-weight: 700; font-size: 0.72rem;">
-                        {{ $registeredBoards->count() }} Registered
-                    </span>
-                </div>
-                <div style="font-size: 0.75rem; color: var(--color-text-muted);">
-                    Showing basic constitution details only • Click Quorum or Edit to view full rules
-                </div>
-            </div>
+                        <x-entity-card-menu-item 
+                            wire-click="applyBoardConstitutionToCampaign({{ $board->id }})"
+                            label="Load into Active Campaign"
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        </x-entity-card-menu-item>
 
-            <div class="table-responsive">
-                <table class="table" style="margin: 0; font-size: 0.85rem; vertical-align: middle;">
-                    <thead style="background: rgba(15, 23, 42, 0.3); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted);">
-                        <tr>
-                            <th style="padding: 0.85rem 1.25rem;">Committee / Board Name</th>
-                            <th style="padding: 0.85rem 1rem;">Type</th>
-                            <th style="padding: 0.85rem 1rem;">Sector</th>
-                            <th style="padding: 0.85rem 1rem;">Quorum Summary</th>
-                            <th style="padding: 0.85rem 1rem;">Responsible Stage</th>
-                            <th style="padding: 0.85rem 1rem; text-align: center;">Status</th>
-                            <th style="padding: 0.85rem 1.25rem; text-align: right;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody style="divide-y: 1px solid rgba(255, 255, 255, 0.05);">
-                        @forelse($registeredBoards as $board)
-                            @php 
-                                $typeBadge = $board->type_badge;
-                                $sectorBadge = $board->sector_badge;
-                            @endphp
-                            <tr style="transition: background 0.15s ease;">
-                                <!-- Name -->
-                                <td style="padding: 0.9rem 1.25rem;">
-                                    <div style="font-weight: 700; color: var(--color-text-primary); font-size: 0.92rem; margin-bottom: 0.2rem;">
-                                        {{ $board->name }}
-                                    </div>
-                                    @if($board->slug)
-                                        <div style="font-size: 0.72rem; color: var(--color-text-muted); font-family: monospace;">
-                                            #{{ $board->slug }}
-                                        </div>
-                                    @endif
-                                </td>
+                        <x-entity-card-menu-item 
+                            wire-click="openEditBoardModal({{ $board->id }})"
+                            label="Edit Board Details & Rules"
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </x-entity-card-menu-item>
 
-                                <!-- Committee Type -->
-                                <td style="padding: 0.9rem 1rem; white-space: nowrap;">
-                                    <span class="badge" style="background: {{ $typeBadge['bg'] }}; color: {{ $typeBadge['color'] }}; font-weight: 700; font-size: 0.74rem;">
-                                        {{ $typeBadge['icon'] }} {{ $typeBadge['label'] }}
-                                    </span>
-                                </td>
+                        <x-entity-card-menu-item 
+                            wire-click="cloneBoardModel({{ $board->id }})"
+                            label="Clone / Duplicate Board"
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                        </x-entity-card-menu-item>
 
-                                <!-- Sector -->
-                                <td style="padding: 0.9rem 1rem; white-space: nowrap;">
-                                    <span class="badge" style="background: {{ $sectorBadge['bg'] }}; color: {{ $sectorBadge['color'] }}; font-weight: 600; font-size: 0.72rem;">
-                                        {{ $sectorBadge['icon'] }} {{ $sectorBadge['label'] }}
-                                    </span>
-                                </td>
+                        <x-entity-card-menu-item 
+                            wire-click="deleteBoardModel({{ $board->id }})"
+                            label="Delete Board Constitution"
+                            theme="danger"
+                            confirm-message="Are you sure you want to delete this Statutory Board Constitution?"
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        </x-entity-card-menu-item>
+                    </x-slot:menuItems>
+                </x-entity-card>
+            @endforeach
 
-                                <!-- Quorum Summary -->
-                                <td style="padding: 0.9rem 1rem;">
-                                    <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
-                                        <span style="font-weight: 800; color: var(--color-text-primary); font-size: 0.88rem;">
-                                            {{ $board->required_total }} Members
-                                        </span>
-                                        <span style="font-size: 0.72rem; color: var(--color-text-muted);">
-                                            ({{ $board->required_internal }} Internal • {{ $board->required_external }} External{{ $board->required_peer_reviewers > 0 ? ' • ' . $board->required_peer_reviewers . ' Referees' : '' }})
-                                        </span>
-                                    </div>
-                                    @if($board->enforce_strict_quota)
-                                        <span style="font-size: 0.68rem; color: #f59e0b; display: inline-flex; align-items: center; gap: 0.2rem; margin-top: 0.15rem;">
-                                            🔒 Strict Quorum Quota
-                                        </span>
-                                    @else
-                                        <span style="font-size: 0.68rem; color: #10b981; display: inline-flex; align-items: center; gap: 0.2rem; margin-top: 0.15rem;">
-                                            ⚡ Flexible Quota
-                                        </span>
-                                    @endif
-                                </td>
-
-                                <!-- Responsible Stage -->
-                                <td style="padding: 0.9rem 1rem; white-space: nowrap;">
-                                    <span class="badge" style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--color-text-secondary); font-size: 0.73rem; font-weight: 600;">
-                                        @if($board->responsible_stage === 'stage_scrutiny')
-                                            📑 Step 2: Scrutiny Vetting
-                                        @elseif($board->responsible_stage === 'stage_peer_review')
-                                            🔬 Step 3: Peer Review
-                                        @elseif($board->responsible_stage === 'stage_selection_board')
-                                            👥 Step 4: Selection Board
-                                        @elseif($board->responsible_stage === 'stage_syndicate')
-                                            🏛️ Step 5: Syndicate Council
-                                        @elseif($board->responsible_stage === 'stage_appellate')
-                                            ⚖️ Appellate Tribunal
-                                        @else
-                                            ⚙️ General Board
-                                        @endif
-                                    </span>
-                                </td>
-
-                                <!-- Status -->
-                                <td style="padding: 0.9rem 1rem; text-align: center; white-space: nowrap;">
-                                    <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700; font-size: 0.7rem;">
-                                        ● ACTIVE
-                                    </span>
-                                </td>
-
-                                <!-- Actions -->
-                                <td style="padding: 0.9rem 1.25rem; text-align: right; white-space: nowrap;">
-                                    <div style="display: inline-flex; align-items: center; gap: 0.35rem;">
-                                        <!-- Quick Quorum Button -->
-                                        <button type="button" 
-                                            class="btn btn-secondary" 
-                                            wire:click="viewBoardQuorum({{ $board->id }})" 
-                                            style="padding: 0.3rem 0.65rem; font-size: 0.75rem; font-weight: 600;"
-                                            title="View Quorum Breakdown">
-                                            👁️ Quorum
-                                        </button>
-
-                                        <!-- Apply to Active Campaign -->
-                                        <button type="button" 
-                                            class="btn btn-secondary" 
-                                            wire:click="applyBoardConstitutionToCampaign({{ $board->id }})" 
-                                            style="padding: 0.3rem 0.65rem; font-size: 0.75rem; font-weight: 700; color: var(--primary);" 
-                                            title="Load into Active Campaign">
-                                            ⚡ Apply
-                                        </button>
-
-                                        <!-- Edit -->
-                                        <button type="button" 
-                                            class="action-btn action-btn-edit" 
-                                            wire:click="openEditBoardModal({{ $board->id }})" 
-                                            data-tooltip="Configure Board Details & Rules"
-                                            aria-label="Edit Board">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                            </svg>
-                                        </button>
-
-                                        <!-- Clone -->
-                                        <button type="button" 
-                                            class="action-btn action-btn-view" 
-                                            wire:click="cloneBoardModel({{ $board->id }})" 
-                                            data-tooltip="Clone / Duplicate Board"
-                                            aria-label="Clone Board">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-                                                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-                                            </svg>
-                                        </button>
-
-                                        <!-- Delete -->
-                                        <button type="button" 
-                                            class="action-btn action-btn-delete" 
-                                            wire:click="deleteBoardModel({{ $board->id }})" 
-                                            wire:confirm="Are you sure you want to delete this Statutory Board Constitution?" 
-                                            data-tooltip="Delete Board"
-                                            aria-label="Delete Board">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                <polyline points="3 6 5 6 21 6"/>
-                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
+            <!-- Preserved Table View Alternative -->
+            <x-slot:table>
+                <div class="table-responsive">
+                    <table class="table" style="margin: 0; font-size: 0.85rem; vertical-align: middle;">
+                        <thead style="background: rgba(15, 23, 42, 0.3); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted);">
                             <tr>
-                                <td colspan="7" style="text-align: center; padding: 3rem 1.5rem;">
-                                    <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🏛️</div>
-                                    <h4 style="font-size: 1rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.35rem;">
-                                        No Statutory Committees Found
-                                    </h4>
-                                    <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin-bottom: 1rem;">
-                                        Create your first general standing committee or reset your sector filter.
-                                    </p>
-                                    <button type="button" class="btn btn-primary" wire:click="openCreateBoardModal" style="padding: 0.5rem 1.15rem; font-size: 0.82rem; font-weight: 700;">
-                                        + Empanel Committee
-                                    </button>
-                                </td>
+                                <th style="padding: 0.85rem 1.25rem;">Committee / Board Name</th>
+                                <th style="padding: 0.85rem 1rem;">Type</th>
+                                <th style="padding: 0.85rem 1rem;">Sector</th>
+                                <th style="padding: 0.85rem 1rem;">Quorum Summary</th>
+                                <th style="padding: 0.85rem 1rem;">Responsible Stage</th>
+                                <th style="padding: 0.85rem 1rem; text-align: center;">Status</th>
+                                <th style="padding: 0.85rem 1.25rem; text-align: right;">Actions</th>
                             </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                        </thead>
+                        <tbody style="divide-y: 1px solid rgba(255, 255, 255, 0.05);">
+                            @forelse($registeredBoards as $board)
+                                @php 
+                                    $typeBadge = $board->type_badge;
+                                    $sectorBadge = $board->sector_badge;
+                                @endphp
+                                <tr style="transition: background 0.15s ease;">
+                                    <td style="padding: 0.9rem 1.25rem;">
+                                        <div style="font-weight: 700; color: var(--color-text-primary); font-size: 0.92rem; margin-bottom: 0.2rem;">
+                                            {{ $board->name }}
+                                        </div>
+                                        @if($board->slug)
+                                            <div style="font-size: 0.72rem; color: var(--color-text-muted); font-family: monospace;">
+                                                #{{ $board->slug }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td style="padding: 0.9rem 1rem; white-space: nowrap;">
+                                        <span class="badge" style="background: {{ $typeBadge['bg'] }}; color: {{ $typeBadge['color'] }}; font-weight: 700; font-size: 0.74rem;">
+                                            {{ $typeBadge['icon'] }} {{ $typeBadge['label'] }}
+                                        </span>
+                                    </td>
+                                    <td style="padding: 0.9rem 1rem; white-space: nowrap;">
+                                        <span class="badge" style="background: {{ $sectorBadge['bg'] }}; color: {{ $sectorBadge['color'] }}; font-weight: 600; font-size: 0.72rem;">
+                                            {{ $sectorBadge['icon'] }} {{ $sectorBadge['label'] }}
+                                        </span>
+                                    </td>
+                                    <td style="padding: 0.9rem 1rem;">
+                                        <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                                            <span style="font-weight: 800; color: var(--color-text-primary); font-size: 0.88rem;">
+                                                {{ $board->required_total }} Members
+                                            </span>
+                                            <span style="font-size: 0.72rem; color: var(--color-text-muted);">
+                                                ({{ $board->required_internal }} Internal • {{ $board->required_external }} External{{ $board->required_peer_reviewers > 0 ? ' • ' . $board->required_peer_reviewers . ' Referees' : '' }})
+                                            </span>
+                                        </div>
+                                        @if($board->enforce_strict_quota)
+                                            <span style="font-size: 0.68rem; color: #f59e0b; display: inline-flex; align-items: center; gap: 0.2rem; margin-top: 0.15rem;">
+                                                🔒 Strict Quorum Quota
+                                            </span>
+                                        @else
+                                            <span style="font-size: 0.68rem; color: #10b981; display: inline-flex; align-items: center; gap: 0.2rem; margin-top: 0.15rem;">
+                                                ⚡ Flexible Quota
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td style="padding: 0.9rem 1rem; white-space: nowrap;">
+                                        <span class="badge" style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--color-text-secondary); font-size: 0.73rem; font-weight: 600;">
+                                            @if($board->responsible_stage === 'stage_scrutiny')
+                                                📑 Step 2: Scrutiny Vetting
+                                            @elseif($board->responsible_stage === 'stage_peer_review')
+                                                🔬 Step 3: Peer Review
+                                            @elseif($board->responsible_stage === 'stage_selection_board')
+                                                👥 Step 4: Selection Board
+                                            @elseif($board->responsible_stage === 'stage_syndicate')
+                                                🏛️ Step 5: Syndicate Council
+                                            @elseif($board->responsible_stage === 'stage_appellate')
+                                                ⚖️ Appellate Tribunal
+                                            @else
+                                                ⚙️ General Board
+                                            @endif
+                                        </span>
+                                    </td>
+                                    <td style="padding: 0.9rem 1rem; text-align: center; white-space: nowrap;">
+                                        <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700; font-size: 0.7rem;">
+                                            ● ACTIVE
+                                        </span>
+                                    </td>
+                                    <td style="padding: 0.9rem 1.25rem; text-align: right; white-space: nowrap;">
+                                        <div style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                                            <button type="button" 
+                                                class="btn btn-secondary" 
+                                                wire:click="viewBoardQuorum({{ $board->id }})" 
+                                                style="padding: 0.3rem 0.65rem; font-size: 0.75rem; font-weight: 600;"
+                                                title="View Quorum Breakdown">
+                                                👁️ Quorum
+                                            </button>
+                                            <button type="button" 
+                                                class="btn btn-secondary" 
+                                                wire:click="applyBoardConstitutionToCampaign({{ $board->id }})" 
+                                                style="padding: 0.3rem 0.65rem; font-size: 0.75rem; font-weight: 700; color: var(--primary);" 
+                                                title="Load into Active Campaign">
+                                                ⚡ Apply
+                                            </button>
+                                            <button type="button" 
+                                                class="action-btn action-btn-edit" 
+                                                wire:click="openEditBoardModal({{ $board->id }})" 
+                                                data-tooltip="Configure Board Details & Rules"
+                                                aria-label="Edit Board">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                                </svg>
+                                            </button>
+                                            <button type="button" 
+                                                class="action-btn action-btn-view" 
+                                                wire:click="cloneBoardModel({{ $board->id }})" 
+                                                data-tooltip="Clone / Duplicate Board"
+                                                aria-label="Clone Board">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                                                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                                                </svg>
+                                            </button>
+                                            <button type="button" 
+                                                class="action-btn action-btn-delete" 
+                                                wire:click="deleteBoardModel({{ $board->id }})" 
+                                                wire:confirm="Are you sure you want to delete this Statutory Board Constitution?" 
+                                                data-tooltip="Delete Board"
+                                                aria-label="Delete Board">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="3 6 5 6 21 6"/>
+                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" style="text-align: center; padding: 3rem 1.5rem; color: var(--color-text-muted);">
+                                        No Statutory Committees Found matching criteria.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </x-slot:table>
+        </x-entity-card-grid>
     @endif
 
     <!-- ========================================================================= -->

@@ -3,22 +3,26 @@
 namespace App\Livewire\Admin;
 
 use Livewire\Component;
+use App\Livewire\Traits\WithDynamicListing;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Auth;
 
 class RolePermissionManagement extends Component
 {
+    use WithDynamicListing;
+
     // Active sub-tab
     public $activeSubTab = 'roles'; // 'roles' or 'permissions'
+
+    // Listing defaults (16 cards per page = clean 4x4 or 3-5 per row)
+    public $perPage = 16;
 
     // View state
     public $isFormOpen = false;
     public $isEditMode = false;
 
     // Collections
-    public $roles = [];
-    public $permissions = [];
     public $groupedPermissions = [];
 
     // Role form fields
@@ -45,18 +49,13 @@ class RolePermissionManagement extends Component
     public function setSubTab($tab)
     {
         $this->activeSubTab = $tab;
+        $this->search = '';
+        $this->resetPage();
         $this->resetForm();
     }
 
     public function loadData()
     {
-        // 🔒 Super-admin role is hidden from non-super-admins
-        $rolesQuery = Role::with('permissions', 'users');
-        if (!Auth::user()->hasRole('super-admin')) {
-            $rolesQuery->where('name', '!=', 'super-admin');
-        }
-        $this->roles = $rolesQuery->get();
-        $this->permissions = Permission::orderBy('name')->get();
         $this->groupedPermissions = \App\Services\PermissionRegistry::catalogue();
     }
 
@@ -71,6 +70,59 @@ class RolePermissionManagement extends Component
         ]);
         $this->isFormOpen = false;
         $this->isEditMode = false;
+    }
+
+    /**
+     * Export active registry (roles or permissions) as CSV
+     */
+    public function exportCsv()
+    {
+        if ($this->activeSubTab === 'roles') {
+            abort_unless(Auth::user()->can('view-role'), 403);
+            $rolesQuery = Role::with('permissions', 'users');
+            if (!Auth::user()->hasRole('super-admin')) {
+                $rolesQuery->where('name', '!=', 'super-admin');
+            }
+            if (!empty($this->search)) {
+                $rolesQuery->where('name', 'like', '%' . $this->search . '%');
+            }
+            $roles = $rolesQuery->get();
+
+            $rows = [];
+            foreach ($roles as $role) {
+                $rows[] = [
+                    $role->id,
+                    $role->name,
+                    $role->name === 'super-admin' ? 'Wildcard Super Admin (*)' : $role->permissions->count(),
+                    $role->users->count(),
+                    $role->permissions->pluck('name')->implode('; ')
+                ];
+            }
+
+            return $this->streamCsvDownload('roles_registry_' . date('Y_m_d_His') . '.csv', [
+                'Role ID', 'Role Slug', 'Permissions Count', 'Active Accounts', 'Permissions Scope'
+            ], $rows);
+        } else {
+            abort_unless(Auth::user()->can('view-permission'), 403);
+            $permsQuery = Permission::query();
+            if (!empty($this->search)) {
+                $permsQuery->where('name', 'like', '%' . $this->search . '%');
+            }
+            $perms = $permsQuery->orderBy('name')->get();
+
+            $rows = [];
+            foreach ($perms as $p) {
+                $rows[] = [
+                    $p->id,
+                    $p->name,
+                    $p->guard_name
+                ];
+            }
+
+            return $this->streamCsvDownload('permissions_catalog_' . date('Y_m_d_His') . '.csv', [
+                'Permission ID', 'Permission Slug', 'Guard Engine'
+            ], $rows);
+        }
     }
 
     // Role operations
@@ -193,7 +245,29 @@ class RolePermissionManagement extends Component
 
     public function render()
     {
-        return view('livewire.admin.role-permission-management')
-            ->layout('layouts.app', ['title' => 'Roles & Permissions - Hirely']);
+        $rolesQuery = Role::with('permissions', 'users');
+        if (!Auth::user()->hasRole('super-admin')) {
+            $rolesQuery->where('name', '!=', 'super-admin');
+        }
+        if ($this->activeSubTab === 'roles' && !empty($this->search)) {
+            $rolesQuery->where('name', 'like', '%' . $this->search . '%');
+        }
+        $roles = $rolesQuery->paginate($this->perPage, ['*'], 'roles_page');
+
+        $permsQuery = Permission::query();
+        if ($this->activeSubTab === 'permissions' && !empty($this->search)) {
+            $permsQuery->where('name', 'like', '%' . $this->search . '%');
+        }
+        $permissions = $permsQuery->orderBy('name')->paginate($this->perPage, ['*'], 'perms_page');
+
+        $totalRolesCount = Role::when(!Auth::user()->hasRole('super-admin'), fn($q) => $q->where('name', '!=', 'super-admin'))->count();
+        $totalPermsCount = Permission::count();
+
+        return view('livewire.admin.role-permission-management', [
+            'roles' => $roles,
+            'permissions' => $permissions,
+            'totalRolesCount' => $totalRolesCount,
+            'totalPermsCount' => $totalPermsCount,
+        ])->layout('layouts.app', ['title' => 'Roles & Permissions - Hirely']);
     }
 }

@@ -409,6 +409,16 @@
                                 </button>
                             @endif
 
+                            @if($reviewsCount >= 1 && ($app->status === 'UNDER_REVIEW' || $reviewsCount >= 2))
+                                <button type="button" 
+                                        class="action-btn" 
+                                        style="color: #10b981; border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.1);"
+                                        wire:click="evaluatePeerReviewResults({{ $app->id }})" 
+                                        data-tooltip="Evaluate Peer Review Results (Passing Criteria)">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                                </button>
+                            @endif
+
                             <button type="button" 
                                     class="action-btn action-btn-perms" 
                                     wire:click="openTransitionModal({{ $app->id }})" 
@@ -421,6 +431,15 @@
 
                         <!-- Kebab Dropdown Options Menu [ICON + TEXT] -->
                         <x-slot:menuActions>
+                            @if($reviewsCount >= 1)
+                                <x-entity-card-menu-item 
+                                    label="Evaluate Peer Review Verdict" 
+                                    click="evaluatePeerReviewResults({{ $app->id }})">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @endif
                             <x-entity-card-menu-item 
                                 label="View Application Dossier" 
                                 click="viewApplicationDetails({{ $app->id }})">
@@ -608,6 +627,11 @@
                                         @if($reqReferees > 0 || $app->campaign->track_type === 'ACADEMIC')
                                             <button type="button" class="action-btn" style="color: #ec4899; border-color: rgba(236,72,153,0.3); background: rgba(236,72,153,0.08);" wire:click="openDispatchModal({{ $app->id }})" data-tooltip="Dispatch Candidacy to Reviewers">
                                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>
+                                            </button>
+                                        @endif
+                                        @if($reviewsCount >= 1 && ($app->status === 'UNDER_REVIEW' || $reviewsCount >= 2))
+                                            <button type="button" class="action-btn" style="color: #10b981; border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.1);" wire:click="evaluatePeerReviewResults({{ $app->id }})" data-tooltip="Evaluate Peer Review Verdict">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                                             </button>
                                         @endif
                                         <button type="button" class="action-btn action-btn-lock" wire:click="openIncompleteModal({{ $app->id }})" data-tooltip="Mark Incomplete Dossier">

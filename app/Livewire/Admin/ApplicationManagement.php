@@ -329,10 +329,11 @@ class ApplicationManagement extends Component
             'selectedReviewerIds.min' => 'Please select at least one field-related academic reviewer.',
         ]);
 
-        $application = Application::with(['campaign', 'user.basicInfo'])->findOrFail($this->dispatchAppId);
+        $application = Application::with(['campaign.constitution', 'user.basicInfo'])->findOrFail($this->dispatchAppId);
         $assignedCount = 0;
 
-        $enforceStrict = SystemSetting::get('enforce_strict_peer_review_quorum', false);
+        $constitution = $application->campaign->constitution;
+        $enforceStrict = ($constitution && $constitution->enforce_strict_quota) || SystemSetting::get('enforce_strict_peer_review_quorum', false);
         $selectedCount = count($this->selectedReviewerIds);
 
         if ($enforceStrict && $this->dispatchTargetRequiredExperts > 0) {
@@ -530,6 +531,31 @@ class ApplicationManagement extends Component
 
         session()->flash('message', "Application successfully transitioned to '{$app->status_label}'.");
         $this->closeTransitionModal();
+    }
+
+    public function evaluatePeerReviewResults($applicationId)
+    {
+        abort_unless(Auth::user()->can('change-application-status') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        $app = Application::with(['campaign.constitution', 'campaign.processFlow', 'reviews'])->findOrFail($applicationId);
+        
+        $verdict = $app->evaluatePeerReviewVerdict();
+        
+        if (!$verdict['is_complete']) {
+            session()->flash('error', "Cannot evaluate yet: {$verdict['total_submitted']} of {$verdict['required_count']} expert review(s) completed.");
+            return;
+        }
+
+        if ($verdict['passed']) {
+            $app->update([
+                'status' => 'ELIGIBLE',
+            ]);
+            session()->flash('message', "🎉 Candidate passed Academic Peer Review! Positive recommendations: {$verdict['positive_count']}/{$verdict['total_submitted']} (Threshold: {$verdict['min_positive_needed']}). Candidate advanced to ELIGIBLE.");
+        } else {
+            $app->update([
+                'status' => 'REJECTED',
+            ]);
+            session()->flash('warning', "❌ Candidate failed Academic Peer Review criteria. Positive recommendations: {$verdict['positive_count']}/{$verdict['total_submitted']} (Required: {$verdict['min_positive_needed']}). Candidate marked as REJECTED (Appellate / Grievance Right Open).");
+        }
     }
 
     public function exportCsv()

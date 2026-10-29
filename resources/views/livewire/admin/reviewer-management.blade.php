@@ -573,6 +573,12 @@
                                             </button>
                                         @endif
 
+                                        @if($submittedReviews >= 1 && ($app->status === 'UNDER_REVIEW' || $submittedReviews >= 2))
+                                            <button type="button" class="btn btn-sm" wire:click="evaluatePeerReviewResults({{ $app->id }})" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.85rem; font-size: 0.82rem;" title="Evaluate Peer Review Results under attached criteria (e.g. 2/3 majority requirement)">
+                                                ⚡ Evaluate Verdict
+                                            </button>
+                                        @endif
+
                                         @if($reviewCount > 0)
                                             @if(auth()->user()->can('view-review-reports') || auth()->user()->can('manage-reviewers'))
                                                 <button type="button" class="btn btn-secondary btn-sm" wire:click="openReportsModal({{ $app->id }})" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.85rem; font-size: 0.82rem;">

@@ -10,6 +10,11 @@ trait WithDynamicListing
     use WithPagination;
 
     /**
+     * Search term for live filtering.
+     */
+    public $search = '';
+
+    /**
      * Number of items to display per page (default 16 or 12 for neat 4 or 3 card rows).
      */
     public $perPage = 16;

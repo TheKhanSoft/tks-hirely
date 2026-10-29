@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use Livewire\Component;
+use App\Livewire\Traits\WithDynamicListing;
 use App\Models\Campaign;
 use App\Models\SystemSetting;
 use App\Models\CommitteeConstitution;
@@ -13,8 +14,13 @@ use Illuminate\Support\Str;
 
 class ConstitutionCriteriaManagement extends Component
 {
+    use WithDynamicListing;
+
     // View tab switching: 'board_registry', 'process_flow', or 'campaign_constitution'
     public $activeTab = 'board_registry';
+
+    // Default perPage
+    public $perPage = 16;
 
     // Campaign tuning state
     public $selected_campaign_id = null;
@@ -126,6 +132,8 @@ class ConstitutionCriteriaManagement extends Component
     public function setTab($tab)
     {
         $this->activeTab = $tab;
+        $this->search = '';
+        $this->resetPage();
     }
 
     public function updatedSelectedCampaignId($val)
@@ -606,9 +614,10 @@ class ConstitutionCriteriaManagement extends Component
     {
         abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
 
+        $this->board_sector = $this->board_sector ?: 'GENERAL';
+
         $this->validate([
             'board_name' => 'required|string|min:3|max:200',
-            'board_sector' => 'required|string|in:ACADEMIC,CORPORATE,HEALTHCARE,PUBLIC_SECTOR,JUDICIAL,DEFENSE,GENERAL',
             'board_required_peer_reviewers' => 'required|integer|min:0|max:20',
             'board_roles' => 'required|array|min:1',
             'board_roles.*.name' => 'required|string|min:2|max:150',
@@ -998,6 +1007,46 @@ class ConstitutionCriteriaManagement extends Component
         return $this->currentCampaign?->getCommitteeMetrics();
     }
 
+    public function exportCsv()
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        $constitutionsQuery = CommitteeConstitution::orderBy('name');
+        if ($this->sectorFilter !== 'ALL') {
+            $constitutionsQuery->where('organization_sector', $this->sectorFilter);
+        }
+        if (!empty($this->search)) {
+            $searchTerm = '%' . $this->search . '%';
+            $constitutionsQuery->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'like', $searchTerm)
+                  ->orWhere('slug', 'like', $searchTerm)
+                  ->orWhere('description', 'like', $searchTerm);
+            });
+        }
+        $boards = $constitutionsQuery->get();
+
+        $rows = [];
+        foreach ($boards as $b) {
+            $rows[] = [
+                $b->id,
+                $b->name,
+                $b->slug,
+                $b->type_label ?? $b->committee_type,
+                $b->organization_sector,
+                $b->required_total,
+                $b->required_internal,
+                $b->required_external,
+                $b->required_peer_reviewers,
+                $b->responsible_stage,
+                $b->enforce_strict_quota ? 'Strict' : 'Flexible',
+                $b->description
+            ];
+        }
+
+        return $this->streamCsvDownload('statutory_committees_export_' . date('Y_m_d_His') . '.csv', [
+            'ID', 'Committee Name', 'Slug', 'Type', 'Sector', 'Total Quorum', 'Internal Quota', 'External Quota', 'Peer Reviewers', 'Responsible Stage', 'Quota Mode', 'Description'
+        ], $rows);
+    }
+
     public function render()
     {
         $campaigns = Campaign::orderBy('created_at', 'desc')->get();
@@ -1006,7 +1055,15 @@ class ConstitutionCriteriaManagement extends Component
         if ($this->sectorFilter !== 'ALL') {
             $constitutionsQuery->where('organization_sector', $this->sectorFilter);
         }
-        $registeredBoards = $constitutionsQuery->get();
+        if (!empty($this->search)) {
+            $searchTerm = '%' . $this->search . '%';
+            $constitutionsQuery->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'like', $searchTerm)
+                  ->orWhere('slug', 'like', $searchTerm)
+                  ->orWhere('description', 'like', $searchTerm);
+            });
+        }
+        $registeredBoards = $constitutionsQuery->paginate($this->perPage);
 
         $processFlows = RecruitmentProcessFlow::orderBy('is_default', 'desc')->orderBy('name')->get();
         $workflowStatuses = WorkflowStatus::where('scope', 'APPLICATION')->orderBy('order')->get();

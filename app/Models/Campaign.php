@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Campaign extends Model
 {
@@ -22,6 +23,7 @@ class Campaign extends Model
         'require_transcript_proof',
         'scoring_rules',
         'constitution_id',
+        'process_flow_id',
     ];
 
     protected $casts = [
@@ -53,13 +55,43 @@ class Campaign extends Model
      */
     public function getRequiredPeerReviewersCount(): int
     {
+        if ($this->constitution_id && $this->constitution) {
+            return (int)$this->constitution->required_peer_reviewers;
+        }
+
         $rules = $this->scoring_rules ?? [];
         if (isset($rules['required_peer_reviewers'])) {
             return (int)$rules['required_peer_reviewers'];
         }
 
+        if (!empty($rules['committee_constitution']['required_peer_reviewers'])) {
+            return (int)$rules['committee_constitution']['required_peer_reviewers'];
+        }
+
         $preset = SystemSetting::getConstitutionPresetForPost($this->title, $this->track_type);
         return (int)($preset['required_peer_reviewers'] ?? 3);
+    }
+
+    /**
+     * Get statutory peer review evaluation passing rule benchmarks.
+     * E.g. 2 out of 3 positive reviews or >= 60% average score.
+     */
+    public function getReviewPassingRule(): array
+    {
+        $requiredExperts = $this->getRequiredPeerReviewersCount();
+        $minPositive = $requiredExperts > 0 ? (int)ceil($requiredExperts * 0.6) : 0; // e.g. 2 out of 3
+
+        $criteria = [];
+        if ($this->constitution_id && $this->constitution) {
+            $criteria = $this->constitution->getEffectiveEligibilityCriteria();
+        }
+
+        return [
+            'total_required' => $requiredExperts,
+            'min_positive' => max(1, $minPositive),
+            'min_score_percent' => (int)($criteria['min_evaluation_percentile'] ?? 60),
+            'allow_appeal_on_fail' => true,
+        ];
     }
 
     /**
@@ -68,6 +100,14 @@ class Campaign extends Model
     public function constitution(): BelongsTo
     {
         return $this->belongsTo(CommitteeConstitution::class, 'constitution_id');
+    }
+
+    /**
+     * Recruitment process flow pipeline assigned to this campaign.
+     */
+    public function processFlow(): BelongsTo
+    {
+        return $this->belongsTo(RecruitmentProcessFlow::class, 'process_flow_id');
     }
 
     /**

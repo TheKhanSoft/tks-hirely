@@ -143,4 +143,56 @@ class Application extends Model
     {
         return $this->hasMany(ApplicationReview::class);
     }
+
+    /**
+     * Evaluate peer review outcomes against statutory campaign criteria.
+     * Checks if minimum required positive recommendations (e.g. 2 out of 3)
+     * and score benchmarks are met.
+     */
+    public function evaluatePeerReviewVerdict(): array
+    {
+        $campaign = $this->campaign;
+        $passingRule = $campaign ? $campaign->getReviewPassingRule() : [
+            'total_required' => 3,
+            'min_positive' => 2,
+            'min_score_percent' => 60,
+            'allow_appeal_on_fail' => true,
+        ];
+
+        $reviews = $this->reviews()->where('status', 'SUBMITTED')->get();
+        $totalSubmitted = $reviews->count();
+        $requiredCount = (int)($passingRule['total_required'] ?? 3);
+
+        $positiveRecommendations = ['RECOMMENDED', 'STRONGLY_RECOMMENDED', 'POSITIVE', 'APPROVE'];
+        $positiveCount = 0;
+        $totalScore = 0;
+
+        foreach ($reviews as $rev) {
+            $rec = strtoupper(trim($rev->recommendation ?? ''));
+            $score = (float)($rev->overall_score ?? 0);
+            $totalScore += $score;
+
+            if (in_array($rec, $positiveRecommendations) || $score >= $passingRule['min_score_percent']) {
+                $positiveCount++;
+            }
+        }
+
+        $avgScore = $totalSubmitted > 0 ? round($totalScore / $totalSubmitted, 1) : 0;
+        $minPositiveNeeded = (int)($passingRule['min_positive'] ?? 2);
+
+        $isPassed = ($positiveCount >= $minPositiveNeeded);
+        $isComplete = $totalSubmitted >= $requiredCount;
+
+        return [
+            'passed' => $isPassed,
+            'is_complete' => $isComplete,
+            'total_submitted' => $totalSubmitted,
+            'required_count' => $requiredCount,
+            'positive_count' => $positiveCount,
+            'min_positive_needed' => $minPositiveNeeded,
+            'average_score' => $avgScore,
+            'threshold_score' => $passingRule['min_score_percent'],
+            'summary' => "{$positiveCount}/{$totalSubmitted} positive referee recommendations (Avg: {$avgScore}%). Required: at least {$minPositiveNeeded}/{$requiredCount} positive.",
+        ];
+    }
 }

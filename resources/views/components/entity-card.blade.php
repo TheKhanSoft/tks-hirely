@@ -3,8 +3,12 @@
     'title' => '',
     'subtitle' => null,
     'avatar' => null,
+    'avatarInitial' => null,
+    'avatarBadge' => null,
     'avatarBg' => null,
     'badge' => null,
+    'statusBadge' => null,
+    'statusClass' => 'badge-paid',
     'tag' => null,
 ])
 
@@ -19,9 +23,9 @@
             <div style="display: flex; align-items: center; gap: 0.65rem; min-width: 0; flex: 1;">
                 @if(isset($avatarSlot))
                     {{ $avatarSlot }}
-                @elseif($avatar)
+                @elseif($avatar || $avatarInitial)
                     <div class="entity-card-avatar" @if($avatarBg) style="{{ $avatarBg }}" @endif>
-                        {{ $avatar }}
+                        {{ $avatar ?: $avatarInitial }}
                     </div>
                 @endif
 
@@ -33,23 +37,39 @@
                 </div>
             </div>
 
-            @if($badge)
+            @if(isset($badge))
                 <div style="flex-shrink: 0;">
                     {!! $badge !!}
+                </div>
+            @elseif($statusBadge)
+                <div style="flex-shrink: 0;">
+                    <span class="badge {{ $statusClass }}" style="font-size: 0.72rem; font-weight: 700;">
+                        {{ $statusBadge }}
+                    </span>
                 </div>
             @endif
         </div>
 
-        @if($tag)
+        @if(isset($tagSlot))
             <div style="margin-bottom: 0.5rem;">
-                {!! $tag !!}
+                {{ $tagSlot }}
+            </div>
+        @elseif($tag)
+            <div style="margin-bottom: 0.5rem;">
+                @if(str_starts_with($tag, '<'))
+                    {!! $tag !!}
+                @else
+                    <span class="badge" style="background: rgba(255,255,255,0.06); color: var(--color-text-secondary); font-size: 0.72rem; font-weight: 700;">
+                        {{ $tag }}
+                    </span>
+                @endif
             </div>
         @endif
     </div>
 
     <!-- Body / Metadata -->
     <div class="entity-card-body">
-        {{ $slot }}
+        {{ $body ?? $slot }}
     </div>
 
     <!-- Footer / Action Row -->
@@ -62,7 +82,7 @@
         </div>
 
         <!-- 3-Dot More Actions Dropdown -->
-        @if(isset($menuActions))
+        @if(isset($menuActions) || isset($menuItems))
             <div style="position: relative;">
                 <button type="button" 
                         class="entity-card-menu-btn" 
@@ -87,7 +107,7 @@
                      x-transition:leave-end="opacity-0 transform scale-95"
                      @click="menuOpen = false"
                      style="display: none;">
-                    {{ $menuActions }}
+                    {{ $menuActions ?? $menuItems }}
                 </div>
             </div>
         @endif

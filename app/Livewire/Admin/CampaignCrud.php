@@ -6,6 +6,8 @@ use Livewire\Component;
 use App\Models\Campaign;
 use App\Models\User;
 use App\Models\CampaignCommittee;
+use App\Models\CommitteeConstitution;
+use App\Models\RecruitmentProcessFlow;
 use App\Rules\SeparatedCommitteeConflictRule;
 use Illuminate\Support\Facades\Auth;
 use App\Livewire\Traits\WithDynamicListing;
@@ -26,6 +28,14 @@ class CampaignCrud extends Component
     public $closing_date;
     public $application_fee = 1000.00;
     public $require_transcript_proof = true;
+    public $constitution_id = null;
+    public $process_flow_id = null;
+
+    // Quick Link Board & Flow Modal
+    public $showLinkModal = false;
+    public $linkCampaignId = null;
+    public $link_constitution_id = null;
+    public $link_process_flow_id = null;
     
     // Dynamic rule mapper fields (Academic track weights)
     public $gold_medal_weight = 5.0;
@@ -96,7 +106,7 @@ class CampaignCrud extends Component
 
     public function loadCampaigns()
     {
-        $this->campaigns = Campaign::all();
+        $this->campaigns = Campaign::with(['constitution', 'processFlow'])->get();
     }
 
     public function loadCommitteeData()
@@ -203,6 +213,8 @@ class CampaignCrud extends Component
         $this->opening_date = $campaign->opening_date?->format('Y-m-d\TH:i');
         $this->closing_date = $campaign->closing_date?->format('Y-m-d\TH:i');
         $this->application_fee = $campaign->application_fee;
+        $this->constitution_id = $campaign->constitution_id;
+        $this->process_flow_id = $campaign->process_flow_id;
 
         // Load rule map
         $rules = $campaign->scoring_rules ?? [];
@@ -244,6 +256,8 @@ class CampaignCrud extends Component
             'opening_date' => 'required',
             'closing_date' => 'required',
             'application_fee' => 'required|numeric|min:0',
+            'constitution_id' => 'nullable|exists:committee_constitutions,id',
+            'process_flow_id' => 'nullable|exists:recruitment_process_flows,id',
         ];
 
         $this->validate($rules);
@@ -281,6 +295,8 @@ class CampaignCrud extends Component
             'closing_date' => $this->closing_date,
             'application_fee' => $this->application_fee,
             'require_transcript_proof' => (bool)$this->require_transcript_proof,
+            'constitution_id' => $this->constitution_id ?: null,
+            'process_flow_id' => $this->process_flow_id ?: null,
             'scoring_rules' => $scoringRules,
         ];
 
@@ -317,6 +333,8 @@ class CampaignCrud extends Component
         $this->closing_date = '';
         $this->application_fee = 1000.00;
         $this->require_transcript_proof = true;
+        $this->constitution_id = null;
+        $this->process_flow_id = null;
         
         $this->gold_medal_weight = 5.0;
         $this->silver_medal_weight = 3.0;
@@ -795,9 +813,39 @@ class CampaignCrud extends Component
         return $this->streamCsvDownload('recruitment-campaigns-' . date('Y-m-d') . '.csv', $headers, $rows);
     }
 
+    public function openLinkModal($campaignId)
+    {
+        $camp = Campaign::findOrFail($campaignId);
+        $this->linkCampaignId = $camp->id;
+        $this->link_constitution_id = $camp->constitution_id;
+        $this->link_process_flow_id = $camp->process_flow_id;
+        $this->showLinkModal = true;
+    }
+
+    public function closeLinkModal()
+    {
+        $this->showLinkModal = false;
+        $this->linkCampaignId = null;
+        $this->link_constitution_id = null;
+        $this->link_process_flow_id = null;
+    }
+
+    public function saveLinkedBoardAndFlow()
+    {
+        if (!$this->linkCampaignId) return;
+        $camp = Campaign::findOrFail($this->linkCampaignId);
+        $camp->update([
+            'constitution_id' => $this->link_constitution_id ?: null,
+            'process_flow_id' => $this->link_process_flow_id ?: null,
+        ]);
+        session()->flash('message', "Successfully linked Statutory Board Constitution and Process Flow to {$camp->title}.");
+        $this->loadCampaigns();
+        $this->closeLinkModal();
+    }
+
     public function render()
     {
-        $campQuery = Campaign::query();
+        $campQuery = Campaign::with(['constitution', 'processFlow']);
         if (!empty($this->search)) {
             $campQuery->where(function($q) {
                 $q->where('title', 'like', '%' . $this->search . '%')
@@ -809,6 +857,8 @@ class CampaignCrud extends Component
 
         return view('livewire.admin.campaign-crud', [
             'paginatedCampaigns' => $paginatedCampaigns,
+            'statutoryBoards' => CommitteeConstitution::orderBy('name')->get(),
+            'processFlows' => RecruitmentProcessFlow::orderBy('name')->get(),
         ])->layout('layouts.app');
     }
 }
