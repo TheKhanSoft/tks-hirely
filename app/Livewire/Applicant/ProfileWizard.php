@@ -1525,7 +1525,7 @@ class ProfileWizard extends Component
         $activeVoucherApp = $userApplications->firstWhere('id', $this->selectedAppId) ?? $userApplications->first();
 
         return view('livewire.applicant.basic-info-wizard', [
-            'campaigns' => Campaign::where('is_active', true)->get(),
+            'campaigns' => Campaign::with('advertisement')->where('is_active', true)->get(),
             'basicInfo' => $user->basicInfo,
             'userApplications' => $userApplications,
             'appliedCampaignIds' => $appliedCampaignIds,

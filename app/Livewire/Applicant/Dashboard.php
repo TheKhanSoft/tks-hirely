@@ -208,7 +208,7 @@ class Dashboard extends Component
         });
 
         // Query active campaigns for the Apply Modal
-        $activeCampaignsQuery = Campaign::where('is_active', true);
+        $activeCampaignsQuery = Campaign::with('advertisement')->where('is_active', true);
         if (!empty($this->campaignSearch)) {
             $search = '%' . trim($this->campaignSearch) . '%';
             $activeCampaignsQuery->where(function ($q) use ($search) {

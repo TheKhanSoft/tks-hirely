@@ -137,10 +137,8 @@
 
     @if($count > 0)
         @if($viewMode === 'table' && isset($table))
-            <div class="card" style="padding: 0; overflow: hidden; border-color: var(--border-color); box-shadow: var(--shadow-sm); margin-bottom: 1.25rem;">
-                <div class="table-container">
-                    {{ $table }}
-                </div>
+            <div class="table-container" style="margin-bottom: 1.25rem;">
+                {{ $table }}
             </div>
         @else
             <!-- Responsive Card Grid: 3 to 5 Cards per row -->

@@ -1,11 +1,10 @@
 <div>
     <!-- Executive Control Header -->
-    <div class="card mb-6 card-ambient-mesh" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem; position: relative; overflow: hidden; padding: 1.5rem 1.75rem;">
-        <div style="position: absolute; right: -2rem; top: -2rem; width: 180px; height: 180px; background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%); pointer-events: none;"></div>
+    <div class="page-hero-header">
         <div>
-            <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.35rem;">
-                <div class="brand-icon-box" style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3);">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="brand-icon-box">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="color: #ffffff;">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                         <polyline points="14 2 14 8 20 8"/>
                         <line x1="16" y1="13" x2="8" y2="13"/>
@@ -13,12 +12,8 @@
                     </svg>
                 </div>
                 <div>
-                    <h1 class="card-title" style="margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">
-                        Applications & Candidacies Desk
-                    </h1>
-                    <p class="card-subtitle" style="margin: 0.2rem 0 0;">
-                        Direct operational desk: dispatch to reviewers, mark incomplete dossiers, reject/disqualify, verify eligibility, and advance workflow transitions.
-                    </p>
+                    <h1>Applications & Candidacies Operations Desk</h1>
+                    <p>Dispatch peer reviews, evaluate referee verdicts, scrutinize eligibility, and progress lifecycle transitions.</p>
                 </div>
             </div>
         </div>
@@ -26,7 +21,7 @@
         <div style="display: flex; align-items: center; gap: 0.75rem;">
             @if(!$isFormOpen && !$isDetailsOpen)
                 @can('create-application')
-                    <button type="button" class="btn btn-primary" wire:click="openCreateApplicationForm" style="display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: var(--shadow-sm); padding: 0.55rem 1.15rem; font-weight: 700;">
+                    <button type="button" class="btn btn-primary" wire:click="openCreateApplicationForm" style="display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 18px -2px rgba(99,102,241,0.5); padding: 0.65rem 1.35rem; font-weight: 700; border-radius: 10px;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>

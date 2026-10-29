@@ -55,6 +55,13 @@
                 style="display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.88rem; padding: 0.55rem 1rem;">
             <span>🏢 Organization & Sector Profile</span>
         </button>
+
+        <button type="button" 
+                wire:click="setTab('academic_criteria')" 
+                class="btn {{ $activeTab === 'academic_criteria' ? 'btn-primary' : 'btn-secondary' }}" 
+                style="display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.88rem; padding: 0.55rem 1rem;">
+            <span>🎓 Academic Division & Marks Benchmarks</span>
+        </button>
     </div>
 
     <!-- ============================================================== -->
@@ -467,6 +474,146 @@
 
                 <div class="flex gap-4 mt-6" style="border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
                     <button type="submit" class="btn btn-primary">Save Organization Profile</button>
+                </div>
+            </form>
+        </div>
+    @endif
+
+    <!-- ============================================================== -->
+    <!-- TAB 5: GLOBAL ACADEMIC DIVISION & MARKS BENCHMARKS            -->
+    <!-- ============================================================== -->
+    @if($activeTab === 'academic_criteria')
+        <div class="card mb-6">
+            <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                <h3 class="card-title" style="margin: 0 0 0.25rem 0; font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <span>🎓 Global Academic Division & Marks Benchmarks</span>
+                    <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 0.74rem;">ALL POSITIONS DEFAULT</span>
+                </h3>
+                <p class="card-subtitle" style="margin: 0;">Configure statutory qualification criteria applied across all positions unless overridden by a specific campaign: 3rd division prohibitions, 2nd division allowances, and marks cutoffs ("xx out of nn marks not allowed").</p>
+            </div>
+
+            <form wire:submit.prevent="saveAcademicCriteriaSettings">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- 3rd Division Rules -->
+                    <div class="card" style="background: var(--bg-surface); border-color: var(--border-color); padding: 1.25rem;">
+                        <h4 style="font-size: 0.92rem; font-weight: 800; color: var(--secondary); text-transform: uppercase; margin: 0 0 0.85rem 0; display: flex; align-items: center; gap: 0.4rem;">
+                            <span>Third (3rd) Division Policies</span>
+                        </h4>
+
+                        <div class="flex-col gap-3">
+                            <label style="display: flex; align-items: center; gap: 0.65rem; cursor: pointer; color: var(--color-text-primary); font-size: 0.85rem;">
+                                <input type="checkbox" wire:model="global_disallow_third_division" style="width: 1.15rem; height: 1.15rem; accent-color: #ef4444;">
+                                <div>
+                                    <strong style="color: var(--color-text-primary);">3rd Division strictly prohibited across all qualifications</strong>
+                                    <p style="margin: 0.15rem 0 0 0; font-size: 0.76rem; color: var(--color-text-muted);">
+                                        Candidates with any 3rd division in Matric, Inter, Bachelors, or Masters will be flagged as Ineligible.
+                                    </p>
+                                </div>
+                            </label>
+
+                            <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--border-color);">
+                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--color-text-secondary);">
+                                    Or Maximum Permitted 3rd Divisions (e.g. 1 allowed in career):
+                                </label>
+                                <input type="number" min="0" max="5" class="form-control mt-1" wire:model="global_max_allowed_third_divisions" placeholder="e.g. 1 (leaves blank if completely unrestricted)" style="max-width: 220px;">
+                                <small style="display: block; margin-top: 0.25rem; font-size: 0.72rem; color: var(--color-text-muted);">
+                                    Allows e.g. 1 third division in early schooling provided terminal degrees meet division criteria.
+                                </small>
+                            </div>
+
+                            <label style="display: flex; align-items: center; gap: 0.65rem; cursor: pointer; color: var(--color-text-primary); font-size: 0.85rem; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--border-color);">
+                                <input type="checkbox" wire:model="global_disallow_third_in_terminal" style="width: 1.15rem; height: 1.15rem; accent-color: #ef4444;">
+                                <div>
+                                    <strong style="color: var(--color-text-primary);">No 3rd Division in Terminal Degree</strong>
+                                    <p style="margin: 0.15rem 0 0 0; font-size: 0.76rem; color: var(--color-text-muted);">
+                                        The highest qualification (PhD / Masters / BS) must not be a third division under any circumstances.
+                                    </p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 2nd Division Rules -->
+                    <div class="card" style="background: var(--bg-surface); border-color: var(--border-color); padding: 1.25rem;">
+                        <h4 style="font-size: 0.92rem; font-weight: 800; color: var(--primary); text-transform: uppercase; margin: 0 0 0.85rem 0; display: flex; align-items: center; gap: 0.4rem;">
+                            <span>Second (2nd) Division Policies</span>
+                        </h4>
+
+                        <div class="flex-col gap-3">
+                            <label style="display: flex; align-items: center; gap: 0.65rem; cursor: pointer; color: var(--color-text-primary); font-size: 0.85rem;">
+                                <input type="checkbox" wire:model="global_disallow_two_second_divisions" style="width: 1.15rem; height: 1.15rem; accent-color: #f59e0b;">
+                                <div>
+                                    <strong style="color: var(--color-text-primary);">Two or more 2nd Divisions NOT allowed (Max 1 permitted)</strong>
+                                    <p style="margin: 0.15rem 0 0 0; font-size: 0.76rem; color: var(--color-text-muted);">
+                                        Statutory requirement: Candidate cannot possess 2 or more second divisions in entire academic record.
+                                    </p>
+                                </div>
+                            </label>
+
+                            <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--border-color);">
+                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--color-text-secondary);">
+                                    Or Maximum Permitted 2nd Divisions:
+                                </label>
+                                <input type="number" min="0" max="5" class="form-control mt-1" wire:model="global_max_allowed_second_divisions" placeholder="e.g. 1" style="max-width: 220px;">
+                                <small style="display: block; margin-top: 0.25rem; font-size: 0.72rem; color: var(--color-text-muted);">
+                                    Sets specific cap on 2nd divisions.
+                                </small>
+                            </div>
+
+                            <label style="display: flex; align-items: center; gap: 0.65rem; cursor: pointer; color: var(--color-text-primary); font-size: 0.85rem; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--border-color);">
+                                <input type="checkbox" wire:model="global_disallow_second_in_terminal" style="width: 1.15rem; height: 1.15rem; accent-color: #f59e0b;">
+                                <div>
+                                    <strong style="color: var(--color-text-primary);">No 2nd Division in Terminal Degree</strong>
+                                    <p style="margin: 0.15rem 0 0 0; font-size: 0.76rem; color: var(--color-text-muted);">
+                                        Terminal degree must be First Division or minimum equivalent CGPA (e.g. 3.0 / 4.0).
+                                    </p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Marks Cutoffs ("xx out of nn marks not allowed") -->
+                    <div class="card" style="grid-column: 1 / -1; background: var(--bg-surface); border-color: var(--border-color); padding: 1.25rem;">
+                        <h4 style="font-size: 0.92rem; font-weight: 800; color: #f59e0b; text-transform: uppercase; margin: 0 0 0.85rem 0; display: flex; align-items: center; gap: 0.4rem;">
+                            <span>Minimum Marks / Score Cutoffs ("xx out of nn marks not allowed")</span>
+                        </h4>
+
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--color-text-secondary);">
+                                    Minimum Percentage Across All Degrees (%)
+                                </label>
+                                <input type="number" step="0.1" class="form-control mt-1" wire:model="global_min_marks_percentage" placeholder="e.g. 60.0 (less than 60% disqualified)">
+                                <small style="display: block; margin-top: 0.25rem; font-size: 0.72rem; color: var(--color-text-muted);">
+                                    Disqualifies any degree scoring below this percentage threshold.
+                                </small>
+                            </div>
+
+                            <div>
+                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--color-text-secondary);">
+                                    Minimum Terminal Degree Percentage (%)
+                                </label>
+                                <input type="number" step="0.1" class="form-control mt-1" wire:model="global_min_terminal_percentage" placeholder="e.g. 60.0">
+                                <small style="display: block; margin-top: 0.25rem; font-size: 0.72rem; color: var(--color-text-muted);">
+                                    Applies to the highest degree in candidate profile.
+                                </small>
+                            </div>
+
+                            <div>
+                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--color-text-secondary);">
+                                    Minimum Terminal CGPA (on 4.0 Scale)
+                                </label>
+                                <input type="number" step="0.05" class="form-control mt-1" wire:model="global_min_terminal_cgpa" placeholder="e.g. 3.0">
+                                <small style="display: block; margin-top: 0.25rem; font-size: 0.72rem; color: var(--color-text-muted);">
+                                    Minimum CGPA for semester system degrees.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 mt-6" style="border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+                    <button type="submit" class="btn btn-primary">Save Global Academic Benchmarks</button>
                 </div>
             </form>
         </div>

@@ -21,6 +21,7 @@ use App\Livewire\Admin\AuditLogManagement;
 use App\Livewire\Admin\SystemSettings;
 use App\Livewire\Admin\ConstitutionCriteriaManagement;
 use App\Livewire\Admin\WorkflowStatusManagement;
+use App\Livewire\Admin\AdvertisementManagement;
 use App\Livewire\Reviewer\EvaluationDesk;
 use App\Livewire\Board\LiveGradingPanel;
 use App\Livewire\Board\Dashboard as BoardDashboard;
@@ -105,6 +106,7 @@ Route::middleware('auth')->group(function () {
     // Registrar Workspace
     // -------------------------------------------------------------
     Route::get('/registrar/dashboard', AdminDashboard::class);
+    Route::get('/registrar/advertisements', AdvertisementManagement::class);
     Route::get('/registrar/campaigns', CampaignCrud::class);
     Route::get('/registrar/criteria', ConstitutionCriteriaManagement::class);
     Route::get('/registrar/constitution', function() { return redirect('/registrar/criteria'); });
@@ -126,6 +128,7 @@ Route::middleware('auth')->group(function () {
     // Super-Admin & Central Administrative Control (Legacy / Direct)
     // -------------------------------------------------------------
     Route::get('/admin/dashboard', AdminDashboard::class);
+    Route::get('/admin/advertisements', AdvertisementManagement::class);
     Route::get('/admin/campaigns', CampaignCrud::class);
     Route::get('/admin/criteria', ConstitutionCriteriaManagement::class);
     Route::get('/admin/constitution', function() { return redirect('/admin/criteria'); });

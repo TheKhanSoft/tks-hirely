@@ -1,22 +1,17 @@
 <div>
     <!-- Executive Control Header -->
-    <div class="card mb-6 card-ambient-mesh" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem; position: relative; overflow: hidden; padding: 1.5rem 1.75rem;">
-        <div style="position: absolute; right: -2rem; top: -2rem; width: 180px; height: 180px; background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%); pointer-events: none;"></div>
+    <div class="page-hero-header">
         <div>
-            <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.35rem;">
-                <div class="brand-icon-box" style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3);">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="brand-icon-box">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="color: #ffffff;">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                         <circle cx="12" cy="7" r="4"/>
                     </svg>
                 </div>
                 <div>
-                    <h1 class="card-title" style="margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">
-                        Candidate Profiles & Dossier Vault
-                    </h1>
-                    <p class="card-subtitle" style="margin: 0.2rem 0 0;">
-                        Applicant demographic records, verified qualification credentials, and dossier lock controls.
-                    </p>
+                    <h1>Candidate Profiles & Dossier Vault</h1>
+                    <p>Applicant demographic records, verified qualification credentials, and dossier security lock controls.</p>
                 </div>
             </div>
         </div>
@@ -24,7 +19,7 @@
         <div style="display: flex; align-items: center; gap: 0.75rem;">
             @if(!$isFormOpen && !$isDetailsOpen)
                 @can('create-basic-info')
-                    <button type="button" class="btn btn-primary" wire:click="openCreateBasicInfoForm" style="display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: var(--shadow-sm); padding: 0.55rem 1.15rem; font-weight: 700;">
+                    <button type="button" class="btn btn-primary" wire:click="openCreateBasicInfoForm" style="display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 18px -2px rgba(99,102,241,0.5); padding: 0.65rem 1.35rem; font-weight: 700; border-radius: 10px;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -486,13 +481,14 @@
                                     @can('lock-candidate-profile')
                                         <button type="button" 
                                                 wire:click="toggleLock({{ $basicInfo->id }})"
-                                                class="btn" 
-                                                style="padding: 0.25rem 0.75rem; font-size: 0.75rem; border-radius: 999px; font-weight: 700; cursor: pointer; {{ $basicInfo->is_locked ? 'background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3);' : 'background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3);' }}">
-                                            {{ $basicInfo->is_locked ? '🔒 Locked' : '🔓 Editable' }}
+                                                class="badge {{ $basicInfo->is_locked ? 'badge-danger' : 'badge-success' }}" 
+                                                style="cursor: pointer; border: 1px solid currentColor; background: {{ $basicInfo->is_locked ? 'rgba(239,68,68,0.12)' : 'rgba(16,185,129,0.12)' }};"
+                                                title="Click to toggle profile editing lock">
+                                            <span class="badge-dot" style="background: currentColor;"></span> {{ $basicInfo->is_locked ? 'Locked' : 'Editable' }}
                                         </button>
                                     @else
-                                        <span class="badge" style="padding: 0.25rem 0.75rem; font-size: 0.75rem; border-radius: 999px; font-weight: 700; {{ $basicInfo->is_locked ? 'background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3);' : 'background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3);' }}">
-                                            {{ $basicInfo->is_locked ? '🔒 Locked' : '🔓 Editable' }}
+                                        <span class="badge {{ $basicInfo->is_locked ? 'badge-danger' : 'badge-success' }}">
+                                            <span class="badge-dot" style="background: currentColor;"></span> {{ $basicInfo->is_locked ? 'Locked' : 'Editable' }}
                                         </span>
                                     @endcan
                                 </td>

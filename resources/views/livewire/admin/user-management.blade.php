@@ -1,11 +1,10 @@
 <div>
     <!-- Executive Control Header -->
-    <div class="card mb-6 card-ambient-mesh" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem; position: relative; overflow: hidden; padding: 1.5rem 1.75rem;">
-        <div style="position: absolute; right: -2rem; top: -2rem; width: 180px; height: 180px; background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%); pointer-events: none;"></div>
+    <div class="page-hero-header">
         <div>
-            <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.35rem;">
-                <div class="brand-icon-box" style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3);">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="brand-icon-box">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="color: #ffffff;">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                         <circle cx="9" cy="7" r="4"/>
                         <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
@@ -13,12 +12,8 @@
                     </svg>
                 </div>
                 <div>
-                    <h1 class="card-title" style="margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">
-                        User Accounts & Directory
-                    </h1>
-                    <p class="card-subtitle" style="margin: 0.2rem 0 0;">
-                        Institutional user administration, security role assignments, direct permissions, and activation status.
-                    </p>
+                    <h1>User Accounts & Personnel Directory</h1>
+                    <p>Institutional user administration, security role assignments, direct permissions, and activation governance.</p>
                 </div>
             </div>
         </div>
@@ -26,7 +21,7 @@
         <div style="display: flex; align-items: center; gap: 0.75rem;">
             @if(!$isFormOpen)
                 @can('create-user')
-                    <button type="button" class="btn btn-primary" wire:click="openCreateUserForm" style="display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: var(--shadow-sm); padding: 0.55rem 1.15rem; font-weight: 700;">
+                    <button type="button" class="btn btn-primary" wire:click="openCreateUserForm" style="display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 18px -2px rgba(99,102,241,0.5); padding: 0.65rem 1.35rem; font-weight: 700; border-radius: 10px;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -578,16 +573,16 @@
                                 <td>
                                     @can('toggle-user-status')
                                         <button type="button" 
-                                                class="btn {{ $u->is_active ? 'btn-success' : 'btn-danger' }}" 
-                                                style="padding: 0.25rem 0.75rem; font-size: 0.75rem; border-radius: 999px; font-weight: 700; cursor: pointer;" 
+                                                class="badge {{ $u->is_active ? 'badge-success' : 'badge-danger' }}" 
+                                                style="cursor: pointer; border: 1px solid currentColor; background: {{ $u->is_active ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)' }};" 
                                                 wire:click="toggleUserStatus({{ $u->id }})" 
                                                 :disabled="auth()->id() == $u->id"
-                                                title="{{ auth()->id() == $u->id ? 'Cannot deactivate yourself' : 'Toggle status' }}">
-                                            {{ $u->is_active ? '● Active' : '✕ Blocked' }}
+                                                title="{{ auth()->id() == $u->id ? 'Cannot deactivate yourself' : 'Click to toggle account status' }}">
+                                            <span class="badge-dot" style="background: currentColor;"></span> {{ $u->is_active ? 'Active' : 'Blocked' }}
                                         </button>
                                     @else
-                                        <span class="badge" style="background: {{ $u->is_active ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)' }}; color: {{ $u->is_active ? 'var(--success)' : 'var(--danger)' }}; font-size: 0.75rem; border-radius: 999px; font-weight: 700;">
-                                            {{ $u->is_active ? '● Active' : '✕ Blocked' }}
+                                        <span class="badge {{ $u->is_active ? 'badge-success' : 'badge-danger' }}">
+                                            <span class="badge-dot" style="background: currentColor;"></span> {{ $u->is_active ? 'Active' : 'Blocked' }}
                                         </span>
                                     @endcan
                                 </td>

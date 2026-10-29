@@ -16,6 +16,8 @@ class PaymentManagement extends Component
     public $isFormOpen = false;
     public $isEditMode = false;
     public $selectedRecordId;
+    public $isDetailsOpen = false;
+    public $selectedPayment = null;
 
     // Default per-page for card grid (16 items)
     public $perPage = 16;
@@ -85,6 +87,19 @@ class PaymentManagement extends Component
         $this->pay_timestamp = $ledger->payment_timestamp?->format('Y-m-d\TH:i');
         $this->isEditMode = true;
         $this->isFormOpen = true;
+    }
+
+    public function viewPaymentDetails($id)
+    {
+        abort_unless(Auth::user()->can('view-payment'), 403);
+        $this->selectedPayment = BillingLedger::with(['application.user.basicInfo', 'application.campaign'])->findOrFail($id);
+        $this->isDetailsOpen = true;
+    }
+
+    public function closeDetailsModal()
+    {
+        $this->isDetailsOpen = false;
+        $this->selectedPayment = null;
     }
 
     public function savePayment()

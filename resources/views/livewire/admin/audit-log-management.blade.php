@@ -1,26 +1,22 @@
 <div>
-    <!-- Console Control Header -->
-    <div class="card mb-6" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; position: relative; overflow: hidden;">
-        <div style="position: absolute; right: -2rem; top: -2rem; width: 140px; height: 140px; background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%); pointer-events: none;"></div>
+    <!-- Executive Control Header -->
+    <div class="page-hero-header">
         <div>
-            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem;">
-                <div class="brand-icon-box" style="width: 38px; height: 38px; border-radius: 10px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                        <polyline points="10 9 9 9 8 9"></polyline>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="brand-icon-box" style="background: linear-gradient(135deg, rgba(239,68,68,0.25), rgba(220,38,38,0.4)); box-shadow: 0 4px 14px rgba(239,68,68,0.25);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: #ffffff;">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                     </svg>
                 </div>
                 <div>
-                    <h2 class="card-title" style="margin: 0; font-size: 1.35rem;">Security Audit Logs</h2>
-                    <p class="card-subtitle" style="margin: 0;">Immutable compliance logs, forensic change trails, and system transition diffs</p>
+                    <h1>Security Audit Logs & Forensic History</h1>
+                    <p>Immutable compliance trail, forensic change records, user access monitoring, and system diff logs.</p>
                 </div>
             </div>
         </div>
         <div>
             @if((auth()->user()->can('delete-audit-log') || auth()->user()->can('purge-audit-logs')) && count($logs) > 0)
-                <button type="button" class="btn btn-danger" wire:click="clearAuditLogs" onclick="confirm('Are you sure you want to permanently purge all security logs? This action cannot be undone.') || event.stopImmediatePropagation()" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                <button type="button" class="btn btn-danger" wire:click="clearAuditLogs" onclick="confirm('Are you sure you want to permanently purge all security logs? This action cannot be undone.') || event.stopImmediatePropagation()" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.35rem; font-weight: 700; border-radius: 10px;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     <span>Purge Logs</span>
                 </button>

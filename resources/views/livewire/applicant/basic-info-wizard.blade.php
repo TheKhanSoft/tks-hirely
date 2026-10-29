@@ -1161,7 +1161,7 @@
                                             $isAlreadyApplied = in_array($camp->id, $appliedCampaignIds);
                                         @endphp
                                         <option value="{{ $camp->id }}" {{ $isAlreadyApplied ? 'disabled' : '' }}>
-                                            {{ $isAlreadyApplied ? '✓ [ALREADY APPLIED] ' : '' }}{{ $camp->title }} (Job Code: {{ $camp->job_code }} | Track: {{ $camp->track_type }})
+                                            {{ $isAlreadyApplied ? '✓ [ALREADY APPLIED] ' : '' }}{{ $camp->title }} (Job Code: {{ $camp->job_code }}{{ $camp->advertisement ? ' | Adv: ' . $camp->advertisement->advertisement_no : '' }} | Track: {{ $camp->track_type }})
                                         </option>
                                     @endforeach
                                 </select>
@@ -1185,6 +1185,18 @@
                                         <small style="color: var(--color-text-secondary); text-transform: uppercase; font-size: 0.75rem; font-weight: 700;">Processing Fee</small><br>
                                         <strong style="color: var(--success); font-size: 1.1rem;">PKR {{ number_format($this->selectedCampaignModel->application_fee, 2) }}</strong>
                                     </div>
+
+                                    @if($this->selectedCampaignModel->advertisement)
+                                        <div style="grid-column: 1 / -1; border-top: 1px solid rgba(6, 182, 212, 0.2); padding-top: 0.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+                                            <div>
+                                                <small style="color: var(--color-text-secondary); text-transform: uppercase; font-size: 0.72rem; font-weight: 700;">Official Advertisement</small><br>
+                                                <strong style="color: var(--secondary);">📢 {{ $this->selectedCampaignModel->advertisement->advertisement_no }} — {{ $this->selectedCampaignModel->advertisement->title }}</strong>
+                                            </div>
+                                            <span class="badge" style="background: rgba(6, 182, 212, 0.15); color: var(--secondary); font-size: 0.72rem; font-weight: 700;">
+                                                Validity: {{ $this->selectedCampaignModel->advertisement->formatted_validity }}
+                                            </span>
+                                        </div>
+                                    @endif
                                 </div>
                             @endif
                         </div>

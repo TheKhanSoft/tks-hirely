@@ -4,6 +4,7 @@ namespace App\Livewire\Admin;
 
 use Livewire\Component;
 use App\Models\Campaign;
+use App\Models\Advertisement;
 use App\Models\User;
 use App\Models\CampaignCommittee;
 use App\Models\CommitteeConstitution;
@@ -30,12 +31,30 @@ class CampaignCrud extends Component
     public $require_transcript_proof = true;
     public $constitution_id = null;
     public $process_flow_id = null;
+    public $advertisement_id = null;
+    public $advertisementFilter = '';
+
+    // Flexible Academic Division & Marks Criteria Properties
+    public $use_custom_academic_criteria = false;
+    public $disallow_third_division = false;
+    public $max_allowed_third_divisions = '';
+    public $disallow_third_in_terminal = true;
+    public $disallow_two_second_divisions = false;
+    public $max_allowed_second_divisions = '';
+    public $disallow_second_in_terminal = false;
+    public $min_marks_percentage = '';
+    public $min_terminal_percentage = '';
+    public $min_terminal_cgpa = '';
 
     // Quick Link Board & Flow Modal
     public $showLinkModal = false;
     public $linkCampaignId = null;
     public $link_constitution_id = null;
     public $link_process_flow_id = null;
+
+    // View Details Modal
+    public $isDetailsOpen = false;
+    public $selectedCampaign = null;
     
     // Dynamic rule mapper fields (Academic track weights)
     public $gold_medal_weight = 5.0;
@@ -106,7 +125,7 @@ class CampaignCrud extends Component
 
     public function loadCampaigns()
     {
-        $this->campaigns = Campaign::with(['constitution', 'processFlow'])->get();
+        $this->campaigns = Campaign::with(['advertisement', 'constitution', 'processFlow'])->get();
     }
 
     public function loadCommitteeData()
@@ -191,6 +210,19 @@ class CampaignCrud extends Component
     // ==========================================
     // 📢 CAMPAIGN CRUD ACTIONS
     // ==========================================
+    public function viewCampaignDetails($id)
+    {
+        abort_unless(Auth::user()->can('view-campaign'), 403);
+        $this->selectedCampaign = Campaign::with(['departments', 'creator', 'statutoryBoard', 'processFlow', 'applications', 'committeeAssignments.user'])->findOrFail($id);
+        $this->isDetailsOpen = true;
+    }
+
+    public function closeDetailsModal()
+    {
+        $this->isDetailsOpen = false;
+        $this->selectedCampaign = null;
+    }
+
     public function openCreateForm()
     {
         abort_unless(Auth::user()->can('create-campaign'), 403);
@@ -215,9 +247,35 @@ class CampaignCrud extends Component
         $this->application_fee = $campaign->application_fee;
         $this->constitution_id = $campaign->constitution_id;
         $this->process_flow_id = $campaign->process_flow_id;
+        $this->advertisement_id = $campaign->advertisement_id;
 
         // Load rule map
         $rules = $campaign->scoring_rules ?? [];
+        $ac = $rules['academic_criteria'] ?? null;
+        if ($ac) {
+            $this->use_custom_academic_criteria = true;
+            $this->disallow_third_division = (bool)($ac['disallow_third_division'] ?? false);
+            $this->max_allowed_third_divisions = $ac['max_allowed_third_divisions'] ?? '';
+            $this->disallow_third_in_terminal = (bool)($ac['disallow_third_in_terminal'] ?? true);
+            $this->disallow_two_second_divisions = (bool)($ac['disallow_two_second_divisions'] ?? false);
+            $this->max_allowed_second_divisions = $ac['max_allowed_second_divisions'] ?? '';
+            $this->disallow_second_in_terminal = (bool)($ac['disallow_second_in_terminal'] ?? false);
+            $this->min_marks_percentage = $ac['min_marks_percentage'] ?? '';
+            $this->min_terminal_percentage = $ac['min_terminal_percentage'] ?? '';
+            $this->min_terminal_cgpa = $ac['min_terminal_cgpa'] ?? '';
+        } else {
+            $this->use_custom_academic_criteria = false;
+            $global = \App\Services\AcademicEligibilityEvaluator::getGlobalCriteria();
+            $this->disallow_third_division = (bool)($global['disallow_third_division'] ?? false);
+            $this->max_allowed_third_divisions = $global['max_allowed_third_divisions'] ?? '';
+            $this->disallow_third_in_terminal = (bool)($global['disallow_third_in_terminal'] ?? true);
+            $this->disallow_two_second_divisions = (bool)($global['disallow_two_second_divisions'] ?? false);
+            $this->max_allowed_second_divisions = $global['max_allowed_second_divisions'] ?? '';
+            $this->disallow_second_in_terminal = (bool)($global['disallow_second_in_terminal'] ?? false);
+            $this->min_marks_percentage = $global['min_marks_percentage'] ?? '';
+            $this->min_terminal_percentage = $global['min_terminal_percentage'] ?? '';
+            $this->min_terminal_cgpa = $global['min_terminal_cgpa'] ?? '';
+        }
         $this->gold_medal_weight = $rules['gold_medal_weight'] ?? 5.0;
         $this->silver_medal_weight = $rules['silver_medal_weight'] ?? 3.0;
         $this->bronze_medal_weight = $rules['bronze_medal_weight'] ?? 2.0;
@@ -258,6 +316,7 @@ class CampaignCrud extends Component
             'application_fee' => 'required|numeric|min:0',
             'constitution_id' => 'nullable|exists:committee_constitutions,id',
             'process_flow_id' => 'nullable|exists:recruitment_process_flows,id',
+            'advertisement_id' => 'nullable|exists:advertisements,id',
         ];
 
         $this->validate($rules);
@@ -286,7 +345,25 @@ class CampaignCrud extends Component
             'require_transcript_proof' => (bool)$this->require_transcript_proof,
         ];
 
+        if ($this->use_custom_academic_criteria) {
+            $scoringRules['academic_criteria'] = [
+                'disallow_third_division' => (bool)$this->disallow_third_division,
+                'max_allowed_third_divisions' => $this->max_allowed_third_divisions !== '' ? (int)$this->max_allowed_third_divisions : null,
+                'disallow_third_in_terminal' => (bool)$this->disallow_third_in_terminal,
+                'disallow_two_second_divisions' => (bool)$this->disallow_two_second_divisions,
+                'max_allowed_second_divisions' => $this->max_allowed_second_divisions !== '' ? (int)$this->max_allowed_second_divisions : null,
+                'disallow_second_in_terminal' => (bool)$this->disallow_second_in_terminal,
+                'min_marks_percentage' => $this->min_marks_percentage !== '' ? (float)$this->min_marks_percentage : null,
+                'min_terminal_percentage' => $this->min_terminal_percentage !== '' ? (float)$this->min_terminal_percentage : null,
+                'min_terminal_cgpa' => $this->min_terminal_cgpa !== '' ? (float)$this->min_terminal_cgpa : null,
+                'scope' => 'POSITION',
+            ];
+        } else {
+            $scoringRules['academic_criteria'] = null;
+        }
+
         $data = [
+            'advertisement_id' => $this->advertisement_id ?: null,
             'job_code' => $this->job_code,
             'title' => $this->title,
             'track_type' => $this->track_type,
@@ -335,6 +412,19 @@ class CampaignCrud extends Component
         $this->require_transcript_proof = true;
         $this->constitution_id = null;
         $this->process_flow_id = null;
+        $this->advertisement_id = null;
+
+        // Reset Academic Division & Marks Criteria
+        $this->use_custom_academic_criteria = false;
+        $this->disallow_third_division = false;
+        $this->max_allowed_third_divisions = '';
+        $this->disallow_third_in_terminal = true;
+        $this->disallow_two_second_divisions = false;
+        $this->max_allowed_second_divisions = '';
+        $this->disallow_second_in_terminal = false;
+        $this->min_marks_percentage = '';
+        $this->min_terminal_percentage = '';
+        $this->min_terminal_cgpa = '';
         
         $this->gold_medal_weight = 5.0;
         $this->silver_medal_weight = 3.0;
@@ -845,20 +935,30 @@ class CampaignCrud extends Component
 
     public function render()
     {
-        $campQuery = Campaign::with(['constitution', 'processFlow']);
+        $campQuery = Campaign::with(['advertisement', 'constitution', 'processFlow']);
         if (!empty($this->search)) {
             $campQuery->where(function($q) {
                 $q->where('title', 'like', '%' . $this->search . '%')
                   ->orWhere('job_code', 'like', '%' . $this->search . '%')
-                  ->orWhere('department', 'like', '%' . $this->search . '%');
+                  ->orWhere('department', 'like', '%' . $this->search . '%')
+                  ->orWhereHas('advertisement', function($aq) {
+                      $aq->where('advertisement_no', 'like', '%' . $this->search . '%')
+                         ->orWhere('title', 'like', '%' . $this->search . '%');
+                  });
             });
         }
+
+        if (!empty($this->advertisementFilter)) {
+            $campQuery->where('advertisement_id', $this->advertisementFilter);
+        }
+
         $paginatedCampaigns = $campQuery->orderBy('created_at', 'desc')->paginate($this->perPage);
 
         return view('livewire.admin.campaign-crud', [
             'paginatedCampaigns' => $paginatedCampaigns,
             'statutoryBoards' => CommitteeConstitution::orderBy('name')->get(),
             'processFlows' => RecruitmentProcessFlow::orderBy('name')->get(),
+            'advertisements' => Advertisement::orderBy('year', 'desc')->orderBy('title')->get(),
         ])->layout('layouts.app');
     }
 }

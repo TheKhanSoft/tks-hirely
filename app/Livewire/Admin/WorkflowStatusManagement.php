@@ -22,6 +22,8 @@ class WorkflowStatusManagement extends Component
     public $showModal = false;
     public $isEdit = false;
     public $selectedStatusId = null;
+    public $isDetailsModalOpen = false;
+    public $selectedStatus = null;
 
     // Form fields
     public $code = '';
@@ -93,6 +95,19 @@ class WorkflowStatusManagement extends Component
     {
         $this->showModal = false;
         $this->resetForm();
+    }
+
+    public function viewStatusDetails($id)
+    {
+        abort_unless(Auth::user()->can('manage-statuses') || Auth::user()->can('manage-settings') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        $this->selectedStatus = WorkflowStatus::findOrFail($id);
+        $this->isDetailsModalOpen = true;
+    }
+
+    public function closeDetailsModal()
+    {
+        $this->isDetailsModalOpen = false;
+        $this->selectedStatus = null;
     }
 
     public function resetForm()

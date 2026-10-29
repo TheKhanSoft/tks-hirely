@@ -21,6 +21,8 @@ class RolePermissionManagement extends Component
     // View state
     public $isFormOpen = false;
     public $isEditMode = false;
+    public $isRoleDetailsOpen = false;
+    public $selectedRole = null;
 
     // Collections
     public $groupedPermissions = [];
@@ -132,6 +134,23 @@ class RolePermissionManagement extends Component
         $this->resetForm();
         $this->isEditMode = false;
         $this->isFormOpen = true;
+    }
+
+    public function viewRoleDetails($id)
+    {
+        abort_unless(Auth::user()->can('view-role'), 403);
+        $role = Role::with(['permissions', 'users'])->findOrFail($id);
+        if ($role->name === 'super-admin' && !Auth::user()->hasRole('super-admin')) {
+            abort(403, 'Unauthorized access to super administrator role.');
+        }
+        $this->selectedRole = $role;
+        $this->isRoleDetailsOpen = true;
+    }
+
+    public function closeRoleDetailsModal()
+    {
+        $this->isRoleDetailsOpen = false;
+        $this->selectedRole = null;
     }
 
     public function openEditRoleForm($id)

@@ -44,6 +44,17 @@ class SystemSettings extends Component
     public $prof_required_peer_reviewers;
     public $lecturer_required_peer_reviewers;
 
+    // 🎓 Global Academic Division & Marks Benchmarks
+    public $global_disallow_third_division = false;
+    public $global_max_allowed_third_divisions = '';
+    public $global_disallow_third_in_terminal = true;
+    public $global_disallow_two_second_divisions = false;
+    public $global_max_allowed_second_divisions = '';
+    public $global_disallow_second_in_terminal = false;
+    public $global_min_marks_percentage = '';
+    public $global_min_terminal_percentage = '';
+    public $global_min_terminal_cgpa = '';
+
     public function mount()
     {
         abort_unless(Auth::check() && (Auth::user()->hasRole('super-admin') || Auth::user()->can('manage-settings')), 403);
@@ -90,6 +101,18 @@ class SystemSettings extends Component
         $this->asst_prof_required_peer_reviewers = (int) SystemSetting::get('asst_prof_required_peer_reviewers', 3);
         $this->prof_required_peer_reviewers = (int) SystemSetting::get('prof_required_peer_reviewers', 3);
         $this->lecturer_required_peer_reviewers = (int) SystemSetting::get('lecturer_required_peer_reviewers', 0);
+
+        // Global Academic Division & Qualifications Criteria
+        $globalCriteria = \App\Services\AcademicEligibilityEvaluator::getGlobalCriteria();
+        $this->global_disallow_third_division = (bool)($globalCriteria['disallow_third_division'] ?? false);
+        $this->global_max_allowed_third_divisions = $globalCriteria['max_allowed_third_divisions'] ?? '';
+        $this->global_disallow_third_in_terminal = (bool)($globalCriteria['disallow_third_in_terminal'] ?? true);
+        $this->global_disallow_two_second_divisions = (bool)($globalCriteria['disallow_two_second_divisions'] ?? false);
+        $this->global_max_allowed_second_divisions = $globalCriteria['max_allowed_second_divisions'] ?? '';
+        $this->global_disallow_second_in_terminal = (bool)($globalCriteria['disallow_second_in_terminal'] ?? false);
+        $this->global_min_marks_percentage = $globalCriteria['min_marks_percentage'] ?? '';
+        $this->global_min_terminal_percentage = $globalCriteria['min_terminal_percentage'] ?? '';
+        $this->global_min_terminal_cgpa = $globalCriteria['min_terminal_cgpa'] ?? '';
     }
 
     public function toggleSetting($key)
@@ -171,6 +194,25 @@ class SystemSettings extends Component
         SystemSetting::set('lecturer_required_peer_reviewers', $this->lecturer_required_peer_reviewers, 'constitution_defaults', 'integer');
 
         session()->flash('message', 'Default statutory board quorums and peer review quotas successfully saved.');
+    }
+
+    public function saveAcademicCriteriaSettings()
+    {
+        \App\Services\AcademicEligibilityEvaluator::setGlobalCriteria([
+            'disallow_third_division' => (bool)$this->global_disallow_third_division,
+            'max_allowed_third_divisions' => $this->global_max_allowed_third_divisions !== '' ? (int)$this->global_max_allowed_third_divisions : null,
+            'disallow_third_in_terminal' => (bool)$this->global_disallow_third_in_terminal,
+            'disallow_two_second_divisions' => (bool)$this->global_disallow_two_second_divisions,
+            'max_allowed_second_divisions' => $this->global_max_allowed_second_divisions !== '' ? (int)$this->global_max_allowed_second_divisions : null,
+            'disallow_second_in_terminal' => (bool)$this->global_disallow_second_in_terminal,
+            'min_marks_percentage' => $this->global_min_marks_percentage !== '' ? (float)$this->global_min_marks_percentage : null,
+            'min_terminal_percentage' => $this->global_min_terminal_percentage !== '' ? (float)$this->global_min_terminal_percentage : null,
+            'min_terminal_cgpa' => $this->global_min_terminal_cgpa !== '' ? (float)$this->global_min_terminal_cgpa : null,
+            'scope' => 'GLOBAL',
+            'rule_notes' => 'Institutional global qualifications and division benchmarks',
+        ]);
+
+        session()->flash('message', 'Global statutory academic division and marks benchmarks successfully updated.');
     }
 
     public function render()

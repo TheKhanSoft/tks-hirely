@@ -1,11 +1,10 @@
 <div>
     <!-- Executive Control Header -->
-    <div class="card mb-6 card-ambient-mesh" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem; position: relative; overflow: hidden; padding: 1.5rem 1.75rem;">
-        <div style="position: absolute; right: -2rem; top: -2rem; width: 180px; height: 180px; background: radial-gradient(circle, var(--secondary-glow) 0%, transparent 70%); pointer-events: none;"></div>
+    <div class="page-hero-header">
         <div>
-            <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.35rem;">
-                <div class="brand-icon-box" style="width: 44px; height: 44px; border-radius: 12px; background: rgba(6,182,212,0.15); border: 1px solid rgba(6,182,212,0.3);">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--secondary);">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="brand-icon-box" style="background: linear-gradient(135deg, rgba(6,182,212,0.25), rgba(14,165,233,0.4)); box-shadow: 0 4px 14px rgba(6,182,212,0.25);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: #ffffff;">
                         <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
                         <circle cx="9" cy="7" r="4"/>
                         <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
@@ -13,19 +12,15 @@
                     </svg>
                 </div>
                 <div>
-                    <h1 class="card-title" style="margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">
-                        Academic Reviewers & Expert Referees Desk
-                    </h1>
-                    <p class="card-subtitle" style="margin: 0.2rem 0 0;">
-                        Empanel external academic experts, match referees dynamically by discipline, and orchestrate confidential peer evaluations.
-                    </p>
+                    <h1>Academic Reviewers & Expert Referees Desk</h1>
+                    <p>Empanel external academic experts, match referees dynamically by discipline, and orchestrate confidential peer evaluations.</p>
                 </div>
             </div>
         </div>
 
         <div style="display: flex; align-items: center; gap: 0.75rem;">
             @if(auth()->user()->can('create-reviewer') || auth()->user()->can('manage-reviewers'))
-                <button type="button" class="btn btn-primary" wire:click="openCreateModal" style="display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: var(--shadow-sm); padding: 0.55rem 1.15rem; font-weight: 700;">
+                <button type="button" class="btn btn-primary" wire:click="openCreateModal" style="display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 18px -2px rgba(6,182,212,0.5); padding: 0.65rem 1.35rem; font-weight: 700; border-radius: 10px; background: linear-gradient(135deg, #06b6d4 0%, #0284c7 100%); border-color: #0284c7;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="12" y1="5" x2="12" y2="19"></line>
                         <line x1="5" y1="12" x2="19" y2="12"></line>

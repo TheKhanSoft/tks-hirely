@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="/css/app.css">
+    <link rel="stylesheet" href="/css/app.css?v={{ @filemtime(public_path('css/app.css')) ?: time() }}">
     @livewireStyles
     <script>
         (function() {
@@ -39,7 +39,7 @@
                 </div>
                 <div>
                     <div class="brand-title">HIRELY</div>
-                    <div class="brand-badge">Recruitment OS</div>
+                    <div class="brand-badge"><span class="badge-dot" style="background: currentColor;"></span> v2.4 Enterprise OS</div>
                 </div>
             </a>
             
@@ -74,6 +74,15 @@
                         @endif
 
                         @can('view-campaign')
+                            <a href="{{ $baseRoute }}/advertisements" class="sidebar-link {{ request()->is('admin/advertisements*') || request()->is('registrar/advertisements*') ? 'active' : '' }}">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="18" height="18" x="3" y="3" rx="2"/>
+                                    <path d="M3 9h18"/>
+                                    <path d="M9 21V9"/>
+                                </svg>
+                                <span>Advertisements</span>
+                            </a>
+
                             <a href="{{ $baseRoute }}/campaigns" class="sidebar-link {{ request()->is('admin/campaigns*') || request()->is('registrar/campaigns*') ? 'active' : '' }}">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="m3 11 18-5v12L3 14v-3z"/>
@@ -302,6 +311,18 @@
             </nav>
 
             @auth
+                <!-- Sidebar Live Governance Operational Status Beacon -->
+                <div class="sidebar-status-beacon-box">
+                    <div class="beacon-pulse-indicator">
+                        <span class="beacon-pulse-ring"></span>
+                        <span class="beacon-pulse-dot"></span>
+                    </div>
+                    <div class="beacon-status-text">
+                        <span class="beacon-status-title">Governance Engine</span>
+                        <span class="beacon-status-sub">Operational • Live Quorum</span>
+                    </div>
+                </div>
+
                 <!-- User Profile Card -->
                 <div class="sidebar-user-card">
                     <div class="user-avatar-circle">
@@ -333,22 +354,22 @@
         <div class="main-content">
             @if(session()->has('impersonated_by'))
                 <!-- Prominent Super Admin Impersonation Notice Banner -->
-                <div style="background: linear-gradient(90deg, #b45309 0%, #d97706 100%); color: #ffffff; padding: 0.65rem 1.5rem; font-size: 0.88rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 10000; position: sticky; top: 0;">
-                    <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-                        <span style="font-size: 1.25rem;">🎭</span>
-                        <div>
+                <div class="impersonation-alert-banner">
+                    <div class="impersonation-content">
+                        <span class="impersonation-mask-icon">🎭</span>
+                        <div class="impersonation-meta">
                             <span>You are impersonating <strong>{{ auth()->user()->name }}</strong> ({{ auth()->user()->email }})</span>
-                            <span style="margin-left: 0.5rem; background: rgba(0,0,0,0.25); padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">
+                            <span class="impersonation-role-pill">
                                 {{ auth()->user()->roles->pluck('name')->join(', ') ?: 'Applicant' }}
                             </span>
-                            <span style="opacity: 0.85; font-size: 0.78rem; margin-left: 0.5rem;">
+                            <span class="impersonation-initiator">
                                 • Initiated by: <em>{{ session('impersonator_name') ?: session('impersonator_email') ?: 'Super Admin' }}</em>
                             </span>
                         </div>
                     </div>
                     <div>
-                        <a href="{{ route('impersonate.leave') }}" class="btn" style="background: #ffffff; color: #b45309; font-weight: 800; font-size: 0.8rem; padding: 0.35rem 0.85rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                            <span>✕ Exit Impersonation</span>
+                        <a href="{{ route('impersonate.leave') }}" class="impersonation-exit-btn">
+                            <span>✕ Exit Impersonation (Esc)</span>
                         </a>
                     </div>
                 </div>
@@ -365,9 +386,25 @@
                     </button>
 
                     <div class="topbar-breadcrumbs">
-                        <span>Portal</span>
-                        <span style="opacity: 0.4;">/</span>
-                        <strong style="color: var(--color-text-primary); font-weight: 600;">
+                        <div class="topbar-workspace-pill">
+                            @if(request()->is('admin*') || request()->is('registrar*'))
+                                <span>🏛️ Admin Desk</span>
+                            @elseif(request()->is('scrutiny*'))
+                                <span>🔍 Scrutiny Desk</span>
+                            @elseif(request()->is('board*'))
+                                <span>⚖️ Statutory Board</span>
+                            @elseif(request()->is('appellate*'))
+                                <span>🛡️ Grievance Desk</span>
+                            @elseif(request()->is('reviewer*'))
+                                <span>🔬 Peer Review</span>
+                            @elseif(request()->is('applicant*'))
+                                <span>👤 Candidate Space</span>
+                            @else
+                                <span>⚡ Recruitment OS</span>
+                            @endif
+                        </div>
+                        <span style="opacity: 0.35;">/</span>
+                        <strong style="color: var(--color-text-primary); font-weight: 700; font-size: 0.88rem;">
                             @if(request()->is('admin/dashboard*') || request()->is('registrar/dashboard*')) Administrative Operations Desk
                             @elseif(request()->is('scrutiny*')) Scrutiny Committee Workspace
                             @elseif(request()->is('board*')) Selection Board Workspace
@@ -376,6 +413,7 @@
                             @elseif(request()->is('applicant/dashboard*')) Candidate Space
                             @elseif(request()->is('applicant/wizard*')) Application Dossier Wizard
                             @elseif(request()->is('admin/reviewers*') || request()->is('registrar/reviewers*')) Academic Reviewers Desk
+                            @elseif(request()->is('admin/advertisements*') || request()->is('registrar/advertisements*')) Official Advertisements & Dates
                             @elseif(request()->is('admin/campaigns*') || request()->is('registrar/campaigns*')) Recruitment Campaigns
                             @elseif(request()->is('admin/applications*') || request()->is('registrar/applications*')) Applications Dossiers
                             @elseif(request()->is('admin/candidates*') || request()->is('registrar/candidates*')) Candidate Profiles
@@ -388,6 +426,13 @@
                             @else University Recruitment OS @endif
                         </strong>
                     </div>
+                </div>
+
+                <!-- Center Quick Search Trigger -->
+                <div class="topbar-search-trigger" onclick="const s = document.querySelector('input[type=\'text\'], input[type=\'search\']'); if(s) s.focus();" title="Focus module search filter">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    <span>Quick Filter & Search Records...</span>
+                    <kbd>Ctrl K</kbd>
                 </div>
 
                 <div class="topbar-actions">

@@ -7,6 +7,7 @@ use App\Models\Application;
 use App\Models\ApplicationReview;
 use App\Models\User;
 use App\Models\Campaign;
+use App\Models\Advertisement;
 use App\Models\ReviewerProfile;
 use App\Models\WorkflowStatus;
 use App\Models\SystemSetting;
@@ -38,6 +39,7 @@ class ApplicationManagement extends Component
     public $search = '';
     public $statusFilter = '';
     public $campaignFilter = '';
+    public $advertisementFilter = '';
     public $voucherFilter = '';
 
     // Collections
@@ -190,7 +192,7 @@ class ApplicationManagement extends Component
     {
         abort_unless(Auth::user()->can('view-application') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
         $this->selectedRecordId = $id;
-        $this->selectedRecordDetails = Application::with('user.basicInfo', 'campaign', 'billingLedger', 'evaluations.boardMember', 'reviews.reviewer.reviewerProfile')->findOrFail($id);
+        $this->selectedRecordDetails = Application::with('user.basicInfo.degrees', 'campaign.advertisement', 'campaign.constitution', 'billingLedger', 'evaluations.boardMember', 'reviews.reviewer.reviewerProfile')->findOrFail($id);
         $this->isDetailsOpen = true;
     }
 
@@ -591,7 +593,7 @@ class ApplicationManagement extends Component
 
     public function render()
     {
-        $query = Application::with('user.basicInfo', 'campaign', 'billingLedger', 'reviews.reviewer.reviewerProfile');
+        $query = Application::with('user.basicInfo.degrees', 'campaign.advertisement', 'billingLedger', 'reviews.reviewer.reviewerProfile');
 
         if (!empty($this->statusFilter)) {
             $query->where('status', $this->statusFilter);
@@ -599,6 +601,10 @@ class ApplicationManagement extends Component
 
         if (!empty($this->campaignFilter)) {
             $query->where('campaign_id', $this->campaignFilter);
+        }
+
+        if (!empty($this->advertisementFilter)) {
+            $query->whereHas('campaign', fn($c) => $c->where('advertisement_id', $this->advertisementFilter));
         }
 
         if (!empty($this->voucherFilter)) {
@@ -668,6 +674,7 @@ class ApplicationManagement extends Component
             'availableDisciplines' => $availableDisciplines,
             'workflowStatuses' => $workflowStatuses,
             'countries' => CountryService::all(),
+            'advertisements' => Advertisement::where('is_active', true)->orderBy('year', 'desc')->get(),
         ])->layout('layouts.app', ['title' => 'Applications Desk - Hirely']);
     }
 }

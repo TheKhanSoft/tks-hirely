@@ -1,11 +1,10 @@
 <div>
     <!-- Header Banner -->
-    <div class="card mb-6" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; position: relative; overflow: hidden;">
-        <div style="position: absolute; right: -2rem; top: -2rem; width: 140px; height: 140px; background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%); pointer-events: none;"></div>
+    <div class="page-hero-header">
         <div>
-            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem;">
-                <div class="brand-icon-box" style="width: 38px; height: 38px; border-radius: 10px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="brand-icon-box">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="color: #ffffff;">
                         <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
                         <circle cx="9" cy="7" r="4"></circle>
                         <line x1="19" y1="8" x2="19" y2="14"></line>
@@ -13,20 +12,20 @@
                     </svg>
                 </div>
                 <div>
-                    <h2 class="card-title" style="margin: 0; font-size: 1.35rem;">Campaigns & Committee Desk</h2>
-                    <p class="card-subtitle" style="margin: 0;">Configure recruitment tracks, dynamic scoring matrices, and allocate evaluation panels</p>
+                    <h1>Recruitment Campaigns & Committee Allocation</h1>
+                    <p>Configure recruitment tracks, dynamic scoring matrices, statutory quotas, and panel appointments.</p>
                 </div>
             </div>
         </div>
         <div>
             @if(!$isFormOpen && $activeTab === 'campaigns')
                 @can('create-campaign')
-                    <button type="button" class="btn btn-primary" wire:click="openCreateForm" style="display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: var(--shadow-sm);">
+                    <button type="button" class="btn btn-primary" wire:click="openCreateForm" style="display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 18px -2px rgba(99,102,241,0.5); padding: 0.65rem 1.35rem; font-weight: 700; border-radius: 10px;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
                         </svg>
-                        <span>Create Campaign</span>
+                        <span>+ Create Campaign</span>
                     </button>
                 @endcan
             @endif
@@ -178,6 +177,19 @@
                         </x-input>
                     </div>
 
+                    <div class="grid grid-cols-1 gap-4 mt-4">
+                        <x-input label="Official Parent Advertisement (Jobs Under Advertisement)" :error="$errors->first('advertisement_id')">
+                            <select class="form-control form-select" wire:model="advertisement_id">
+                                <option value="">-- Standalone / Direct Job Campaign (No Parent Advertisement) --</option>
+                                @foreach($advertisements as $ad)
+                                    <option value="{{ $ad->id }}">
+                                        📢 {{ $ad->advertisement_no }} — {{ $ad->title }} (Year {{ $ad->year }}) [Valid till {{ $ad->valid_to ? $ad->valid_to->format('d M Y') : 'N/A' }}]
+                                    </option>
+                                @endforeach
+                            </select>
+                        </x-input>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-4 mt-4">
                         <x-input label="Opening Date *" :error="$errors->first('opening_date')">
                             <input type="datetime-local" class="form-control" wire:model="opening_date">
@@ -256,6 +268,99 @@
                                 </small>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- FLEXIBLE ACADEMIC CAREER, DIVISION & MARKS CRITERIA SECTION -->
+                    <div style="border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); padding: 1.25rem; background: rgba(16, 185, 129, 0.03); margin-top: 1.25rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.85rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="font-size: 0.95rem; font-weight: 800; color: var(--color-text-primary);">
+                                    🎓 Academic Career, Division & Marks Eligibility Benchmarks
+                                </span>
+                                <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 0.72rem; font-weight: 700;">
+                                    STATUTORY SCRUTINY RULES
+                                </span>
+                            </div>
+
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary); background: var(--bg-card); padding: 0.35rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                                <input type="checkbox" wire:model.live="use_custom_academic_criteria" style="width: 1rem; height: 1rem; accent-color: #10b981;">
+                                <span>{{ $use_custom_academic_criteria ? 'Custom Rules for this Position' : 'Inherit Global System Rules' }}</span>
+                            </label>
+                        </div>
+                        <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin: 0 0 1rem 0;">
+                            Configure statutory qualification rules such as third division prohibitions, second division limits, minimum marks cutoffs, and terminal degree requirements for scrutiny automation.
+                        </p>
+
+                        @if($use_custom_academic_criteria)
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" style="background: rgba(0,0,0,0.15); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                                <!-- 3rd Division Rules -->
+                                <div>
+                                    <h5 style="font-size: 0.8rem; font-weight: 800; color: var(--secondary); text-transform: uppercase; margin-bottom: 0.65rem;">
+                                        3rd Division Policy
+                                    </h5>
+                                    <div class="flex-col gap-2">
+                                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.82rem; color: var(--color-text-primary);">
+                                            <input type="checkbox" wire:model="disallow_third_division">
+                                            <strong>3rd Division strictly prohibited (0 allowed in career)</strong>
+                                        </label>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.35rem;">
+                                            <span style="font-size: 0.8rem; color: var(--color-text-muted);">Or Max Allowed 3rd Divisions:</span>
+                                            <input type="number" class="form-control" wire:model="max_allowed_third_divisions" min="0" max="5" placeholder="e.g. 1" style="width: 70px; height: 32px; padding: 0.2rem 0.5rem; font-size: 0.82rem;">
+                                        </div>
+                                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.82rem; color: var(--color-text-primary); margin-top: 0.35rem;">
+                                            <input type="checkbox" wire:model="disallow_third_in_terminal">
+                                            <span>No 3rd Division in terminal (highest) degree</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- 2nd Division Rules -->
+                                <div>
+                                    <h5 style="font-size: 0.8rem; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 0.65rem;">
+                                        2nd Division Policy
+                                    </h5>
+                                    <div class="flex-col gap-2">
+                                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.82rem; color: var(--color-text-primary);">
+                                            <input type="checkbox" wire:model="disallow_two_second_divisions">
+                                            <strong>Two 2nd Divisions NOT allowed (Max 1 allowed in career)</strong>
+                                        </label>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.35rem;">
+                                            <span style="font-size: 0.8rem; color: var(--color-text-muted);">Or Max Allowed 2nd Divisions:</span>
+                                            <input type="number" class="form-control" wire:model="max_allowed_second_divisions" min="0" max="5" placeholder="e.g. 1" style="width: 70px; height: 32px; padding: 0.2rem 0.5rem; font-size: 0.82rem;">
+                                        </div>
+                                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.82rem; color: var(--color-text-primary); margin-top: 0.35rem;">
+                                            <input type="checkbox" wire:model="disallow_second_in_terminal">
+                                            <span>No 2nd Division in terminal degree (1st Div / 3.0 CGPA required)</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Marks & Percentage Cutoffs -->
+                                <div style="grid-column: 1 / -1; border-top: 1px solid var(--border-color); padding-top: 0.85rem; margin-top: 0.25rem;">
+                                    <h5 style="font-size: 0.8rem; font-weight: 800; color: #f59e0b; text-transform: uppercase; margin-bottom: 0.65rem;">
+                                        Marks / Score Cutoffs ("xx out of nn marks not allowed")
+                                    </h5>
+                                    <div class="grid grid-cols-3 gap-3">
+                                        <div>
+                                            <label style="font-size: 0.74rem; color: var(--color-text-muted); font-weight: 700;">Min Percentage Across Degrees (%)</label>
+                                            <input type="number" step="0.1" class="form-control" wire:model="min_marks_percentage" placeholder="e.g. 60.0 (less not allowed)" style="font-size: 0.82rem;">
+                                        </div>
+                                        <div>
+                                            <label style="font-size: 0.74rem; color: var(--color-text-muted); font-weight: 700;">Min Terminal Degree Percentage (%)</label>
+                                            <input type="number" step="0.1" class="form-control" wire:model="min_terminal_percentage" placeholder="e.g. 60.0" style="font-size: 0.82rem;">
+                                        </div>
+                                        <div>
+                                            <label style="font-size: 0.74rem; color: var(--color-text-muted); font-weight: 700;">Min Terminal CGPA (on 4.0 Scale)</label>
+                                            <input type="number" step="0.05" class="form-control" wire:model="min_terminal_cgpa" placeholder="e.g. 3.0" style="font-size: 0.82rem;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div style="background: rgba(0,0,0,0.1); padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-size: 0.8rem; color: var(--color-text-muted);">
+                                ℹ️ This position automatically inherits the statutory academic criteria configured in System Settings. Toggle above to specify customized rules for this position.
+                            </div>
+                        @endif
                     </div>
 
                     <!-- DYNAMIC RULE MAPPER SECTION -->
@@ -409,6 +514,15 @@
                             </x-slot:tag>
 
                             <!-- Card Body Metrics -->
+                            @if($camp->advertisement)
+                                <div class="entity-card-metric-row">
+                                    <span class="entity-card-metric-label">Advertisement:</span>
+                                    <span class="badge" style="background: rgba(6, 182, 212, 0.12); color: var(--secondary); font-weight: 800; font-size: 0.72rem; border: 1px solid rgba(6, 182, 212, 0.25);">
+                                        📢 {{ $camp->advertisement->advertisement_no }}
+                                    </span>
+                                </div>
+                            @endif
+
                             <div class="entity-card-metric-row">
                                 <span class="entity-card-metric-label">Job Code:</span>
                                 <span class="mono-pill" style="color: var(--primary);">
@@ -446,6 +560,16 @@
 
                             <!-- Quick Actions (Hover Reveal Icons) -->
                             <x-slot:quickActions>
+                                <button type="button" 
+                                    class="action-btn action-btn-view" 
+                                    wire:click="viewCampaignDetails({{ $camp->id }})" 
+                                    data-tooltip="View Campaign Details & Quotas" 
+                                    aria-label="View Campaign Details">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
                                 <button type="button" 
                                     class="action-btn action-btn-view" 
                                     wire:click="openLinkModal({{ $camp->id }})" 
@@ -487,6 +611,13 @@
 
                             <!-- Kebab Dropdown Options Menu [ICON + TEXT] -->
                             <x-slot:menuActions>
+                                <x-entity-card-menu-item 
+                                    label="View Campaign Details" 
+                                    click="viewCampaignDetails({{ $camp->id }})">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
                                 <x-entity-card-menu-item 
                                     label="Link Board & Process Flow" 
                                     click="openLinkModal({{ $camp->id }})">
@@ -562,7 +693,14 @@
                                         </code>
                                     </td>
                                     <td>
-                                        <div style="font-weight: 700; color: var(--color-text-primary);">{{ $camp->title }}</div>
+                                        <div style="font-weight: 700; color: var(--color-text-primary); display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                                            <span>{{ $camp->title }}</span>
+                                            @if($camp->advertisement)
+                                                <span class="badge" style="background: rgba(6, 182, 212, 0.12); color: var(--secondary); font-size: 0.68rem; font-weight: 800;">
+                                                    📢 {{ $camp->advertisement->advertisement_no }}
+                                                </span>
+                                            @endif
+                                        </div>
                                         <small style="color: var(--color-text-secondary); display: flex; align-items: center; gap: 0.25rem; margin-top: 0.15rem;">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                 <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
@@ -623,6 +761,16 @@
                                     </td>
                                     <td style="text-align: right;">
                                         <div class="action-btn-group justify-end">
+                                            <button type="button" 
+                                                class="action-btn action-btn-view" 
+                                                wire:click="viewCampaignDetails({{ $camp->id }})" 
+                                                data-tooltip="View Campaign Details & Quotas"
+                                                aria-label="View Details">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                    <circle cx="12" cy="12" r="3"/>
+                                                </svg>
+                                            </button>
                                             <button type="button" 
                                                 class="action-btn action-btn-view" 
                                                 wire:click="openLinkModal({{ $camp->id }})" 
@@ -1486,4 +1634,120 @@
             </div>
         </div>
     @endif
+
+    <!-- Campaign Details & Quota Specification Modal -->
+    <x-modal :show="$isDetailsOpen" title="Recruitment Campaign Specification & Quotas" closeAction="closeDetailsModal">
+        @if($selectedCampaign)
+            @php
+                $isExpired = $selectedCampaign->closing_date && $selectedCampaign->closing_date->isPast();
+            @endphp
+            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); padding: 1.15rem 1.25rem; border-radius: var(--radius-md);">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.35rem;">
+                            <code style="background: rgba(99,102,241,0.15); color: var(--primary); padding: 0.2rem 0.65rem; border-radius: 6px; font-weight: 800; font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; border: 1px solid rgba(99,102,241,0.3);">
+                                {{ $selectedCampaign->job_code }}
+                            </code>
+                            <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); border: 1px solid rgba(6,182,212,0.25);">
+                                {{ strtoupper($selectedCampaign->track_type ?? 'Standard Track') }}
+                            </span>
+                        </div>
+                        <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--color-text-primary); margin: 0;">
+                            {{ $selectedCampaign->title }}
+                        </h3>
+                        <div style="font-size: 0.85rem; color: var(--color-text-secondary); margin-top: 0.25rem;">
+                            {{ $selectedCampaign->department ?? 'General University Cadre' }}
+                        </div>
+                    </div>
+                    <div>
+                        @if($isExpired)
+                            <span class="badge badge-danger"><span class="badge-dot" style="background: currentColor;"></span> Concluded / Expired</span>
+                        @else
+                            <span class="badge badge-success"><span class="badge-dot" style="background: currentColor;"></span> Accepting Applications</span>
+                        @endif
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.85rem;">
+                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                        <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-muted); display: block;">Application Fee</span>
+                        <strong style="color: var(--color-text-primary); font-size: 1.05rem; font-family: 'JetBrains Mono', monospace; display: block; margin-top: 2px;">
+                            PKR {{ number_format($selectedCampaign->application_fee, 2) }}
+                        </strong>
+                    </div>
+
+                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                        <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-muted); display: block;">Opening Window</span>
+                        <strong style="color: var(--color-text-primary); font-size: 0.88rem; display: block; margin-top: 2px;">
+                            {{ $selectedCampaign->opening_date ? $selectedCampaign->opening_date->format('M d, Y') : 'Immediate' }}
+                        </strong>
+                    </div>
+
+                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                        <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-muted); display: block;">Closing Deadline</span>
+                        <strong style="color: {{ $isExpired ? 'var(--danger)' : 'var(--primary)' }}; font-size: 0.88rem; display: block; margin-top: 2px;">
+                            {{ $selectedCampaign->closing_date ? $selectedCampaign->closing_date->format('M d, Y - h:i A') : 'Open Ended' }}
+                        </strong>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.85rem;">
+                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); font-weight: 700;">Statutory Governance Board</div>
+                        <div style="font-size: 0.95rem; font-weight: 700; color: var(--color-text-primary); margin-top: 3px;">
+                            {{ $selectedCampaign->statutoryBoard?->name ?? 'Default Selection Board' }}
+                        </div>
+                        <div style="font-size: 0.78rem; color: var(--color-text-secondary); margin-top: 2px;">
+                            Sector: {{ ucfirst($selectedCampaign->statutoryBoard?->sector ?? 'higher_education') }} • Quorum: {{ $selectedCampaign->statutoryBoard?->required_total ?? 7 }} members
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); font-weight: 700;">Recruitment Process Pipeline</div>
+                        <div style="font-size: 0.95rem; font-weight: 700; color: #10b981; margin-top: 3px;">
+                            {{ $selectedCampaign->processFlow?->name ?? 'Default Sequential Pipeline' }}
+                        </div>
+                        <div style="font-size: 0.78rem; color: var(--color-text-secondary); margin-top: 2px;">
+                            Configured Stages: {{ count($selectedCampaign->processFlow?->stages ?? []) }} lifecycle milestones
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 0.85rem 1rem; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; gap: 1.5rem;">
+                        <div>
+                            <span style="font-size: 0.72rem; text-transform: uppercase; color: var(--color-text-muted);">Applications Logged:</span>
+                            <strong style="color: var(--primary); font-size: 1rem; margin-left: 0.35rem;">{{ $selectedCampaign->applications->count() }}</strong>
+                        </div>
+                        <div>
+                            <span style="font-size: 0.72rem; text-transform: uppercase; color: var(--color-text-muted);">Committee Members Assigned:</span>
+                            <strong style="color: var(--secondary); font-size: 1rem; margin-left: 0.35rem;">{{ $selectedCampaign->committeeAssignments->count() }}</strong>
+                        </div>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.72rem; text-transform: uppercase; color: var(--color-text-muted);">Transcript Proof:</span>
+                        <span class="badge {{ $selectedCampaign->require_transcript_proof ? 'badge-success' : 'badge-secondary' }}" style="margin-left: 0.35rem;">
+                            {{ $selectedCampaign->require_transcript_proof ? 'Mandatory' : 'Optional' }}
+                        </span>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
+                    @can('tune-constitution')
+                        <a href="{{ $criteriaUrl }}?campaign_id={{ $selectedCampaign->id }}" class="btn btn-secondary" style="font-weight: 700;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/></svg>
+                            <span>Criteria & Quotas</span>
+                        </a>
+                    @endcan
+                    @can('edit-campaign')
+                        <button type="button" class="btn btn-primary" wire:click="openEditForm({{ $selectedCampaign->id }}); closeDetailsModal();">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            <span>Edit Campaign</span>
+                        </button>
+                    @endcan
+                    <button type="button" class="btn btn-secondary" wire:click="closeDetailsModal">Close</button>
+                </div>
+            </div>
+        @endif
+    </x-modal>
 </div>

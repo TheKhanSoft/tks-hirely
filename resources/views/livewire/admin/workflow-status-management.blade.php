@@ -13,47 +13,41 @@
         </div>
     @endif
 
-    <!-- Page Header & Segmented Scope Controls -->
-    <div class="card mb-6" style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%); border-color: rgba(99, 102, 241, 0.25);">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1.5rem; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 280px;">
-                <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem;">
-                    <span class="badge" style="background: rgba(99, 102, 241, 0.2); color: var(--primary); font-weight: 800; font-size: 0.75rem; letter-spacing: 0.05em;">
-                        WORKFLOW ORCHESTRATION ENGINE
-                    </span>
-                    <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 0.75rem; font-weight: 700;">
-                        LIFECYCLE MATRIX
-                    </span>
-                </div>
-                <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 0.35rem 0; display: flex; align-items: center; gap: 0.5rem;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
+    <!-- Executive Control Header -->
+    <div class="page-hero-header">
+        <div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="brand-icon-box" style="background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(79,70,229,0.4)); box-shadow: 0 4px 14px rgba(99,102,241,0.25);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="color: #ffffff;">
                         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
                     </svg>
-                    <span>Dynamic Statuses & Lifecycle Workflow Engine</span>
-                </h2>
-                <p style="font-size: 0.88rem; color: var(--color-text-secondary); margin: 0; line-height: 1.5;">
-                    Configure dynamic application progression states, applicant dossier locks, gate validation criteria (fees, transcripts, peer reviews, reasons), and allowed branch transitions.
-                </p>
+                </div>
+                <div>
+                    <h1>Dynamic Statuses & Lifecycle Workflow Engine</h1>
+                    <p>Configure dynamic application progression states, applicant dossier locks, gate validation criteria, and transition policies.</p>
+                </div>
             </div>
+        </div>
 
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
             <!-- Scope Navigation Segmented Tabs -->
-            <div style="display: flex; gap: 0.4rem; background: rgba(15, 23, 42, 0.6); padding: 0.35rem; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.08);">
+            <div style="display: flex; gap: 0.35rem; background: rgba(15, 23, 42, 0.6); padding: 0.3rem; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.08);">
                 <button type="button" 
                     wire:click="setScope('APPLICATION')" 
                     class="btn {{ $activeScope === 'APPLICATION' ? 'btn-primary' : 'btn-secondary' }}"
-                    style="padding: 0.55rem 1rem; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    style="padding: 0.5rem 0.9rem; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem; border-radius: 8px;">
                     <span>📑 Application Flow</span>
                 </button>
                 <button type="button" 
                     wire:click="setScope('APPLICANT')" 
                     class="btn {{ $activeScope === 'APPLICANT' ? 'btn-primary' : 'btn-secondary' }}"
-                    style="padding: 0.55rem 1rem; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    style="padding: 0.5rem 0.9rem; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem; border-radius: 8px;">
                     <span>👤 Applicant Dossier</span>
                 </button>
                 <button type="button" 
                     wire:click="setScope('SYSTEM')" 
                     class="btn {{ $activeScope === 'SYSTEM' ? 'btn-primary' : 'btn-secondary' }}"
-                    style="padding: 0.55rem 1rem; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    style="padding: 0.5rem 0.9rem; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem; border-radius: 8px;">
                     <span>⚙️ System & Quorum</span>
                 </button>
             </div>
@@ -194,6 +188,16 @@
 
                 <x-slot:quickActions>
                     <button type="button" 
+                            class="action-btn action-btn-view" 
+                            wire:click="viewStatusDetails({{ $st->id }})" 
+                            data-tooltip="View Lifecycle Node Details"
+                            aria-label="View Details">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                    <button type="button" 
                             class="action-btn action-btn-edit" 
                             wire:click="openEditModal({{ $st->id }})" 
                             data-tooltip="Edit Status & Requirements"
@@ -232,6 +236,13 @@
                 </x-slot:quickActions>
 
                 <x-slot:menuItems>
+                    <x-entity-card-menu-item 
+                        wire-click="viewStatusDetails({{ $st->id }})"
+                        label="View Node Specification"
+                    >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </x-entity-card-menu-item>
+
                     <x-entity-card-menu-item 
                         wire-click="openEditModal({{ $st->id }})"
                         label="Edit Status Node & Gates"
@@ -369,6 +380,16 @@
                                 </td>
                                 <td style="vertical-align: middle; text-align: right;">
                                     <div class="action-btn-group justify-end">
+                                        <button type="button" 
+                                                class="action-btn action-btn-view" 
+                                                wire:click="viewStatusDetails({{ $st->id }})" 
+                                                data-tooltip="View Lifecycle Node Details"
+                                                aria-label="View Details">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                        </button>
                                         <button type="button" 
                                                 class="action-btn action-btn-edit" 
                                                 wire:click="openEditModal({{ $st->id }})" 
@@ -587,4 +608,96 @@
             </div>
         </div>
     @endif
+
+    <!-- Workflow Status Details Modal -->
+    <x-modal :show="$isDetailsModalOpen" title="Workflow Lifecycle Node & Gate Requisites" closeAction="closeDetailsModal">
+        @if($selectedStatus)
+            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); padding: 1.15rem 1.25rem; border-radius: var(--radius-md);">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.35rem;">
+                            <code style="background: rgba(99,102,241,0.15); color: var(--primary); padding: 0.2rem 0.65rem; border-radius: 6px; font-weight: 800; font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; border: 1px solid rgba(99,102,241,0.3);">
+                                {{ $selectedStatus->code }}
+                            </code>
+                            <span class="badge" style="background: rgba(255, 255, 255, 0.06); color: var(--color-text-secondary); font-size: 0.72rem;">
+                                {{ $selectedStatus->scope }} SCOPE
+                            </span>
+                            <span class="badge" style="background: rgba(99, 102, 241, 0.1); color: var(--primary); font-size: 0.72rem;">
+                                Order: #{{ $selectedStatus->order }}
+                            </span>
+                        </div>
+                        <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--color-text-primary); margin: 0;">
+                            {{ $selectedStatus->label }}
+                        </h3>
+                    </div>
+                    <div>
+                        <span class="badge badge-{{ $selectedStatus->badge_color ?? 'primary' }}" style="font-size: 0.82rem; padding: 0.35rem 0.85rem;">
+                            <span class="badge-dot" style="background: currentColor;"></span> {{ $selectedStatus->label }}
+                        </span>
+                    </div>
+                </div>
+
+                @if($selectedStatus->description)
+                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                        <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-muted); display: block;">Node Operational Description</span>
+                        <p style="margin: 0.25rem 0 0 0; font-size: 0.88rem; color: var(--color-text-secondary); line-height: 1.5;">
+                            {{ $selectedStatus->description }}
+                        </p>
+                    </div>
+                @endif
+
+                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                    <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-muted); display: block; margin-bottom: 0.5rem;">Automated Policy Gate Checks</span>
+                    @php
+                        $reqs = $selectedStatus->gate_requirements ?? [];
+                    @endphp
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.65rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: {{ !empty($reqs['require_fee_paid']) ? 'var(--success)' : 'var(--color-text-muted)' }};">
+                            <span>{{ !empty($reqs['require_fee_paid']) ? '✔' : '✖' }}</span>
+                            <span>Fee Payment Verified in Ledger</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: {{ !empty($reqs['require_documents_verified']) ? 'var(--success)' : 'var(--color-text-muted)' }};">
+                            <span>{{ !empty($reqs['require_documents_verified']) ? '✔' : '✖' }}</span>
+                            <span>All Proof Documents Scrutinized</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: {{ !empty($reqs['require_peer_reviews']) ? 'var(--success)' : 'var(--color-text-muted)' }};">
+                            <span>{{ !empty($reqs['require_peer_reviews']) ? '✔' : '✖' }}</span>
+                            <span>Referees / Peer Reviews Complete</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: {{ !empty($reqs['require_justification_reason']) ? 'var(--success)' : 'var(--color-text-muted)' }};">
+                            <span>{{ !empty($reqs['require_justification_reason']) ? '✔' : '✖' }}</span>
+                            <span>Mandatory Justification / Remarks</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: {{ !empty($reqs['lock_applicant_profile']) ? 'var(--primary)' : 'var(--color-text-muted)' }};">
+                            <span>{{ !empty($reqs['lock_applicant_profile']) ? '🔒' : '🔓' }}</span>
+                            <span>Lock Applicant Profile Edits</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                    <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-muted); display: block; margin-bottom: 0.5rem;">Allowed Direct Progression Transitions</span>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                        @forelse($selectedStatus->allowed_transitions ?? [] as $trCode)
+                            <span class="badge" style="background: rgba(255, 255, 255, 0.06); color: var(--color-text-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.74rem;">
+                                → {{ $trCode }}
+                            </span>
+                        @empty
+                            <span style="font-size: 0.8rem; color: var(--color-text-muted); font-style: italic;">
+                                {{ $selectedStatus->is_terminal ? 'Terminal State - No downstream transitions allowed' : 'Unrestricted open pipeline progression' }}
+                            </span>
+                        @endforelse
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
+                    <button type="button" class="btn btn-primary" wire:click="openEditModal({{ $selectedStatus->id }}); closeDetailsModal();">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        <span>Edit Status & Gates</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary" wire:click="closeDetailsModal">Close</button>
+                </div>
+            </div>
+        @endif
+    </x-modal>
 </div>

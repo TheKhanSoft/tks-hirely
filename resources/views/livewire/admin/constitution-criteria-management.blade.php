@@ -26,42 +26,33 @@
         </div>
     @endif
 
-    <!-- Page Header & Segmented Engine Switcher -->
-    <div class="card mb-6" style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%); border-color: rgba(99, 102, 241, 0.25);">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1.5rem; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 280px;">
-                <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; flex-wrap: wrap;">
-                    <span class="badge" style="background: rgba(99, 102, 241, 0.2); color: var(--primary); font-weight: 800; font-size: 0.75rem; letter-spacing: 0.05em;">
-                        GOVERNANCE & STATUTE ENGINE
-                    </span>
-                    <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 0.75rem; font-weight: 700;">
-                        END-TO-END DYNAMIC PIPELINE
-                    </span>
-                    <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; font-size: 0.75rem; font-weight: 700;">
-                        MULTI-SECTOR
-                    </span>
-                </div>
-                <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 0.35rem 0; display: flex; align-items: center; gap: 0.5rem;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
+    <!-- Executive Control Header -->
+    <div class="page-hero-header">
+        <div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="brand-icon-box" style="background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(168,85,247,0.4)); box-shadow: 0 4px 14px rgba(99,102,241,0.25);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="color: #ffffff;">
                         <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
                         <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
                         <path d="M7 21h10"/>
                         <path d="M12 3v18"/>
                         <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
                     </svg>
-                    <span>Statutory Criteria, Committees & Process Flow Engine</span>
-                </h2>
-                <p style="font-size: 0.88rem; color: var(--color-text-secondary); margin: 0; line-height: 1.5;">
-                    Central engine for standing statutory committees (Scrutiny, Peer Review, Selection Board, Appellate), dynamic recruitment process flows, and multi-sector candidate routing with automated pass/fail/incomplete decision logic.
-                </p>
+                </div>
+                <div>
+                    <h1>Statutory Criteria, Committees & Process Flow Engine</h1>
+                    <p>Standing statutory committees, dynamic recruitment process flows, and candidate routing with automated decision logic.</p>
+                </div>
             </div>
+        </div>
 
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
             <!-- Segmented Top Tabs -->
-            <div style="display: flex; gap: 0.4rem; background: rgba(15, 23, 42, 0.7); padding: 0.35rem; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.08); flex-wrap: wrap;">
+            <div style="display: flex; gap: 0.35rem; background: rgba(15, 23, 42, 0.6); padding: 0.3rem; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.08); flex-wrap: wrap;">
                 <button type="button" 
                     wire:click="setTab('board_registry')" 
                     class="btn {{ $activeTab === 'board_registry' ? 'btn-primary' : 'btn-secondary' }}"
-                    style="padding: 0.55rem 0.9rem; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem;">
+                    style="padding: 0.5rem 0.85rem; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem; border-radius: 8px;">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 21h18"/>
                         <path d="M5 21V7l8-4v18"/>
@@ -72,16 +63,16 @@
                 <button type="button" 
                     wire:click="setTab('process_flow')" 
                     class="btn {{ $activeTab === 'process_flow' ? 'btn-primary' : 'btn-secondary' }}"
-                    style="padding: 0.55rem 0.9rem; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem;">
+                    style="padding: 0.5rem 0.85rem; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem; border-radius: 8px;">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
                     </svg>
-                    <span>Dynamic Process Flow Engine ({{ count($flow_stages) }} Steps)</span>
+                    <span>Process Flow Engine ({{ count($flow_stages) }})</span>
                 </button>
                 <button type="button" 
                     wire:click="setTab('campaign_constitution')" 
                     class="btn {{ $activeTab === 'campaign_constitution' ? 'btn-primary' : 'btn-secondary' }}"
-                    style="padding: 0.55rem 0.9rem; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem;">
+                    style="padding: 0.5rem 0.85rem; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem; border-radius: 8px;">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"/>
                         <circle cx="12" cy="12" r="6"/>
@@ -418,20 +409,25 @@
                                         </span>
                                     </td>
                                     <td style="padding: 0.9rem 1.25rem; text-align: right; white-space: nowrap;">
-                                        <div style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                                        <div class="action-btn-group justify-end">
                                             <button type="button" 
-                                                class="btn btn-secondary" 
+                                                class="action-btn action-btn-view" 
                                                 wire:click="viewBoardQuorum({{ $board->id }})" 
-                                                style="padding: 0.3rem 0.65rem; font-size: 0.75rem; font-weight: 600;"
-                                                title="View Quorum Breakdown">
-                                                👁️ Quorum
+                                                data-tooltip="View Quorum & Rule Breakdown"
+                                                aria-label="View Quorum Details">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                                    <circle cx="12" cy="12" r="3"/>
+                                                </svg>
                                             </button>
                                             <button type="button" 
-                                                class="btn btn-secondary" 
+                                                class="action-btn action-btn-success" 
                                                 wire:click="applyBoardConstitutionToCampaign({{ $board->id }})" 
-                                                style="padding: 0.3rem 0.65rem; font-size: 0.75rem; font-weight: 700; color: var(--primary);" 
-                                                title="Load into Active Campaign">
-                                                ⚡ Apply
+                                                data-tooltip="Apply & Load into Active Campaign"
+                                                aria-label="Apply to Campaign">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                                                </svg>
                                             </button>
                                             <button type="button" 
                                                 class="action-btn action-btn-edit" 

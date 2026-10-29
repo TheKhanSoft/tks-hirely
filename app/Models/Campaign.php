@@ -12,6 +12,7 @@ class Campaign extends Model
     use Auditable;
 
     protected $fillable = [
+        'advertisement_id',
         'job_code',
         'title',
         'track_type',
@@ -95,11 +96,43 @@ class Campaign extends Model
     }
 
     /**
+     * Parent official advertisement this job position belongs to.
+     */
+    public function advertisement(): BelongsTo
+    {
+        return $this->belongsTo(Advertisement::class, 'advertisement_id');
+    }
+
+    /**
      * Statutory board constitution assigned to this campaign.
      */
     public function constitution(): BelongsTo
     {
         return $this->belongsTo(CommitteeConstitution::class, 'constitution_id');
+    }
+
+    /**
+     * Get flexible academic division & marks eligibility criteria.
+     * Checks:
+     * 1. Position specific rules in campaign scoring_rules['academic_criteria']
+     * 2. Linked CommitteeConstitution eligibility_criteria['academic_criteria']
+     * 3. Global SystemSetting 'academic_eligibility_criteria'
+     */
+    public function getEffectiveAcademicCriteria(): array
+    {
+        $rules = $this->scoring_rules ?? [];
+        if (!empty($rules['academic_criteria'])) {
+            return $rules['academic_criteria'];
+        }
+
+        if ($this->constitution_id && $this->constitution) {
+            $constCriteria = $this->constitution->eligibility_criteria ?? [];
+            if (!empty($constCriteria['academic_criteria'])) {
+                return $constCriteria['academic_criteria'];
+            }
+        }
+
+        return \App\Services\AcademicEligibilityEvaluator::getGlobalCriteria();
     }
 
     /**

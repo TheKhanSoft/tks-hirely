@@ -38,12 +38,27 @@ class ApplicationVerification extends Component
 
         $this->applicationId = $id;
         $this->application = Application::with([
+            'user.basicInfo.degrees',
             'user.basicInfo.medals',
             'user.basicInfo.publications',
             'user.basicInfo.events',
             'user.basicInfo.researchProjects',
-            'campaign'
+            'campaign.advertisement',
+            'campaign.constitution',
+            'campaign.processFlow'
         ])->findOrFail($id);
+    }
+
+    public function autoFillAcademicDisqualification()
+    {
+        $evaluation = \App\Services\AcademicEligibilityEvaluator::evaluateCandidate(
+            $this->application->user?->basicInfo,
+            $this->application->campaign
+        );
+        if (!empty($evaluation['violations'])) {
+            $this->disqualification_reason = "Statutory Academic Eligibility Violations:\n• " . implode("\n• ", $evaluation['violations']);
+            $this->showDisqualificationModal = true;
+        }
     }
 
     public function viewDocument($name, $path, $type = 'Default')
@@ -133,7 +148,13 @@ class ApplicationVerification extends Component
 
     public function render()
     {
-        return view('livewire.admin.application-verification')
-            ->layout('layouts.app');
+        $academicEvaluation = \App\Services\AcademicEligibilityEvaluator::evaluateCandidate(
+            $this->application->user?->basicInfo,
+            $this->application->campaign
+        );
+
+        return view('livewire.admin.application-verification', [
+            'academicEvaluation' => $academicEvaluation,
+        ])->layout('layouts.app');
     }
 }

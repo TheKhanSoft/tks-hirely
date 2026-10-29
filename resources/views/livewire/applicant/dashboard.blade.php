@@ -629,6 +629,14 @@
                                     <span style="color: var(--color-text-secondary); font-size: 0.8rem; display: block;">
                                         {{ $camp->department }}
                                     </span>
+
+                                    @if($camp->advertisement)
+                                        <div style="margin-top: 0.35rem;">
+                                            <span class="badge" style="background: rgba(6, 182, 212, 0.12); color: var(--secondary); font-size: 0.68rem; font-weight: 800;">
+                                                📢 {{ $camp->advertisement->advertisement_no }} ({{ $camp->advertisement->year }})
+                                            </span>
+                                        </div>
+                                    @endif
                                 </div>
 
                                 <div style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem;" class="flex justify-between align-center">

@@ -1,34 +1,29 @@
 <div>
     <!-- Executive Control Header -->
-    <div class="card mb-6 card-ambient-mesh" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem; position: relative; overflow: hidden; padding: 1.5rem 1.75rem;">
-        <div style="position: absolute; right: -2rem; top: -2rem; width: 180px; height: 180px; background: radial-gradient(circle, var(--success-glow) 0%, transparent 70%); pointer-events: none;"></div>
+    <div class="page-hero-header">
         <div>
-            <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.35rem;">
-                <div class="brand-icon-box" style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3);">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--success);">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="brand-icon-box" style="background: linear-gradient(135deg, rgba(16,185,129,0.25), rgba(5,150,105,0.4)); box-shadow: 0 4px 14px rgba(16,185,129,0.25);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: #ffffff;">
                         <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
                         <line x1="1" y1="10" x2="23" y2="10"/>
                     </svg>
                 </div>
                 <div>
-                    <h1 class="card-title" style="margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">
-                        Financial Ledger & Voucher Gateway
-                    </h1>
-                    <p class="card-subtitle" style="margin: 0.2rem 0 0;">
-                        Monitor Kuickpay / 1Link consumer challans, bank settlement logs, and instant fee reconciliations.
-                    </p>
+                    <h1>Financial Ledger & Voucher Gateway</h1>
+                    <p>Monitor Kuickpay / 1Link consumer challans, bank settlement logs, and instant fee reconciliations.</p>
                 </div>
             </div>
         </div>
 
         <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <a href="/bank/simulator" target="_blank" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; border-color: var(--secondary-glow); color: var(--secondary); font-weight: 700; padding: 0.55rem 1rem;" title="Open Fintech Sandbox">
+            <a href="/bank/simulator" target="_blank" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; border-color: var(--secondary-glow); color: var(--secondary); font-weight: 700; padding: 0.6rem 1.15rem; border-radius: 10px;" title="Open Fintech Sandbox">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                 <span>1Link Simulator</span>
             </a>
             @if(!$isFormOpen)
                 @can('create-payment')
-                    <button type="button" class="btn btn-primary" wire:click="openCreatePaymentForm" style="display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: var(--shadow-sm); padding: 0.55rem 1.15rem; font-weight: 700;">
+                    <button type="button" class="btn btn-primary" wire:click="openCreatePaymentForm" style="display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 18px -2px rgba(16,185,129,0.5); padding: 0.65rem 1.35rem; font-weight: 700; border-radius: 10px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-color: #059669;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -320,6 +315,16 @@
 
                         <!-- Quick Actions (Hover Reveal Icons) -->
                         <x-slot:quickActions>
+                            <button type="button" 
+                                    class="action-btn action-btn-view" 
+                                    wire:click="viewPaymentDetails({{ $pay->id }})" 
+                                    data-tooltip="View Voucher & Reconciliation Dossier" 
+                                    aria-label="View Details">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
                             @if($pay->status !== 'SETTLED')
                                 @if(auth()->user()->can('reconcile-payment') || auth()->user()->can('edit-payment'))
                                     <button type="button" 
@@ -350,6 +355,13 @@
 
                         <!-- Kebab Dropdown Options Menu [ICON + TEXT] -->
                         <x-slot:menuActions>
+                            <x-entity-card-menu-item 
+                                label="View Voucher Dossier" 
+                                click="viewPaymentDetails({{ $pay->id }})">
+                                <x-slot:icon>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </x-slot:icon>
+                            </x-entity-card-menu-item>
                             @if($pay->status !== 'SETTLED')
                                 @if(auth()->user()->can('reconcile-payment') || auth()->user()->can('edit-payment'))
                                     <x-entity-card-menu-item 
@@ -462,6 +474,16 @@
                                 </td>
                                 <td style="text-align: right;">
                                     <div class="action-btn-group justify-end">
+                                        <button type="button" 
+                                                class="action-btn action-btn-view" 
+                                                wire:click="viewPaymentDetails({{ $pay->id }})"
+                                                data-tooltip="View Voucher Ledger Details"
+                                                aria-label="View Details">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                        </button>
                                         @if($pay->status !== 'SETTLED')
                                             @if(auth()->user()->can('reconcile-payment') || auth()->user()->can('edit-payment'))
                                                 <button type="button" 
@@ -526,5 +548,92 @@
             :isOpen="$isImportModalOpen" 
             entityName="Billing Vouchers" 
             :sampleColumns="['consumer_id', 'amount', 'status', 'transaction_id']" />
+
+        <!-- Payment Voucher & Reconciliation Details Modal -->
+        <x-modal :show="$isDetailsOpen" title="Billing Voucher & Reconciliation Ledger" closeAction="closeDetailsModal">
+            @if($selectedPayment)
+                <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); padding: 1rem 1.25rem; border-radius: var(--radius-md);">
+                        <div>
+                            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-muted); font-weight: 700;">1Link Consumer ID</div>
+                            <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: 800; color: var(--secondary); margin-top: 2px;">
+                                {{ $selectedPayment->consumer_id }}
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-muted); font-weight: 700;">Settlement Status</div>
+                            <div style="margin-top: 4px;">
+                                @if($selectedPayment->status === 'SETTLED')
+                                    <span class="badge badge-success"><span class="badge-dot" style="background: currentColor;"></span> Settled</span>
+                                @elseif($selectedPayment->status === 'PENDING')
+                                    <span class="badge badge-warning"><span class="badge-dot" style="background: currentColor;"></span> Pending Payment</span>
+                                @else
+                                    <span class="badge badge-danger"><span class="badge-dot" style="background: currentColor;"></span> {{ $selectedPayment->status }}</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                            <span style="font-size: 0.75rem; color: var(--color-text-muted); display: block; text-transform: uppercase; letter-spacing: 0.04em;">Applicant Candidate</span>
+                            <strong style="color: var(--color-text-primary); font-size: 0.95rem; display: block; margin-top: 3px;">
+                                {{ $selectedPayment->application->user->basicInfo?->first_name ?? '' }} {{ $selectedPayment->application->user->basicInfo?->last_name ?? '' }}
+                            </strong>
+                            <span style="font-size: 0.8rem; color: var(--color-text-secondary);">{{ $selectedPayment->application->user->email }}</span>
+                        </div>
+
+                        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                            <span style="font-size: 0.75rem; color: var(--color-text-muted); display: block; text-transform: uppercase; letter-spacing: 0.04em;">Target Vacancy</span>
+                            <strong style="color: var(--color-text-primary); font-size: 0.95rem; display: block; margin-top: 3px;">
+                                {{ $selectedPayment->application->campaign->title }}
+                            </strong>
+                            <span style="font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; color: var(--primary);">Job Code: {{ $selectedPayment->application->campaign->job_code }}</span>
+                        </div>
+
+                        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                            <span style="font-size: 0.75rem; color: var(--color-text-muted); display: block; text-transform: uppercase; letter-spacing: 0.04em;">Challan Amount</span>
+                            <strong style="color: {{ $selectedPayment->status === 'SETTLED' ? 'var(--success)' : 'var(--color-text-primary)' }}; font-size: 1.15rem; font-family: 'JetBrains Mono', monospace; display: block; margin-top: 3px;">
+                                PKR {{ number_format($selectedPayment->amount, 2) }}
+                            </strong>
+                        </div>
+
+                        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                            <span style="font-size: 0.75rem; color: var(--color-text-muted); display: block; text-transform: uppercase; letter-spacing: 0.04em;">Bank Transaction ID / Ref</span>
+                            <strong style="color: var(--color-text-primary); font-size: 0.95rem; font-family: 'JetBrains Mono', monospace; display: block; margin-top: 3px;">
+                                {{ $selectedPayment->transaction_id ?: 'Awaiting Settlement Gateway' }}
+                            </strong>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 0.85rem 1rem; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span style="font-size: 0.75rem; color: var(--color-text-muted); display: block; text-transform: uppercase; letter-spacing: 0.04em;">Payment Settlement Timestamp</span>
+                            <strong style="color: var(--color-text-primary); font-size: 0.88rem;">
+                                {{ $selectedPayment->payment_timestamp ? \Carbon\Carbon::parse($selectedPayment->payment_timestamp)->format('F d, Y - h:i A') : 'Not yet reconciled' }}
+                            </strong>
+                        </div>
+                        <div>
+                            <span style="font-size: 0.75rem; color: var(--color-text-muted); display: block; text-transform: uppercase; letter-spacing: 0.04em;">Voucher Created</span>
+                            <strong style="color: var(--color-text-primary); font-size: 0.88rem;">
+                                {{ $selectedPayment->created_at->format('F d, Y - h:i A') }}
+                            </strong>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
+                        @if($selectedPayment->status !== 'SETTLED')
+                            @if(auth()->user()->can('reconcile-payment') || auth()->user()->can('edit-payment'))
+                                <button type="button" class="btn btn-primary" wire:click="markSettled({{ $selectedPayment->id }}); closeDetailsModal();">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                    <span>Reconcile (Mark Settled)</span>
+                                </button>
+                            @endif
+                        @endif
+                        <button type="button" class="btn btn-secondary" wire:click="closeDetailsModal">Close</button>
+                    </div>
+                </div>
+            @endif
+        </x-modal>
     @endif
 </div>

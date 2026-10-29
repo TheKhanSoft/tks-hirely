@@ -19,10 +19,16 @@
                     </p>
                 </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; color: var(--color-text-secondary); padding-top: 0.5rem; border-top: 1px solid var(--border-color);">
+            <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; color: var(--color-text-secondary); padding-top: 0.5rem; border-top: 1px solid var(--border-color); flex-wrap: wrap;">
                 <span>Campaign: <strong style="color: var(--color-text-primary);">{{ $application->campaign->title }}</strong></span>
                 <span>•</span>
                 <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary);">{{ $application->campaign->track_type }} Track</span>
+                @if($application->campaign->advertisement)
+                    <span>•</span>
+                    <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); font-weight: 800;">
+                        📢 {{ $application->campaign->advertisement->advertisement_no }} (Year {{ $application->campaign->advertisement->year }})
+                    </span>
+                @endif
             </div>
             @if($application->campaign->track_type === 'ACADEMIC' && (auth()->user()->can('manage-reviewers') || auth()->user()->hasAnyRole(['super-admin', 'registrar'])))
                 <div style="margin-top: 0.75rem; padding: 0.5rem 0.75rem; background: rgba(6,182,212,0.08); border: 1px solid var(--secondary-glow); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: space-between;">
@@ -76,6 +82,44 @@
                 <span style="width: 22px; height: 22px; border-radius: 50%; background: rgba(6,182,212,0.15); color: var(--secondary); font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center;">2</span>
                 <h3 class="card-title" style="margin: 0; font-size: 1.05rem; color: var(--secondary);">Degrees & Transcripts Checklist</h3>
             </div>
+
+            <!-- Academic Division & Marks Eligibility Audit Card -->
+            @if(isset($academicEvaluation))
+                <div class="card mb-3" style="background: {{ $academicEvaluation['is_eligible'] ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)' }}; border: 1.5px solid {{ $academicEvaluation['is_eligible'] ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)' }}; padding: 0.85rem 1rem;">
+                    <div class="flex justify-between align-center flex-wrap gap-2">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="font-size: 1.1rem;">{{ $academicEvaluation['is_eligible'] ? '✅' : '⚠️' }}</span>
+                            <div>
+                                <strong style="color: {{ $academicEvaluation['is_eligible'] ? '#10b981' : '#ef4444' }}; font-size: 0.88rem;">
+                                    {{ $academicEvaluation['badge']['label'] }}
+                                </strong>
+                                <div style="font-size: 0.76rem; color: var(--color-text-secondary);">
+                                    Division breakdown: <strong>{{ $academicEvaluation['first_division_count'] }}</strong> First, <strong>{{ $academicEvaluation['second_division_count'] }}</strong> Second, <strong>{{ $academicEvaluation['third_division_count'] }}</strong> Third
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex align-center gap-2">
+                            @if(!$academicEvaluation['is_eligible'])
+                                <button type="button" class="btn btn-sm btn-danger" wire:click="autoFillAcademicDisqualification" style="padding: 0.3rem 0.65rem; font-size: 0.75rem; font-weight: 700;">
+                                    Auto-fill Disqualification Reason
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+
+                    @if(!$academicEvaluation['is_eligible'] && !empty($academicEvaluation['violations']))
+                        <div style="margin-top: 0.65rem; padding-top: 0.65rem; border-top: 1px dashed rgba(239, 68, 68, 0.25); font-size: 0.78rem; color: #ef4444;">
+                            <strong style="text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.03em;">Statutory Criteria Violations:</strong>
+                            <ul style="margin: 0.25rem 0 0 1.25rem; padding: 0;">
+                                @foreach($academicEvaluation['violations'] as $v)
+                                    <li>{{ $v }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+                </div>
+            @endif
 
             <div class="table-container mb-3">
                 <table class="table">
@@ -396,7 +440,7 @@
                 <form wire:submit.prevent="markIneligible">
                     <div class="form-group mb-4">
                         <label class="form-label">Disqualification Reason / Reference Code *</label>
-                        <textarea class="form-control" rows="4" wire:model="disqualification_reason" placeholder="e.g. HEC Equivalence certificate missing or Turnitin similarity index exceeds 19% threshold."></textarea>
+                        <textarea class="form-control" rows="4" wire:model="disqualification_reason" placeholder="e.g. HEC Equivalence certificate missing or Turnitin similarity index exceeds 19% threshold.">{{ $disqualification_reason }}</textarea>
                         @error('disqualification_reason') <span style="color: var(--danger); font-size: 0.85rem; margin-top: 0.25rem; display: block;">{{ $message }}</span> @enderror
                     </div>
 
