@@ -379,7 +379,7 @@
                                     </div>
                                 </td>
                                 <td style="vertical-align: middle; text-align: right;">
-                                    <div class="action-btn-group justify-end">
+                                    <div class="action-btn-group justify-end" x-data="{ openMenu: false }">
                                         <button type="button" 
                                                 class="action-btn action-btn-view" 
                                                 wire:click="viewStatusDetails({{ $st->id }})" 
@@ -400,32 +400,44 @@
                                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                                             </svg>
                                         </button>
-                                        <button type="button" 
-                                                class="action-btn {{ $st->is_active ? 'action-btn-success' : 'action-btn-delete' }}" 
-                                                wire:click="toggleStatusActive({{ $st->id }})" 
-                                                data-tooltip="{{ $st->is_active ? 'Status: Active (Click to Disable)' : 'Status: Inactive (Click to Activate)' }}"
-                                                aria-label="Toggle Status">
-                                            @if($st->is_active)
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                                            @else
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                            @endif
-                                        </button>
-                                        @if(!$st->is_system_default)
+
+                                        <!-- 3-Dot More Actions Dropdown -->
+                                        <div class="table-action-dropdown-wrap" @click.outside="openMenu = false">
                                             <button type="button" 
-                                                    class="action-btn action-btn-delete" 
-                                                    wire:click="deleteStatus({{ $st->id }})" 
-                                                    wire:confirm="Remove this status node from workflow?" 
-                                                    data-tooltip="Delete Status Node"
-                                                    aria-label="Delete Status Node">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <polyline points="3 6 5 6 21 6"/>
-                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                                    <line x1="10" y1="11" x2="10" y2="17"/>
-                                                    <line x1="14" y1="11" x2="14" y2="17"/>
+                                                    class="action-btn" 
+                                                    @click="openMenu = !openMenu" 
+                                                    data-tooltip="More Actions" 
+                                                    aria-label="More Actions">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                                                    <circle cx="12" cy="5" r="1.5"/>
+                                                    <circle cx="12" cy="12" r="1.5"/>
+                                                    <circle cx="12" cy="19" r="1.5"/>
                                                 </svg>
                                             </button>
-                                        @endif
+                                            <div class="table-action-dropdown" x-show="openMenu" x-cloak style="display: none;" @click="openMenu = false">
+                                                <button type="button" 
+                                                        class="table-action-menu-item {{ $st->is_active ? 'danger' : 'success' }}" 
+                                                        wire:click="toggleStatusActive({{ $st->id }})">
+                                                    @if($st->is_active)
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                                        <span>Disable Status Node</span>
+                                                    @else
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                                        <span>Activate Status Node</span>
+                                                    @endif
+                                                </button>
+                                                @if(!$st->is_system_default)
+                                                    <div class="table-action-menu-divider"></div>
+                                                    <button type="button" 
+                                                            class="table-action-menu-item danger" 
+                                                            wire:click="deleteStatus({{ $st->id }})" 
+                                                            wire:confirm="Remove this status node from workflow?">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                                        <span>Delete Status Node</span>
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>

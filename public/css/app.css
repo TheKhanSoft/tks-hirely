@@ -841,10 +841,39 @@ html.light .topbar-search-trigger {
 
 /* Metric / Stat KPI Cards & Grid */
 .stat-kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    display: grid !important;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
     gap: 1.15rem;
     margin-bottom: 1.75rem;
+    width: 100%;
+}
+
+.stat-kpi-grid > * {
+    min-width: 0;
+}
+
+@media (min-width: 580px) {
+    .stat-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 900px) {
+    .stat-kpi-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1180px) {
+    .stat-kpi-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1480px) {
+    .stat-kpi-grid {
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    }
 }
 
 .metric-card {
@@ -2714,6 +2743,111 @@ html.light .entity-card-menu-item:hover {
     height: 1px;
     background: rgba(255, 255, 255, 0.08);
     margin: 0.35rem 0;
+}
+
+/* =======================================================
+   TABLE 3-DOT ACTION DROPDOWN MENU SYSTEM
+   ======================================================= */
+.table-action-dropdown-wrap {
+    position: relative;
+    display: inline-flex;
+}
+
+.table-action-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.8), 0 0 1px 1px rgba(255, 255, 255, 0.08);
+    min-width: 210px;
+    padding: 0.35rem;
+    z-index: 1050;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    text-align: left;
+}
+
+html.light .table-action-dropdown {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.18);
+}
+
+.table-action-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    border-radius: 6px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+}
+
+.table-action-menu-item:hover {
+    background: rgba(99, 102, 241, 0.12);
+    color: var(--color-text-primary);
+}
+
+html.light .table-action-menu-item {
+    color: #334155;
+}
+
+html.light .table-action-menu-item:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.table-action-menu-item svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+
+.table-action-menu-item.danger {
+    color: #f87171;
+}
+
+.table-action-menu-item.danger:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.table-action-menu-item.success {
+    color: #34d399;
+}
+
+.table-action-menu-item.success:hover {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.table-action-menu-item.impersonate {
+    color: #fbbf24;
+}
+
+.table-action-menu-item.impersonate:hover {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+
+.table-action-menu-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: 0.35rem 0;
+}
+
+html.light .table-action-menu-divider {
+    background: #e2e8f0;
 }
 
 html.light .entity-card-menu-divider {

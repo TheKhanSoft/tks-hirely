@@ -760,7 +760,7 @@
                                         <strong style="color: var(--color-text-primary); font-family: monospace;">PKR {{ number_format($camp->application_fee, 2) }}</strong>
                                     </td>
                                     <td style="text-align: right;">
-                                        <div class="action-btn-group justify-end">
+                                        <div class="action-btn-group justify-end" x-data="{ openMenu: false }">
                                             <button type="button" 
                                                 class="action-btn action-btn-view" 
                                                 wire:click="viewCampaignDetails({{ $camp->id }})" 
@@ -771,36 +771,53 @@
                                                     <circle cx="12" cy="12" r="3"/>
                                                 </svg>
                                             </button>
-                                            <button type="button" 
-                                                class="action-btn action-btn-view" 
-                                                wire:click="openLinkModal({{ $camp->id }})" 
-                                                data-tooltip="Link Statutory Board & Process Flow"
-                                                aria-label="Link Board & Flow">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                                                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                                                </svg>
-                                            </button>
-                                            @can('tune-constitution')
-                                                @php
-                                                    $criteriaUrl = (auth()->user()->hasRole('registrar') && !auth()->user()->hasRole('super-admin')) ? '/registrar/criteria' : '/admin/criteria';
-                                                @endphp
-                                                <a href="{{ $criteriaUrl }}?campaign_id={{ $camp->id }}" 
-                                                   class="action-btn action-btn-view" 
-                                                   data-tooltip="Statutory Criteria & Quotas">
-                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/></svg>
-                                                </a>
-                                            @endcan
                                             @can('edit-campaign')
                                                 <button type="button" class="action-btn action-btn-edit" wire:click="openEditForm({{ $camp->id }})" data-tooltip="Edit Campaign">
                                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                                 </button>
                                             @endcan
-                                            @can('delete-campaign')
-                                                <button type="button" class="action-btn action-btn-delete" wire:click="deleteCampaign({{ $camp->id }})" onclick="confirm('Are you sure you want to delete this campaign? This will cascade delete applications and committees!') || event.stopImmediatePropagation()" data-tooltip="Delete Campaign">
-                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+
+                                            <!-- 3-Dot More Actions Dropdown -->
+                                            <div class="table-action-dropdown-wrap" @click.outside="openMenu = false">
+                                                <button type="button" 
+                                                        class="action-btn" 
+                                                        @click="openMenu = !openMenu" 
+                                                        data-tooltip="More Actions" 
+                                                        aria-label="More Actions">
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                                                        <circle cx="12" cy="5" r="1.5"/>
+                                                        <circle cx="12" cy="12" r="1.5"/>
+                                                        <circle cx="12" cy="19" r="1.5"/>
+                                                    </svg>
                                                 </button>
-                                            @endcan
+                                                <div class="table-action-dropdown" x-show="openMenu" x-cloak style="display: none;" @click="openMenu = false">
+                                                    <button type="button" 
+                                                        class="table-action-menu-item" 
+                                                        wire:click="openLinkModal({{ $camp->id }})">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                                                        </svg>
+                                                        <span>Link Board & Flow</span>
+                                                    </button>
+                                                    @can('tune-constitution')
+                                                        @php
+                                                            $criteriaUrl = (auth()->user()->hasRole('registrar') && !auth()->user()->hasRole('super-admin')) ? '/registrar/criteria' : '/admin/criteria';
+                                                        @endphp
+                                                        <a href="{{ $criteriaUrl }}?campaign_id={{ $camp->id }}" class="table-action-menu-item">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/></svg>
+                                                            <span>Statutory Criteria & Quotas</span>
+                                                        </a>
+                                                    @endcan
+                                                    @can('delete-campaign')
+                                                        <div class="table-action-menu-divider"></div>
+                                                        <button type="button" class="table-action-menu-item danger" wire:click="deleteCampaign({{ $camp->id }})" onclick="confirm('Are you sure you want to delete this campaign? This will cascade delete applications and committees!') || event.stopImmediatePropagation()">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                                            <span>Delete Campaign</span>
+                                                        </button>
+                                                    @endcan
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>

@@ -1,33 +1,30 @@
 <div class="entity-page">
-    <!-- Breadcrumb & Top Bar -->
-    <div class="flex justify-between align-center mb-4 flex-wrap gap-3">
+    <!-- Executive Control Header -->
+    <div class="page-hero-header">
         <div>
-            <div class="flex align-center gap-2" style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 0.25rem;">
-                <a href="{{ url('/admin/dashboard') }}" style="color: var(--color-text-muted); text-decoration: none;">Administration</a>
-                <span>/</span>
-                <span style="color: var(--secondary); font-weight: 700;">Advertisements & Date Tracking</span>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="brand-icon-box" style="background: linear-gradient(135deg, rgba(56,189,248,0.25), rgba(14,165,233,0.4)); box-shadow: 0 4px 14px rgba(56,189,248,0.25);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="color: #ffffff;">
+                        <rect width="18" height="18" x="3" y="3" rx="2"/>
+                        <path d="M3 9h18"/>
+                        <path d="M9 21V9"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1>Official Advertisements & Validity Desk</h1>
+                    <p>Publish official recruitment advertisements, track validity timelines, issue date extension corrigenda, and manage underlying quotas.</p>
+                </div>
             </div>
-            <h1 style="font-size: 1.55rem; font-weight: 900; color: var(--color-text-primary); margin: 0; letter-spacing: -0.02em; display: flex; align-items: center; gap: 0.6rem;">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="18" height="18" x="3" y="3" rx="2"/>
-                    <path d="M3 9h18"/>
-                    <path d="M9 21V9"/>
-                </svg>
-                <span>Advertisements & Validity Extensions Desk</span>
-            </h1>
-            <p style="color: var(--color-text-secondary); font-size: 0.84rem; margin: 0.2rem 0 0 0;">
-                Publish official recruitment advertisements, track validity timelines, issue date extension corrigenda, and manage underlying job quotas.
-            </p>
         </div>
 
-        <div class="flex align-center gap-2">
-            <button type="button" class="btn btn-secondary" wire:click="exportCsv" style="font-size: 0.82rem; padding: 0.45rem 0.85rem; font-weight: 700;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <button type="button" class="btn btn-secondary" wire:click="exportCsv" style="font-size: 0.82rem; padding: 0.6rem 1rem; font-weight: 700; border-radius: 10px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 <span>Export CSV</span>
             </button>
 
             @can('create-campaign')
-                <button type="button" class="btn btn-primary" wire:click="openCreateModal" style="font-size: 0.82rem; padding: 0.45rem 1rem; font-weight: 800; display: inline-flex; align-items: center; gap: 0.4rem;">
+                <button type="button" class="btn btn-primary" wire:click="openCreateModal" style="font-size: 0.85rem; padding: 0.65rem 1.35rem; font-weight: 800; display: inline-flex; align-items: center; gap: 0.4rem; border-radius: 10px; box-shadow: 0 4px 18px -2px rgba(14,165,233,0.5); background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border-color: #0284c7;">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     <span>+ New Advertisement</span>
                 </button>
@@ -36,57 +33,55 @@
     </div>
 
     <!-- Executive KPI Strip -->
-    <div class="grid grid-cols-4 gap-3 mb-4">
-        <div class="card" style="background: var(--bg-surface); border-color: var(--border-color); padding: 1rem 1.25rem;">
-            <div class="flex justify-between align-center">
-                <span style="font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: var(--color-text-muted); letter-spacing: 0.05em;">Total Advertisements</span>
-                <span style="font-size: 1.1rem;">📢</span>
+    <div class="stat-kpi-grid">
+        <div class="metric-card" style="--card-accent: var(--primary); --metric-icon-bg: var(--primary-light); --metric-icon-color: var(--primary);">
+            <div class="metric-header">
+                <span class="metric-label">Total Advertisements</span>
+                <div class="metric-icon-wrap">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>
+                    </svg>
+                </div>
             </div>
-            <div style="font-size: 1.65rem; font-weight: 900; color: var(--color-text-primary); margin-top: 0.25rem;">
-                {{ $stats['total'] }}
-            </div>
-            <div style="font-size: 0.74rem; color: var(--color-text-muted); margin-top: 2px;">
-                Official recruitment cycles
-            </div>
+            <div class="metric-value" style="color: var(--primary);">{{ $stats['total'] }}</div>
+            <div class="metric-subtext">Official recruitment cycles</div>
         </div>
 
-        <div class="card" style="background: var(--bg-surface); border-color: var(--border-color); padding: 1rem 1.25rem;">
-            <div class="flex justify-between align-center">
-                <span style="font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: var(--color-text-muted); letter-spacing: 0.05em;">Currently Active</span>
-                <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px rgba(16,185,129,0.8);"></span>
+        <div class="metric-card" style="--card-accent: #10b981; --metric-icon-bg: rgba(16,185,129,0.12); --metric-icon-color: #10b981;">
+            <div class="metric-header">
+                <span class="metric-label">Currently Active</span>
+                <div class="metric-icon-wrap">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px rgba(16,185,129,0.8);"></span>
+                </div>
             </div>
-            <div style="font-size: 1.65rem; font-weight: 900; color: #10b981; margin-top: 0.25rem;">
-                {{ $stats['active'] }}
-            </div>
-            <div style="font-size: 0.74rem; color: var(--color-text-muted); margin-top: 2px;">
-                Open for candidacies
-            </div>
+            <div class="metric-value" style="color: #10b981;">{{ $stats['active'] }}</div>
+            <div class="metric-subtext">Open for candidacies</div>
         </div>
 
-        <div class="card" style="background: var(--bg-surface); border-color: var(--border-color); padding: 1rem 1.25rem;">
-            <div class="flex justify-between align-center">
-                <span style="font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: var(--color-text-muted); letter-spacing: 0.05em;">Date Extensions Logged</span>
-                <span style="font-size: 1.1rem;">⏱️</span>
+        <div class="metric-card" style="--card-accent: #38bdf8; --metric-icon-bg: rgba(56,189,248,0.12); --metric-icon-color: #38bdf8;">
+            <div class="metric-header">
+                <span class="metric-label">Extensions Logged</span>
+                <div class="metric-icon-wrap">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/>
+                    </svg>
+                </div>
             </div>
-            <div style="font-size: 1.65rem; font-weight: 900; color: #38bdf8; margin-top: 0.25rem;">
-                {{ $stats['extended'] }}
-            </div>
-            <div style="font-size: 0.74rem; color: var(--color-text-muted); margin-top: 2px;">
-                Corrigenda issued
-            </div>
+            <div class="metric-value" style="color: #38bdf8;">{{ $stats['extended'] }}</div>
+            <div class="metric-subtext">Corrigenda issued</div>
         </div>
 
-        <div class="card" style="background: var(--bg-surface); border-color: var(--border-color); padding: 1rem 1.25rem;">
-            <div class="flex justify-between align-center">
-                <span style="font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: var(--color-text-muted); letter-spacing: 0.05em;">Jobs Under Advertisements</span>
-                <span style="font-size: 1.1rem;">💼</span>
+        <div class="metric-card" style="--card-accent: var(--secondary); --metric-icon-bg: var(--secondary-light); --metric-icon-color: var(--secondary);">
+            <div class="metric-header">
+                <span class="metric-label">Mapped Jobs</span>
+                <div class="metric-icon-wrap">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                    </svg>
+                </div>
             </div>
-            <div style="font-size: 1.65rem; font-weight: 900; color: var(--primary); margin-top: 0.25rem;">
-                {{ $stats['totalJobs'] }}
-            </div>
-            <div style="font-size: 0.74rem; color: var(--color-text-muted); margin-top: 2px;">
-                Mapped positions & cadres
-            </div>
+            <div class="metric-value" style="color: var(--secondary);">{{ $stats['totalJobs'] }}</div>
+            <div class="metric-subtext">Mapped positions & cadres</div>
         </div>
     </div>
 
@@ -398,7 +393,7 @@
                                     @endcan
                                 </td>
                                 <td style="text-align: right;">
-                                    <div class="action-btn-group justify-end">
+                                    <div class="action-btn-group justify-end" x-data="{ openMenu: false }">
                                         @can('edit-campaign')
                                             <button type="button" 
                                                     class="action-btn action-btn-view" 
@@ -410,14 +405,6 @@
                                         @endcan
 
                                         <button type="button" 
-                                                class="action-btn action-btn-info" 
-                                                wire:click="openHistoryModal({{ $ad->id }})" 
-                                                data-tooltip="View Date History & Tracking" 
-                                                aria-label="View History">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                        </button>
-
-                                        <button type="button" 
                                                 class="action-btn action-btn-view" 
                                                 wire:click="openJobsModal({{ $ad->id }})" 
                                                 data-tooltip="View Advertised Jobs" 
@@ -425,15 +412,36 @@
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
                                         </button>
 
-                                        @can('edit-campaign')
+                                        <!-- 3-Dot More Actions Dropdown -->
+                                        <div class="table-action-dropdown-wrap" @click.outside="openMenu = false">
                                             <button type="button" 
-                                                    class="action-btn action-btn-edit" 
-                                                    wire:click="openEditModal({{ $ad->id }})" 
-                                                    data-tooltip="Edit Advertisement" 
-                                                    aria-label="Edit Advertisement">
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                                    class="action-btn" 
+                                                    @click="openMenu = !openMenu" 
+                                                    data-tooltip="More Actions" 
+                                                    aria-label="More Actions">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                                                    <circle cx="12" cy="5" r="1.5"/>
+                                                    <circle cx="12" cy="12" r="1.5"/>
+                                                    <circle cx="12" cy="19" r="1.5"/>
+                                                </svg>
                                             </button>
-                                        @endcan
+                                            <div class="table-action-dropdown" x-show="openMenu" x-cloak style="display: none;" @click="openMenu = false">
+                                                <button type="button" 
+                                                        class="table-action-menu-item" 
+                                                        wire:click="openHistoryModal({{ $ad->id }})">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                                    <span>Date History & Tracking</span>
+                                                </button>
+                                                @can('edit-campaign')
+                                                    <button type="button" 
+                                                            class="table-action-menu-item" 
+                                                            wire:click="openEditModal({{ $ad->id }})">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                                        <span>Edit Advertisement</span>
+                                                    </button>
+                                                @endcan
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>

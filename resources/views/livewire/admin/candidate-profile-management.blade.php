@@ -493,14 +493,7 @@
                                     @endcan
                                 </td>
                                 <td style="text-align: right;">
-                                    <div class="action-btn-group justify-end">
-                                        @if(auth()->user()->hasRole('super-admin') && $basicInfo->user && auth()->id() !== $basicInfo->user->id && !$basicInfo->user->hasRole('super-admin'))
-                                            <a href="{{ route('impersonate.start', $basicInfo->user->id) }}" 
-                                               class="action-btn action-btn-impersonate" 
-                                               data-tooltip="Impersonate {{ $basicInfo->first_name ?: $basicInfo->user->email }}">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                                            </a>
-                                        @endif
+                                    <div class="action-btn-group justify-end" x-data="{ openMenu: false }">
                                         @if(auth()->user()->can('view-candidate-dossier') || auth()->user()->can('view-basic-info'))
                                             <button type="button" class="action-btn action-btn-view" data-tooltip="View Candidate Dossier" wire:click="viewBasicInfoDetails({{ $basicInfo->id }})">
                                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -511,11 +504,36 @@
                                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                             </button>
                                         @endcan
-                                        @can('delete-basic-info')
-                                            <button type="button" class="action-btn action-btn-delete" data-tooltip="Delete Candidate Profile" wire:click="deleteBasicInfo({{ $basicInfo->id }})" onclick="confirm('Are you sure you want to permanently delete this candidate profile?') || event.stopImmediatePropagation()">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+
+                                        <!-- 3-Dot More Actions Dropdown -->
+                                        <div class="table-action-dropdown-wrap" @click.outside="openMenu = false">
+                                            <button type="button" 
+                                                    class="action-btn" 
+                                                    @click="openMenu = !openMenu" 
+                                                    data-tooltip="More Actions" 
+                                                    aria-label="More Actions">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                                                    <circle cx="12" cy="5" r="1.5"/>
+                                                    <circle cx="12" cy="12" r="1.5"/>
+                                                    <circle cx="12" cy="19" r="1.5"/>
+                                                </svg>
                                             </button>
-                                        @endcan
+                                            <div class="table-action-dropdown" x-show="openMenu" x-cloak style="display: none;" @click="openMenu = false">
+                                                @if(auth()->user()->hasRole('super-admin') && $basicInfo->user && auth()->id() !== $basicInfo->user->id && !$basicInfo->user->hasRole('super-admin'))
+                                                    <a href="{{ route('impersonate.start', $basicInfo->user->id) }}" class="table-action-menu-item impersonate">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                                        <span>Impersonate Candidate</span>
+                                                    </a>
+                                                @endif
+                                                @can('delete-basic-info')
+                                                    <div class="table-action-menu-divider"></div>
+                                                    <button type="button" class="table-action-menu-item danger" wire:click="deleteBasicInfo({{ $basicInfo->id }})" onclick="confirm('Are you sure you want to permanently delete this candidate profile?') || event.stopImmediatePropagation()">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                                        <span>Delete Candidate Profile</span>
+                                                    </button>
+                                                @endcan
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>

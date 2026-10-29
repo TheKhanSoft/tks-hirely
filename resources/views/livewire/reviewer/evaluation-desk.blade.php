@@ -1,10 +1,8 @@
 <div class="flex-col gap-6">
     <!-- Header Banner -->
-    <div class="card mb-6" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem; position: relative; overflow: hidden;">
-        <div style="position: absolute; right: -2rem; top: -2rem; width: 160px; height: 160px; background: radial-gradient(circle, var(--secondary-glow) 0%, transparent 70%); pointer-events: none;"></div>
-        
+    <div class="page-hero-header">
         <div class="flex align-center gap-4">
-            <div style="width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #0891b2, #4f46e5); color: #fff; font-weight: 800; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(8, 145, 178, 0.35); border: 2px solid rgba(255,255,255,0.15);">
+            <div style="width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, #0891b2, #4f46e5); color: #fff; font-weight: 800; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(8, 145, 178, 0.4); border: 2px solid rgba(255,255,255,0.2);">
                 {{ strtoupper(substr($reviewerProfile?->name ?: auth()->user()->email, 0, 1)) }}
             </div>
             <div>
@@ -29,12 +27,12 @@
 
         <!-- Quick Stats Cards -->
         <div class="flex gap-3">
-            <div style="background: var(--bg-surface); border: 1px solid var(--border-color); padding: 0.75rem 1.25rem; border-radius: var(--radius-md); text-align: center; min-width: 90px;">
+            <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); padding: 0.65rem 1.15rem; border-radius: var(--radius-md); text-align: center; min-width: 90px;">
                 <span style="font-size: 0.72rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 700;">Awaiting</span>
                 <div style="font-size: 1.45rem; font-weight: 800; color: var(--warning);">{{ $pendingCount }}</div>
             </div>
 
-            <div style="background: var(--bg-surface); border: 1px solid var(--border-color); padding: 0.75rem 1.25rem; border-radius: var(--radius-md); text-align: center; min-width: 90px;">
+            <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); padding: 0.65rem 1.15rem; border-radius: var(--radius-md); text-align: center; min-width: 90px;">
                 <span style="font-size: 0.72rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 700;">Completed</span>
                 <div style="font-size: 1.45rem; font-weight: 800; color: var(--success);">{{ $completedCount }}</div>
             </div>

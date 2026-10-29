@@ -1,52 +1,52 @@
 <div>
-    <!-- Dynamic Header -->
-    <div class="card mb-6" style="background: var(--bg-card); border-color: var(--border-color); box-shadow: var(--shadow-md);">
-        <div class="flex justify-between align-center" style="flex-wrap: wrap; gap: 1rem;">
-            <div>
-                <h1 class="card-title" style="font-size: 1.6rem; font-weight: 800; letter-spacing: -0.03em;">
-                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; background: var(--primary-light); color: var(--primary); margin-right: 0.5rem;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M3 3v18h18"/>
-                            <path d="m19 9-5 5-4-4-3 3"/>
-                        </svg>
-                    </span>
-                    Administrative Operations Control
-                </h1>
-                <p class="card-subtitle">Real-time metrics, scrutiny pipelines, and selection board candidate evaluation desks.</p>
-            </div>
-            
-            <!-- Quick Actions & Session Pill -->
-            <div class="flex align-center gap-3">
-                <a href="/admin/reviewers" class="btn btn-secondary btn-sm">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    <!-- Executive Control Header -->
+    <div class="page-hero-header">
+        <div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="brand-icon-box" style="background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(79,70,229,0.4)); box-shadow: 0 4px 14px rgba(99,102,241,0.25);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="color: #ffffff;">
+                        <path d="M3 3v18h18"/>
+                        <path d="m19 9-5 5-4-4-3 3"/>
                     </svg>
-                    <span>Academic Reviewers</span>
-                </a>
-
-                <a href="/admin/management?tab=campaigns" class="btn btn-primary btn-sm">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                    <span>Manage Campaigns</span>
-                </a>
-
-                <div style="background: var(--bg-btn-secondary); border: 1px solid var(--border-color); padding: 0.45rem 0.9rem; border-radius: var(--radius-sm);" class="flex align-center gap-2">
-                    <span class="badge-dot" style="background: var(--success); box-shadow: 0 0 6px var(--success);"></span>
-                    <span style="font-size: 0.78rem; font-weight: 700; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">
-                        {{ str_replace('-', ' ', auth()->user()->roles->first()?->name ?? 'Admin') }}
-                    </span>
                 </div>
+                <div>
+                    <h1>Operations Desk & Executive Overview</h1>
+                    <p>Real-time metrics, scrutiny pipelines, referee empanelment, and statutory board candidate evaluation desks.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions & Session Pill -->
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <a href="/admin/reviewers" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1rem; border-radius: 10px; font-weight: 700; font-size: 0.84rem;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <span>Academic Reviewers</span>
+            </a>
+
+            <a href="/admin/management?tab=campaigns" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.65rem 1.25rem; border-radius: 10px; font-weight: 700; font-size: 0.84rem; box-shadow: 0 4px 18px -2px rgba(99,102,241,0.5);">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>Manage Campaigns</span>
+            </a>
+
+            <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); padding: 0.5rem 0.9rem; border-radius: 10px;" class="flex align-center gap-2">
+                <span class="badge-dot" style="background: var(--success); box-shadow: 0 0 6px var(--success);"></span>
+                <span style="font-size: 0.78rem; font-weight: 700; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">
+                    {{ str_replace('-', ' ', auth()->user()->roles->first()?->name ?? 'Admin') }}
+                </span>
             </div>
         </div>
     </div>
 
     <!-- Interactive KPI Metrics Summary Cards -->
-    <div class="grid grid-cols-4 gap-6 mb-6">
+    <div class="stat-kpi-grid">
         <!-- Paid / In Scrutiny -->
         <div class="metric-card" style="--card-accent: var(--secondary); --metric-icon-bg: var(--secondary-light); --metric-icon-color: var(--secondary); --metric-icon-glow: var(--secondary-glow);">
             <div class="metric-header">

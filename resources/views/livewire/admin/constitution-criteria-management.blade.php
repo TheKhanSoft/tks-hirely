@@ -409,7 +409,7 @@
                                         </span>
                                     </td>
                                     <td style="padding: 0.9rem 1.25rem; text-align: right; white-space: nowrap;">
-                                        <div class="action-btn-group justify-end">
+                                        <div class="action-btn-group justify-end" x-data="{ openMenu: false }">
                                             <button type="button" 
                                                 class="action-btn action-btn-view" 
                                                 wire:click="viewBoardQuorum({{ $board->id }})" 
@@ -418,15 +418,6 @@
                                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                                     <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
                                                     <circle cx="12" cy="12" r="3"/>
-                                                </svg>
-                                            </button>
-                                            <button type="button" 
-                                                class="action-btn action-btn-success" 
-                                                wire:click="applyBoardConstitutionToCampaign({{ $board->id }})" 
-                                                data-tooltip="Apply & Load into Active Campaign"
-                                                aria-label="Apply to Campaign">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
                                                 </svg>
                                             </button>
                                             <button type="button" 
@@ -439,27 +430,51 @@
                                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                                                 </svg>
                                             </button>
-                                            <button type="button" 
-                                                class="action-btn action-btn-view" 
-                                                wire:click="cloneBoardModel({{ $board->id }})" 
-                                                data-tooltip="Clone / Duplicate Board"
-                                                aria-label="Clone Board">
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-                                                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-                                                </svg>
-                                            </button>
-                                            <button type="button" 
-                                                class="action-btn action-btn-delete" 
-                                                wire:click="deleteBoardModel({{ $board->id }})" 
-                                                wire:confirm="Are you sure you want to delete this Statutory Board Constitution?" 
-                                                data-tooltip="Delete Board"
-                                                aria-label="Delete Board">
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <polyline points="3 6 5 6 21 6"/>
-                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                                </svg>
-                                            </button>
+
+                                            <!-- 3-Dot More Actions Dropdown -->
+                                            <div class="table-action-dropdown-wrap" @click.outside="openMenu = false">
+                                                <button type="button" 
+                                                        class="action-btn" 
+                                                        @click="openMenu = !openMenu" 
+                                                        data-tooltip="More Actions" 
+                                                        aria-label="More Actions">
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                                                        <circle cx="12" cy="5" r="1.5"/>
+                                                        <circle cx="12" cy="12" r="1.5"/>
+                                                        <circle cx="12" cy="19" r="1.5"/>
+                                                    </svg>
+                                                </button>
+                                                <div class="table-action-dropdown" x-show="openMenu" x-cloak style="display: none;" @click="openMenu = false">
+                                                    <button type="button" 
+                                                        class="table-action-menu-item success" 
+                                                        wire:click="applyBoardConstitutionToCampaign({{ $board->id }})">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                                                        </svg>
+                                                        <span>Apply to Campaign</span>
+                                                    </button>
+                                                    <button type="button" 
+                                                        class="table-action-menu-item" 
+                                                        wire:click="cloneBoardModel({{ $board->id }})">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                                                            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                                                        </svg>
+                                                        <span>Clone Board</span>
+                                                    </button>
+                                                    <div class="table-action-menu-divider"></div>
+                                                    <button type="button" 
+                                                        class="table-action-menu-item danger" 
+                                                        wire:click="deleteBoardModel({{ $board->id }})" 
+                                                        wire:confirm="Are you sure you want to delete this Statutory Board Constitution?">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <polyline points="3 6 5 6 21 6"/>
+                                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                                        </svg>
+                                                        <span>Delete Board</span>
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>

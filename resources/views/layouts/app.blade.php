@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="/css/app.css?v={{ @filemtime(public_path('css/app.css')) ?: time() }}">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
     <script>
         (function() {
@@ -142,7 +143,7 @@
                                     <rect width="20" height="14" x="2" y="5" rx="2"/>
                                     <line x1="2" x2="22" y1="10" y2="10"/>
                                 </svg>
-                                <span>Vouchers & Ledger</span>
+                                <span>Payments</span>
                             </a>
                         @endcan
 
@@ -322,31 +323,6 @@
                         <span class="beacon-status-sub">Operational • Live Quorum</span>
                     </div>
                 </div>
-
-                <!-- User Profile Card -->
-                <div class="sidebar-user-card">
-                    <div class="user-avatar-circle">
-                        {{ strtoupper(substr(auth()->user()->basicInfo?->first_name ?: auth()->user()->email, 0, 1)) }}
-                    </div>
-                    <div class="user-meta-info">
-                        <div class="user-name-title" title="{{ auth()->user()->email }}">
-                            {{ auth()->user()->basicInfo ? trim(auth()->user()->basicInfo->first_name . ' ' . auth()->user()->basicInfo->last_name) : auth()->user()->email }}
-                        </div>
-                        <div class="user-role-pill">
-                            {{ str_replace('-', ' ', auth()->user()->roles->first()?->name ?? 'User') }}
-                        </div>
-                    </div>
-                    <form action="/logout" method="POST" style="margin: 0;">
-                        @csrf
-                        <button type="submit" class="btn-logout-icon" title="Log out session">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                                <polyline points="16 17 21 12 16 7"/>
-                                <line x1="21" x2="9" y1="12" y2="12"/>
-                            </svg>
-                        </button>
-                    </form>
-                </div>
             @endauth
         </aside>
 
@@ -417,7 +393,7 @@
                             @elseif(request()->is('admin/campaigns*') || request()->is('registrar/campaigns*')) Recruitment Campaigns
                             @elseif(request()->is('admin/applications*') || request()->is('registrar/applications*')) Applications Dossiers
                             @elseif(request()->is('admin/candidates*') || request()->is('registrar/candidates*')) Candidate Profiles
-                            @elseif(request()->is('admin/payments*') || request()->is('registrar/payments*')) Financial Ledger & Vouchers
+                            @elseif(request()->is('admin/payments*') || request()->is('registrar/payments*')) Payments & Vouchers
                             @elseif(request()->is('admin/users*') || request()->is('registrar/users*')) User Accounts Management
                             @elseif(request()->is('admin/roles*') || request()->is('registrar/roles*')) Roles & Access Governance
                             @elseif(request()->is('admin/audit-logs*') || request()->is('registrar/audit-logs*')) Security Audit Logs

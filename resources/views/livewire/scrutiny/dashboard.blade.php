@@ -1,42 +1,35 @@
 <div>
     <!-- Executive Scrutiny Control Header -->
-    <div class="card mb-6" style="background: var(--bg-card); border-color: var(--border-color); box-shadow: var(--shadow-md); position: relative; overflow: hidden;">
-        <div style="position: absolute; right: -2rem; top: -2rem; width: 180px; height: 180px; background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%); pointer-events: none;"></div>
-        <div class="flex justify-between align-center" style="flex-wrap: wrap; gap: 1.25rem;">
-            <div>
-                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem;">
-                    <div class="brand-icon-box" style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); color: var(--primary);">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="m21 21-4.3-4.3"/>
-                            <path d="M11 8v6"/>
-                            <path d="M8 11h6"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="card-title" style="margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em;">
-                            Document Scrutiny Committee Desk
-                        </h1>
-                        <p class="card-subtitle" style="margin: 0.2rem 0 0;">
-                            Verify candidate qualifications, degrees, publications, medals, and statutory eligibility criteria.
-                        </p>
-                    </div>
+    <div class="page-hero-header">
+        <div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="brand-icon-box" style="background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(79,70,229,0.4)); box-shadow: 0 4px 14px rgba(99,102,241,0.25);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="color: #ffffff;">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.3-4.3"/>
+                        <path d="M11 8v6"/>
+                        <path d="M8 11h6"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1>Document Scrutiny Committee Desk</h1>
+                    <p>Verify candidate qualifications, degrees, publications, medals, and statutory eligibility criteria.</p>
                 </div>
             </div>
+        </div>
 
-            <div class="flex align-center gap-3">
-                <div style="background: var(--bg-surface); border: 1px solid var(--border-color); padding: 0.45rem 1rem; border-radius: 9999px;" class="flex align-center gap-2">
-                    <span class="badge-dot" style="background: var(--primary); box-shadow: 0 0 8px var(--primary);"></span>
-                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-primary); text-transform: uppercase; letter-spacing: 0.05em;">
-                        Scrutiny Committee Panel
-                    </span>
-                </div>
+        <div class="flex align-center gap-3">
+            <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); padding: 0.5rem 1rem; border-radius: 9999px;" class="flex align-center gap-2">
+                <span class="badge-dot" style="background: var(--primary); box-shadow: 0 0 8px var(--primary);"></span>
+                <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-primary); text-transform: uppercase; letter-spacing: 0.05em;">
+                    Scrutiny Committee Panel
+                </span>
             </div>
         </div>
     </div>
 
     <!-- Scrutiny KPI Status Cards -->
-    <div class="grid grid-cols-4 gap-5 mb-6">
+    <div class="stat-kpi-grid">
         <!-- Awaiting Verification -->
         <div class="metric-card cursor-pointer" 
              wire:click="$set('statusFilter', 'PAID')" 

@@ -10,7 +10,7 @@
                     </svg>
                 </div>
                 <div>
-                    <h1>Financial Ledger & Voucher Gateway</h1>
+                    <h1>Payments & Fee Vouchers Gateway</h1>
                     <p>Monitor Kuickpay / 1Link consumer challans, bank settlement logs, and instant fee reconciliations.</p>
                 </div>
             </div>
@@ -473,7 +473,7 @@
                                     </span>
                                 </td>
                                 <td style="text-align: right;">
-                                    <div class="action-btn-group justify-end">
+                                    <div class="action-btn-group justify-end" x-data="{ openMenu: false }">
                                         <button type="button" 
                                                 class="action-btn action-btn-view" 
                                                 wire:click="viewPaymentDetails({{ $pay->id }})"
@@ -497,33 +497,49 @@
                                                 </button>
                                             @endif
                                         @endif
-                                        @can('edit-payment')
+
+                                        <!-- 3-Dot More Actions Dropdown -->
+                                        <div class="table-action-dropdown-wrap" @click.outside="openMenu = false">
                                             <button type="button" 
-                                                    class="action-btn action-btn-edit" 
-                                                    wire:click="openEditPaymentForm({{ $pay->id }})"
-                                                    data-tooltip="Edit Voucher Particulars"
-                                                    aria-label="Edit Voucher">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                                    class="action-btn" 
+                                                    @click="openMenu = !openMenu" 
+                                                    data-tooltip="More Actions" 
+                                                    aria-label="More Actions">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                                                    <circle cx="12" cy="5" r="1.5"/>
+                                                    <circle cx="12" cy="12" r="1.5"/>
+                                                    <circle cx="12" cy="19" r="1.5"/>
                                                 </svg>
                                             </button>
-                                        @endcan
-                                        @can('delete-payment')
-                                            <button type="button" 
-                                                    class="action-btn action-btn-delete" 
-                                                    wire:click="deletePayment({{ $pay->id }})" 
-                                                    onclick="confirm('Are you sure you want to permanently delete this billing voucher record?') || event.stopImmediatePropagation()"
-                                                    data-tooltip="Delete Voucher Record"
-                                                    aria-label="Delete Voucher">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <polyline points="3 6 5 6 21 6"/>
-                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                                    <line x1="10" y1="11" x2="10" y2="17"/>
-                                                    <line x1="14" y1="11" x2="14" y2="17"/>
-                                                </svg>
-                                            </button>
-                                        @endcan
+                                            <div class="table-action-dropdown" x-show="openMenu" x-cloak style="display: none;" @click="openMenu = false">
+                                                @can('edit-payment')
+                                                    <button type="button" 
+                                                            class="table-action-menu-item" 
+                                                            wire:click="openEditPaymentForm({{ $pay->id }})">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                                        </svg>
+                                                        <span>Edit Voucher Particulars</span>
+                                                    </button>
+                                                @endcan
+                                                @can('delete-payment')
+                                                    <div class="table-action-menu-divider"></div>
+                                                    <button type="button" 
+                                                            class="table-action-menu-item danger" 
+                                                            wire:click="deletePayment({{ $pay->id }})" 
+                                                            onclick="confirm('Are you sure you want to permanently delete this billing voucher record?') || event.stopImmediatePropagation()">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <polyline points="3 6 5 6 21 6"/>
+                                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                                            <line x1="10" y1="11" x2="10" y2="17"/>
+                                                            <line x1="14" y1="11" x2="14" y2="17"/>
+                                                        </svg>
+                                                        <span>Delete Voucher Record</span>
+                                                    </button>
+                                                @endcan
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>

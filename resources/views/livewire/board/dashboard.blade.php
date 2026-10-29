@@ -1,39 +1,32 @@
 <div>
     <!-- Executive Selection Board Header -->
-    <div class="card mb-6" style="background: var(--bg-card); border-color: var(--border-color); box-shadow: var(--shadow-md); position: relative; overflow: hidden;">
-        <div style="position: absolute; right: -2rem; top: -2rem; width: 180px; height: 180px; background: radial-gradient(circle, var(--secondary-glow) 0%, transparent 70%); pointer-events: none;"></div>
-        <div class="flex justify-between align-center" style="flex-wrap: wrap; gap: 1.25rem;">
-            <div>
-                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem;">
-                    <div class="brand-icon-box" style="width: 44px; height: 44px; border-radius: 12px; background: rgba(6,182,212,0.15); border: 1px solid rgba(6,182,212,0.3); color: var(--secondary);">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="card-title" style="margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em;">
-                            Selection Board Evaluation Desk
-                        </h1>
-                        <p class="card-subtitle" style="margin: 0.2rem 0 0;">
-                            Conduct real-time statutory interview grading, view objective merit scores, and record panel recommendations.
-                        </p>
-                    </div>
+    <div class="page-hero-header">
+        <div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="brand-icon-box" style="background: linear-gradient(135deg, rgba(6,182,212,0.25), rgba(14,165,233,0.4)); box-shadow: 0 4px 14px rgba(6,182,212,0.25);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="color: #ffffff;">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1>Selection Board Evaluation Desk</h1>
+                    <p>Conduct real-time statutory interview grading, view objective merit scores, and record panel recommendations.</p>
                 </div>
             </div>
+        </div>
 
-            <div class="flex align-center gap-3">
-                <div style="background: var(--bg-surface); border: 1px solid var(--border-color); padding: 0.45rem 1rem; border-radius: 9999px;" class="flex align-center gap-2">
-                    <span class="badge-dot" style="background: var(--secondary); box-shadow: 0 0 8px var(--secondary);"></span>
-                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-primary); text-transform: uppercase; letter-spacing: 0.05em;">
-                        Selection Board Member
-                    </span>
-                </div>
+        <div class="flex align-center gap-3">
+            <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); padding: 0.5rem 1rem; border-radius: 9999px;" class="flex align-center gap-2">
+                <span class="badge-dot" style="background: var(--secondary); box-shadow: 0 0 8px var(--secondary);"></span>
+                <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-primary); text-transform: uppercase; letter-spacing: 0.05em;">
+                    Selection Board Member
+                </span>
             </div>
         </div>
     </div>
 
     <!-- KPI Summary Cards -->
-    <div class="grid grid-cols-3 gap-5 mb-6">
+    <div class="stat-kpi-grid">
         <div class="metric-card" style="--card-accent: var(--secondary); --metric-icon-bg: var(--secondary-light); --metric-icon-color: var(--secondary);">
             <div class="metric-header">
                 <span class="metric-label">Candidates in Board Queue</span>

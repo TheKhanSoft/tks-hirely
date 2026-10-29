@@ -458,21 +458,7 @@
                                         @endif
                                     </td>
                                     <td style="text-align: right;">
-                                        <div class="action-btn-group justify-end">
-                                            @if(auth()->user()->hasRole('super-admin') && $rev->user && auth()->id() !== $rev->user->id && !$rev->user->hasRole('super-admin'))
-                                                <a href="{{ route('impersonate.start', $rev->user->id) }}" 
-                                                   class="action-btn action-btn-impersonate" 
-                                                   data-tooltip="Impersonate ({{ $rev->name }})"
-                                                   aria-label="Impersonate Reviewer">
-                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                                                        <circle cx="9" cy="7" r="4"/>
-                                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                                                    </svg>
-                                                </a>
-                                            @endif
-
+                                        <div class="action-btn-group justify-end" x-data="{ openMenu: false }">
                                             <button type="button" 
                                                     class="action-btn action-btn-view" 
                                                     wire:click="openDetailsModal({{ $rev->id }})" 
@@ -495,19 +481,43 @@
                                                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                                                     </svg>
                                                 </button>
-
-                                                <button type="button" 
-                                                        class="action-btn {{ $rev->is_active ? 'action-btn-success' : 'action-btn-delete' }}" 
-                                                        data-tooltip="{{ $rev->is_active ? 'Active (Click to Deactivate)' : 'Inactive (Click to Activate)' }}" 
-                                                        wire:click="toggleReviewerStatus({{ $rev->id }})" 
-                                                        aria-label="Toggle Reviewer Status">
-                                                    @if($rev->is_active)
-                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                                                    @else
-                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                                    @endif
-                                                </button>
                                             @endif
+
+                                            <!-- 3-Dot More Actions Dropdown -->
+                                            <div class="table-action-dropdown-wrap" @click.outside="openMenu = false">
+                                                <button type="button" 
+                                                        class="action-btn" 
+                                                        @click="openMenu = !openMenu" 
+                                                        data-tooltip="More Actions" 
+                                                        aria-label="More Actions">
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                                                        <circle cx="12" cy="5" r="1.5"/>
+                                                        <circle cx="12" cy="12" r="1.5"/>
+                                                        <circle cx="12" cy="19" r="1.5"/>
+                                                    </svg>
+                                                </button>
+                                                <div class="table-action-dropdown" x-show="openMenu" x-cloak style="display: none;" @click="openMenu = false">
+                                                    @if(auth()->user()->can('edit-reviewer') || auth()->user()->can('manage-reviewers'))
+                                                        <button type="button" 
+                                                                class="table-action-menu-item {{ $rev->is_active ? 'danger' : 'success' }}" 
+                                                                wire:click="toggleReviewerStatus({{ $rev->id }})">
+                                                            @if($rev->is_active)
+                                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                                                <span>Deactivate Reviewer</span>
+                                                            @else
+                                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                                                <span>Activate Reviewer</span>
+                                                            @endif
+                                                        </button>
+                                                    @endif
+                                                    @if(auth()->user()->hasRole('super-admin') && $rev->user && auth()->id() !== $rev->user->id && !$rev->user->hasRole('super-admin'))
+                                                        <a href="{{ route('impersonate.start', $rev->user->id) }}" class="table-action-menu-item impersonate">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                                            <span>Impersonate Reviewer</span>
+                                                        </a>
+                                                    @endif
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
