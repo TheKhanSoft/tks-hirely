@@ -416,7 +416,7 @@
                 </div>
 
                 <!-- Center Quick Search Trigger -->
-                <div class="topbar-search-trigger" onclick="const s = document.querySelector('input[type=\'text\'], input[type=\'search\']'); if(s) s.focus();" title="Focus module search filter">
+                <div class="topbar-search-trigger" onclick="if(window.Livewire) { Livewire.dispatch('open-search-palette'); } else { window.dispatchEvent(new CustomEvent('open-search-palette')); }" title="Quick Universal Search & Command Palette (Ctrl + K)" role="button" tabindex="0">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                     <span>Quick Filter & Search Records...</span>
                     <kbd>Ctrl K</kbd>
@@ -519,9 +519,25 @@
         </div>
     </div>
 
+    @auth
+        <livewire:universal-search-palette />
+    @endauth
+
     @livewireScripts
     <script>
         (function() {
+            // Universal Ctrl+K / Cmd+K Command Palette Shortcut
+            window.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+                    e.preventDefault();
+                    if (window.Livewire) {
+                        Livewire.dispatch('open-search-palette');
+                    } else {
+                        window.dispatchEvent(new CustomEvent('open-search-palette'));
+                    }
+                }
+            });
+
             // Theme Switching
             const themeBtns = document.querySelectorAll('.theme-btn');
             
