@@ -8,9 +8,12 @@ use App\Models\User;
 use App\Models\CampaignCommittee;
 use App\Rules\SeparatedCommitteeConflictRule;
 use Illuminate\Support\Facades\Auth;
+use App\Livewire\Traits\WithDynamicListing;
 
 class CampaignCrud extends Component
 {
+    use WithDynamicListing;
+
     public $campaigns;
     public $campaign_id;
     
@@ -772,9 +775,40 @@ class CampaignCrud extends Component
         $this->loadCommitteeData();
     }
 
+    public function exportCsv()
+    {
+        abort_unless(Auth::user()->can('view-campaign'), 403);
+        $camps = Campaign::orderBy('created_at', 'desc')->get();
+        $headers = ['Job Code', 'Title', 'Department', 'Track Type', 'Fee (PKR)', 'Opening Date', 'Closing Date'];
+        $rows = [];
+        foreach ($camps as $c) {
+            $rows[] = [
+                $c->job_code,
+                $c->title,
+                $c->department,
+                $c->track_type,
+                $c->application_fee,
+                $c->opening_date?->format('Y-m-d') ?? '',
+                $c->closing_date?->format('Y-m-d') ?? '',
+            ];
+        }
+        return $this->streamCsvDownload('recruitment-campaigns-' . date('Y-m-d') . '.csv', $headers, $rows);
+    }
+
     public function render()
     {
-        return view('livewire.admin.campaign-crud')
-            ->layout('layouts.app');
+        $campQuery = Campaign::query();
+        if (!empty($this->search)) {
+            $campQuery->where(function($q) {
+                $q->where('title', 'like', '%' . $this->search . '%')
+                  ->orWhere('job_code', 'like', '%' . $this->search . '%')
+                  ->orWhere('department', 'like', '%' . $this->search . '%');
+            });
+        }
+        $paginatedCampaigns = $campQuery->orderBy('created_at', 'desc')->paginate($this->perPage);
+
+        return view('livewire.admin.campaign-crud', [
+            'paginatedCampaigns' => $paginatedCampaigns,
+        ])->layout('layouts.app');
     }
 }

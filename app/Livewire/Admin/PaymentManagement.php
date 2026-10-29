@@ -6,13 +6,19 @@ use Livewire\Component;
 use App\Models\BillingLedger;
 use App\Models\Application;
 use Illuminate\Support\Facades\Auth;
+use App\Livewire\Traits\WithDynamicListing;
 
 class PaymentManagement extends Component
 {
+    use WithDynamicListing;
+
     // View state
     public $isFormOpen = false;
     public $isEditMode = false;
     public $selectedRecordId;
+
+    // Default per-page for card grid (16 items)
+    public $perPage = 16;
 
     // Filters & Search
     public $search = '';
@@ -157,6 +163,35 @@ class PaymentManagement extends Component
         $this->loadAuxiliaryData();
     }
 
+    public function exportCsv()
+    {
+        abort_unless(Auth::user()->can('view-payment'), 403);
+        $payments = BillingLedger::with('application.user.basicInfo', 'application.campaign')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $headers = ['Consumer ID', 'Applicant Name', 'Email', 'Campaign Title', 'Job Code', 'Amount (PKR)', 'Status', 'Transaction ID', 'Settled At'];
+        $rows = [];
+        foreach ($payments as $p) {
+            $name = $p->application?->user?->basicInfo 
+                ? ($p->application->user->basicInfo->first_name . ' ' . $p->application->user->basicInfo->last_name) 
+                : 'N/A';
+            $rows[] = [
+                $p->consumer_id,
+                $name,
+                $p->application?->user?->email ?? 'N/A',
+                $p->application?->campaign?->title ?? 'N/A',
+                $p->application?->campaign?->job_code ?? 'N/A',
+                $p->amount,
+                $p->status,
+                $p->transaction_id ?? 'N/A',
+                $p->timestamp?->format('Y-m-d H:i:s') ?? 'Unsettled',
+            ];
+        }
+
+        return $this->streamCsvDownload('payment-vouchers-' . date('Y-m-d') . '.csv', $headers, $rows);
+    }
+
     public function render()
     {
         $query = BillingLedger::with('application.user.basicInfo', 'application.campaign');
@@ -185,7 +220,7 @@ class PaymentManagement extends Component
             });
         }
 
-        $payments = $query->orderBy('created_at', 'desc')->get();
+        $payments = $query->orderBy('created_at', 'desc')->paginate($this->perPage);
 
         $stats = [
             'total' => BillingLedger::count(),

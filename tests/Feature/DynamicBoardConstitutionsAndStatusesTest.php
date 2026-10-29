@@ -16,6 +16,8 @@ use Livewire\Livewire;
 use App\Livewire\Admin\ConstitutionCriteriaManagement;
 use App\Livewire\Admin\WorkflowStatusManagement;
 use App\Livewire\Admin\ApplicationManagement;
+use App\Livewire\Admin\SystemSettings;
+use App\Models\RecruitmentProcessFlow;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Services\PermissionRegistry;
 
@@ -257,5 +259,89 @@ class DynamicBoardConstitutionsAndStatusesTest extends TestCase
             ->assertSet('showTransitionModal', false);
 
         $this->assertEquals('APPEALED', $this->application->fresh()->status);
+    }
+
+    public function test_system_settings_does_not_contain_statutory_board_engine_tab(): void
+    {
+        $this->actingAs($this->superAdmin);
+
+        Livewire::test(SystemSettings::class)
+            ->assertDontSee('Statutory Board & Committee Constitutions Engine')
+            ->assertDontSee('Board & Selection Criteria Engine');
+    }
+
+    public function test_end_to_end_recruitment_process_flow_engine_and_standing_committees(): void
+    {
+        $this->actingAs($this->registrar);
+
+        // 1. Standing Committees view shows basic details and supports viewing quorum
+        $scrutinyBoard = CommitteeConstitution::where('slug', 'standing-scrutiny-committee')->first();
+        $this->assertNotNull($scrutinyBoard);
+
+        Livewire::test(ConstitutionCriteriaManagement::class)
+            ->set('activeTab', 'board_registry')
+            ->assertSee($scrutinyBoard->name)
+            ->assertSee('Scrutiny Committee')
+            ->assertSee('Step 2: Scrutiny Vetting')
+            ->call('viewBoardQuorum', $scrutinyBoard->id)
+            ->assertSet('showQuorumModal', true)
+            ->assertSee('Total Quorum')
+            ->call('closeQuorumModal')
+            ->assertSet('showQuorumModal', false);
+
+        // 2. Process Flow Engine - load default academic pipeline
+        $flowComponent = Livewire::test(ConstitutionCriteriaManagement::class)
+            ->set('activeTab', 'process_flow');
+
+        $flowComponent->assertSee('Higher Education Standard Statutory Recruitment Pipeline')
+            ->assertSee('Application Submission & Fee Settlement')
+            ->assertSee('Scrutiny Committee Dossier Vetting')
+            ->assertSee('Academic Subject Experts Peer Review')
+            ->assertSee('Statutory Selection Board Interview & Viva')
+            ->assertSee('Syndicate / Governing Body Appointment Sanction');
+
+        // 3. Edit Stage 2 (Scrutiny Dossier Vetting)
+        $flowComponent->call('openEditStageModal', 1)
+            ->assertSet('showStageModal', true)
+            ->assertSet('stage_name', 'Scrutiny Committee Dossier Vetting')
+            ->set('stage_sla_days', 9)
+            ->set('stage_has_incomplete', true)
+            ->set('stage_on_incomplete_grace_days', 6)
+            ->call('saveStage')
+            ->assertHasNoErrors()
+            ->assertSet('showStageModal', false);
+
+        $academicFlow = RecruitmentProcessFlow::where('slug', 'academic-statutory-pipeline')->first();
+        $this->assertEquals(9, $academicFlow->stages[1]['sla_days']);
+        $this->assertEquals(6, $academicFlow->stages[1]['on_incomplete']['grace_days']);
+
+        // 4. Add a new custom stage to the pipeline
+        $initialStageCount = count($academicFlow->stages);
+        $flowComponent->call('addNewStage')
+            ->assertSet('showStageModal', true)
+            ->set('stage_name', 'Stage 7: Background & Security Clearance')
+            ->set('stage_governing_role', 'Institutional Security Desk')
+            ->set('stage_sla_days', 5)
+            ->set('stage_on_pass_target_status', 'ELIGIBLE')
+            ->call('saveStage')
+            ->assertHasNoErrors()
+            ->assertSet('showStageModal', false);
+
+        $updatedFlow = $academicFlow->fresh();
+        $this->assertCount($initialStageCount + 1, $updatedFlow->stages);
+        $stages = $updatedFlow->stages;
+        $this->assertEquals('Stage 7: Background & Security Clearance', end($stages)['name']);
+
+        // 5. Toggle stage enabled/disabled
+        $flowComponent->call('toggleStageEnabled', 0);
+        $this->assertFalse($academicFlow->fresh()->stages[0]['is_enabled']);
+        $flowComponent->call('toggleStageEnabled', 0);
+        $this->assertTrue($academicFlow->fresh()->stages[0]['is_enabled']);
+
+        // 6. Create a new pipeline blueprint
+        $flowComponent->call('createNewFlowPipeline')
+            ->assertHasNoErrors();
+
+        $this->assertGreaterThan(3, RecruitmentProcessFlow::count());
     }
 }

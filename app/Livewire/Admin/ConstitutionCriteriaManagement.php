@@ -6,13 +6,15 @@ use Livewire\Component;
 use App\Models\Campaign;
 use App\Models\SystemSetting;
 use App\Models\CommitteeConstitution;
+use App\Models\RecruitmentProcessFlow;
+use App\Models\WorkflowStatus;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class ConstitutionCriteriaManagement extends Component
 {
-    // View tab switching: 'campaign_constitution' or 'board_registry'
-    public $activeTab = 'campaign_constitution';
+    // View tab switching: 'board_registry', 'process_flow', or 'campaign_constitution'
+    public $activeTab = 'board_registry';
 
     // Campaign tuning state
     public $selected_campaign_id = null;
@@ -37,11 +39,15 @@ class ConstitutionCriteriaManagement extends Component
     public $isEditBoard = false;
     public $selectedBoardId = null;
     public $sectorFilter = 'ALL';
+    public $showQuorumModal = false;
+    public $viewingBoard = null;
 
     // Board form fields
     public $board_name = '';
     public $board_slug = '';
     public $board_sector = 'ACADEMIC';
+    public $board_type = 'SELECTION_BOARD';
+    public $board_responsible_stage = 'stage_selection_board';
     public $board_description = '';
     public $board_required_peer_reviewers = 3;
     public $board_enforce_strict_quota = true;
@@ -56,6 +62,42 @@ class ConstitutionCriteriaManagement extends Component
         'min_evaluation_percentile' => 60,
     ];
 
+    // ==========================================
+    // 🔄 DYNAMIC RECRUITMENT PROCESS FLOW ENGINE
+    // ==========================================
+    public $selected_flow_id = null;
+    public $flow_name = '';
+    public $flow_sector = 'ACADEMIC';
+    public $flow_description = '';
+    public $flow_stages = [];
+    public $showStageModal = false;
+    public $editingStageIndex = null;
+    public $isNewStage = false;
+
+    // Stage Form Fields
+    public $stage_id = '';
+    public $stage_name = '';
+    public $stage_actor_type = 'COMMITTEE';
+    public $stage_governing_role = '';
+    public $stage_committee_type = 'SCRUTINY';
+    public $stage_is_enabled = true;
+    public $stage_sla_days = 7;
+    public $stage_required_experts = 3;
+    public $stage_pass_threshold_percent = 60;
+    public $stage_rule_description = '';
+    public $stage_on_pass_target_status = 'SCRUTINY_PASSED';
+    public $stage_on_pass_next_step = null;
+    public $stage_on_pass_label = '';
+    public $stage_has_incomplete = false;
+    public $stage_on_incomplete_target_status = 'INCOMPLETE_DOSSIER';
+    public $stage_on_incomplete_grace_days = 5;
+    public $stage_on_incomplete_label = '';
+    public $stage_has_fail = true;
+    public $stage_on_fail_target_status = 'DISQUALIFIED';
+    public $stage_on_fail_allow_appeal = true;
+    public $stage_on_fail_require_justification = true;
+    public $stage_on_fail_label = '';
+
     public function mount($campaign_id = null)
     {
         abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
@@ -63,16 +105,22 @@ class ConstitutionCriteriaManagement extends Component
         $requestedCampaignId = $campaign_id ?: request()->query('campaign_id');
         if ($requestedCampaignId && Campaign::where('id', $requestedCampaignId)->exists()) {
             $this->selected_campaign_id = (int)$requestedCampaignId;
+            $this->activeTab = 'campaign_constitution';
         } else {
             $firstActive = Campaign::where('is_active', true)->first();
             $this->selected_campaign_id = $firstActive ? $firstActive->id : Campaign::first()?->id;
         }
 
-        if (request()->query('tab') === 'registry') {
+        if (request()->query('tab') === 'registry' || request()->query('tab') === 'boards') {
             $this->activeTab = 'board_registry';
+        } elseif (request()->query('tab') === 'flow' || request()->query('tab') === 'process_flow') {
+            $this->activeTab = 'process_flow';
+        } elseif (request()->query('tab') === 'campaign') {
+            $this->activeTab = 'campaign_constitution';
         }
 
         $this->loadConstitution();
+        $this->loadProcessFlow();
     }
 
     public function setTab($tab)
@@ -83,6 +131,33 @@ class ConstitutionCriteriaManagement extends Component
     public function updatedSelectedCampaignId($val)
     {
         $this->loadConstitution();
+    }
+
+    public function updatedSelectedFlowId($val)
+    {
+        $this->loadProcessFlow($val);
+    }
+
+    public function loadProcessFlow($flowId = null)
+    {
+        $id = $flowId ?: $this->selected_flow_id;
+        $flow = null;
+        if ($id) {
+            $flow = RecruitmentProcessFlow::find($id);
+        }
+        if (!$flow) {
+            $flow = RecruitmentProcessFlow::where('is_default', true)->first() ?: RecruitmentProcessFlow::first();
+        }
+
+        if ($flow) {
+            $this->selected_flow_id = $flow->id;
+            $this->flow_name = $flow->name;
+            $this->flow_sector = $flow->sector;
+            $this->flow_description = $flow->description ?? '';
+            $this->flow_stages = $flow->stages ?? [];
+        } else {
+            $this->flow_stages = RecruitmentProcessFlow::defaultAcademicPipeline();
+        }
     }
 
     public function loadConstitution()
@@ -404,6 +479,8 @@ class ConstitutionCriteriaManagement extends Component
         $this->board_name = '';
         $this->board_slug = '';
         $this->board_sector = 'ACADEMIC';
+        $this->board_type = 'SELECTION_BOARD';
+        $this->board_responsible_stage = 'stage_selection_board';
         $this->board_description = '';
         $this->board_required_peer_reviewers = 3;
         $this->board_enforce_strict_quota = true;
@@ -432,6 +509,8 @@ class ConstitutionCriteriaManagement extends Component
         $this->board_name = $board->name;
         $this->board_slug = $board->slug;
         $this->board_sector = $board->organization_sector;
+        $this->board_type = $board->committee_type ?? 'SELECTION_BOARD';
+        $this->board_responsible_stage = $board->responsible_stage ?? 'stage_selection_board';
         $this->board_description = $board->description;
         $this->board_required_peer_reviewers = $board->required_peer_reviewers;
         $this->board_enforce_strict_quota = $board->enforce_strict_quota;
@@ -440,6 +519,18 @@ class ConstitutionCriteriaManagement extends Component
         $this->board_eligibility = $board->getEffectiveEligibilityCriteria();
 
         $this->showBoardModal = true;
+    }
+
+    public function viewBoardQuorum($id)
+    {
+        $this->viewingBoard = CommitteeConstitution::find($id);
+        $this->showQuorumModal = true;
+    }
+
+    public function closeQuorumModal()
+    {
+        $this->showQuorumModal = false;
+        $this->viewingBoard = null;
     }
 
     public function closeBoardModal()
@@ -458,6 +549,8 @@ class ConstitutionCriteriaManagement extends Component
             'board_routing_flow',
         ]);
         $this->board_sector = 'ACADEMIC';
+        $this->board_type = 'SELECTION_BOARD';
+        $this->board_responsible_stage = 'stage_selection_board';
         $this->board_required_peer_reviewers = 3;
         $this->board_enforce_strict_quota = true;
         $this->showBoardModal = false;
@@ -533,6 +626,8 @@ class ConstitutionCriteriaManagement extends Component
             'name' => $this->board_name,
             'slug' => $this->board_slug ?: Str::slug($this->board_name) . '-' . rand(100, 999),
             'organization_sector' => $this->board_sector,
+            'committee_type' => $this->board_type ?: 'SELECTION_BOARD',
+            'responsible_stage' => $this->board_responsible_stage ?: 'stage_selection_board',
             'description' => $this->board_description,
             'required_total' => $total,
             'required_internal' => $internal,
@@ -578,6 +673,276 @@ class ConstitutionCriteriaManagement extends Component
         $clone->slug = Str::slug($clone->name) . '-' . rand(1000, 9999);
         $clone->save();
         session()->flash('message', "Board Constitution '{$source->name}' duplicated successfully as '{$clone->name}'.");
+    }
+
+    // ==========================================
+    // 🔄 RECRUITMENT PROCESS FLOW ACTIONS
+    // ==========================================
+    public function openEditStageModal($index)
+    {
+        if (!isset($this->flow_stages[$index])) {
+            return;
+        }
+
+        $this->editingStageIndex = $index;
+        $this->isNewStage = false;
+        $stage = $this->flow_stages[$index];
+
+        $this->stage_id = $stage['id'] ?? ('stage_' . ($index + 1));
+        $this->stage_name = $stage['name'] ?? '';
+        $this->stage_actor_type = $stage['actor_type'] ?? 'COMMITTEE';
+        $this->stage_governing_role = $stage['governing_role'] ?? '';
+        $this->stage_committee_type = $stage['committee_type'] ?? 'SCRUTINY';
+        $this->stage_is_enabled = !empty($stage['is_enabled']);
+        $this->stage_sla_days = (int)($stage['sla_days'] ?? 7);
+        $this->stage_required_experts = (int)($stage['required_experts'] ?? 3);
+        $this->stage_pass_threshold_percent = (int)($stage['pass_threshold_percent'] ?? 60);
+        $this->stage_rule_description = $stage['rule_description'] ?? '';
+
+        $onPass = $stage['on_pass'] ?? [];
+        $this->stage_on_pass_target_status = $onPass['target_status'] ?? 'SCRUTINY_PASSED';
+        $this->stage_on_pass_next_step = $onPass['next_step'] ?? null;
+        $this->stage_on_pass_label = $onPass['label'] ?? '';
+
+        $onIncomplete = $stage['on_incomplete'] ?? null;
+        $this->stage_has_incomplete = !empty($onIncomplete);
+        $this->stage_on_incomplete_target_status = $onIncomplete['target_status'] ?? 'INCOMPLETE_DOSSIER';
+        $this->stage_on_incomplete_grace_days = (int)($onIncomplete['grace_days'] ?? 5);
+        $this->stage_on_incomplete_label = $onIncomplete['label'] ?? '';
+
+        $onFail = $stage['on_fail'] ?? null;
+        $this->stage_has_fail = !empty($onFail);
+        $this->stage_on_fail_target_status = $onFail['target_status'] ?? 'DISQUALIFIED';
+        $this->stage_on_fail_allow_appeal = !empty($onFail['allow_appeal']);
+        $this->stage_on_fail_require_justification = !empty($onFail['require_justification']);
+        $this->stage_on_fail_label = $onFail['label'] ?? '';
+
+        $this->showStageModal = true;
+    }
+
+    public function addNewStage()
+    {
+        $nextStep = count($this->flow_stages) + 1;
+        $this->editingStageIndex = count($this->flow_stages);
+        $this->isNewStage = true;
+
+        $this->stage_id = 'stage_custom_' . uniqid();
+        $this->stage_name = 'Custom Stage ' . $nextStep . ': Evaluation Check';
+        $this->stage_actor_type = 'COMMITTEE';
+        $this->stage_governing_role = 'Evaluation Committee';
+        $this->stage_committee_type = 'CUSTOM';
+        $this->stage_is_enabled = true;
+        $this->stage_sla_days = 7;
+        $this->stage_required_experts = 2;
+        $this->stage_pass_threshold_percent = 60;
+        $this->stage_rule_description = 'Evaluation and scoring criteria configured by administrator.';
+        $this->stage_on_pass_target_status = 'ELIGIBLE';
+        $this->stage_on_pass_next_step = $nextStep + 1;
+        $this->stage_on_pass_label = 'Criteria cleared ➔ Advance to next stage';
+        $this->stage_has_incomplete = false;
+        $this->stage_on_incomplete_target_status = 'INCOMPLETE_DOSSIER';
+        $this->stage_on_incomplete_grace_days = 5;
+        $this->stage_on_incomplete_label = '';
+        $this->stage_has_fail = true;
+        $this->stage_on_fail_target_status = 'REJECTED';
+        $this->stage_on_fail_allow_appeal = true;
+        $this->stage_on_fail_require_justification = true;
+        $this->stage_on_fail_label = 'Requirements not met ➔ Not Recommended';
+
+        $this->showStageModal = true;
+    }
+
+    public function closeStageModal()
+    {
+        $this->showStageModal = false;
+        $this->editingStageIndex = null;
+        $this->isNewStage = false;
+    }
+
+    public function saveStage()
+    {
+        $this->validate([
+            'stage_name' => 'required|string|min:3|max:150',
+            'stage_governing_role' => 'required|string|min:2|max:100',
+            'stage_sla_days' => 'required|integer|min:1|max:120',
+            'stage_on_pass_target_status' => 'required|string',
+        ]);
+
+        $stageData = [
+            'step' => ($this->editingStageIndex !== null ? $this->editingStageIndex + 1 : count($this->flow_stages) + 1),
+            'id' => $this->stage_id ?: ('stage_' . uniqid()),
+            'name' => $this->stage_name,
+            'actor_type' => $this->stage_actor_type,
+            'governing_role' => $this->stage_governing_role,
+            'committee_type' => $this->stage_committee_type,
+            'is_enabled' => (bool)$this->stage_is_enabled,
+            'sla_days' => (int)$this->stage_sla_days,
+            'required_experts' => (int)$this->stage_required_experts,
+            'pass_threshold_percent' => (int)$this->stage_pass_threshold_percent,
+            'rule_description' => $this->stage_rule_description,
+            'on_pass' => [
+                'target_status' => $this->stage_on_pass_target_status,
+                'next_step' => $this->stage_on_pass_next_step ? (int)$this->stage_on_pass_next_step : null,
+                'label' => $this->stage_on_pass_label ?: 'Candidate passed evaluation step',
+            ],
+            'on_incomplete' => $this->stage_has_incomplete ? [
+                'target_status' => $this->stage_on_incomplete_target_status ?: 'INCOMPLETE_DOSSIER',
+                'allow_reupload' => true,
+                'grace_days' => (int)$this->stage_on_incomplete_grace_days,
+                'label' => $this->stage_on_incomplete_label ?: "Deficiencies notified with {$this->stage_on_incomplete_grace_days}-day grace period",
+            ] : null,
+            'on_fail' => $this->stage_has_fail ? [
+                'target_status' => $this->stage_on_fail_target_status ?: 'DISQUALIFIED',
+                'allow_appeal' => (bool)$this->stage_on_fail_allow_appeal,
+                'require_justification' => (bool)$this->stage_on_fail_require_justification,
+                'label' => $this->stage_on_fail_label ?: 'Stage failed / Not recommended',
+            ] : null,
+        ];
+
+        if ($this->isNewStage || !isset($this->flow_stages[$this->editingStageIndex])) {
+            $this->flow_stages[] = $stageData;
+        } else {
+            $this->flow_stages[$this->editingStageIndex] = $stageData;
+        }
+
+        // Re-index steps
+        foreach ($this->flow_stages as $k => &$st) {
+            $st['step'] = $k + 1;
+        }
+
+        $this->persistCurrentFlow();
+        $this->showStageModal = false;
+        session()->flash('message', "Process flow stage '{$this->stage_name}' successfully configured!");
+    }
+
+    public function removeStage($index)
+    {
+        if (isset($this->flow_stages[$index])) {
+            $name = $this->flow_stages[$index]['name'] ?? 'Stage';
+            unset($this->flow_stages[$index]);
+            $this->flow_stages = array_values($this->flow_stages);
+            foreach ($this->flow_stages as $k => &$st) {
+                $st['step'] = $k + 1;
+            }
+            $this->persistCurrentFlow();
+            session()->flash('message', "Stage '{$name}' removed from pipeline.");
+        }
+    }
+
+    public function moveStageUp($index)
+    {
+        if ($index > 0 && isset($this->flow_stages[$index])) {
+            $prev = $this->flow_stages[$index - 1];
+            $this->flow_stages[$index - 1] = $this->flow_stages[$index];
+            $this->flow_stages[$index] = $prev;
+
+            foreach ($this->flow_stages as $k => &$st) {
+                $st['step'] = $k + 1;
+            }
+            $this->persistCurrentFlow();
+        }
+    }
+
+    public function moveStageDown($index)
+    {
+        if ($index < count($this->flow_stages) - 1 && isset($this->flow_stages[$index])) {
+            $next = $this->flow_stages[$index + 1];
+            $this->flow_stages[$index + 1] = $this->flow_stages[$index];
+            $this->flow_stages[$index] = $next;
+
+            foreach ($this->flow_stages as $k => &$st) {
+                $st['step'] = $k + 1;
+            }
+            $this->persistCurrentFlow();
+        }
+    }
+
+    public function toggleStageEnabled($index)
+    {
+        if (isset($this->flow_stages[$index])) {
+            $this->flow_stages[$index]['is_enabled'] = empty($this->flow_stages[$index]['is_enabled']);
+            $this->persistCurrentFlow();
+            session()->flash('message', "Stage status updated.");
+        }
+    }
+
+    public function persistCurrentFlow()
+    {
+        if ($this->selected_flow_id) {
+            $flow = RecruitmentProcessFlow::find($this->selected_flow_id);
+            if ($flow) {
+                $flow->update([
+                    'stages' => $this->flow_stages,
+                    'name' => $this->flow_name ?: $flow->name,
+                    'description' => $this->flow_description ?: $flow->description,
+                    'sector' => $this->flow_sector ?: $flow->sector,
+                ]);
+            }
+        }
+    }
+
+    public function saveProcessFlow()
+    {
+        $this->validate([
+            'flow_name' => 'required|string|min:3|max:200',
+            'flow_sector' => 'required|string|in:ACADEMIC,CORPORATE,HEALTHCARE,PUBLIC_SECTOR,JUDICIAL,DEFENSE,GENERAL',
+        ]);
+
+        $this->persistCurrentFlow();
+        session()->flash('message', "Recruitment process flow '{$this->flow_name}' successfully saved!");
+    }
+
+    public function createNewFlowPipeline()
+    {
+        $flow = RecruitmentProcessFlow::create([
+            'name' => 'Custom Recruitment Pipeline ' . rand(100, 999),
+            'sector' => 'GENERAL',
+            'description' => 'Custom multi-stage recruitment pipeline.',
+            'stages' => RecruitmentProcessFlow::defaultAcademicPipeline(),
+            'is_default' => false,
+            'is_active' => true,
+            'created_by' => Auth::id(),
+        ]);
+
+        $this->selected_flow_id = $flow->id;
+        $this->loadProcessFlow($flow->id);
+        session()->flash('message', "New recruitment pipeline '{$flow->name}' initialized.");
+    }
+
+    public function cloneProcessFlow($id)
+    {
+        $source = RecruitmentProcessFlow::findOrFail($id);
+        $clone = $source->replicate(['slug', 'created_at', 'updated_at']);
+        $clone->name = $source->name . ' (Copy)';
+        $clone->is_default = false;
+        $clone->save();
+
+        $this->selected_flow_id = $clone->id;
+        $this->loadProcessFlow($clone->id);
+        session()->flash('message', "Recruitment pipeline duplicated successfully.");
+    }
+
+    public function deleteProcessFlow($id)
+    {
+        $flow = RecruitmentProcessFlow::findOrFail($id);
+        if ($flow->is_default) {
+            session()->flash('error', 'Cannot delete default system pipeline.');
+            return;
+        }
+        $name = $flow->name;
+        $flow->delete();
+
+        $this->selected_flow_id = null;
+        $this->loadProcessFlow();
+        session()->flash('message', "Pipeline '{$name}' deleted.");
+    }
+
+    public function setFlowAsDefault($id)
+    {
+        RecruitmentProcessFlow::where('is_default', true)->update(['is_default' => false]);
+        $flow = RecruitmentProcessFlow::findOrFail($id);
+        $flow->update(['is_default' => true]);
+        session()->flash('message', "'{$flow->name}' is now set as the system default recruitment process flow.");
     }
 
     // ==========================================
@@ -643,11 +1008,16 @@ class ConstitutionCriteriaManagement extends Component
         }
         $registeredBoards = $constitutionsQuery->get();
 
+        $processFlows = RecruitmentProcessFlow::orderBy('is_default', 'desc')->orderBy('name')->get();
+        $workflowStatuses = WorkflowStatus::where('scope', 'APPLICATION')->orderBy('order')->get();
+
         return view('livewire.admin.constitution-criteria-management', [
             'campaigns' => $campaigns,
             'currentCampaign' => $this->currentCampaign,
             'metrics' => $this->campaignMetrics,
             'registeredBoards' => $registeredBoards,
+            'processFlows' => $processFlows,
+            'workflowStatuses' => $workflowStatuses,
         ])->layout('layouts.app', ['title' => 'Statutory Board & Committee Engine - Hirely']);
     }
 }

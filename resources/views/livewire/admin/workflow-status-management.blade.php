@@ -227,16 +227,41 @@
 
                             <!-- Actions -->
                             <td style="vertical-align: middle; text-align: right;">
-                                <div style="display: inline-flex; gap: 0.35rem;">
-                                    <button type="button" class="btn btn-secondary" wire:click="openEditModal({{ $st->id }})" style="padding: 0.35rem 0.65rem; font-size: 0.78rem;" title="Edit Status & Requirements">
-                                        ✏️ Edit
+                                <div class="action-btn-group justify-end">
+                                    <button type="button" 
+                                            class="action-btn action-btn-edit" 
+                                            wire:click="openEditModal({{ $st->id }})" 
+                                            data-tooltip="Edit Status & Requirements"
+                                            aria-label="Edit Status">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                        </svg>
                                     </button>
-                                    <button type="button" class="btn btn-secondary" wire:click="toggleStatusActive({{ $st->id }})" style="padding: 0.35rem 0.55rem; font-size: 0.78rem; color: {{ $st->is_active ? '#10b981' : '#94a3b8' }};" title="Toggle Active">
-                                        {{ $st->is_active ? '● Active' : '○ Off' }}
+                                    <button type="button" 
+                                            class="action-btn {{ $st->is_active ? 'action-btn-success' : 'action-btn-delete' }}" 
+                                            wire:click="toggleStatusActive({{ $st->id }})" 
+                                            data-tooltip="{{ $st->is_active ? 'Status: Active (Click to Disable)' : 'Status: Inactive (Click to Activate)' }}"
+                                            aria-label="Toggle Status">
+                                        @if($st->is_active)
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                        @else
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                        @endif
                                     </button>
                                     @if(!$st->is_system_default)
-                                        <button type="button" class="btn btn-secondary" wire:click="deleteStatus({{ $st->id }})" wire:confirm="Remove this status node from workflow?" style="padding: 0.35rem 0.55rem; font-size: 0.78rem; color: #ef4444;" title="Delete">
-                                            ✕
+                                        <button type="button" 
+                                                class="action-btn action-btn-delete" 
+                                                wire:click="deleteStatus({{ $st->id }})" 
+                                                wire:confirm="Remove this status node from workflow?" 
+                                                data-tooltip="Delete Status Node"
+                                                aria-label="Delete Status Node">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="3 6 5 6 21 6"/>
+                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                                <line x1="10" y1="11" x2="10" y2="17"/>
+                                                <line x1="14" y1="11" x2="14" y2="17"/>
+                                            </svg>
                                         </button>
                                     @endif
                                 </div>

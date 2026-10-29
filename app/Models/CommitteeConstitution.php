@@ -13,6 +13,8 @@ class CommitteeConstitution extends Model
         'name',
         'slug',
         'organization_sector',
+        'committee_type',
+        'responsible_stage',
         'description',
         'routing_flow',
         'eligibility_criteria',
@@ -143,6 +145,21 @@ class CommitteeConstitution extends Model
             'requires_allied_discipline' => true,
             'min_evaluation_percentile' => 60,
         ];
+    }
+
+    /**
+     * Committee type badge formatting.
+     */
+    public function getTypeBadgeAttribute(): array
+    {
+        return match ($this->committee_type ?? 'SELECTION_BOARD') {
+            'SCRUTINY' => ['label' => 'Scrutiny Committee', 'color' => '#f59e0b', 'bg' => 'rgba(245, 158, 11, 0.15)', 'icon' => '📑'],
+            'EXPERT_REVIEW' => ['label' => 'Expert Referees Panel', 'color' => '#ec4899', 'bg' => 'rgba(236, 72, 153, 0.15)', 'icon' => '🔬'],
+            'SELECTION_BOARD' => ['label' => 'Selection Board', 'color' => '#6366f1', 'bg' => 'rgba(99, 102, 241, 0.15)', 'icon' => '👥'],
+            'APPELLATE' => ['label' => 'Appellate Committee', 'color' => '#8b5cf6', 'bg' => 'rgba(139, 92, 246, 0.15)', 'icon' => '⚖️'],
+            'EXECUTIVE' => ['label' => 'Syndicate / Council', 'color' => '#10b981', 'bg' => 'rgba(16, 185, 129, 0.15)', 'icon' => '🏛️'],
+            default => ['label' => 'Custom Board / Panel', 'color' => '#06b6d4', 'bg' => 'rgba(6, 182, 212, 0.15)', 'icon' => '⚙️'],
+        };
     }
 
     /**

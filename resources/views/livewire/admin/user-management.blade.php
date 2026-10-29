@@ -225,17 +225,18 @@
             </button>
         </div>
 
-        <!-- Filter Ribbon & Search Bar -->
-        <div class="card mb-5 card-ambient-mesh" style="padding: 1.25rem 1.5rem;">
-            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                <div style="flex: 2; min-width: 280px; position: relative;">
-                    <input type="text" class="form-control" wire:model.live.debounce.300ms="search" placeholder="Search by personnel name, email, department, or CNIC..." style="padding-left: 2.35rem;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); pointer-events: none;">
-                        <circle cx="11" cy="11" r="8"/>
-                        <path d="m21 21-4.3-4.3"/>
-                    </svg>
-                </div>
-
+        <!-- Reusable Dynamic Entity Listing Component: Responsive Card Grid & Table -->
+        <x-entity-card-grid 
+            :items="$users" 
+            entityName="Personnel Accounts" 
+            searchPlaceholder="Search personnel name, email, department, or CNIC..."
+            :perPage="$perPage" 
+            :viewMode="$viewMode" 
+            exportAction="exportCsv" 
+            importAction="openImportModal">
+            
+            <!-- Filters Slot -->
+            <x-slot:filters>
                 <div style="flex: 1; min-width: 180px;">
                     <select class="form-control form-select" wire:model.live="roleFilter">
                         <option value="">All Security Roles</option>
@@ -256,21 +257,224 @@
                 @if(!empty($search) || !empty($roleFilter) || $statusFilter !== '')
                     <button type="button" class="btn btn-secondary btn-sm" wire:click="$set('search', ''); $set('roleFilter', ''); $set('statusFilter', '');" style="display: inline-flex; align-items: center; gap: 0.35rem;">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                        <span>Reset</span>
+                        <span>Reset Filters</span>
                     </button>
                 @endif
+            </x-slot:filters>
 
-                <div style="margin-left: auto;">
-                    <span style="font-size: 0.82rem; color: var(--color-text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">
-                        Showing <strong style="color: var(--primary);">{{ count($users) }}</strong> User{{ count($users) === 1 ? '' : 's' }}
-                    </span>
-                </div>
-            </div>
-        </div>
+            <!-- Cards Slot (3 to 5 Cards Per Row) -->
+            <x-slot:cards>
+                @foreach($users as $u)
+                    @php
+                        $isCommittee = $u->hasAnyRole(['scrutiny-committee', 'scrutiny', 'appellate-committee', 'appellate', 'selection-board-member', 'board-member', 'board']) || $u->committees->isNotEmpty();
+                        $isReviewer = $u->hasAnyRole(['academic-reviewer', 'reviewer']) || $u->reviewerProfile;
+                        $isApplicant = $u->hasRole('applicant') && !$u->hasAnyRoleOtherThan('applicant');
+                        $isStaff = !$isApplicant && !$isCommittee && !$isReviewer;
 
-        <!-- Modern Users Table -->
-        <div class="card" style="padding: 0; overflow: hidden; border-color: var(--border-color); box-shadow: var(--shadow-sm);">
-            <div class="table-container">
+                        $displayName = $u->reviewerProfile?->name 
+                            ?? ($u->basicInfo?->first_name ? ($u->basicInfo->first_name . ' ' . $u->basicInfo->last_name) : null);
+                        
+                        $affiliation = $u->reviewerProfile?->university 
+                            ?? ($isStaff || $isCommittee ? 'Main Campus / Head Office' : null);
+
+                        $country = $u->reviewerProfile?->country 
+                            ?? ($u->basicInfo?->nationality ?: 'Domestic / Local');
+                    @endphp
+
+                    <x-entity-card 
+                        :id="$u->id" 
+                        :title="$displayName ?: $u->email" 
+                        :subtitle="$displayName ? $u->email : 'Registered User'"
+                        :avatar="strtoupper(substr($displayName ?: $u->email, 0, 1))">
+                        
+                        <!-- Badge Slot: Active / Blocked Status -->
+                        <x-slot:badge>
+                            @can('toggle-user-status')
+                                <button type="button" 
+                                        class="btn {{ $u->is_active ? 'btn-success' : 'btn-danger' }}" 
+                                        style="padding: 0.2rem 0.65rem; font-size: 0.72rem; border-radius: 999px; font-weight: 700; cursor: pointer;" 
+                                        wire:click="toggleUserStatus({{ $u->id }})" 
+                                        :disabled="auth()->id() == $u->id"
+                                        title="{{ auth()->id() == $u->id ? 'Cannot deactivate yourself' : 'Toggle status' }}">
+                                    {{ $u->is_active ? '● Active' : '✕ Blocked' }}
+                                </button>
+                            @else
+                                <span class="badge" style="background: {{ $u->is_active ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)' }}; color: {{ $u->is_active ? 'var(--success)' : 'var(--danger)' }}; font-size: 0.72rem; border-radius: 999px; font-weight: 700;">
+                                    {{ $u->is_active ? '● Active' : '✕ Blocked' }}
+                                </span>
+                            @endcan
+                        </x-slot:badge>
+
+                        <!-- Tag Slot: Classification -->
+                        <x-slot:tag>
+                            @if($isStaff)
+                                <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25); font-weight: 700; font-size: 0.72rem;">
+                                    🏛️ Leadership & Staff
+                                </span>
+                            @elseif($isCommittee)
+                                <span class="badge" style="background: rgba(59,130,246,0.12); color: #3b82f6; border: 1px solid rgba(59,130,246,0.25); font-weight: 700; font-size: 0.72rem;">
+                                    👥 Committee Panelist
+                                </span>
+                            @elseif($isReviewer)
+                                <span class="badge" style="background: rgba(139,92,246,0.12); color: #8b5cf6; border: 1px solid rgba(139,92,246,0.25); font-weight: 700; font-size: 0.72rem;">
+                                    🌐 External Reviewer
+                                </span>
+                            @else
+                                <span class="badge" style="background: rgba(16,185,129,0.12); color: var(--success); border: 1px solid rgba(16,185,129,0.25); font-weight: 700; font-size: 0.72rem;">
+                                    🎓 Job Applicant
+                                </span>
+                            @endif
+
+                            @if(auth()->id() === $u->id)
+                                <span class="badge" style="background: rgba(6,182,212,0.15); color: var(--secondary); font-size: 0.68rem; padding: 0.1rem 0.35rem; font-weight: 700; margin-left: 0.25rem;">You</span>
+                            @endif
+                        </x-slot:tag>
+
+                        <!-- Card Body Metrics -->
+                        <div class="entity-card-metric-row">
+                            <span class="entity-card-metric-label">Assigned Role:</span>
+                            <span class="entity-card-metric-value" style="color: var(--primary); text-transform: capitalize;">
+                                {{ str_replace('-', ' ', $u->roles->first()?->name ?? 'No Role') }}
+                            </span>
+                        </div>
+
+                        <div class="entity-card-metric-row">
+                            <span class="entity-card-metric-label">Institution:</span>
+                            <span class="entity-card-metric-value" title="{{ $affiliation ?: 'Independent' }}">
+                                {{ $affiliation ?: 'Independent Account' }}
+                            </span>
+                        </div>
+
+                        @if($u->permissions->isNotEmpty())
+                            <div class="entity-card-metric-row">
+                                <span class="entity-card-metric-label">Granular Keys:</span>
+                                <span class="badge" style="background: rgba(6,182,212,0.15); color: var(--secondary); font-size: 0.68rem; font-weight: 700;">
+                                    +{{ $u->permissions->count() }} Direct Permissions
+                                </span>
+                            </div>
+                        @endif
+
+                        <!-- Quick Actions (Hover Reveal Icons) -->
+                        <x-slot:quickActions>
+                            {{-- Impersonate Quick Action --}}
+                            @if(auth()->user()->hasRole('super-admin') && auth()->id() !== $u->id && !$u->hasRole('super-admin'))
+                                <a href="{{ route('impersonate.start', $u->id) }}" 
+                                   class="action-btn action-btn-impersonate" 
+                                   data-tooltip="Impersonate {{ $displayName ?: $u->email }}"
+                                   aria-label="Impersonate User">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="9" cy="7" r="4"/>
+                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                    </svg>
+                                </a>
+                            @endif
+
+                            {{-- View Dossier Quick Action --}}
+                            @can('view-user-dossier')
+                                <button type="button" 
+                                        class="action-btn action-btn-view" 
+                                        wire:click="viewPersonnelDetails({{ $u->id }})" 
+                                        data-tooltip="View Full Dossier">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                        <polyline points="14 2 14 8 20 8"/>
+                                        <line x1="16" y1="13" x2="8" y2="13"/>
+                                        <line x1="16" y1="17" x2="8" y2="17"/>
+                                    </svg>
+                                </button>
+                            @endcan
+
+                            {{-- Edit Account Quick Action --}}
+                            @can('edit-user')
+                                <button type="button" 
+                                        class="action-btn action-btn-edit" 
+                                        wire:click="openEditUserForm({{ $u->id }})" 
+                                        data-tooltip="Edit Account Info">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                </button>
+                            @endcan
+                        </x-slot:quickActions>
+
+                        <!-- Kebab Dropdown Options Menu [ICON + TEXT] -->
+                        <x-slot:menuActions>
+                            @can('view-user-dossier')
+                                <x-entity-card-menu-item 
+                                    label="View Full Dossier" 
+                                    click="viewPersonnelDetails({{ $u->id }})">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @endcan
+
+                            @can('edit-user')
+                                <x-entity-card-menu-item 
+                                    label="Edit User Account" 
+                                    click="openEditUserForm({{ $u->id }})">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @endcan
+
+                            @can('assign-user-permissions')
+                                <x-entity-card-menu-item 
+                                    label="Direct Extra Permissions" 
+                                    click="openDirectPermissionsModal({{ $u->id }})">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @endcan
+
+                            @can('toggle-user-status')
+                                <x-entity-card-menu-item 
+                                    label="{{ $u->is_active ? 'Suspend Account' : 'Activate Account' }}" 
+                                    click="toggleUserStatus({{ $u->id }})">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @endcan
+
+                            @if(auth()->user()->hasRole('super-admin') && auth()->id() !== $u->id && !$u->hasRole('super-admin'))
+                                <div class="entity-card-menu-divider"></div>
+                                <x-entity-card-menu-item 
+                                    label="Impersonate User" 
+                                    href="{{ route('impersonate.start', $u->id) }}" 
+                                    :impersonate="true">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @endif
+
+                            @if(auth()->id() !== $u->id)
+                                @can('delete-user')
+                                    <div class="entity-card-menu-divider"></div>
+                                    <x-entity-card-menu-item 
+                                        label="Delete Account" 
+                                        click="deleteUser({{ $u->id }})" 
+                                        :danger="true"
+                                        onclick="confirm('Are you sure you want to permanently delete this user account?') || event.stopImmediatePropagation()">
+                                        <x-slot:icon>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                        </x-slot:icon>
+                                    </x-entity-card-menu-item>
+                                @endcan
+                            @endif
+                        </x-slot:menuActions>
+                    </x-entity-card>
+                @endforeach
+            </x-slot:cards>
+
+            <!-- Table Slot (For Seamless View Toggle) -->
+            <x-slot:table>
                 <table class="table">
                     <thead>
                         <tr>
@@ -283,7 +487,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($users as $u)
+                        @foreach($users as $u)
                             @php
                                 $isCommittee = $u->hasAnyRole(['scrutiny-committee', 'scrutiny', 'appellate-committee', 'appellate', 'selection-board-member', 'board-member', 'board']) || $u->committees->isNotEmpty();
                                 $isReviewer = $u->hasAnyRole(['academic-reviewer', 'reviewer']) || $u->reviewerProfile;
@@ -302,7 +506,7 @@
                             <tr wire:key="user-row-{{ $u->id }}">
                                 <td>
                                     <div style="display: flex; align-items: center; gap: 0.85rem;">
-                                        <div class="user-avatar-circle" style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, rgba(99,102,241,0.22), rgba(6,182,212,0.22)); color: var(--primary); font-weight: 800; font-size: 1rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(99,102,241,0.25);">
+                                        <div class="user-avatar-circle" style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, rgba(99,102,241,0.22), rgba(6,182,212,0.22)); color: var(--primary); font-weight: 800; font-size: 1rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(99,102,241,0.25);">
                                             {{ strtoupper(substr($displayName ?: $u->email, 0, 1)) }}
                                         </div>
                                         <div style="overflow: hidden;">
@@ -344,7 +548,7 @@
                                         <div style="font-size: 0.86rem; font-weight: 700; color: var(--color-text-primary);">{{ $affiliation }}</div>
                                         <div style="font-size: 0.74rem; color: var(--color-text-muted); margin-top: 2px;">{{ $country }}</div>
                                     @else
-                                        <span style="font-size: 0.8rem; color: var(--color-text-muted); font-style: italic;">Independent / Direct Account</span>
+                                        <span style="font-size: 0.8rem; color: var(--color-text-muted); font-style: italic;">Independent Account</span>
                                     @endif
                                 </td>
                                 <td>
@@ -363,10 +567,10 @@
                                     @can('toggle-user-status')
                                         <button type="button" 
                                                 class="btn {{ $u->is_active ? 'btn-success' : 'btn-danger' }}" 
-                                                style="padding: 0.25rem 0.75rem; font-size: 0.75rem; border-radius: 999px; font-weight: 700; cursor: pointer; transition: all 0.2s ease;" 
+                                                style="padding: 0.25rem 0.75rem; font-size: 0.75rem; border-radius: 999px; font-weight: 700; cursor: pointer;" 
                                                 wire:click="toggleUserStatus({{ $u->id }})" 
                                                 :disabled="auth()->id() == $u->id"
-                                                title="{{ auth()->id() == $u->id ? 'Cannot deactivate yourself' : 'Click to toggle active status' }}">
+                                                title="{{ auth()->id() == $u->id ? 'Cannot deactivate yourself' : 'Toggle status' }}">
                                             {{ $u->is_active ? '● Active' : '✕ Blocked' }}
                                         </button>
                                     @else
@@ -377,84 +581,49 @@
                                 </td>
                                 <td style="text-align: right;">
                                     <div class="action-btn-group justify-end">
-                                        {{-- 1. Impersonate (Strictly Super Admin only, not self, not another super admin) --}}
                                         @if(auth()->user()->hasRole('super-admin') && auth()->id() !== $u->id && !$u->hasRole('super-admin'))
                                             <a href="{{ route('impersonate.start', $u->id) }}" 
                                                class="action-btn action-btn-impersonate" 
-                                               data-tooltip="Impersonate {{ $displayName ?: $u->email }}"
-                                               aria-label="Impersonate User">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                                                    <circle cx="9" cy="7" r="4"/>
-                                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                                                </svg>
+                                               data-tooltip="Impersonate {{ $displayName ?: $u->email }}">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                             </a>
                                         @endif
-
-                                        {{-- 2. View Personnel Dossier --}}
                                         @can('view-user-dossier')
                                             <button type="button" class="action-btn action-btn-view" wire:click="viewPersonnelDetails({{ $u->id }})" data-tooltip="View Personnel Dossier">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                                    <polyline points="14 2 14 8 20 8"/>
-                                                    <line x1="16" y1="13" x2="8" y2="13"/>
-                                                    <line x1="16" y1="17" x2="8" y2="17"/>
-                                                    <polyline points="10 9 9 9 8 9"/>
-                                                </svg>
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                                             </button>
                                         @endcan
-
-                                        {{-- 3. Manage Direct Permissions --}}
                                         @can('assign-user-permissions')
                                             <button type="button" class="action-btn action-btn-perms" wire:click="openDirectPermissionsModal({{ $u->id }})" data-tooltip="Direct Extra Permissions">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                                    <circle cx="7.5" cy="15.5" r="5.5"/>
-                                                    <path d="m21 2-9.6 9.6"/>
-                                                    <path d="m15.5 7.5 3 3L22 7l-3-3"/>
-                                                </svg>
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
                                             </button>
                                         @endcan
-
-                                        {{-- 4. Edit User Account --}}
                                         @can('edit-user')
                                             <button type="button" class="action-btn action-btn-edit" wire:click="openEditUserForm({{ $u->id }})" data-tooltip="Edit User Account">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                                </svg>
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                             </button>
                                         @endcan
-
-                                        {{-- 5. Delete User Account --}}
                                         @if(auth()->id() !== $u->id)
                                             @can('delete-user')
                                                 <button type="button" class="action-btn action-btn-delete" wire:click="deleteUser({{ $u->id }})" onclick="confirm('Are you sure you want to permanently delete this user account?') || event.stopImmediatePropagation()" data-tooltip="Delete User Account">
-                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                                        <polyline points="3 6 5 6 21 6"/>
-                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                                    </svg>
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                                                 </button>
                                             @endcan
                                         @endif
                                     </div>
                                 </td>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="text-center" style="padding: 4rem 2rem; color: var(--color-text-muted);">
-                                    <div style="width: 54px; height: 54px; border-radius: 50%; background: rgba(99,102,241,0.1); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.85rem;">
-                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                                    </div>
-                                    <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 0.35rem 0;">No User Accounts Found</h4>
-                                    <p style="font-size: 0.85rem; margin: 0;">No personnel or candidate accounts match your filter criteria.</p>
-                                </td>
-                            </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
-            </div>
-        </div>
+            </x-slot:table>
+        </x-entity-card-grid>
+
+        <!-- Universal Import Modal for Users -->
+        <x-entity-import-modal 
+            :isOpen="$isImportModalOpen" 
+            entityName="Personnel Accounts" 
+            :sampleColumns="['email', 'password', 'role_name', 'is_active']" />
     @endif
 
     <!-- Personnel Profile Dossier Modal -->
@@ -559,7 +728,20 @@
                     </div>
                 @endif
 
-                <div style="display: flex; justify-content: flex-end; margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                    <div>
+                        @if(auth()->user()->hasRole('super-admin') && auth()->id() !== $selectedPersonnel->id && !$selectedPersonnel->hasRole('super-admin'))
+                            <a href="{{ route('impersonate.start', $selectedPersonnel->id) }}" class="btn btn-warning" style="display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 700; text-decoration: none;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
+                                <span>🎭 Impersonate User</span>
+                            </a>
+                        @endif
+                    </div>
                     <button type="button" class="btn btn-secondary" wire:click="closePersonnelModal" style="padding: 0.45rem 1.25rem;">
                         Close Dossier
                     </button>

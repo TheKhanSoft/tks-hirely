@@ -12,7 +12,7 @@
                 </div>
                 <div>
                     <h2 class="card-title" style="margin: 0; font-size: 1.35rem;">System & Workflow Settings</h2>
-                    <p class="card-subtitle" style="margin: 0;">Configure statutory board constitutions, mandatory candidate document requests, workflow stages, and organization profile</p>
+                    <p class="card-subtitle" style="margin: 0;">Configure mandatory candidate document requests, workflow pipeline toggles, candidate profile rules, and organization profile</p>
                 </div>
             </div>
         </div>
@@ -40,13 +40,6 @@
                 class="btn {{ $activeTab === 'documents' ? 'btn-primary' : 'btn-secondary' }}" 
                 style="display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.88rem; padding: 0.55rem 1rem;">
             <span>📑 Document Requests & Proofs</span>
-        </button>
-
-        <button type="button" 
-                wire:click="setTab('constitutions')" 
-                class="btn {{ $activeTab === 'constitutions' ? 'btn-primary' : 'btn-secondary' }}" 
-                style="display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.88rem; padding: 0.55rem 1rem;">
-            <span>⚖️ Statutory Board & Quorum Constitutions</span>
         </button>
 
         <button type="button" 
@@ -345,149 +338,7 @@
     @endif
 
     <!-- ============================================================== -->
-    <!-- TAB 3: STATUTORY CONSTITUTIONS & BOARD QUORUMS -->
-    <!-- ============================================================== -->
-    @if($activeTab === 'constitutions')
-        <div class="card mb-6">
-            <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
-                <h3 class="card-title" style="margin: 0 0 0.25rem 0; font-size: 1.15rem;">Statutory Board & Committee Constitutions Engine</h3>
-                <p class="card-subtitle" style="margin: 0;">Predefined default criteria and quorums across academic positions, corporate executives, and public sector boards</p>
-            </div>
-
-            <!-- Position Presets Visual Grid -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
-                <!-- Assistant Professor Constitution Card -->
-                <div style="background: var(--bg-surface); border: 2px solid var(--primary); border-radius: var(--radius-md); padding: 1.25rem; position: relative;">
-                    <div style="position: absolute; right: 1rem; top: 1rem;">
-                        <span class="badge" style="background: rgba(99,102,241,0.18); color: var(--primary); font-weight: 800; font-size: 0.72rem;">
-                            ACADEMIC STATUTE
-                        </span>
-                    </div>
-                    <h4 style="font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 0.35rem 0;">
-                        Assistant Professor
-                    </h4>
-                    <p style="font-size: 0.8rem; color: var(--color-text-secondary); margin: 0 0 1rem 0;">
-                        Statutory selection criteria for tenure-track & regular faculty
-                    </p>
-
-                    <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.82rem; margin-bottom: 1.25rem;">
-                        <div style="display: flex; justify-content: space-between; padding: 0.35rem 0; border-bottom: 1px solid var(--border-color);">
-                            <span style="color: var(--color-text-secondary);">External Peer Reviewers:</span>
-                            <strong style="color: var(--primary);">{{ $asst_prof_required_peer_reviewers }} Subject Experts</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 0.35rem 0; border-bottom: 1px solid var(--border-color);">
-                            <span style="color: var(--color-text-secondary);">Selection Committee Quorum:</span>
-                            <strong>6 Total Members</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 0.35rem 0; border-bottom: 1px solid var(--border-color);">
-                            <span style="color: var(--color-text-secondary);">Internal Members (Same Institution):</span>
-                            <span class="badge" style="background: rgba(16,185,129,0.12); color: var(--success); font-weight: 700;">5 Members (Dean, Chair, 3 Faculty)</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 0.35rem 0;">
-                            <span style="color: var(--color-text-secondary);">External Members (Other Institution):</span>
-                            <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); font-weight: 700;">1 Professor (Other University)</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Associate / Full Professor Card -->
-                <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; position: relative;">
-                    <div style="position: absolute; right: 1rem; top: 1rem;">
-                        <span class="badge" style="background: rgba(139,92,246,0.15); color: #8b5cf6; font-weight: 800; font-size: 0.72rem;">
-                            PROFESSORIAL BOARD
-                        </span>
-                    </div>
-                    <h4 style="font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 0.35rem 0;">
-                        Associate & Full Professor
-                    </h4>
-                    <p style="font-size: 0.8rem; color: var(--color-text-secondary); margin: 0 0 1rem 0;">
-                        Senior academic governance & professorial appointment criteria
-                    </p>
-
-                    <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.82rem; margin-bottom: 1.25rem;">
-                        <div style="display: flex; justify-content: space-between; padding: 0.35rem 0; border-bottom: 1px solid var(--border-color);">
-                            <span style="color: var(--color-text-secondary);">External / Overseas Referees:</span>
-                            <strong style="color: #8b5cf6;">{{ $prof_required_peer_reviewers }} Specialists</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 0.35rem 0; border-bottom: 1px solid var(--border-color);">
-                            <span style="color: var(--color-text-secondary);">Selection Board Quorum:</span>
-                            <strong>6 Total Members</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 0.35rem 0; border-bottom: 1px solid var(--border-color);">
-                            <span style="color: var(--color-text-secondary);">Internal Members:</span>
-                            <span class="badge" style="background: rgba(16,185,129,0.12); color: var(--success); font-weight: 700;">4 Members (VC/Dean + 3 Senior)</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 0.35rem 0;">
-                            <span style="color: var(--color-text-secondary);">External / International:</span>
-                            <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); font-weight: 700;">2 Experts (1 Domestic, 1 Overseas)</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Corporate / Non-Academic Executive Card -->
-                <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; position: relative;">
-                    <div style="position: absolute; right: 1rem; top: 1rem;">
-                        <span class="badge" style="background: rgba(245,158,11,0.15); color: var(--warning); font-weight: 800; font-size: 0.72rem;">
-                            ENTERPRISE / CORPORATE
-                        </span>
-                    </div>
-                    <h4 style="font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 0.35rem 0;">
-                        Corporate Executive / Director
-                    </h4>
-                    <p style="font-size: 0.8rem; color: var(--color-text-secondary); margin: 0 0 1rem 0;">
-                        Enterprise & operational board appointments (non-academic)
-                    </p>
-
-                    <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.82rem; margin-bottom: 1.25rem;">
-                        <div style="display: flex; justify-content: space-between; padding: 0.35rem 0; border-bottom: 1px solid var(--border-color);">
-                            <span style="color: var(--color-text-secondary);">Peer Reviewers:</span>
-                            <span style="color: var(--color-text-muted);">Not Required (0)</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 0.35rem 0; border-bottom: 1px solid var(--border-color);">
-                            <span style="color: var(--color-text-secondary);">Selection Board Quorum:</span>
-                            <strong>5 Total Members</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 0.35rem 0; border-bottom: 1px solid var(--border-color);">
-                            <span style="color: var(--color-text-secondary);">Internal Members:</span>
-                            <span class="badge" style="background: rgba(16,185,129,0.12); color: var(--success); font-weight: 700;">3 Members (MD, HR, Lead)</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 0.35rem 0;">
-                            <span style="color: var(--color-text-secondary);">External Members:</span>
-                            <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); font-weight: 700;">2 External Industry Advisors</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Constitution Default Controls Form -->
-            <form wire:submit.prevent="saveConstitutions">
-                <h4 style="font-size: 1rem; font-weight: 700; color: var(--color-text-primary); margin: 0 0 1rem 0;">
-                    Configure Default Statutory Peer Review Quotas
-                </h4>
-
-                <div class="grid grid-cols-3 gap-4 mb-4">
-                    <x-input label="Assistant Professor: Required Experts *" :error="$errors->first('asst_prof_required_peer_reviewers')">
-                        <input type="number" min="1" max="10" class="form-control" wire:model="asst_prof_required_peer_reviewers">
-                    </x-input>
-
-                    <x-input label="Associate & Full Professor: Required Experts *" :error="$errors->first('prof_required_peer_reviewers')">
-                        <input type="number" min="1" max="10" class="form-control" wire:model="prof_required_peer_reviewers">
-                    </x-input>
-
-                    <x-input label="Lecturer / Junior Cadre: Required Experts *" :error="$errors->first('lecturer_required_peer_reviewers')">
-                        <input type="number" min="0" max="10" class="form-control" wire:model="lecturer_required_peer_reviewers">
-                    </x-input>
-                </div>
-
-                <div class="flex gap-4 mt-6" style="border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
-                    <button type="submit" class="btn btn-primary">Save Statutory Quota Configurations</button>
-                </div>
-            </form>
-        </div>
-    @endif
-
-    <!-- ============================================================== -->
-    <!-- TAB 4: CANDIDATE & APPLICATION RULES -->
+    <!-- TAB 3: CANDIDATE & APPLICATION RULES -->
     <!-- ============================================================== -->
     @if($activeTab === 'candidate_rules')
         <div class="card mb-6">

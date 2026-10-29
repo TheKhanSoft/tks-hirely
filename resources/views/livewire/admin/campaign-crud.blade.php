@@ -240,135 +240,248 @@
                 </form>
             </div>
         @else
-            <!-- Campaigns List Table -->
-            <div class="table-container">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Job Code</th>
-                            <th>Title & Department</th>
-                            <th>Recruitment Track</th>
-                            <th>Closing Date</th>
-                            <th>Application Fee</th>
-                            <th style="text-align: right;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($campaigns as $camp)
-                            <tr>
-                                <td>
-                                    <code style="background: rgba(99,102,241,0.1); color: var(--primary); padding: 0.25rem 0.6rem; border-radius: 6px; font-weight: 700; border: 1px solid rgba(99,102,241,0.2);">
-                                        {{ $camp->job_code }}
-                                    </code>
-                                </td>
-                                <td>
-                                    <div style="font-weight: 700; color: var(--color-text-primary);">{{ $camp->title }}</div>
-                                    <small style="color: var(--color-text-secondary); display: flex; align-items: center; gap: 0.25rem; margin-top: 0.15rem;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                                        </svg>
-                                        {{ $camp->department }}
-                                    </small>
-                                </td>
-                                <td>
-                                    @if($camp->track_type === 'ACADEMIC')
-                                        <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); border: 1px solid rgba(6,182,212,0.25);">
-                                            <span class="badge-dot" style="background: var(--secondary);"></span>
-                                            Academic Faculty
-                                        </span>
-                                    @elseif($camp->track_type === 'ADMINISTRATIVE')
-                                        <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25);">
-                                            <span class="badge-dot" style="background: var(--primary);"></span>
-                                            Admin Officer
-                                        </span>
-                                    @else
-                                        <span class="badge" style="background: rgba(148,163,184,0.12); color: var(--color-text-secondary); border: 1px solid rgba(148,163,184,0.25);">
-                                            <span class="badge-dot" style="background: var(--color-text-muted);"></span>
-                                            Support Staff
-                                        </span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; color: var(--color-text-secondary);">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                            <line x1="16" y1="2" x2="16" y2="6"></line>
-                                            <line x1="8" y1="2" x2="8" y2="6"></line>
-                                            <line x1="3" y1="10" x2="21" y2="10"></line>
-                                        </svg>
-                                        <span>{{ $camp->closing_date?->format('Y-m-d') }}</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <strong style="color: var(--color-text-primary); font-family: monospace;">PKR {{ number_format($camp->application_fee, 2) }}</strong>
-                                </td>
-                                <td style="text-align: right;">
-                                    <div class="action-btn-group justify-end">
-                                        @can('tune-constitution')
-                                            @php
-                                                $criteriaUrl = (auth()->user()->hasRole('registrar') && !auth()->user()->hasRole('super-admin')) ? '/registrar/criteria' : '/admin/criteria';
-                                            @endphp
-                                            <a href="{{ $criteriaUrl }}?campaign_id={{ $camp->id }}" 
-                                               class="action-btn action-btn-view" 
-                                               data-tooltip="Manage Statutory Criteria & Quotas"
-                                               aria-label="Criteria Desk">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
-                                                    <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
-                                                    <path d="M7 21h10"/>
-                                                    <path d="M12 3v18"/>
-                                                </svg>
-                                            </a>
-                                        @endcan
+            <!-- Reusable Dynamic Entity Listing Component: Responsive Card Grid & Table -->
+            <x-entity-card-grid 
+                :items="$paginatedCampaigns" 
+                entityName="Recruitment Campaigns" 
+                searchPlaceholder="Search campaigns by job code, title, or department..."
+                :perPage="$perPage" 
+                :viewMode="$viewMode" 
+                exportAction="exportCsv" 
+                importAction="openImportModal">
+                
+                <!-- Cards Slot (3 to 5 Cards Per Row) -->
+                <x-slot:cards>
+                    @foreach($paginatedCampaigns as $camp)
+                        @php
+                            $criteriaUrl = (auth()->user()->hasRole('registrar') && !auth()->user()->hasRole('super-admin')) ? '/registrar/criteria' : '/admin/criteria';
+                        @endphp
 
-                                        @can('edit-campaign')
-                                            <button type="button" 
-                                                    class="action-btn action-btn-edit" 
-                                                    wire:click="openEditForm({{ $camp->id }})"
-                                                    data-tooltip="Edit Campaign Particulars"
-                                                    aria-label="Edit Campaign">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                                </svg>
-                                            </button>
-                                        @endcan
+                        <x-entity-card 
+                            :id="$camp->id" 
+                            :title="$camp->title" 
+                            :subtitle="$camp->department"
+                            :avatar="substr($camp->job_code, 0, 2)">
+                            
+                            <!-- Badge Slot: Application Fee -->
+                            <x-slot:badge>
+                                <span class="badge badge-paid" style="font-size: 0.72rem; font-weight: 700; font-family: 'JetBrains Mono', monospace;">
+                                    PKR {{ number_format($camp->application_fee, 0) }}
+                                </span>
+                            </x-slot:badge>
 
-                                        @can('delete-campaign')
-                                            <button type="button" 
-                                                    class="action-btn action-btn-delete" 
-                                                    wire:click="deleteCampaign({{ $camp->id }})" 
-                                                    onclick="confirm('Are you sure you want to delete this campaign? This will cascade delete applications and committees!') || event.stopImmediatePropagation()"
-                                                    data-tooltip="Delete Campaign"
-                                                    aria-label="Delete Campaign">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <polyline points="3 6 5 6 21 6"></polyline>
-                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                                    <line x1="10" y1="11" x2="10" y2="17"></line>
-                                                    <line x1="14" y1="11" x2="14" y2="17"></line>
-                                                </svg>
-                                            </button>
-                                        @endcan
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="text-center" style="padding: 3rem 1rem;">
-                                    <div style="color: var(--color-text-muted);">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 0.5rem auto;">
-                                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                            <!-- Tag Slot: Recruitment Track -->
+                            <x-slot:tag>
+                                @if($camp->track_type === 'ACADEMIC')
+                                    <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); border: 1px solid rgba(6,182,212,0.25); font-weight: 700; font-size: 0.72rem;">
+                                        🎓 Academic Faculty Track
+                                    </span>
+                                @elseif($camp->track_type === 'ADMINISTRATIVE')
+                                    <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25); font-weight: 700; font-size: 0.72rem;">
+                                        🏛️ Administrative Track
+                                    </span>
+                                @else
+                                    <span class="badge" style="background: rgba(148,163,184,0.12); color: var(--color-text-secondary); border: 1px solid rgba(148,163,184,0.25); font-weight: 700; font-size: 0.72rem;">
+                                        ⚙️ Support Staff Track
+                                    </span>
+                                @endif
+                            </x-slot:tag>
+
+                            <!-- Card Body Metrics -->
+                            <div class="entity-card-metric-row">
+                                <span class="entity-card-metric-label">Job Code:</span>
+                                <code class="entity-card-metric-value" style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--primary);">
+                                    {{ $camp->job_code }}
+                                </code>
+                            </div>
+
+                            <div class="entity-card-metric-row">
+                                <span class="entity-card-metric-label">Closing Date:</span>
+                                <span class="entity-card-metric-value" style="color: var(--color-text-primary);">
+                                    {{ $camp->closing_date?->format('Y-m-d') }}
+                                </span>
+                            </div>
+
+                            <div class="entity-card-metric-row">
+                                <span class="entity-card-metric-label">Official Proof:</span>
+                                <span class="entity-card-metric-value" style="color: {{ $camp->require_transcript_proof ? 'var(--secondary)' : 'var(--color-text-muted)' }};">
+                                    {{ $camp->require_transcript_proof ? 'Mandatory Transcripts' : 'Optional Transcripts' }}
+                                </span>
+                            </div>
+
+                            <!-- Quick Actions (Hover Reveal Icons) -->
+                            <x-slot:quickActions>
+                                @can('tune-constitution')
+                                    <a href="{{ $criteriaUrl }}?campaign_id={{ $camp->id }}" 
+                                       class="action-btn action-btn-view" 
+                                       data-tooltip="Manage Statutory Criteria & Quotas"
+                                       aria-label="Criteria Desk">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                            <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+                                            <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+                                            <path d="M7 21h10"/>
+                                            <path d="M12 3v18"/>
                                         </svg>
-                                        <p style="font-size: 0.95rem; margin: 0;">No recruitment campaigns found. Click "Create Campaign" to begin.</p>
-                                    </div>
-                                </td>
+                                    </a>
+                                @endcan
+
+                                @can('edit-campaign')
+                                    <button type="button" 
+                                            class="action-btn action-btn-edit" 
+                                            wire:click="openEditForm({{ $camp->id }})" 
+                                            data-tooltip="Edit Campaign Particulars" 
+                                            aria-label="Edit Campaign">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        </svg>
+                                    </button>
+                                @endcan
+                            </x-slot:quickActions>
+
+                            <!-- Kebab Dropdown Options Menu [ICON + TEXT] -->
+                            <x-slot:menuActions>
+                                @can('tune-constitution')
+                                    <x-entity-card-menu-item 
+                                        label="Statutory Criteria & Quotas" 
+                                        href="{{ $criteriaUrl }}?campaign_id={{ $camp->id }}">
+                                        <x-slot:icon>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/></svg>
+                                        </x-slot:icon>
+                                    </x-entity-card-menu-item>
+                                @endcan
+
+                                <x-entity-card-menu-item 
+                                    label="Committee Allocation Ledger" 
+                                    click="$set('selected_campaign_id', {{ $camp->id }}); $set('activeTab', 'committees')">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+
+                                @can('edit-campaign')
+                                    <x-entity-card-menu-item 
+                                        label="Edit Campaign Particulars" 
+                                        click="openEditForm({{ $camp->id }})">
+                                        <x-slot:icon>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                        </x-slot:icon>
+                                    </x-entity-card-menu-item>
+                                @endcan
+
+                                @can('delete-campaign')
+                                    <div class="entity-card-menu-divider"></div>
+                                    <x-entity-card-menu-item 
+                                        label="Delete Campaign" 
+                                        click="deleteCampaign({{ $camp->id }})" 
+                                        :danger="true"
+                                        onclick="confirm('Are you sure you want to delete this campaign? This will cascade delete applications and committees!') || event.stopImmediatePropagation()">
+                                        <x-slot:icon>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                        </x-slot:icon>
+                                    </x-entity-card-menu-item>
+                                @endcan
+                            </x-slot:menuActions>
+                        </x-entity-card>
+                    @endforeach
+                </x-slot:cards>
+
+                <!-- Table Slot (For View Switcher) -->
+                <x-slot:table>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Job Code</th>
+                                <th>Title & Department</th>
+                                <th>Recruitment Track</th>
+                                <th>Closing Date</th>
+                                <th>Application Fee</th>
+                                <th style="text-align: right;">Actions</th>
                             </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            @foreach($paginatedCampaigns as $camp)
+                                <tr>
+                                    <td>
+                                        <code style="background: rgba(99,102,241,0.1); color: var(--primary); padding: 0.25rem 0.6rem; border-radius: 6px; font-weight: 700; border: 1px solid rgba(99,102,241,0.2);">
+                                            {{ $camp->job_code }}
+                                        </code>
+                                    </td>
+                                    <td>
+                                        <div style="font-weight: 700; color: var(--color-text-primary);">{{ $camp->title }}</div>
+                                        <small style="color: var(--color-text-secondary); display: flex; align-items: center; gap: 0.25rem; margin-top: 0.15rem;">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                                            </svg>
+                                            {{ $camp->department }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        @if($camp->track_type === 'ACADEMIC')
+                                            <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); border: 1px solid rgba(6,182,212,0.25);">
+                                                Academic Faculty
+                                            </span>
+                                        @elseif($camp->track_type === 'ADMINISTRATIVE')
+                                            <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25);">
+                                                Admin Officer
+                                            </span>
+                                        @else
+                                            <span class="badge" style="background: rgba(148,163,184,0.12); color: var(--color-text-secondary); border: 1px solid rgba(148,163,184,0.25);">
+                                                Support Staff
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; color: var(--color-text-secondary);">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                                            </svg>
+                                            <span>{{ $camp->closing_date?->format('Y-m-d') }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <strong style="color: var(--color-text-primary); font-family: monospace;">PKR {{ number_format($camp->application_fee, 2) }}</strong>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <div class="action-btn-group justify-end">
+                                            @can('tune-constitution')
+                                                @php
+                                                    $criteriaUrl = (auth()->user()->hasRole('registrar') && !auth()->user()->hasRole('super-admin')) ? '/registrar/criteria' : '/admin/criteria';
+                                                @endphp
+                                                <a href="{{ $criteriaUrl }}?campaign_id={{ $camp->id }}" 
+                                                   class="action-btn action-btn-view" 
+                                                   data-tooltip="Statutory Criteria & Quotas">
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/></svg>
+                                                </a>
+                                            @endcan
+                                            @can('edit-campaign')
+                                                <button type="button" class="action-btn action-btn-edit" wire:click="openEditForm({{ $camp->id }})" data-tooltip="Edit Campaign">
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                                </button>
+                                            @endcan
+                                            @can('delete-campaign')
+                                                <button type="button" class="action-btn action-btn-delete" wire:click="deleteCampaign({{ $camp->id }})" onclick="confirm('Are you sure you want to delete this campaign? This will cascade delete applications and committees!') || event.stopImmediatePropagation()" data-tooltip="Delete Campaign">
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                                </button>
+                                            @endcan
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </x-slot:table>
+            </x-entity-card-grid>
+
+            <!-- Universal Import Modal for Campaigns -->
+            <x-entity-import-modal 
+                :isOpen="$isImportModalOpen" 
+                entityName="Recruitment Campaigns" 
+                :sampleColumns="['job_code', 'title', 'department', 'track_type', 'application_fee', 'closing_date']" />
         @endif
 
     <!-- ========================================== -->

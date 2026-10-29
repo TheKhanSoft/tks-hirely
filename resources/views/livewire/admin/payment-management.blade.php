@@ -208,17 +208,18 @@
             </button>
         </div>
 
-        <!-- Filter Ribbon & Search Bar -->
-        <div class="card mb-5 card-ambient-mesh" style="padding: 1.25rem 1.5rem;">
-            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                <div style="flex: 2; min-width: 280px; position: relative;">
-                    <input type="text" class="form-control" wire:model.live.debounce.300ms="search" placeholder="Search by Consumer ID, TID, applicant email, or campaign..." style="padding-left: 2.35rem;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); pointer-events: none;">
-                        <circle cx="11" cy="11" r="8"/>
-                        <path d="m21 21-4.3-4.3"/>
-                    </svg>
-                </div>
-
+        <!-- Reusable Dynamic Entity Listing Component: Responsive Card Grid & Table -->
+        <x-entity-card-grid 
+            :items="$payments" 
+            entityName="Billing Vouchers" 
+            searchPlaceholder="Search by Consumer ID, TID, applicant email, or campaign..."
+            :perPage="$perPage" 
+            :viewMode="$viewMode" 
+            exportAction="exportCsv" 
+            importAction="openImportModal">
+            
+            <!-- Filters Slot -->
+            <x-slot:filters>
                 <div style="flex: 1; min-width: 180px;">
                     <select class="form-control form-select" wire:model.live="statusFilter">
                         <option value="">All Settlement Statuses</option>
@@ -232,21 +233,155 @@
                 @if(!empty($search) || !empty($statusFilter))
                     <button type="button" class="btn btn-secondary btn-sm" wire:click="$set('search', ''); $set('statusFilter', '');" style="display: inline-flex; align-items: center; gap: 0.35rem;">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                        <span>Reset</span>
+                        <span>Reset Filters</span>
                     </button>
                 @endif
+            </x-slot:filters>
 
-                <div style="margin-left: auto;">
-                    <span style="font-size: 0.82rem; color: var(--color-text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">
-                        Showing <strong style="color: var(--primary);">{{ count($payments) }}</strong> Record{{ count($payments) === 1 ? '' : 's' }}
-                    </span>
-                </div>
-            </div>
-        </div>
+            <!-- Cards Slot (3 to 5 Cards Per Row) -->
+            <x-slot:cards>
+                @foreach($payments as $pay)
+                    @php
+                        $applicantName = ($pay->application?->user?->basicInfo?->first_name ?? '') . ' ' . ($pay->application?->user?->basicInfo?->last_name ?? '');
+                        $applicantName = trim($applicantName) ?: ($pay->application?->user?->email ?? 'Applicant #'.$pay->application_id);
+                    @endphp
 
-        <!-- Modern Ledger Table -->
-        <div class="card" style="padding: 0; overflow: hidden; border-color: var(--border-color); box-shadow: var(--shadow-sm);">
-            <div class="table-container">
+                    <x-entity-card 
+                        :id="$pay->id" 
+                        :title="$applicantName" 
+                        :subtitle="$pay->application?->campaign?->title"
+                        avatar="PKR">
+                        
+                        <!-- Badge Slot: Voucher Status -->
+                        <x-slot:badge>
+                            @if($pay->status === 'SETTLED')
+                                <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3); font-weight: 800; font-size: 0.72rem;">
+                                    ✓ SETTLED
+                                </span>
+                            @elseif($pay->status === 'PENDING')
+                                <span class="badge" style="background: rgba(245,158,11,0.15); color: var(--warning); border: 1px solid rgba(245,158,11,0.3); font-weight: 800; font-size: 0.72rem;">
+                                    ⏳ PENDING
+                                </span>
+                            @elseif($pay->status === 'AUTHORIZED')
+                                <span class="badge" style="background: rgba(6,182,212,0.15); color: var(--secondary); border: 1px solid rgba(6,182,212,0.3); font-weight: 800; font-size: 0.72rem;">
+                                    AUTHORIZED
+                                </span>
+                            @else
+                                <span class="badge" style="background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); font-weight: 800; font-size: 0.72rem;">
+                                    {{ $pay->status }}
+                                </span>
+                            @endif
+                        </x-slot:badge>
+
+                        <!-- Tag Slot: 1Link Consumer ID -->
+                        <x-slot:tag>
+                            <span style="font-size: 0.72rem; color: var(--secondary); font-family: 'JetBrains Mono', monospace; font-weight: 700; background: rgba(6,182,212,0.08); padding: 0.15rem 0.45rem; border-radius: 4px; border: 1px solid rgba(6,182,212,0.2);">
+                                1Link: {{ $pay->consumer_id }}
+                            </span>
+                        </x-slot:tag>
+
+                        <!-- Card Body Metrics -->
+                        <div class="entity-card-metric-row">
+                            <span class="entity-card-metric-label">Fee Amount:</span>
+                            <span class="entity-card-metric-value" style="font-size: 0.88rem; color: {{ $pay->status === 'SETTLED' ? 'var(--success)' : 'var(--color-text-primary)' }};">
+                                PKR {{ number_format($pay->amount, 2) }}
+                            </span>
+                        </div>
+
+                        <div class="entity-card-metric-row">
+                            <span class="entity-card-metric-label">Target Job:</span>
+                            <span class="entity-card-metric-value" style="color: var(--primary); font-family: 'JetBrains Mono', monospace;">
+                                {{ $pay->application?->campaign?->job_code ?? 'N/A' }}
+                            </span>
+                        </div>
+
+                        <div class="entity-card-metric-row">
+                            <span class="entity-card-metric-label">Transaction ID:</span>
+                            <code class="entity-card-metric-value" style="font-family: 'JetBrains Mono', monospace; font-size: 0.74rem;">
+                                {{ $pay->transaction_id ?: 'Unsettled' }}
+                            </code>
+                        </div>
+
+                        <div class="entity-card-metric-row">
+                            <span class="entity-card-metric-label">Settled Timestamp:</span>
+                            <span class="entity-card-metric-value" style="font-size: 0.74rem; color: var(--color-text-muted);">
+                                {{ $pay->payment_timestamp ? \Carbon\Carbon::parse($pay->payment_timestamp)->format('Y-m-d H:i') : 'Pending' }}
+                            </span>
+                        </div>
+
+                        <!-- Quick Actions (Hover Reveal Icons) -->
+                        <x-slot:quickActions>
+                            @if($pay->status !== 'SETTLED')
+                                @if(auth()->user()->can('reconcile-payment') || auth()->user()->can('edit-payment'))
+                                    <button type="button" 
+                                            class="action-btn action-btn-success" 
+                                            wire:click="markSettled({{ $pay->id }})" 
+                                            data-tooltip="Reconcile / Mark Settled" 
+                                            aria-label="Reconcile Payment">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                            <polyline points="20 6 9 17 4 12"/>
+                                        </svg>
+                                    </button>
+                                @endif
+                            @endif
+
+                            @can('edit-payment')
+                                <button type="button" 
+                                        class="action-btn action-btn-edit" 
+                                        wire:click="openEditPaymentForm({{ $pay->id }})" 
+                                        data-tooltip="Edit Voucher Particulars" 
+                                        aria-label="Edit Voucher">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                </button>
+                            @endcan
+                        </x-slot:quickActions>
+
+                        <!-- Kebab Dropdown Options Menu [ICON + TEXT] -->
+                        <x-slot:menuActions>
+                            @if($pay->status !== 'SETTLED')
+                                @if(auth()->user()->can('reconcile-payment') || auth()->user()->can('edit-payment'))
+                                    <x-entity-card-menu-item 
+                                        label="Reconcile Payment (Mark Settled)" 
+                                        click="markSettled({{ $pay->id }})">
+                                        <x-slot:icon>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                        </x-slot:icon>
+                                    </x-entity-card-menu-item>
+                                @endif
+                            @endif
+
+                            @can('edit-payment')
+                                <x-entity-card-menu-item 
+                                    label="Edit Voucher Particulars" 
+                                    click="openEditPaymentForm({{ $pay->id }})">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @endcan
+
+                            @can('delete-payment')
+                                <div class="entity-card-menu-divider"></div>
+                                <x-entity-card-menu-item 
+                                    label="Delete Billing Record" 
+                                    click="deletePayment({{ $pay->id }})" 
+                                    :danger="true"
+                                    onclick="confirm('Are you sure you want to permanently delete this billing voucher record?') || event.stopImmediatePropagation()">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @endcan
+                        </x-slot:menuActions>
+                    </x-entity-card>
+                @endforeach
+            </x-slot:cards>
+
+            <!-- Table Slot (For View Switcher) -->
+            <x-slot:table>
                 <table class="table">
                     <thead>
                         <tr>
@@ -374,7 +509,13 @@
                         @endforelse
                     </tbody>
                 </table>
-            </div>
-        </div>
+            </x-slot:table>
+        </x-entity-card-grid>
+
+        <!-- Universal Import Modal for Vouchers -->
+        <x-entity-import-modal 
+            :isOpen="$isImportModalOpen" 
+            entityName="Billing Vouchers" 
+            :sampleColumns="['consumer_id', 'amount', 'status', 'transaction_id']" />
     @endif
 </div>

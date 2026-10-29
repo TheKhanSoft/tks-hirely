@@ -2105,3 +2105,360 @@ html.light [data-tooltip]::after {
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(148, 163, 184, 0.45);
 }
+
+/* ==========================================================================
+   DYNAMIC ENTITY CARDS GRID & ACTION MENU SYSTEM
+   ========================================================================== */
+
+/* Responsive Grid: 3 to 5 small cards per row on typical & wide screens */
+.entity-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.15rem;
+    align-items: stretch;
+}
+
+@media (min-width: 640px) {
+    .entity-cards-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    .entity-cards-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1440px) {
+    .entity-cards-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1800px) {
+    .entity-cards-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
+
+/* 3-column forced variant for dense data like Applications or Reviews */
+.entity-cards-grid.cols-3-fixed {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+/* 4-to-5-column variant for compact cards like Users and Candidates */
+.entity-cards-grid.cols-compact {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+/* Individual Entity Card */
+.entity-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg, 16px);
+    padding: 1.15rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), 
+                box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), 
+                border-color 0.22s ease;
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.25);
+}
+
+.entity-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.35), 0 0 16px -2px rgba(99, 102, 241, 0.15);
+}
+
+html.light .entity-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.06);
+}
+
+html.light .entity-card:hover {
+    border-color: rgba(99, 102, 241, 0.35);
+    box-shadow: 0 10px 24px -4px rgba(0, 0, 0, 0.1);
+}
+
+/* Card Header */
+.entity-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.85rem;
+}
+
+.entity-card-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(6, 182, 212, 0.2));
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    color: var(--primary);
+}
+
+.entity-card-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.entity-card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+}
+
+.entity-card-subtitle {
+    font-size: 0.78rem;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 0.15rem;
+}
+
+/* Card Body */
+.entity-card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.65rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin: 0.5rem 0 0.75rem 0;
+}
+
+html.light .entity-card-body {
+    border-top-color: #f1f5f9;
+    border-bottom-color: #f1f5f9;
+}
+
+.entity-card-metric-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.76rem;
+    gap: 0.5rem;
+}
+
+.entity-card-metric-label {
+    color: var(--color-text-muted);
+    font-weight: 600;
+}
+
+.entity-card-metric-value {
+    color: var(--color-text-primary);
+    font-weight: 700;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 65%;
+}
+
+/* Card Footer / Action Bar */
+.entity-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: auto;
+    position: relative;
+}
+
+/* Quick Actions (Hover Reveal or Clean Group) */
+.entity-card-quick-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+/* 3-Dot Kebab Menu Trigger */
+.entity-card-menu-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color);
+    color: var(--color-text-secondary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.entity-card-menu-btn:hover,
+.entity-card-menu-btn:focus {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: rgba(99, 102, 241, 0.4);
+    color: var(--primary);
+}
+
+/* Floating Action Dropdown Menu */
+.entity-card-dropdown {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.8), 0 0 1px 1px rgba(255, 255, 255, 0.08);
+    min-width: 220px;
+    padding: 0.45rem;
+    z-index: 1000;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+html.light .entity-card-dropdown {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.18);
+}
+
+/* Option item: [ICON + TEXT] */
+.entity-card-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    width: 100%;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+}
+
+.entity-card-menu-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+}
+
+html.light .entity-card-menu-item {
+    color: #334155;
+}
+
+html.light .entity-card-menu-item:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.entity-card-menu-item svg {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+}
+
+.entity-card-menu-item.danger {
+    color: #f87171;
+}
+
+.entity-card-menu-item.danger:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.entity-card-menu-item.impersonate {
+    color: #fbbf24;
+}
+
+.entity-card-menu-item.impersonate:hover {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+
+.entity-card-menu-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: 0.35rem 0;
+}
+
+html.light .entity-card-menu-divider {
+    background: #e2e8f0;
+}
+
+/* Listing Header Toolbar */
+.entity-controls-bar {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg, 16px);
+    padding: 1.15rem 1.35rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.entity-controls-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+}
+
+.entity-controls-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+/* View Mode Switcher Button Group */
+.view-mode-toggle {
+    display: inline-flex;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color);
+    border-radius: 9px;
+    padding: 2px;
+}
+
+.view-mode-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.view-mode-btn.active {
+    background: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+}
+
+.view-mode-btn:hover:not(.active) {
+    color: var(--color-text-primary);
+}

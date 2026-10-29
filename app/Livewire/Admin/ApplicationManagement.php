@@ -18,15 +18,21 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use App\Livewire\Traits\WithDynamicListing;
 
 class ApplicationManagement extends Component
 {
+    use WithDynamicListing;
+
     // View state
     public $isFormOpen = false;
     public $isEditMode = false;
     public $isDetailsOpen = false;
     public $selectedRecordId;
     public $selectedRecordDetails = null;
+
+    // Default per-page for card grid (16 items)
+    public $perPage = 16;
 
     // Filters & Search
     public $search = '';
@@ -526,6 +532,37 @@ class ApplicationManagement extends Component
         $this->closeTransitionModal();
     }
 
+    public function exportCsv()
+    {
+        abort_unless(Auth::user()->can('view-application'), 403);
+        $applications = Application::with('user.basicInfo', 'campaign', 'billingLedger', 'reviews')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $headers = ['Tracking #', 'Applicant Name', 'Email', 'CNIC', 'Campaign Title', 'Job Code', 'Career Track', 'Challan Status', 'Processing Stage', 'Submission Date'];
+        $rows = [];
+        foreach ($applications as $app) {
+            $name = $app->user?->basicInfo 
+                ? ($app->user->basicInfo->first_name . ' ' . $app->user->basicInfo->last_name)
+                : 'N/A';
+            $isPaid = $app->billingLedger?->status === 'SETTLED';
+            $rows[] = [
+                $app->tracking_number,
+                $name,
+                $app->user?->email ?? 'N/A',
+                $app->user?->basicInfo?->cnic_number ?? 'N/A',
+                $app->campaign?->title ?? 'N/A',
+                $app->campaign?->job_code ?? 'N/A',
+                $app->campaign?->track_type ?? 'N/A',
+                $isPaid ? 'Settled / Paid' : 'Pending Payment',
+                $app->status_label ?? $app->status,
+                $app->created_at->format('Y-m-d H:i:s'),
+            ];
+        }
+
+        return $this->streamCsvDownload('job-applications-' . date('Y-m-d') . '.csv', $headers, $rows);
+    }
+
     public function render()
     {
         $query = Application::with('user.basicInfo', 'campaign', 'billingLedger', 'reviews.reviewer.reviewerProfile');
@@ -566,7 +603,7 @@ class ApplicationManagement extends Component
             });
         }
 
-        $applications = $query->orderBy('created_at', 'desc')->get();
+        $applications = $query->orderBy('created_at', 'desc')->paginate($this->perPage);
 
         // Field-matched reviewers for dispatch modal if open
         $fieldMatchedReviewers = collect();

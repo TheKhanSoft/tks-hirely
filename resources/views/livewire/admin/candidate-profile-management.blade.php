@@ -188,17 +188,18 @@
             </form>
         </div>
     @else
-        <!-- Filter Ribbon & Search Bar -->
-        <div class="card mb-5 card-ambient-mesh" style="padding: 1.25rem 1.5rem;">
-            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                <div style="flex: 2; min-width: 280px; position: relative;">
-                    <input type="text" class="form-control" wire:model.live.debounce.300ms="search" placeholder="Search candidates by name, email, CNIC, or degree..." style="padding-left: 2.35rem;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); pointer-events: none;">
-                        <circle cx="11" cy="11" r="8"/>
-                        <path d="m21 21-4.3-4.3"/>
-                    </svg>
-                </div>
-
+        <!-- Reusable Dynamic Entity Listing Component: Responsive Card Grid & Table -->
+        <x-entity-card-grid 
+            :items="$profiles" 
+            entityName="Candidate Profiles" 
+            searchPlaceholder="Search candidates by name, email, CNIC, or degree..."
+            :perPage="$perPage" 
+            :viewMode="$viewMode" 
+            exportAction="exportCsv" 
+            importAction="openImportModal">
+            
+            <!-- Filters Slot -->
+            <x-slot:filters>
                 <div style="flex: 1; min-width: 180px;">
                     <select class="form-control form-select" wire:model.live="trackFilter">
                         <option value="">All Career Tracks</option>
@@ -219,21 +220,188 @@
                 @if(!empty($search) || !empty($trackFilter) || $lockFilter !== '')
                     <button type="button" class="btn btn-secondary btn-sm" wire:click="$set('search', ''); $set('trackFilter', ''); $set('lockFilter', '');" style="display: inline-flex; align-items: center; gap: 0.35rem;">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                        <span>Reset</span>
+                        <span>Reset Filters</span>
                     </button>
                 @endif
+            </x-slot:filters>
 
-                <div style="margin-left: auto;">
-                    <span style="font-size: 0.82rem; color: var(--color-text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">
-                        Found <strong style="color: var(--primary);">{{ count($profiles) }}</strong> Candidate{{ count($profiles) === 1 ? '' : 's' }}
-                    </span>
-                </div>
-            </div>
-        </div>
+            <!-- Cards Slot (3 to 5 Cards Per Row) -->
+            <x-slot:cards>
+                @foreach($profiles as $basicInfo)
+                    @php
+                        $apps = $basicInfo->user->applications ?? collect();
+                    @endphp
 
-        <!-- Premium Candidate Profiles Table -->
-        <div class="card" style="padding: 0; overflow: hidden; border-color: var(--border-color); box-shadow: var(--shadow-sm);">
-            <div class="table-container">
+                    <x-entity-card 
+                        :id="$basicInfo->id" 
+                        :title="$basicInfo->first_name . ' ' . $basicInfo->last_name" 
+                        :subtitle="$basicInfo->user?->email"
+                        :avatar="strtoupper(substr($basicInfo->first_name ?: 'C', 0, 1))">
+                        
+                        <!-- Badge Slot: Locked / Editable Status -->
+                        <x-slot:badge>
+                            @can('lock-candidate-profile')
+                                <button type="button" 
+                                        wire:click="toggleLock({{ $basicInfo->id }})"
+                                        class="btn" 
+                                        style="padding: 0.2rem 0.65rem; font-size: 0.72rem; border-radius: 999px; font-weight: 700; cursor: pointer; {{ $basicInfo->is_locked ? 'background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3);' : 'background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3);' }}"
+                                        title="Click to toggle lock state">
+                                    {{ $basicInfo->is_locked ? '🔒 Locked' : '🔓 Editable' }}
+                                </button>
+                            @else
+                                <span class="badge" style="padding: 0.2rem 0.65rem; font-size: 0.72rem; border-radius: 999px; font-weight: 700; {{ $basicInfo->is_locked ? 'background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3);' : 'background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3);' }}">
+                                    {{ $basicInfo->is_locked ? '🔒 Locked' : '🔓 Editable' }}
+                                </span>
+                            @endcan
+                        </x-slot:badge>
+
+                        <!-- Tag Slot: Career Track -->
+                        <x-slot:tag>
+                            @if($basicInfo->track_type === 'ACADEMIC')
+                                <span class="badge" style="background: rgba(139,92,246,0.12); color: #8b5cf6; border: 1px solid rgba(139,92,246,0.3); font-weight: 700; font-size: 0.72rem;">
+                                    🎓 ACADEMIC TRACK
+                                </span>
+                            @elseif($basicInfo->track_type === 'ADMINISTRATIVE')
+                                <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); border: 1px solid rgba(6,182,212,0.3); font-weight: 700; font-size: 0.72rem;">
+                                    🏛️ ADMINISTRATIVE
+                                </span>
+                            @else
+                                <span class="badge" style="background: rgba(16,185,129,0.12); color: var(--success); border: 1px solid rgba(16,185,129,0.3); font-weight: 700; font-size: 0.72rem;">
+                                    ⚙️ SUPPORT STAFF
+                                </span>
+                            @endif
+                        </x-slot:tag>
+
+                        <!-- Card Body Metrics -->
+                        <div class="entity-card-metric-row">
+                            <span class="entity-card-metric-label">CNIC:</span>
+                            <code class="entity-card-metric-value" style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;">
+                                {{ $basicInfo->cnic_number }}
+                            </code>
+                        </div>
+
+                        <div class="entity-card-metric-row">
+                            <span class="entity-card-metric-label">Applications:</span>
+                            <span class="entity-card-metric-value">
+                                @if($apps->isNotEmpty())
+                                    <span style="color: var(--primary); font-weight: 800;">{{ $apps->count() }} Position{{ $apps->count() === 1 ? '' : 's' }}</span>
+                                @else
+                                    <span style="color: var(--color-text-muted); font-style: italic;">None yet</span>
+                                @endif
+                            </span>
+                        </div>
+
+                        <div class="entity-card-metric-row">
+                            <span class="entity-card-metric-label">Qualifications:</span>
+                            <span class="entity-card-metric-value" style="color: var(--secondary);">
+                                {{ $basicInfo->degrees?->count() ?? 0 }} Degree{{ ($basicInfo->degrees?->count() ?? 0) === 1 ? '' : 's' }}
+                            </span>
+                        </div>
+
+                        <!-- Quick Actions (Hover Reveal Icons) -->
+                        <x-slot:quickActions>
+                            @if(auth()->user()->hasRole('super-admin') && $basicInfo->user && auth()->id() !== $basicInfo->user->id && !$basicInfo->user->hasRole('super-admin'))
+                                <a href="{{ route('impersonate.start', $basicInfo->user->id) }}" 
+                                   class="action-btn action-btn-impersonate" 
+                                   data-tooltip="Impersonate {{ $basicInfo->first_name ?: $basicInfo->user->email }}"
+                                   aria-label="Impersonate Candidate">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="9" cy="7" r="4"/>
+                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                    </svg>
+                                </a>
+                            @endif
+
+                            @if(auth()->user()->can('view-candidate-dossier') || auth()->user()->can('view-basic-info'))
+                                <button type="button" 
+                                        class="action-btn action-btn-view" 
+                                        data-tooltip="View Dossier" 
+                                        wire:click="viewBasicInfoDetails({{ $basicInfo->id }})">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                            @endif
+
+                            @can('edit-basic-info')
+                                <button type="button" 
+                                        class="action-btn action-btn-edit" 
+                                        data-tooltip="Edit Profile" 
+                                        wire:click="openEditBasicInfoForm({{ $basicInfo->id }})">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                </button>
+                            @endcan
+                        </x-slot:quickActions>
+
+                        <!-- Kebab Dropdown Options Menu [ICON + TEXT] -->
+                        <x-slot:menuActions>
+                            @if(auth()->user()->can('view-candidate-dossier') || auth()->user()->can('view-basic-info'))
+                                <x-entity-card-menu-item 
+                                    label="View Candidate Dossier" 
+                                    click="viewBasicInfoDetails({{ $basicInfo->id }})">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @endif
+
+                            @can('edit-basic-info')
+                                <x-entity-card-menu-item 
+                                    label="Edit Candidate Profile" 
+                                    click="openEditBasicInfoForm({{ $basicInfo->id }})">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @endcan
+
+                            @can('lock-candidate-profile')
+                                <x-entity-card-menu-item 
+                                    label="{{ $basicInfo->is_locked ? 'Unlock Dossier' : 'Lock Dossier' }}" 
+                                    click="toggleLock({{ $basicInfo->id }})">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @endcan
+
+                            @if(auth()->user()->hasRole('super-admin') && $basicInfo->user && auth()->id() !== $basicInfo->user->id && !$basicInfo->user->hasRole('super-admin'))
+                                <div class="entity-card-menu-divider"></div>
+                                <x-entity-card-menu-item 
+                                    label="Impersonate Candidate" 
+                                    href="{{ route('impersonate.start', $basicInfo->user->id) }}" 
+                                    :impersonate="true">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @endif
+
+                            @can('delete-basic-info')
+                                <div class="entity-card-menu-divider"></div>
+                                <x-entity-card-menu-item 
+                                    label="Delete Candidate Profile" 
+                                    click="deleteBasicInfo({{ $basicInfo->id }})" 
+                                    :danger="true"
+                                    onclick="confirm('Are you sure you want to permanently delete this candidate profile?') || event.stopImmediatePropagation()">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @endcan
+                        </x-slot:menuActions>
+                    </x-entity-card>
+                @endforeach
+            </x-slot:cards>
+
+            <!-- Table Slot (For View Switcher) -->
+            <x-slot:table>
                 <table class="table">
                     <thead>
                         <tr>
@@ -246,19 +414,19 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($profiles as $basicInfo)
+                        @foreach($profiles as $basicInfo)
                             <tr wire:key="profile-row-{{ $basicInfo->id }}">
                                 <td>
                                     <div style="display: flex; align-items: center; gap: 0.85rem;">
-                                        <div class="user-avatar-circle" style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(6,182,212,0.25)); color: var(--primary); font-weight: 800; font-size: 1rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(99,102,241,0.25);">
-                                            {{ strtoupper(substr($basicInfo->first_name ?: $basicInfo->user->email, 0, 1)) }}
+                                        <div class="user-avatar-circle" style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(6,182,212,0.25)); color: var(--primary); font-weight: 800; font-size: 1rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(99,102,241,0.25);">
+                                            {{ strtoupper(substr($basicInfo->first_name ?: 'C', 0, 1)) }}
                                         </div>
                                         <div>
                                             <div style="font-weight: 800; color: var(--color-text-primary); font-size: 0.96rem;">
                                                 {{ $basicInfo->first_name }} {{ $basicInfo->last_name }}
                                             </div>
                                             <div style="font-size: 0.78rem; color: var(--color-text-secondary); display: flex; align-items: center; gap: 0.4rem; margin-top: 2px;">
-                                                <span>{{ $basicInfo->user->email }}</span>
+                                                <span>{{ $basicInfo->user?->email }}</span>
                                                 @if($basicInfo->degrees && $basicInfo->degrees->isNotEmpty())
                                                     <span style="opacity: 0.4;">•</span>
                                                     <span style="color: var(--secondary); font-weight: 600;">{{ $basicInfo->degrees->count() }} degree(s)</span>
@@ -295,7 +463,7 @@
                                             </div>
                                         @endforeach
                                         @if($apps->count() > 2)
-                                            <small style="color: var(--color-text-muted); font-size: 0.72rem;">+{{ $apps->count() - 2 }} more application(s)</small>
+                                            <small style="color: var(--color-text-muted); font-size: 0.72rem;">+{{ $apps->count() - 2 }} more</small>
                                         @endif
                                     @else
                                         <span style="font-size: 0.78rem; color: var(--color-text-muted); font-style: italic;">No candidacies yet</span>
@@ -311,8 +479,7 @@
                                         <button type="button" 
                                                 wire:click="toggleLock({{ $basicInfo->id }})"
                                                 class="btn" 
-                                                style="padding: 0.25rem 0.75rem; font-size: 0.75rem; border-radius: 999px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; {{ $basicInfo->is_locked ? 'background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3);' : 'background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3);' }}"
-                                                title="Click to toggle lock state">
+                                                style="padding: 0.25rem 0.75rem; font-size: 0.75rem; border-radius: 999px; font-weight: 700; cursor: pointer; {{ $basicInfo->is_locked ? 'background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3);' : 'background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3);' }}">
                                             {{ $basicInfo->is_locked ? '🔒 Locked' : '🔓 Editable' }}
                                         </button>
                                     @else
@@ -326,73 +493,39 @@
                                         @if(auth()->user()->hasRole('super-admin') && $basicInfo->user && auth()->id() !== $basicInfo->user->id && !$basicInfo->user->hasRole('super-admin'))
                                             <a href="{{ route('impersonate.start', $basicInfo->user->id) }}" 
                                                class="action-btn action-btn-impersonate" 
-                                               data-tooltip="Impersonate {{ $basicInfo->first_name ?: $basicInfo->user->email }}"
-                                               aria-label="Impersonate Candidate">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                                                    <circle cx="9" cy="7" r="4"/>
-                                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                                                </svg>
+                                               data-tooltip="Impersonate {{ $basicInfo->first_name ?: $basicInfo->user->email }}">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                             </a>
                                         @endif
                                         @if(auth()->user()->can('view-candidate-dossier') || auth()->user()->can('view-basic-info'))
-                                            <button type="button" 
-                                                    class="action-btn action-btn-view" 
-                                                    data-tooltip="View Candidate Dossier" 
-                                                    wire:click="viewBasicInfoDetails({{ $basicInfo->id }})"
-                                                    aria-label="View Candidate Dossier">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-                                                    <circle cx="12" cy="12" r="3"/>
-                                                </svg>
+                                            <button type="button" class="action-btn action-btn-view" data-tooltip="View Candidate Dossier" wire:click="viewBasicInfoDetails({{ $basicInfo->id }})">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                                             </button>
                                         @endif
                                         @can('edit-basic-info')
-                                            <button type="button" 
-                                                    class="action-btn action-btn-edit" 
-                                                    data-tooltip="Edit Profile Particulars" 
-                                                    wire:click="openEditBasicInfoForm({{ $basicInfo->id }})"
-                                                    aria-label="Edit Profile">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                                </svg>
+                                            <button type="button" class="action-btn action-btn-edit" data-tooltip="Edit Profile Particulars" wire:click="openEditBasicInfoForm({{ $basicInfo->id }})">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                             </button>
                                         @endcan
                                         @can('delete-basic-info')
-                                            <button type="button" 
-                                                    class="action-btn action-btn-delete" 
-                                                    data-tooltip="Delete Candidate Profile" 
-                                                    wire:click="deleteBasicInfo({{ $basicInfo->id }})" 
-                                                    onclick="confirm('Are you sure you want to permanently delete this candidate profile?') || event.stopImmediatePropagation()"
-                                                    aria-label="Delete Profile">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <polyline points="3 6 5 6 21 6"/>
-                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                                    <line x1="10" y1="11" x2="10" y2="17"/>
-                                                    <line x1="14" y1="11" x2="14" y2="17"/>
-                                                </svg>
+                                            <button type="button" class="action-btn action-btn-delete" data-tooltip="Delete Candidate Profile" wire:click="deleteBasicInfo({{ $basicInfo->id }})" onclick="confirm('Are you sure you want to permanently delete this candidate profile?') || event.stopImmediatePropagation()">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                                             </button>
                                         @endcan
                                     </div>
                                 </td>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="text-center" style="padding: 4rem 2rem; color: var(--color-text-muted);">
-                                    <div style="width: 54px; height: 54px; border-radius: 50%; background: rgba(99,102,241,0.1); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.85rem;">
-                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                    </div>
-                                    <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 0.35rem 0;">No Candidate Profiles Found</h4>
-                                    <p style="font-size: 0.85rem; margin: 0;">No applicant records match your search query or filters.</p>
-                                </td>
-                            </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
-            </div>
-        </div>
+            </x-slot:table>
+        </x-entity-card-grid>
+
+        <!-- Universal Import Modal for Candidates -->
+        <x-entity-import-modal 
+            :isOpen="$isImportModalOpen" 
+            entityName="Candidate Profiles" 
+            :sampleColumns="['first_name', 'last_name', 'email', 'cnic_number', 'track_type', 'is_locked']" />
     @endif
 
     <!-- Profile Details Modal (Executive Candidate Dossier Vault) -->

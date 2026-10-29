@@ -12,17 +12,33 @@
             <button type="button" wire:click="$refresh" style="background: none; border: none; color: inherit; cursor: pointer; font-size: 1rem;">✕</button>
         </div>
     @endif
+    @if(session()->has('error'))
+        <div class="mb-4" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-sm); padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between; color: #ef4444;">
+            <div style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; font-weight: 600;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="15" y1="9" x2="9" y2="15"/>
+                    <line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>
+                <span>{{ session('error') }}</span>
+            </div>
+            <button type="button" wire:click="$refresh" style="background: none; border: none; color: inherit; cursor: pointer; font-size: 1rem;">✕</button>
+        </div>
+    @endif
 
     <!-- Page Header & Segmented Engine Switcher -->
-    <div class="card mb-6" style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%); border-color: rgba(99, 102, 241, 0.25);">
+    <div class="card mb-6" style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%); border-color: rgba(99, 102, 241, 0.25);">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1.5rem; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 280px;">
-                <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem;">
+                <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; flex-wrap: wrap;">
                     <span class="badge" style="background: rgba(99, 102, 241, 0.2); color: var(--primary); font-weight: 800; font-size: 0.75rem; letter-spacing: 0.05em;">
                         GOVERNANCE & STATUTE ENGINE
                     </span>
                     <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 0.75rem; font-weight: 700;">
-                        MULTI-SECTOR DYNAMIC
+                        END-TO-END DYNAMIC PIPELINE
+                    </span>
+                    <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; font-size: 0.75rem; font-weight: 700;">
+                        MULTI-SECTOR
                     </span>
                 </div>
                 <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 0.35rem 0; display: flex; align-items: center; gap: 0.5rem;">
@@ -33,19 +49,39 @@
                         <path d="M12 3v18"/>
                         <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
                     </svg>
-                    <span>Statutory Criteria & Committee Constitutions Engine</span>
+                    <span>Statutory Criteria, Committees & Process Flow Engine</span>
                 </h2>
                 <p style="font-size: 0.88rem; color: var(--color-text-secondary); margin: 0; line-height: 1.5;">
-                    Dynamic governance engine for creating and managing custom statutory selection boards, routing flows, eligibility criteria, and member quotas across Higher Education, Corporate Enterprise, Healthcare, and Civil Service.
+                    Central engine for standing statutory committees (Scrutiny, Peer Review, Selection Board, Appellate), dynamic recruitment process flows, and multi-sector candidate routing with automated pass/fail/incomplete decision logic.
                 </p>
             </div>
 
             <!-- Segmented Top Tabs -->
-            <div style="display: flex; gap: 0.5rem; background: rgba(15, 23, 42, 0.6); padding: 0.35rem; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.08);">
+            <div style="display: flex; gap: 0.4rem; background: rgba(15, 23, 42, 0.7); padding: 0.35rem; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.08); flex-wrap: wrap;">
+                <button type="button" 
+                    wire:click="setTab('board_registry')" 
+                    class="btn {{ $activeTab === 'board_registry' ? 'btn-primary' : 'btn-secondary' }}"
+                    style="padding: 0.55rem 0.9rem; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 21h18"/>
+                        <path d="M5 21V7l8-4v18"/>
+                        <path d="M19 21V11l-6-4"/>
+                    </svg>
+                    <span>Standing Committees & Boards ({{ $registeredBoards->count() }})</span>
+                </button>
+                <button type="button" 
+                    wire:click="setTab('process_flow')" 
+                    class="btn {{ $activeTab === 'process_flow' ? 'btn-primary' : 'btn-secondary' }}"
+                    style="padding: 0.55rem 0.9rem; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                    </svg>
+                    <span>Dynamic Process Flow Engine ({{ count($flow_stages) }} Steps)</span>
+                </button>
                 <button type="button" 
                     wire:click="setTab('campaign_constitution')" 
                     class="btn {{ $activeTab === 'campaign_constitution' ? 'btn-primary' : 'btn-secondary' }}"
-                    style="padding: 0.55rem 1rem; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem;">
+                    style="padding: 0.55rem 0.9rem; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem;">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"/>
                         <circle cx="12" cy="12" r="6"/>
@@ -53,23 +89,512 @@
                     </svg>
                     <span>Campaign Quotas</span>
                 </button>
-                <button type="button" 
-                    wire:click="setTab('board_registry')" 
-                    class="btn {{ $activeTab === 'board_registry' ? 'btn-primary' : 'btn-secondary' }}"
-                    style="padding: 0.55rem 1rem; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem;">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 21h18"/>
-                        <path d="M5 21V7l8-4v18"/>
-                        <path d="M19 21V11l-6-4"/>
-                    </svg>
-                    <span>Board & Flow Registry ({{ $registeredBoards->count() }})</span>
-                </button>
             </div>
         </div>
     </div>
 
     <!-- ========================================================================= -->
-    <!-- VIEW 1: CAMPAIGN CONSTITUTION & QUOTA TUNING                               -->
+    <!-- TAB 1: STANDING GENERAL COMMITTEES & STATUTORY BOARDS (BASIC DETAILS LIST) -->
+    <!-- ========================================================================= -->
+    @if($activeTab === 'board_registry')
+        <!-- Action Header & Sector Filter Bar -->
+        <div class="card mb-5" style="padding: 1.15rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+                    <span style="font-size: 0.74rem; text-transform: uppercase; font-weight: 700; color: var(--color-text-muted); margin-right: 0.25rem;">
+                        SECTOR FILTER:
+                    </span>
+                    @foreach(['ALL' => 'All Sectors', 'ACADEMIC' => '🎓 Higher Ed', 'CORPORATE' => '🏢 Corporate', 'HEALTHCARE' => '🩺 Healthcare', 'PUBLIC_SECTOR' => '🏛️ Public Sector', 'GENERAL' => '🌐 General'] as $secKey => $secLabel)
+                        <button type="button" 
+                            wire:click="$set('sectorFilter', '{{ $secKey }}')" 
+                            class="btn {{ $sectorFilter === $secKey ? 'btn-primary' : 'btn-secondary' }}"
+                            style="padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 600;">
+                            {{ $secLabel }}
+                        </button>
+                    @endforeach
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <button type="button" class="btn btn-primary" wire:click="openCreateBoardModal" style="display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.85rem; font-weight: 700; padding: 0.6rem 1.15rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        <span>+ Empanel General Standing Committee / Board</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clean, Modern Listing Showing ONLY BASIC DETAILS -->
+        <div class="card mb-6" style="padding: 0; overflow: hidden; border-color: rgba(255, 255, 255, 0.08);">
+            <div style="padding: 1rem 1.25rem; background: rgba(15, 23, 42, 0.5); border-bottom: 1px solid rgba(255, 255, 255, 0.06); display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <span style="font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-secondary);">
+                        General Standing Committees & Statutory Boards Registry
+                    </span>
+                    <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: var(--primary); font-weight: 700; font-size: 0.72rem;">
+                        {{ $registeredBoards->count() }} Registered
+                    </span>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--color-text-muted);">
+                    Showing basic constitution details only • Click Quorum or Edit to view full rules
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table" style="margin: 0; font-size: 0.85rem; vertical-align: middle;">
+                    <thead style="background: rgba(15, 23, 42, 0.3); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted);">
+                        <tr>
+                            <th style="padding: 0.85rem 1.25rem;">Committee / Board Name</th>
+                            <th style="padding: 0.85rem 1rem;">Type</th>
+                            <th style="padding: 0.85rem 1rem;">Sector</th>
+                            <th style="padding: 0.85rem 1rem;">Quorum Summary</th>
+                            <th style="padding: 0.85rem 1rem;">Responsible Stage</th>
+                            <th style="padding: 0.85rem 1rem; text-align: center;">Status</th>
+                            <th style="padding: 0.85rem 1.25rem; text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody style="divide-y: 1px solid rgba(255, 255, 255, 0.05);">
+                        @forelse($registeredBoards as $board)
+                            @php 
+                                $typeBadge = $board->type_badge;
+                                $sectorBadge = $board->sector_badge;
+                            @endphp
+                            <tr style="transition: background 0.15s ease;">
+                                <!-- Name -->
+                                <td style="padding: 0.9rem 1.25rem;">
+                                    <div style="font-weight: 700; color: var(--color-text-primary); font-size: 0.92rem; margin-bottom: 0.2rem;">
+                                        {{ $board->name }}
+                                    </div>
+                                    @if($board->slug)
+                                        <div style="font-size: 0.72rem; color: var(--color-text-muted); font-family: monospace;">
+                                            #{{ $board->slug }}
+                                        </div>
+                                    @endif
+                                </td>
+
+                                <!-- Committee Type -->
+                                <td style="padding: 0.9rem 1rem; white-space: nowrap;">
+                                    <span class="badge" style="background: {{ $typeBadge['bg'] }}; color: {{ $typeBadge['color'] }}; font-weight: 700; font-size: 0.74rem;">
+                                        {{ $typeBadge['icon'] }} {{ $typeBadge['label'] }}
+                                    </span>
+                                </td>
+
+                                <!-- Sector -->
+                                <td style="padding: 0.9rem 1rem; white-space: nowrap;">
+                                    <span class="badge" style="background: {{ $sectorBadge['bg'] }}; color: {{ $sectorBadge['color'] }}; font-weight: 600; font-size: 0.72rem;">
+                                        {{ $sectorBadge['icon'] }} {{ $sectorBadge['label'] }}
+                                    </span>
+                                </td>
+
+                                <!-- Quorum Summary -->
+                                <td style="padding: 0.9rem 1rem;">
+                                    <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                                        <span style="font-weight: 800; color: var(--color-text-primary); font-size: 0.88rem;">
+                                            {{ $board->required_total }} Members
+                                        </span>
+                                        <span style="font-size: 0.72rem; color: var(--color-text-muted);">
+                                            ({{ $board->required_internal }} Internal • {{ $board->required_external }} External{{ $board->required_peer_reviewers > 0 ? ' • ' . $board->required_peer_reviewers . ' Referees' : '' }})
+                                        </span>
+                                    </div>
+                                    @if($board->enforce_strict_quota)
+                                        <span style="font-size: 0.68rem; color: #f59e0b; display: inline-flex; align-items: center; gap: 0.2rem; margin-top: 0.15rem;">
+                                            🔒 Strict Quorum Quota
+                                        </span>
+                                    @else
+                                        <span style="font-size: 0.68rem; color: #10b981; display: inline-flex; align-items: center; gap: 0.2rem; margin-top: 0.15rem;">
+                                            ⚡ Flexible Quota
+                                        </span>
+                                    @endif
+                                </td>
+
+                                <!-- Responsible Stage -->
+                                <td style="padding: 0.9rem 1rem; white-space: nowrap;">
+                                    <span class="badge" style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--color-text-secondary); font-size: 0.73rem; font-weight: 600;">
+                                        @if($board->responsible_stage === 'stage_scrutiny')
+                                            📑 Step 2: Scrutiny Vetting
+                                        @elseif($board->responsible_stage === 'stage_peer_review')
+                                            🔬 Step 3: Peer Review
+                                        @elseif($board->responsible_stage === 'stage_selection_board')
+                                            👥 Step 4: Selection Board
+                                        @elseif($board->responsible_stage === 'stage_syndicate')
+                                            🏛️ Step 5: Syndicate Council
+                                        @elseif($board->responsible_stage === 'stage_appellate')
+                                            ⚖️ Appellate Tribunal
+                                        @else
+                                            ⚙️ General Board
+                                        @endif
+                                    </span>
+                                </td>
+
+                                <!-- Status -->
+                                <td style="padding: 0.9rem 1rem; text-align: center; white-space: nowrap;">
+                                    <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700; font-size: 0.7rem;">
+                                        ● ACTIVE
+                                    </span>
+                                </td>
+
+                                <!-- Actions -->
+                                <td style="padding: 0.9rem 1.25rem; text-align: right; white-space: nowrap;">
+                                    <div style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                                        <!-- Quick Quorum Button -->
+                                        <button type="button" 
+                                            class="btn btn-secondary" 
+                                            wire:click="viewBoardQuorum({{ $board->id }})" 
+                                            style="padding: 0.3rem 0.65rem; font-size: 0.75rem; font-weight: 600;"
+                                            title="View Quorum Breakdown">
+                                            👁️ Quorum
+                                        </button>
+
+                                        <!-- Apply to Active Campaign -->
+                                        <button type="button" 
+                                            class="btn btn-secondary" 
+                                            wire:click="applyBoardConstitutionToCampaign({{ $board->id }})" 
+                                            style="padding: 0.3rem 0.65rem; font-size: 0.75rem; font-weight: 700; color: var(--primary);" 
+                                            title="Load into Active Campaign">
+                                            ⚡ Apply
+                                        </button>
+
+                                        <!-- Edit -->
+                                        <button type="button" 
+                                            class="action-btn action-btn-edit" 
+                                            wire:click="openEditBoardModal({{ $board->id }})" 
+                                            data-tooltip="Configure Board Details & Rules"
+                                            aria-label="Edit Board">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                            </svg>
+                                        </button>
+
+                                        <!-- Clone -->
+                                        <button type="button" 
+                                            class="action-btn action-btn-view" 
+                                            wire:click="cloneBoardModel({{ $board->id }})" 
+                                            data-tooltip="Clone / Duplicate Board"
+                                            aria-label="Clone Board">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                                                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                                            </svg>
+                                        </button>
+
+                                        <!-- Delete -->
+                                        <button type="button" 
+                                            class="action-btn action-btn-delete" 
+                                            wire:click="deleteBoardModel({{ $board->id }})" 
+                                            wire:confirm="Are you sure you want to delete this Statutory Board Constitution?" 
+                                            data-tooltip="Delete Board"
+                                            aria-label="Delete Board">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="3 6 5 6 21 6"/>
+                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 3rem 1.5rem;">
+                                    <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🏛️</div>
+                                    <h4 style="font-size: 1rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                                        No Statutory Committees Found
+                                    </h4>
+                                    <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin-bottom: 1rem;">
+                                        Create your first general standing committee or reset your sector filter.
+                                    </p>
+                                    <button type="button" class="btn btn-primary" wire:click="openCreateBoardModal" style="padding: 0.5rem 1.15rem; font-size: 0.82rem; font-weight: 700;">
+                                        + Empanel Committee
+                                    </button>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: END-TO-END DYNAMIC RECRUITMENT PROCESS FLOW ENGINE                  -->
+    <!-- ========================================================================= -->
+    @if($activeTab === 'process_flow')
+        <!-- Pipeline Control Bar -->
+        <div class="card mb-6" style="padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <!-- Pipeline Selector -->
+                <div style="display: flex; align-items: center; gap: 0.85rem; flex: 1; min-width: 320px;">
+                    <div style="flex: 1;">
+                        <label style="display: block; font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: var(--color-text-muted); margin-bottom: 0.3rem; letter-spacing: 0.05em;">
+                            ACTIVE RECRUITMENT PIPELINE FLOW
+                        </label>
+                        <select class="form-control form-select" wire:model.live="selected_flow_id" style="font-weight: 700; font-size: 0.92rem;">
+                            @foreach($processFlows as $pFlow)
+                                <option value="{{ $pFlow->id }}">
+                                    {{ $pFlow->name }} [{{ $pFlow->sector }}]{{ $pFlow->is_default ? ' ★ (System Default)' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Pipeline Action Buttons -->
+                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-secondary" wire:click="createNewFlowPipeline" style="font-size: 0.8rem; font-weight: 700; padding: 0.55rem 0.9rem;">
+                        ➕ New Pipeline
+                    </button>
+                    @if($selected_flow_id)
+                        <button type="button" class="btn btn-secondary" wire:click="cloneProcessFlow({{ $selected_flow_id }})" style="font-size: 0.8rem; font-weight: 600; padding: 0.55rem 0.85rem;" title="Duplicate Pipeline">
+                            📋 Duplicate
+                        </button>
+                        <button type="button" class="btn btn-secondary" wire:click="setFlowAsDefault({{ $selected_flow_id }})" style="font-size: 0.8rem; font-weight: 600; padding: 0.55rem 0.85rem;" title="Set as System Default Pipeline">
+                            ⭐ Make Default
+                        </button>
+                    @endif
+                    <button type="button" class="btn btn-primary" wire:click="addNewStage" style="font-size: 0.82rem; font-weight: 700; padding: 0.55rem 1.15rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        <span>+ Add Pipeline Stage</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary" wire:click="saveProcessFlow" style="font-size: 0.82rem; font-weight: 700; padding: 0.55rem 1rem; color: #10b981; border-color: rgba(16, 185, 129, 0.3);">
+                        💾 Save Pipeline
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pipeline Description Strip -->
+            @if($flow_description)
+                <div style="margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px solid rgba(255, 255, 255, 0.06); font-size: 0.82rem; color: var(--color-text-secondary); display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="color: var(--primary); font-weight: 800;">ℹ️ PIPELINE BLUEPRINT:</span>
+                    <span>{{ $flow_description }}</span>
+                </div>
+            @endif
+        </div>
+
+        <!-- Sequential Visual Flow Canvas -->
+        <div style="display: flex; flex-direction: column; gap: 1.25rem; margin-bottom: 2.5rem;">
+            @forelse($flow_stages as $sIdx => $stage)
+                <div class="card" style="border-left: 4px solid {{ !empty($stage['is_enabled']) ? 'var(--primary)' : 'rgba(255, 255, 255, 0.2)' }}; padding: 1.35rem; background: {{ !empty($stage['is_enabled']) ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%)' : 'rgba(15, 23, 42, 0.4)' }}; position: relative; transition: border-color 0.2s ease;">
+                    
+                    <!-- Top Stage Header Row -->
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                            <!-- Step Number Pill -->
+                            <div style="width: 34px; height: 34px; border-radius: 50%; background: {{ !empty($stage['is_enabled']) ? 'var(--primary)' : 'rgba(255, 255, 255, 0.15)' }}; color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.95rem; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);">
+                                {{ $stage['step'] ?? ($sIdx + 1) }}
+                            </div>
+
+                            <!-- Stage Title -->
+                            <div>
+                                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--color-text-primary); margin: 0; line-height: 1.3;">
+                                    {{ $stage['name'] ?? 'Stage ' . ($sIdx + 1) }}
+                                </h3>
+                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; flex-wrap: wrap;">
+                                    <!-- Actor Badge -->
+                                    <span class="badge" style="background: rgba(99, 102, 241, 0.18); color: var(--primary); font-weight: 700; font-size: 0.72rem;">
+                                        👤 {{ $stage['governing_role'] ?? $stage['actor_type'] ?? 'Authority' }}
+                                    </span>
+
+                                    <!-- Committee Type Badge -->
+                                    @if(!empty($stage['committee_type']))
+                                        <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700; font-size: 0.7rem;">
+                                            🏛️ {{ $stage['committee_type'] }}
+                                        </span>
+                                    @endif
+
+                                    <!-- SLA Days Badge -->
+                                    <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; font-weight: 700; font-size: 0.7rem;">
+                                        ⏱️ {{ $stage['sla_days'] ?? 7 }} Days SLA
+                                    </span>
+
+                                    <!-- Enabled/Disabled Badge -->
+                                    @if(empty($stage['is_enabled']))
+                                        <span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; font-size: 0.7rem;">
+                                            DISABLED
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stage Action Buttons -->
+                        <div style="display: flex; align-items: center; gap: 0.35rem;">
+                            <!-- Move Up -->
+                            <button type="button" 
+                                class="action-btn action-btn-view" 
+                                wire:click="moveStageUp({{ $sIdx }})" 
+                                {{ $sIdx === 0 ? 'disabled' : '' }} 
+                                data-tooltip="Move Stage Up" 
+                                aria-label="Move Up">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="18 15 12 9 6 15"/>
+                                </svg>
+                            </button>
+
+                            <!-- Move Down -->
+                            <button type="button" 
+                                class="action-btn action-btn-view" 
+                                wire:click="moveStageDown({{ $sIdx }})" 
+                                {{ $sIdx === count($flow_stages) - 1 ? 'disabled' : '' }} 
+                                data-tooltip="Move Stage Down" 
+                                aria-label="Move Down">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="6 9 12 15 18 9"/>
+                                </svg>
+                            </button>
+
+                            <!-- Toggle Enabled -->
+                            <button type="button" 
+                                class="action-btn action-btn-edit" 
+                                wire:click="toggleStageEnabled({{ $sIdx }})" 
+                                data-tooltip="{{ !empty($stage['is_enabled']) ? 'Disable Stage' : 'Enable Stage' }}" 
+                                aria-label="Toggle Stage">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
+
+                            <!-- Configure Modal Trigger -->
+                            <button type="button" 
+                                class="btn btn-secondary" 
+                                wire:click="openEditStageModal({{ $sIdx }})" 
+                                style="font-size: 0.78rem; font-weight: 700; padding: 0.35rem 0.8rem; display: inline-flex; align-items: center; gap: 0.3rem;">
+                                ✏️ Tune Logic
+                            </button>
+
+                            <!-- Remove Step -->
+                            <button type="button" 
+                                class="action-btn action-btn-delete" 
+                                wire:click="removeStage({{ $sIdx }})" 
+                                wire:confirm="Are you sure you want to remove this process stage from the pipeline?" 
+                                data-tooltip="Delete Stage" 
+                                aria-label="Delete Stage">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Rule / Criterion Description -->
+                    @if(!empty($stage['rule_description']))
+                        <div style="font-size: 0.84rem; color: var(--color-text-secondary); margin-bottom: 1rem; line-height: 1.5; background: rgba(15, 23, 42, 0.4); padding: 0.65rem 0.95rem; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.04);">
+                            <span style="font-weight: 700; color: var(--color-text-primary);">Operational Rule:</span> {{ $stage['rule_description'] }}
+                        </div>
+                    @endif
+
+                    <!-- Color-Coded Dynamic Logic Grid (Pass / Incomplete / Fail) -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <!-- 🟢 On Pass -->
+                        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 0.75rem 1rem;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+                                <span style="font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: #10b981; letter-spacing: 0.04em;">
+                                    🟢 ON PASS / QUALIFIED
+                                </span>
+                                @if(!empty($stage['on_pass']['next_step']))
+                                    <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981; font-size: 0.68rem; font-weight: 700;">
+                                        ➔ Step {{ $stage['on_pass']['next_step'] }}
+                                    </span>
+                                @endif
+                            </div>
+                            <div style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.2rem;">
+                                Status: <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 0.72rem;">{{ $stage['on_pass']['target_status'] ?? 'APPROVED' }}</span>
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--color-text-secondary); line-height: 1.4;">
+                                {{ $stage['on_pass']['label'] ?? 'Candidate passes verification and advances to next stage.' }}
+                            </div>
+                        </div>
+
+                        <!-- 🟡 On Incomplete (Deficiency Alert) -->
+                        <div style="background: {{ !empty($stage['on_incomplete']) ? 'rgba(245, 158, 11, 0.08)' : 'rgba(255, 255, 255, 0.02)' }}; border: 1px solid {{ !empty($stage['on_incomplete']) ? 'rgba(245, 158, 11, 0.25)' : 'rgba(255, 255, 255, 0.05)' }}; border-radius: var(--radius-sm); padding: 0.75rem 1rem;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+                                <span style="font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: {{ !empty($stage['on_incomplete']) ? '#f59e0b' : 'var(--color-text-muted)' }}; letter-spacing: 0.04em;">
+                                    🟡 ON INCOMPLETE / DEFICIENCY
+                                </span>
+                                @if(!empty($stage['on_incomplete']['grace_days']))
+                                    <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; font-size: 0.68rem; font-weight: 700;">
+                                        ⏱️ {{ $stage['on_incomplete']['grace_days'] }}d Grace
+                                    </span>
+                                @endif
+                            </div>
+                            @if(!empty($stage['on_incomplete']))
+                                <div style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.2rem;">
+                                    Status: <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; font-size: 0.72rem;">{{ $stage['on_incomplete']['target_status'] ?? 'INCOMPLETE_DOSSIER' }}</span>
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--color-text-secondary); line-height: 1.4;">
+                                    {{ $stage['on_incomplete']['label'] ?? 'Deficiency alerted to candidate for upload.' }}
+                                </div>
+                            @else
+                                <div style="font-size: 0.75rem; color: var(--color-text-muted); font-style: italic; padding-top: 0.5rem;">
+                                    No intermediate deficiency branch (Direct Pass / Fail).
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- 🔴 On Fail / Rejection -->
+                        <div style="background: {{ !empty($stage['on_fail']) ? 'rgba(239, 68, 68, 0.08)' : 'rgba(255, 255, 255, 0.02)' }}; border: 1px solid {{ !empty($stage['on_fail']) ? 'rgba(239, 68, 68, 0.25)' : 'rgba(255, 255, 255, 0.05)' }}; border-radius: var(--radius-sm); padding: 0.75rem 1rem;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+                                <span style="font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: {{ !empty($stage['on_fail']) ? '#ef4444' : 'var(--color-text-muted)' }}; letter-spacing: 0.04em;">
+                                    🔴 ON FAIL / DISQUALIFIED
+                                </span>
+                                @if(!empty($stage['on_fail']['allow_appeal']))
+                                    <span class="badge" style="background: rgba(139, 92, 246, 0.2); color: #8b5cf6; font-size: 0.68rem; font-weight: 700;">
+                                        ⚖️ Appellate Right
+                                    </span>
+                                @endif
+                            </div>
+                            @if(!empty($stage['on_fail']))
+                                <div style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.2rem;">
+                                    Status: <span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; font-size: 0.72rem;">{{ $stage['on_fail']['target_status'] ?? 'DISQUALIFIED' }}</span>
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--color-text-secondary); line-height: 1.4;">
+                                    {{ $stage['on_fail']['label'] ?? 'Candidate is marked disqualified or not selected.' }}
+                                </div>
+                            @else
+                                <div style="font-size: 0.75rem; color: var(--color-text-muted); font-style: italic; padding-top: 0.5rem;">
+                                    Final stage or no failure outcome specified.
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Downward Arrow Between Stages -->
+                @if($sIdx < count($flow_stages) - 1)
+                    <div style="display: flex; justify-content: center; align-items: center; margin: -0.5rem 0;">
+                        <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: var(--primary); display: flex; align-items: center; justify-content: center;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <polyline points="19 12 12 19 5 12"/>
+                            </svg>
+                        </div>
+                    </div>
+                @endif
+            @empty
+                <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔄</div>
+                    <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                        No Process Stages Configured
+                    </h4>
+                    <p style="font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: 1.25rem;">
+                        Build your recruitment process pipeline stages from applicant submission to final appointment.
+                    </p>
+                    <button type="button" class="btn btn-primary" wire:click="addNewStage" style="padding: 0.6rem 1.25rem; font-size: 0.85rem; font-weight: 700;">
+                        + Add First Stage
+                    </button>
+                </div>
+            @endforelse
+        </div>
+    @endif
+
+    <!-- ========================================================================= -->
+    <!-- TAB 3: CAMPAIGN CONSTITUTION & QUOTA TUNING                               -->
     <!-- ========================================================================= -->
     @if($activeTab === 'campaign_constitution')
         <!-- Campaign Selector & Master Board Loader -->
@@ -99,22 +624,6 @@
                         @endforeach
                     </select>
                 </div>
-
-                <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
-                    <button type="button" class="btn btn-primary" style="padding: 0.65rem 1.4rem; font-size: 0.88rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem;" wire:click="saveConstitution">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                            <polyline points="17 21 17 13 7 13 7 21"/>
-                            <polyline points="7 3 7 8 15 8"/>
-                        </svg>
-                        <span>Save Criteria</span>
-                    </button>
-                    @if($currentCampaign)
-                        <a href="/admin/campaigns" class="btn btn-secondary" style="padding: 0.65rem 1rem; font-size: 0.85rem;" title="Go to Campaign Allocations">
-                            <span>Panel Allocation ↗</span>
-                        </a>
-                    @endif
-                </div>
             </div>
         </div>
 
@@ -140,168 +649,95 @@
                     <span>🏛️ Professorial Board (6 Members • 1 Overseas)</span>
                 </button>
                 <button type="button" class="btn btn-secondary" style="padding: 0.45rem 0.85rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.4rem;" wire:click="applyPreset('lecturer')">
-                    <span>📚 Lecturer Panel (5 Members • 4 Internal)</span>
+                    <span>📖 Lecturer / Teaching (5 Members)</span>
                 </button>
                 <button type="button" class="btn btn-secondary" style="padding: 0.45rem 0.85rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.4rem;" wire:click="applyPreset('corporate_board')">
-                    <span>🏢 Corporate Panel (5 Members • 2 Industry)</span>
+                    <span>🏢 Corporate Executive (5 Members)</span>
                 </button>
                 <button type="button" class="btn btn-secondary" style="padding: 0.45rem 0.85rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.4rem;" wire:click="applyPreset('public_sector')">
-                    <span>🏛️ Public Sector Board (4 Members • 1 Legal Arbiter)</span>
+                    <span>🏛️ Public Sector / Civil Service (4 Members)</span>
                 </button>
-                <button type="button" class="btn btn-secondary" style="padding: 0.45rem 0.85rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.4rem;" wire:click="applyPreset('blank')">
-                    <span>➕ Blank Custom Board</span>
+                <button type="button" class="btn btn-secondary" style="padding: 0.45rem 0.85rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.4rem;" wire:click="applyPreset('expert_heavy')">
+                    <span>🔬 External-Led Expert (5 Members)</span>
+                </button>
+                <button type="button" class="btn btn-secondary" style="padding: 0.45rem 0.85rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.4rem; border-style: dashed;" wire:click="applyPreset('blank')">
+                    <span>⚙️ Blank Custom</span>
                 </button>
             </div>
         </div>
 
-        <!-- Live Quota Summary Metrics Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-            <div class="metric-card" style="border-left: 4px solid var(--primary);">
-                <div class="metric-label">TOTAL QUORUM</div>
-                <div class="metric-value" style="color: var(--primary);">{{ $this->totalQuorum }}</div>
-                <div class="metric-subtext">Statutory required members</div>
-            </div>
-            <div class="metric-card" style="border-left: 4px solid #3b82f6;">
-                <div class="metric-label">INTERNAL SLOTS</div>
-                <div class="metric-value" style="color: #3b82f6;">{{ $this->internalCount }}</div>
-                <div class="metric-subtext">Home institution members</div>
-            </div>
-            <div class="metric-card" style="border-left: 4px solid #10b981;">
-                <div class="metric-label">EXTERNAL SLOTS</div>
-                <div class="metric-value" style="color: #10b981;">{{ $this->externalCount }}</div>
-                <div class="metric-subtext">Other institutions / industry</div>
-            </div>
-            <div class="metric-card" style="border-left: 4px solid #8b5cf6;">
-                <div class="metric-label">INTERNATIONAL SLOTS</div>
-                <div class="metric-value" style="color: #8b5cf6;">{{ $this->internationalCount }}</div>
-                <div class="metric-subtext">Overseas specialists</div>
-            </div>
-            <div class="metric-card" style="border-left: 4px solid #f59e0b;">
-                <div class="metric-label">INDEPENDENT / ARBITERS</div>
-                <div class="metric-value" style="color: #f59e0b;">{{ $this->independentCount }}</div>
-                <div class="metric-subtext">Legal / governance arbiters</div>
-            </div>
-        </div>
-
-        <!-- Committee Constitution Form & Dynamic Rules Table -->
+        <!-- Campaign Quota Customization Card -->
         <div class="card mb-6" style="padding: 1.5rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
                 <div>
-                    <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0 0 0.25rem 0; color: var(--color-text-primary);">
-                        Constitutional Quorum Slots & Rules
+                    <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 0.25rem 0;">
+                        {{ $constitution_title }}
                     </h3>
                     <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin: 0;">
-                        Specify each role, exact seat quota, category origin, cadre type, and whether attendance is mandatory.
+                        {{ $constitution_description ?: 'Statutory member quota breakdown for live committee vetting and viva.' }}
                     </p>
                 </div>
-                <button type="button" class="btn btn-secondary" wire:click="addRule" style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; font-weight: 700;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"/>
-                        <line x1="5" y1="12" x2="19" y2="12"/>
-                    </svg>
-                    <span>Add Role Slot</span>
-                </button>
-            </div>
 
-            <!-- Title & Description -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="form-label" style="font-size: 0.78rem; font-weight: 700;">CONSTITUTION TITLE</label>
-                    <input type="text" class="form-control" wire:model.defer="constitution_title" placeholder="e.g. Statutory Selection Committee for Assistant Professor" />
-                    @error('constitution_title') <span class="text-danger" style="font-size: 0.75rem;">{{ $message }}</span> @enderror
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <button type="button" class="btn btn-secondary" wire:click="addRule" style="font-size: 0.8rem; font-weight: 700; padding: 0.45rem 0.9rem;">
+                        + Add Member Seat
+                    </button>
                 </div>
-                <div>
-                    <label class="form-label" style="font-size: 0.78rem; font-weight: 700;">EXTERNAL PEER REVIEWERS REQUIRED</label>
-                    <input type="number" min="0" max="20" class="form-control" wire:model.defer="required_peer_reviewers" />
-                    <span style="font-size: 0.72rem; color: var(--color-text-muted);">Number of subject referees for external research peer review (e.g. 3 for Asst Prof, 0 for Corporate).</span>
-                </div>
-            </div>
-
-            <div class="mb-5">
-                <label class="form-label" style="font-size: 0.78rem; font-weight: 700;">STATUTORY DESCRIPTION & CITATION</label>
-                <textarea class="form-control" rows="2" wire:model.defer="constitution_description" placeholder="Statute citation or justification notes..."></textarea>
             </div>
 
             <!-- Rules Table -->
-            <div class="table-responsive" style="border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); overflow: hidden;">
-                <table class="table" style="margin: 0;">
-                    <thead style="background: rgba(15, 23, 42, 0.6); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em;">
+            <div class="table-responsive">
+                <table class="table" style="font-size: 0.84rem; margin: 0;">
+                    <thead style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em;">
                         <tr>
-                            <th style="width: 32%;">ROLE TITLE / DESIGNATION</th>
-                            <th style="width: 14%; text-align: center;">QUOTA COUNT</th>
-                            <th style="width: 18%;">ORIGIN CATEGORY</th>
-                            <th style="width: 16%;">CADRE & NATURE</th>
-                            <th style="width: 10%; text-align: center;">MANDATORY</th>
+                            <th style="width: 35%;">MEMBER SEAT / ROLE</th>
+                            <th style="width: 15%;">SEATS</th>
+                            <th style="width: 25%;">ORIGIN CATEGORY</th>
+                            <th style="width: 15%;">CADRE</th>
                             <th style="width: 10%; text-align: right;">ACTION</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($rules as $idx => $rule)
-                            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
-                                <td style="vertical-align: middle;">
-                                    <input type="text" class="form-control" wire:model.defer="rules.{{ $idx }}.name" placeholder="e.g. Dean of Faculty, External Expert..." style="font-size: 0.85rem; font-weight: 600;" />
-                                    @error("rules.{$idx}.name") <span class="text-danger" style="font-size: 0.72rem;">{{ $message }}</span> @enderror
+                        @foreach($rules as $rIdx => $rule)
+                            <tr>
+                                <td>
+                                    <input type="text" class="form-control" wire:model.defer="rules.{{ $rIdx }}.name" placeholder="Role Title" style="font-size: 0.84rem;" required />
                                 </td>
-                                <td style="vertical-align: middle; text-align: center;">
-                                    <div style="display: inline-flex; align-items: center; gap: 0.35rem;">
-                                        <button type="button" class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" wire:click="updateRuleCount({{ $idx }}, -1)">-</button>
-                                        <span style="font-weight: 800; min-width: 24px; text-align: center; color: var(--color-text-primary);">{{ $rule['count'] ?? 1 }}</span>
-                                        <button type="button" class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" wire:click="updateRuleCount({{ $idx }}, 1)">+</button>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 0.35rem;">
+                                        <button type="button" class="btn btn-secondary" wire:click="updateRuleCount({{ $rIdx }}, -1)" style="padding: 0.2rem 0.45rem; font-size: 0.75rem;">-</button>
+                                        <input type="number" min="1" max="50" class="form-control" wire:model.defer="rules.{{ $rIdx }}.count" style="width: 55px; text-align: center; font-size: 0.84rem;" required />
+                                        <button type="button" class="btn btn-secondary" wire:click="updateRuleCount({{ $rIdx }}, 1)" style="padding: 0.2rem 0.45rem; font-size: 0.75rem;">+</button>
                                     </div>
                                 </td>
-                                <td style="vertical-align: middle;">
-                                    <select class="form-control form-select" wire:model.defer="rules.{{ $idx }}.category" style="font-size: 0.82rem; font-weight: 600;">
+                                <td>
+                                    <select class="form-control form-select" wire:model.defer="rules.{{ $rIdx }}.category" style="font-size: 0.8rem;">
                                         <option value="INTERNAL">INTERNAL (Home Inst.)</option>
-                                        <option value="EXTERNAL">EXTERNAL (Other Inst.)</option>
+                                        <option value="EXTERNAL">EXTERNAL (Outside Inst.)</option>
                                         <option value="INTERNATIONAL">INTERNATIONAL (Overseas)</option>
                                         <option value="INDEPENDENT">INDEPENDENT (Arbiter)</option>
                                     </select>
                                 </td>
-                                <td style="vertical-align: middle;">
-                                    <div style="display: flex; gap: 0.35rem;">
-                                        <select class="form-control form-select" wire:model.defer="rules.{{ $idx }}.cadre" style="font-size: 0.78rem; flex: 1;">
-                                            <option value="FACULTY">Faculty</option>
-                                            <option value="OFFICER">Officer</option>
-                                            <option value="EXPERT">Expert</option>
-                                            <option value="EXECUTIVE">Executive</option>
-                                            <option value="LEGAL">Legal</option>
-                                        </select>
-                                        <select class="form-control form-select" wire:model.defer="rules.{{ $idx }}.role_nature" style="font-size: 0.78rem; flex: 1;">
-                                            <option value="CONVENER">Convener</option>
-                                            <option value="MEMBER">Member</option>
-                                            <option value="SECRETARY">Secretary</option>
-                                            <option value="EXPERT">Expert</option>
-                                            <option value="ARBITER">Arbiter</option>
-                                        </select>
-                                    </div>
+                                <td>
+                                    <select class="form-control form-select" wire:model.defer="rules.{{ $rIdx }}.cadre" style="font-size: 0.8rem;">
+                                        <option value="FACULTY">Faculty</option>
+                                        <option value="OFFICER">Officer</option>
+                                        <option value="EXPERT">Expert</option>
+                                        <option value="EXECUTIVE">Executive</option>
+                                        <option value="LEGAL">Legal</option>
+                                    </select>
                                 </td>
-                                <td style="vertical-align: middle; text-align: center;">
-                                    <button type="button" 
-                                        wire:click="toggleMandatory({{ $idx }})" 
-                                        class="badge" 
-                                        style="background: {{ !empty($rule['is_mandatory']) ? 'rgba(16, 185, 129, 0.2)' : 'rgba(148, 163, 184, 0.1)' }}; color: {{ !empty($rule['is_mandatory']) ? '#10b981' : '#94a3b8' }}; border: 1px solid {{ !empty($rule['is_mandatory']) ? 'rgba(16, 185, 129, 0.4)' : 'rgba(148, 163, 184, 0.2)' }}; cursor: pointer; padding: 0.3rem 0.6rem;">
-                                        {{ !empty($rule['is_mandatory']) ? 'Mandatory' : 'Optional' }}
-                                    </button>
-                                </td>
-                                <td style="vertical-align: middle; text-align: right;">
-                                    <button type="button" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; color: #ef4444;" wire:click="removeRule({{ $idx }})" title="Remove Slot">
-                                        ✕
-                                    </button>
+                                <td style="text-align: right;">
+                                    <button type="button" class="btn btn-secondary" wire:click="removeRule({{ $rIdx }})" style="padding: 0.25rem 0.5rem; color: #ef4444;">✕</button>
                                 </td>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" style="text-align: center; padding: 2rem; color: var(--color-text-muted);">
-                                    No dynamic rules configured yet. Click "Add Role Slot" or choose a Preset above.
-                                </td>
-                            </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
             </div>
 
-            <!-- Save Buttons Footer -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+            <!-- Footer Quorum Enforcement & Save -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; flex-wrap: wrap; gap: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 1rem;">
                 <div style="display: flex; align-items: center; gap: 0.6rem;">
                     <input type="checkbox" id="enforce_strict" wire:model.defer="enforce_strict_quota" style="width: 16px; height: 16px;" />
                     <label for="enforce_strict" style="font-size: 0.85rem; font-weight: 600; cursor: pointer; color: var(--color-text-primary);">
@@ -319,169 +755,65 @@
                 </div>
             </div>
         </div>
-    @endif
 
-    <!-- ========================================================================= -->
-    <!-- VIEW 2: MASTER STATUTORY BOARDS & COMMITTEES REGISTRY (MULTI-SECTOR)       -->
-    <!-- ========================================================================= -->
-    @if($activeTab === 'board_registry')
-        <!-- Sector Filter Bar & Action Header -->
-        <div class="card mb-6" style="padding: 1.25rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                    <span style="font-size: 0.74rem; text-transform: uppercase; font-weight: 700; color: var(--color-text-muted); margin-right: 0.25rem;">
-                        SECTOR FILTER:
-                    </span>
-                    @foreach(['ALL' => 'All Sectors', 'ACADEMIC' => '🎓 Higher Ed', 'CORPORATE' => '🏢 Corporate', 'HEALTHCARE' => '🩺 Healthcare', 'PUBLIC_SECTOR' => '🏛️ Public Sector', 'GENERAL' => '🌐 General'] as $secKey => $secLabel)
-                        <button type="button" 
-                            wire:click="$set('sectorFilter', '{{ $secKey }}')" 
-                            class="btn {{ $sectorFilter === $secKey ? 'btn-primary' : 'btn-secondary' }}"
-                            style="padding: 0.4rem 0.8rem; font-size: 0.78rem; font-weight: 600;">
-                            {{ $secLabel }}
-                        </button>
-                    @endforeach
-                </div>
-
-                <button type="button" class="btn btn-primary" wire:click="openCreateBoardModal" style="display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.85rem; font-weight: 700; padding: 0.6rem 1.2rem;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"/>
-                        <line x1="5" y1="12" x2="19" y2="12"/>
-                    </svg>
-                    <span>+ New Statutory Board / Committee</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Registered Boards Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            @forelse($registeredBoards as $board)
-                @php $badge = $board->sector_badge; @endphp
-                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; border-color: rgba(255, 255, 255, 0.08); transition: transform 0.15s ease, border-color 0.15s ease;">
+        <!-- Active Campaign Live Panel Quorum Inspection -->
+        @if($currentCampaign && $metrics)
+            <div class="card mt-6" style="padding: 1.25rem;">
+                <div style="border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 0.75rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
                     <div>
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
-                            <span class="badge" style="background: {{ $badge['bg'] }}; color: {{ $badge['color'] }}; font-weight: 800; font-size: 0.72rem; letter-spacing: 0.04em;">
-                                {{ $badge['icon'] }} {{ $badge['label'] }}
-                            </span>
-                            <span class="badge" style="background: rgba(255, 255, 255, 0.06); color: var(--color-text-secondary); font-size: 0.72rem; font-weight: 700;">
-                                Quorum: {{ $board->required_total }} Members
-                            </span>
-                        </div>
-
-                        <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 0.4rem 0; line-height: 1.35;">
-                            {{ $board->name }}
-                        </h3>
-
-                        <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin: 0 0 1rem 0; line-height: 1.5; min-height: 48px;">
-                            {{ Str::limit($board->description ?: 'Statutory board constitution and routing pipeline criteria.', 120) }}
+                        <h4 style="font-size: 1rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 0.15rem 0;">
+                            Live Committee Quorum Status on {{ $currentCampaign->title }}
+                        </h4>
+                        <p style="font-size: 0.8rem; color: var(--color-text-secondary); margin: 0;">
+                            Tracks actual appointed operational committee members against the prescribed criteria
                         </p>
-
-                        <!-- Breakdown pills -->
-                        <div style="display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 1rem;">
-                            <span class="badge" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6; font-size: 0.7rem;">
-                                {{ $board->required_internal }} Internal
-                            </span>
-                            <span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #10b981; font-size: 0.7rem;">
-                                {{ $board->required_external }} External
-                            </span>
-                            @if($board->required_international > 0)
-                                <span class="badge" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6; font-size: 0.7rem;">
-                                    {{ $board->required_international }} Overseas
-                                </span>
-                            @endif
-                            @if($board->required_independent > 0)
-                                <span class="badge" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b; font-size: 0.7rem;">
-                                    {{ $board->required_independent }} Arbiter
-                                </span>
-                            @endif
-                            @if($board->required_peer_reviewers > 0)
-                                <span class="badge" style="background: rgba(236, 72, 153, 0.12); color: #ec4899; font-size: 0.7rem;">
-                                    {{ $board->required_peer_reviewers }} Peer Referees
-                                </span>
-                            @endif
-                        </div>
-
-                        <!-- Routing pipeline summary preview -->
-                        <div style="background: rgba(15, 23, 42, 0.5); border-radius: var(--radius-sm); padding: 0.65rem 0.85rem; margin-bottom: 1.25rem;">
-                            <div style="font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: var(--color-text-muted); margin-bottom: 0.35rem; letter-spacing: 0.05em;">
-                                PIPELINE ROUTING FLOW
-                            </div>
-                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                                @foreach(array_slice($board->getEffectiveRoutingFlow(), 0, 3) as $flowStep)
-                                    <div style="font-size: 0.75rem; color: var(--color-text-secondary); display: flex; align-items: center; gap: 0.35rem;">
-                                        <span style="color: var(--primary); font-weight: 800;">{{ $flowStep['step'] }}.</span>
-                                        <span>{{ $flowStep['name'] }}</span>
-                                        <span style="margin-left: auto; font-size: 0.68rem; color: var(--color-text-muted);">({{ $flowStep['sla_days'] ?? 7 }}d)</span>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
                     </div>
 
-                    <!-- Actions Bar -->
-                    <div style="border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 0.85rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
-                        <button type="button" class="btn btn-secondary" wire:click="applyBoardConstitutionToCampaign({{ $board->id }})" style="font-size: 0.78rem; font-weight: 700; padding: 0.4rem 0.75rem; color: var(--primary);" title="Load into Active Campaign">
-                            ⚡ Apply to Campaign
-                        </button>
+                    @if(!empty($metrics['is_complete']))
+                        <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.4); padding: 0.4rem 0.8rem; font-size: 0.82rem; font-weight: 700;">
+                            ✓ Statutory Quorum Satisfied ({{ $metrics['total_assigned'] ?? 0 }} / {{ $metrics['required_total'] ?? 0 }})
+                        </span>
+                    @else
+                        <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.4); padding: 0.4rem 0.8rem; font-size: 0.82rem; font-weight: 700;">
+                            ⏳ In Progress: {{ $metrics['total_assigned'] ?? 0 }} of {{ $metrics['required_total'] ?? 0 }} Members Assigned
+                        </span>
+                    @endif
+                </div>
 
-                        <div class="action-btn-group">
-                            <button type="button" 
-                                    class="action-btn action-btn-edit" 
-                                    wire:click="openEditBoardModal({{ $board->id }})" 
-                                    data-tooltip="Edit Statutory Board Constitution"
-                                    aria-label="Edit Constitution">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                </svg>
-                            </button>
-                            <button type="button" 
-                                    class="action-btn action-btn-view" 
-                                    wire:click="cloneBoardModel({{ $board->id }})" 
-                                    data-tooltip="Clone / Duplicate Board Definition"
-                                    aria-label="Clone Board">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-                                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-                                </svg>
-                            </button>
-                            <button type="button" 
-                                    class="action-btn action-btn-delete" 
-                                    wire:click="deleteBoardModel({{ $board->id }})" 
-                                    wire:confirm="Are you sure you want to delete this Statutory Board Constitution?" 
-                                    data-tooltip="Delete Board Definition"
-                                    aria-label="Delete Board">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="3 6 5 6 21 6"/>
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                    <line x1="10" y1="11" x2="10" y2="17"/>
-                                    <line x1="14" y1="11" x2="14" y2="17"/>
-                                </svg>
-                            </button>
-                        </div>
+                <!-- Categories Tally Grid -->
+                @if(!empty($metrics['categories']))
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.85rem;">
+                        @foreach($metrics['categories'] as $catKey => $catData)
+                            <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: var(--radius-sm); padding: 0.85rem 1rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                                    <span style="font-size: 0.75rem; font-weight: 700; color: var(--color-text-secondary);">
+                                        {{ $catData['label'] }}
+                                    </span>
+                                    @if(!empty($catData['satisfied']))
+                                        <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success); font-size: 0.7rem; font-weight: 700;">✓ Quota Met</span>
+                                    @else
+                                        <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: var(--warning); font-size: 0.7rem; font-weight: 700;">{{ $catData['available'] ?? 0 }} Needed</span>
+                                    @endif
+                                </div>
+                                <div style="display: flex; align-items: baseline; gap: 0.4rem;">
+                                    <span style="font-size: 1.35rem; font-weight: 800; font-family: monospace; color: var(--color-text-primary);">
+                                        {{ $catData['assigned'] }} / {{ $catData['required'] }}
+                                    </span>
+                                    <span style="font-size: 0.76rem; color: var(--color-text-muted);">Allocated</span>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
-                </div>
-            @empty
-                <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 3rem 1.5rem;">
-                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🏛️</div>
-                    <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.35rem;">
-                        No Statutory Boards Found for Selected Sector
-                    </h4>
-                    <p style="font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: 1.25rem;">
-                        Create your first custom statutory selection board or reset the sector filter.
-                    </p>
-                    <button type="button" class="btn btn-primary" wire:click="openCreateBoardModal" style="padding: 0.6rem 1.25rem; font-size: 0.85rem; font-weight: 700;">
-                        + Create Statutory Board
-                    </button>
-                </div>
-            @endforelse
-        </div>
+                @endif
+            </div>
+        @endif
     @endif
 
     <!-- ========================================================================= -->
-    <!-- MODAL: ADD / EDIT STATUTORY BOARD & COMMITTEE CONSTITUTION                 -->
+    <!-- MODAL 1: ADD / EDIT STATUTORY BOARD & GENERAL COMMITTEE                   -->
     <!-- ========================================================================= -->
     @if($showBoardModal)
-        <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1.5rem;">
+        <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1.5rem;">
             <div class="card" style="width: 100%; max-width: 900px; max-height: 90vh; overflow-y: auto; background: #0f172a; border-color: rgba(99, 102, 241, 0.35); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); padding: 1.75rem;">
                 
                 <!-- Modal Header -->
@@ -489,14 +821,14 @@
                     <div>
                         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem;">
                             <span class="badge" style="background: rgba(99, 102, 241, 0.2); color: var(--primary); font-size: 0.72rem; font-weight: 800;">
-                                STATUTORY GOVERNANCE BUILDER
+                                STATUTORY GOVERNANCE ENGINE
                             </span>
                             <span class="badge" style="background: rgba(255, 255, 255, 0.06); color: var(--color-text-secondary); font-size: 0.72rem;">
-                                {{ $isEditBoard ? 'EDITING CONSTITUTION' : 'NEW CONSTITUTION' }}
+                                {{ $isEditBoard ? 'EDITING COMMITTEE' : 'NEW STANDING COMMITTEE' }}
                             </span>
                         </div>
                         <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--color-text-primary); margin: 0;">
-                            {{ $isEditBoard ? 'Configure Statutory Board Constitution' : 'Create New Statutory Board Constitution' }}
+                            {{ $isEditBoard ? 'Configure Statutory Board & Committee' : 'Empanel General Standing Committee / Board' }}
                         </h3>
                     </div>
                     <button type="button" wire:click="closeBoardModal" style="background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 1.25rem;">✕</button>
@@ -504,13 +836,27 @@
 
                 <!-- Form Fields -->
                 <form wire:submit.prevent="saveBoardModel">
-                    <!-- General Details -->
+                    <!-- General Details Grid -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label class="form-label" style="font-size: 0.78rem; font-weight: 700;">BOARD / COMMITTEE NAME</label>
-                            <input type="text" class="form-control" wire:model.defer="board_name" placeholder="e.g. Higher Education Selection Board, Executive Panel..." required />
+                            <label class="form-label" style="font-size: 0.78rem; font-weight: 700;">COMMITTEE / BOARD NAME</label>
+                            <input type="text" class="form-control" wire:model.defer="board_name" placeholder="e.g. Standing Scrutiny Committee, Selection Board..." required />
                             @error('board_name') <span class="text-danger" style="font-size: 0.72rem;">{{ $message }}</span> @enderror
                         </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.78rem; font-weight: 700;">COMMITTEE STATUTORY TYPE</label>
+                            <select class="form-control form-select" wire:model.defer="board_type">
+                                <option value="SCRUTINY">📑 Scrutiny Committee (Dossier Vetting)</option>
+                                <option value="EXPERT_REVIEW">🔬 Expert Referees Panel (Academic Peer Review)</option>
+                                <option value="SELECTION_BOARD">👥 Selection Board (Live Interview & Viva)</option>
+                                <option value="APPELLATE">⚖️ Appellate & Grievance Review Committee</option>
+                                <option value="EXECUTIVE">🏛️ Syndicate / Executive Governing Council</option>
+                                <option value="CUSTOM">⚙️ Custom Standing Board / Panel</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                             <label class="form-label" style="font-size: 0.78rem; font-weight: 700;">ORGANIZATION SECTOR</label>
                             <select class="form-control form-select" wire:model.defer="board_sector">
@@ -523,23 +869,34 @@
                                 <option value="GENERAL">🌐 General / Cross-Sector</option>
                             </select>
                         </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.78rem; font-weight: 700;">RESPONSIBLE RECRUITMENT STAGE</label>
+                            <select class="form-control form-select" wire:model.defer="board_responsible_stage">
+                                <option value="stage_scrutiny">Step 2: Scrutiny Dossier Vetting</option>
+                                <option value="stage_peer_review">Step 3: Academic Peer Review</option>
+                                <option value="stage_selection_board">Step 4: Statutory Selection Board Interview</option>
+                                <option value="stage_syndicate">Step 5: Syndicate / Council Sanction</option>
+                                <option value="stage_appellate">Appellate / Grievance Branch</option>
+                                <option value="stage_custom">Custom Operational Stage</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label" style="font-size: 0.78rem; font-weight: 700;">DESCRIPTION & LEGAL STATUTE CITATION</label>
-                        <textarea class="form-control" rows="2" wire:model.defer="board_description" placeholder="Statute citation, quorum constitution terms, or governing bylaws..."></textarea>
+                        <label class="form-label" style="font-size: 0.78rem; font-weight: 700;">DESCRIPTION & STATUTORY MANDATE</label>
+                        <textarea class="form-control" rows="2" wire:model.defer="board_description" placeholder="Statutory citation, terms of reference, and legal mandate..."></textarea>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
                         <div>
                             <label class="form-label" style="font-size: 0.78rem; font-weight: 700;">EXTERNAL PEER REVIEWERS REQUIRED</label>
                             <input type="number" min="0" max="20" class="form-control" wire:model.defer="board_required_peer_reviewers" />
-                            <span style="font-size: 0.72rem; color: var(--color-text-muted);">Set to 0 if this board/sector does not mandate external research peer reviews.</span>
+                            <span style="font-size: 0.72rem; color: var(--color-text-muted);">Set to 0 if this committee does not require external referee review.</span>
                         </div>
                         <div style="display: flex; align-items: center; padding-top: 1.5rem;">
                             <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.82rem; font-weight: 600;">
                                 <input type="checkbox" wire:model.defer="board_enforce_strict_quota" style="width: 16px; height: 16px;" />
-                                <span>Strict Quorum Enforcement (Lock panel if quorum violated)</span>
+                                <span>Strict Quorum Enforcement (Lock meeting if statutory quorum unmet)</span>
                             </label>
                         </div>
                     </div>
@@ -605,41 +962,6 @@
                         </div>
                     </div>
 
-                    <!-- Pipeline Routing Flow Repeater -->
-                    <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); padding: 1.25rem; margin-bottom: 1.5rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
-                            <div>
-                                <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--color-text-primary); margin: 0;">
-                                    Application Routing & Pipeline Flow
-                                </h4>
-                                <span style="font-size: 0.72rem; color: var(--color-text-muted);">Stages through which applications progress under this board.</span>
-                            </div>
-                            <button type="button" class="btn btn-secondary" wire:click="addRoutingStep" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 700;">
-                                + Add Flow Stage
-                            </button>
-                        </div>
-
-                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                            @foreach($board_routing_flow as $sIdx => $step)
-                                <div style="display: flex; align-items: center; gap: 0.5rem; background: rgba(30, 41, 59, 0.4); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);">
-                                    <span style="font-weight: 800; color: var(--primary); font-size: 0.85rem; min-width: 24px;">{{ $step['step'] ?? ($sIdx + 1) }}.</span>
-                                    <input type="text" class="form-control" wire:model.defer="board_routing_flow.{{ $sIdx }}.name" placeholder="Stage Name" style="font-size: 0.82rem; flex: 2;" required />
-                                    <select class="form-control form-select" wire:model.defer="board_routing_flow.{{ $sIdx }}.cadre" style="font-size: 0.8rem; flex: 1;">
-                                        <option value="OFFICER">Officer / Scrutiny</option>
-                                        <option value="EXPERT">Peer Expert</option>
-                                        <option value="FACULTY">Faculty Board</option>
-                                        <option value="EXECUTIVE">Executive / Syndicate</option>
-                                    </select>
-                                    <div style="display: flex; align-items: center; gap: 0.25rem;">
-                                        <input type="number" min="1" max="60" class="form-control" wire:model.defer="board_routing_flow.{{ $sIdx }}.sla_days" style="width: 70px; font-size: 0.8rem;" title="SLA Days" />
-                                        <span style="font-size: 0.72rem; color: var(--color-text-muted);">days</span>
-                                    </div>
-                                    <button type="button" class="btn btn-secondary" wire:click="removeRoutingStep({{ $sIdx }})" style="padding: 0.25rem 0.5rem; color: #ef4444;">✕</button>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-
                     <!-- Modal Actions -->
                     <div style="display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.08);">
                         <button type="button" class="btn btn-secondary" wire:click="closeBoardModal" style="padding: 0.6rem 1.25rem; font-size: 0.85rem;">Cancel</button>
@@ -649,6 +971,293 @@
                     </div>
                 </form>
 
+            </div>
+        </div>
+    @endif
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 2: STAGE CONFIGURATION (DYNAMIC RECRUITMENT FLOW)                   -->
+    <!-- ========================================================================= -->
+    @if($showStageModal)
+        <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1.5rem;">
+            <div class="card" style="width: 100%; max-width: 850px; max-height: 90vh; overflow-y: auto; background: #0f172a; border-color: rgba(99, 102, 241, 0.35); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); padding: 1.75rem;">
+                
+                <!-- Modal Header -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem;">
+                            <span class="badge" style="background: rgba(99, 102, 241, 0.2); color: var(--primary); font-size: 0.72rem; font-weight: 800;">
+                                DYNAMIC PROCESS FLOW BUILDER
+                            </span>
+                            <span class="badge" style="background: rgba(255, 255, 255, 0.06); color: var(--color-text-secondary); font-size: 0.72rem;">
+                                {{ $isNewStage ? 'NEW PIPELINE STAGE' : 'STAGE ' . (($editingStageIndex ?? 0) + 1) }}
+                            </span>
+                        </div>
+                        <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--color-text-primary); margin: 0;">
+                            Configure Recruitment Stage & Decision Logic
+                        </h3>
+                    </div>
+                    <button type="button" wire:click="closeStageModal" style="background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 1.25rem;">✕</button>
+                </div>
+
+                <!-- Form -->
+                <form wire:submit.prevent="saveStage">
+                    <!-- Stage Identity -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="form-label" style="font-size: 0.78rem; font-weight: 700;">STAGE NAME</label>
+                            <input type="text" class="form-control" wire:model.defer="stage_name" placeholder="e.g. Scrutiny Dossier Vetting, Peer Review..." required />
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.78rem; font-weight: 700;">RESPONSIBLE ROLE / ENTITY</label>
+                            <input type="text" class="form-control" wire:model.defer="stage_governing_role" placeholder="e.g. Scrutiny Committee, External Referees..." required />
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="form-label" style="font-size: 0.78rem; font-weight: 700;">COMMITTEE TYPE</label>
+                            <select class="form-control form-select" wire:model.defer="stage_committee_type">
+                                <option value="SCRUTINY">Scrutiny Committee</option>
+                                <option value="EXPERT_REVIEW">Expert Referees Panel</option>
+                                <option value="SELECTION_BOARD">Selection Board</option>
+                                <option value="EXECUTIVE">Executive / Syndicate</option>
+                                <option value="APPELLATE">Appellate Tribunal</option>
+                                <option value="CUSTOM">Custom Entity</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.78rem; font-weight: 700;">SLA DURATION (DAYS)</label>
+                            <input type="number" min="1" max="120" class="form-control" wire:model.defer="stage_sla_days" required />
+                        </div>
+                        <div style="display: flex; align-items: center; padding-top: 1.5rem;">
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.82rem; font-weight: 600;">
+                                <input type="checkbox" wire:model.defer="stage_is_enabled" style="width: 16px; height: 16px;" />
+                                <span>Stage Active in Pipeline</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label" style="font-size: 0.78rem; font-weight: 700;">CRITERIA & VERIFICATION RULE DESCRIPTION</label>
+                        <textarea class="form-control" rows="2" wire:model.defer="stage_rule_description" placeholder="Instructions, criteria, and requirements evaluated in this stage..."></textarea>
+                    </div>
+
+                    <!-- Decision Logic Sections -->
+                    <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); padding: 1.25rem; margin-bottom: 1.5rem;">
+                        <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 1rem 0;">
+                            Dynamic Decision Logic & Transition Outcomes
+                        </h4>
+
+                        <!-- 🟢 On Pass -->
+                        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1rem;">
+                            <div style="font-weight: 800; color: #10b981; font-size: 0.82rem; margin-bottom: 0.65rem;">
+                                🟢 ON PASS OUTCOME (CANDIDATE QUALIFIED)
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
+                                <div>
+                                    <label class="form-label" style="font-size: 0.74rem;">TARGET WORKFLOW STATUS</label>
+                                    <select class="form-control form-select" wire:model.defer="stage_on_pass_target_status" style="font-size: 0.82rem;">
+                                        @foreach($workflowStatuses as $wStatus)
+                                            <option value="{{ $wStatus->code }}">{{ $wStatus->label }} ({{ $wStatus->code }})</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="form-label" style="font-size: 0.74rem;">NEXT PIPELINE STEP</label>
+                                    <input type="number" min="1" max="20" class="form-control" wire:model.defer="stage_on_pass_next_step" placeholder="Next step number" style="font-size: 0.82rem;" />
+                                </div>
+                            </div>
+                            <div>
+                                <label class="form-label" style="font-size: 0.74rem;">TRANSITION LABEL / NOTIFICATION</label>
+                                <input type="text" class="form-control" wire:model.defer="stage_on_pass_label" placeholder="e.g. Scrutiny Cleared ➔ Advance to Peer Review" style="font-size: 0.82rem;" />
+                            </div>
+                        </div>
+
+                        <!-- 🟡 On Incomplete -->
+                        <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
+                                <div style="font-weight: 800; color: #f59e0b; font-size: 0.82rem;">
+                                    🟡 ON INCOMPLETE OUTCOME (DEFICIENCY / MISSING DOCUMENTS)
+                                </div>
+                                <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.78rem; font-weight: 700;">
+                                    <input type="checkbox" wire:model.live="stage_has_incomplete" style="width: 15px; height: 15px;" />
+                                    <span>Enable Deficiency Branch</span>
+                                </label>
+                            </div>
+
+                            @if($stage_has_incomplete)
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
+                                    <div>
+                                        <label class="form-label" style="font-size: 0.74rem;">TARGET WORKFLOW STATUS</label>
+                                        <select class="form-control form-select" wire:model.defer="stage_on_incomplete_target_status" style="font-size: 0.82rem;">
+                                            @foreach($workflowStatuses as $wStatus)
+                                                <option value="{{ $wStatus->code }}">{{ $wStatus->label }} ({{ $wStatus->code }})</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="form-label" style="font-size: 0.74rem;">DEFICIENCY GRACE PERIOD (DAYS)</label>
+                                        <input type="number" min="1" max="30" class="form-control" wire:model.defer="stage_on_incomplete_grace_days" style="font-size: 0.82rem;" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="form-label" style="font-size: 0.74rem;">DEFICIENCY NOTIFICATION MESSAGE</label>
+                                    <input type="text" class="form-control" wire:model.defer="stage_on_incomplete_label" placeholder="e.g. Missing HEC Equivalence ➔ 5-day grace to re-upload" style="font-size: 0.82rem;" />
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- 🔴 On Fail -->
+                        <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-sm); padding: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
+                                <div style="font-weight: 800; color: #ef4444; font-size: 0.82rem;">
+                                    🔴 ON FAIL OUTCOME (DISQUALIFICATION / REJECTION)
+                                </div>
+                                <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.78rem; font-weight: 700;">
+                                    <input type="checkbox" wire:model.live="stage_has_fail" style="width: 15px; height: 15px;" />
+                                    <span>Enable Fail Branch</span>
+                                </label>
+                            </div>
+
+                            @if($stage_has_fail)
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
+                                    <div>
+                                        <label class="form-label" style="font-size: 0.74rem;">TARGET WORKFLOW STATUS</label>
+                                        <select class="form-control form-select" wire:model.defer="stage_on_fail_target_status" style="font-size: 0.82rem;">
+                                            @foreach($workflowStatuses as $wStatus)
+                                                <option value="{{ $wStatus->code }}">{{ $wStatus->label }} ({{ $wStatus->code }})</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; gap: 0.4rem; justify-content: center; padding-top: 0.5rem;">
+                                        <label style="display: flex; align-items: center; gap: 0.45rem; cursor: pointer; font-size: 0.78rem; font-weight: 600;">
+                                            <input type="checkbox" wire:model.defer="stage_on_fail_allow_appeal" style="width: 15px; height: 15px;" />
+                                            <span>Allow Candidate Right to Appeal</span>
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 0.45rem; cursor: pointer; font-size: 0.78rem; font-weight: 600;">
+                                            <input type="checkbox" wire:model.defer="stage_on_fail_require_justification" style="width: 15px; height: 15px;" />
+                                            <span>Require Written Justification</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="form-label" style="font-size: 0.74rem;">FAIL NOTICE / JUSTIFICATION SUMMARY</label>
+                                    <input type="text" class="form-control" wire:model.defer="stage_on_fail_label" placeholder="e.g. Ineligible Criteria ➔ Disqualified (Appellate Right Open)" style="font-size: 0.82rem;" />
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Modal Actions -->
+                    <div style="display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+                        <button type="button" class="btn btn-secondary" wire:click="closeStageModal" style="padding: 0.6rem 1.25rem; font-size: 0.85rem;">Cancel</button>
+                        <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.75rem; font-size: 0.88rem; font-weight: 700;">
+                            Save Process Stage
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    @endif
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 3: QUICK QUORUM VIEWER MODAL                                        -->
+    <!-- ========================================================================= -->
+    @if($showQuorumModal && $viewingBoard)
+        <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1.5rem;">
+            <div class="card" style="width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto; background: #0f172a; border-color: rgba(99, 102, 241, 0.35); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); padding: 1.75rem;">
+                
+                <!-- Modal Header -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem;">
+                            <span class="badge" style="background: rgba(99, 102, 241, 0.2); color: var(--primary); font-size: 0.72rem; font-weight: 800;">
+                                STATUTORY QUORUM SPECIFICATION
+                            </span>
+                            <span class="badge" style="background: rgba(255, 255, 255, 0.06); color: var(--color-text-secondary); font-size: 0.72rem;">
+                                {{ $viewingBoard->organization_sector }}
+                            </span>
+                        </div>
+                        <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--color-text-primary); margin: 0;">
+                            {{ $viewingBoard->name }}
+                        </h3>
+                    </div>
+                    <button type="button" wire:click="closeQuorumModal" style="background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 1.25rem;">✕</button>
+                </div>
+
+                <!-- Total Quorum Banner -->
+                <div style="display: flex; justify-content: space-around; background: rgba(15, 23, 42, 0.6); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 1.25rem; text-align: center;">
+                    <div>
+                        <div style="font-size: 1.4rem; font-weight: 900; color: var(--primary);">{{ $viewingBoard->required_total }}</div>
+                        <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 700;">Total Quorum</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.4rem; font-weight: 900; color: #3b82f6;">{{ $viewingBoard->required_internal }}</div>
+                        <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 700;">Internal</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.4rem; font-weight: 900; color: #10b981;">{{ $viewingBoard->required_external }}</div>
+                        <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 700;">External</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.4rem; font-weight: 900; color: #ec4899;">{{ $viewingBoard->required_peer_reviewers }}</div>
+                        <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 700;">Peer Referees</div>
+                    </div>
+                </div>
+
+                <!-- Members Breakdown Table -->
+                <div class="table-responsive mb-4">
+                    <table class="table" style="font-size: 0.82rem; margin: 0;">
+                        <thead style="font-size: 0.7rem; text-transform: uppercase;">
+                            <tr>
+                                <th>Role / Seat Title</th>
+                                <th style="text-align: center;">Seats</th>
+                                <th>Origin</th>
+                                <th>Cadre</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($viewingBoard->roles_breakdown ?? [] as $vRole)
+                                <tr>
+                                    <td style="font-weight: 700; color: var(--color-text-primary);">
+                                        {{ $vRole['name'] ?? 'Committee Member' }}
+                                        @if(!empty($vRole['is_mandatory']))
+                                            <span style="font-size: 0.68rem; color: #f59e0b; margin-left: 0.3rem;">★ Mandatory</span>
+                                        @endif
+                                    </td>
+                                    <td style="text-align: center; font-weight: 800; color: var(--primary);">
+                                        {{ $vRole['count'] ?? 1 }}
+                                    </td>
+                                    <td>
+                                        <span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; font-size: 0.7rem;">
+                                            {{ $vRole['category'] ?? 'INTERNAL' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge" style="background: rgba(255, 255, 255, 0.08); color: var(--color-text-secondary); font-size: 0.7rem;">
+                                            {{ $vRole['cadre'] ?? 'OFFICER' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: var(--color-text-muted); padding: 1.5rem;">
+                                        No explicit member seats configured.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Close Button -->
+                <div style="display: flex; justify-content: flex-end; padding-top: 0.85rem; border-top: 1px solid rgba(255, 255, 255, 0.06);">
+                    <button type="button" class="btn btn-secondary" wire:click="closeQuorumModal" style="padding: 0.5rem 1.25rem; font-size: 0.82rem;">
+                        Close
+                    </button>
+                </div>
             </div>
         </div>
     @endif

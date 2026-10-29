@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 class SystemSettings extends Component
 {
-    public $activeTab = 'pipeline'; // 'pipeline', 'documents', 'constitutions', 'candidate_rules', 'organization'
+    public $activeTab = 'pipeline'; // 'pipeline', 'documents', 'candidate_rules', 'organization'
 
     // ⚡ Pipeline Toggles
     public $enable_peer_review_step;

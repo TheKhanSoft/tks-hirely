@@ -7,12 +7,18 @@ use App\Models\User;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use App\Livewire\Traits\WithDynamicListing;
 
 class UserManagement extends Component
 {
+    use WithDynamicListing;
+
     // View state
     public $isFormOpen = false;
     public $isEditMode = false;
+
+    // Default per-page for card grid (16 provides 4 full rows of 4 cards)
+    public $perPage = 16;
 
     // Filters & Search
     public $search = '';
@@ -244,6 +250,35 @@ class UserManagement extends Component
         $this->targetUserDirectPermissions = [];
     }
 
+    public function exportCsv()
+    {
+        abort_unless(Auth::user()->can('view-user'), 403);
+        $isSuperAdmin = Auth::user()->hasRole('super-admin');
+        $query = User::with(['roles', 'basicInfo', 'reviewerProfile', 'permissions']);
+        if (!$isSuperAdmin) {
+            $query->whereDoesntHave('roles', fn($q) => $q->where('name', 'super-admin'));
+        }
+
+        $users = $query->orderBy('created_at', 'desc')->get();
+        $headers = ['ID', 'Email', 'Full Name', 'Primary Role', 'Direct Permissions', 'Status', 'Registered At'];
+        $rows = [];
+        foreach ($users as $u) {
+            $name = $u->reviewerProfile?->name 
+                ?? ($u->basicInfo?->first_name ? ($u->basicInfo->first_name . ' ' . $u->basicInfo->last_name) : 'N/A');
+            $rows[] = [
+                $u->id,
+                $u->email,
+                $name,
+                $u->roles->first()?->name ?? 'applicant',
+                $u->permissions->count(),
+                $u->is_active ? 'Active' : 'Blocked',
+                $u->created_at->format('Y-m-d H:i:s'),
+            ];
+        }
+
+        return $this->streamCsvDownload('users-directory-' . date('Y-m-d') . '.csv', $headers, $rows);
+    }
+
     public function render()
     {
         $isSuperAdmin = Auth::user()->hasRole('super-admin');
@@ -312,7 +347,7 @@ class UserManagement extends Component
             });
         }
 
-        $users = $query->orderBy('created_at', 'desc')->get();
+        $users = $query->orderBy('created_at', 'desc')->paginate($this->perPage);
 
         // Categorized Counts for directory pills (Dynamic, supports any new roles)
         $staffCount = User::whereHas('roles', function($q) use ($isSuperAdmin) {

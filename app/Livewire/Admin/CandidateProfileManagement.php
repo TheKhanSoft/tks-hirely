@@ -6,15 +6,21 @@ use Livewire\Component;
 use App\Models\BasicInfo;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use App\Livewire\Traits\WithDynamicListing;
 
 class CandidateProfileManagement extends Component
 {
+    use WithDynamicListing;
+
     // View state
     public $isFormOpen = false;
     public $isEditMode = false;
     public $isDetailsOpen = false;
     public $selectedRecordId;
     public $selectedRecordDetails = null;
+
+    // Default per-page for card grid (16 items)
+    public $perPage = 16;
 
     // Search & Filters
     public $search = '';
@@ -170,6 +176,39 @@ class CandidateProfileManagement extends Component
         $this->isDetailsOpen = true;
     }
 
+    public function exportCsv()
+    {
+        abort_unless(Auth::user()->can('view-basic-info'), 403);
+        $applicantScope = function ($uq) {
+            $uq->where(function ($sub) {
+                $sub->whereHas('roles', fn($rq) => $rq->where('name', 'applicant'))
+                    ->orWhereHas('applications');
+            })->whereDoesntHave('roles', fn($rq) => $rq->where('name', '!=', 'applicant'));
+        };
+
+        $profiles = BasicInfo::whereHas('user', $applicantScope)
+            ->with(['user', 'user.applications', 'degrees'])
+            ->orderBy('first_name')
+            ->get();
+
+        $headers = ['ID', 'Full Name', 'Email', 'CNIC', 'Track Type', 'Locked Status', 'Applications Count', 'Degrees Count'];
+        $rows = [];
+        foreach ($profiles as $p) {
+            $rows[] = [
+                $p->id,
+                $p->first_name . ' ' . $p->last_name,
+                $p->user?->email ?? 'N/A',
+                $p->cnic_number,
+                $p->track_type,
+                $p->is_locked ? 'Locked' : 'Unlocked',
+                $p->user?->applications?->count() ?? 0,
+                $p->degrees?->count() ?? 0,
+            ];
+        }
+
+        return $this->streamCsvDownload('candidate-profiles-' . date('Y-m-d') . '.csv', $headers, $rows);
+    }
+
     public function render()
     {
         // 🔒 DYNAMIC CANDIDATE QUERY:
@@ -206,7 +245,7 @@ class CandidateProfileManagement extends Component
             });
         }
 
-        $profiles = $query->orderBy('first_name')->get();
+        $profiles = $query->orderBy('first_name')->paginate($this->perPage);
 
         // Dynamic Candidate Metrics strictly scoped to genuine applicant pool
         $baseCandidateQuery = BasicInfo::whereHas('user', $applicantScope);

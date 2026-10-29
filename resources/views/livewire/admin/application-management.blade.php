@@ -241,17 +241,18 @@
             </button>
         </div>
 
-        <!-- Filter Ribbon & Search Bar -->
-        <div class="card mb-5 card-ambient-mesh" style="padding: 1.25rem 1.5rem;">
-            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                <div style="flex: 2; min-width: 280px; position: relative;">
-                    <input type="text" class="form-control" wire:model.live.debounce.300ms="search" placeholder="Search by tracking number, applicant name, email, or CNIC..." style="padding-left: 2.35rem;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); pointer-events: none;">
-                        <circle cx="11" cy="11" r="8"/>
-                        <path d="m21 21-4.3-4.3"/>
-                    </svg>
-                </div>
-
+        <!-- Reusable Dynamic Entity Listing Component: Responsive Card Grid & Table -->
+        <x-entity-card-grid 
+            :items="$applications" 
+            entityName="Job Applications" 
+            searchPlaceholder="Search by tracking number, applicant name, email, or CNIC..."
+            :perPage="$perPage" 
+            :viewMode="$viewMode" 
+            exportAction="exportCsv" 
+            importAction="openImportModal">
+            
+            <!-- Filters Slot -->
+            <x-slot:filters>
                 <div style="flex: 1; min-width: 200px;">
                     <select class="form-control form-select" wire:model.live="campaignFilter">
                         <option value="">All Job Campaigns</option>
@@ -283,21 +284,234 @@
                 @if(!empty($search) || !empty($campaignFilter) || !empty($statusFilter))
                     <button type="button" class="btn btn-secondary btn-sm" wire:click="$set('search', ''); $set('campaignFilter', ''); $set('statusFilter', '');" style="display: inline-flex; align-items: center; gap: 0.35rem;">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                        <span>Reset</span>
+                        <span>Reset Filters</span>
                     </button>
                 @endif
+            </x-slot:filters>
 
-                <div style="margin-left: auto;">
-                    <span style="font-size: 0.82rem; color: var(--color-text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">
-                        Showing <strong style="color: var(--primary);">{{ count($applications) }}</strong> Application{{ count($applications) === 1 ? '' : 's' }}
-                    </span>
-                </div>
-            </div>
-        </div>
+            <!-- Cards Slot (3 to 5 Cards Per Row) -->
+            <x-slot:cards>
+                @foreach($applications as $app)
+                    @php 
+                        $bStyle = $app->status_badge_style;
+                        $reviewsCount = $app->reviews->count();
+                        $reqReferees = $app->campaign->getRequiredPeerReviewersCount();
+                        $displayName = $app->user->basicInfo ? ($app->user->basicInfo->first_name . ' ' . $app->user->basicInfo->last_name) : $app->user->email;
+                        $isPaid = $app->billingLedger?->status === 'SETTLED';
+                    @endphp
 
-        <!-- Modern Applications Table with Direct Operational Controls -->
-        <div class="card" style="padding: 0; overflow: hidden; border-color: var(--border-color); box-shadow: var(--shadow-sm);">
-            <div class="table-container">
+                    <x-entity-card 
+                        :id="$app->id" 
+                        :title="$displayName" 
+                        :subtitle="$app->campaign->title"
+                        :avatar="strtoupper(substr($app->user->basicInfo?->first_name ?: $app->user->email, 0, 1))">
+                        
+                        <!-- Badge Slot: Lifecycle Stage -->
+                        <x-slot:badge>
+                            <span class="badge" style="background: {{ $bStyle['bg'] }}; color: {{ $bStyle['text'] }}; border: 1px solid {{ $bStyle['border'] }}; font-weight: 800; font-size: 0.72rem;">
+                                {{ $app->status_label }}
+                            </span>
+                        </x-slot:badge>
+
+                        <!-- Tag Slot: Challan / Payment Status & Job Code -->
+                        <x-slot:tag>
+                            <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                                @if($isPaid)
+                                    <span class="badge badge-paid" style="font-size: 0.68rem; font-weight: 700; padding: 0.1rem 0.4rem;">
+                                        ✓ PAID (PKR {{ number_format($app->billingLedger->amount, 0) }})
+                                    </span>
+                                @else
+                                    <span class="badge" style="background: rgba(245,158,11,0.15); color: var(--warning); border: 1px solid rgba(245,158,11,0.3); font-size: 0.68rem; font-weight: 700; padding: 0.1rem 0.4rem;">
+                                        ⏳ PENDING FEE
+                                    </span>
+                                @endif
+                                <span class="badge" style="background: rgba(99,102,241,0.1); color: var(--primary); font-size: 0.68rem; padding: 0.1rem 0.4rem; font-weight: 700;">
+                                    {{ $app->campaign->job_code }}
+                                </span>
+                            </div>
+                        </x-slot:tag>
+
+                        <!-- Card Body Metrics -->
+                        <div class="entity-card-metric-row">
+                            <span class="entity-card-metric-label">Tracking:</span>
+                            <code class="entity-card-metric-value" style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--secondary);">
+                                {{ $app->tracking_number }}
+                            </code>
+                        </div>
+
+                        <div class="entity-card-metric-row">
+                            <span class="entity-card-metric-label">CNIC:</span>
+                            <span class="entity-card-metric-value" style="font-family: 'JetBrains Mono', monospace; font-size: 0.76rem;">
+                                {{ $app->user->basicInfo?->cnic_number ?: 'N/A' }}
+                            </span>
+                        </div>
+
+                        @if($reqReferees > 0)
+                            <div class="entity-card-metric-row">
+                                <span class="entity-card-metric-label">Peer Experts:</span>
+                                <span class="entity-card-metric-value">
+                                    <span class="badge" style="background: {{ $reviewsCount >= $reqReferees ? 'rgba(16,185,129,0.15)' : 'rgba(236,72,153,0.15)' }}; color: {{ $reviewsCount >= $reqReferees ? '#10b981' : '#ec4899' }}; font-size: 0.68rem; font-weight: 700;">
+                                        {{ $reviewsCount }}/{{ $reqReferees }} Empanelled
+                                    </span>
+                                </span>
+                            </div>
+                        @endif
+
+                        <div class="entity-card-metric-row">
+                            <span class="entity-card-metric-label">Submitted:</span>
+                            <span class="entity-card-metric-value" style="color: var(--color-text-muted);">
+                                {{ $app->created_at->format('M d, Y') }}
+                            </span>
+                        </div>
+
+                        @if($app->disqualification_reason)
+                            <div style="color: var(--danger); font-size: 0.72rem; margin-top: 0.35rem; padding: 0.25rem 0.45rem; background: rgba(239,68,68,0.08); border-radius: 4px;" title="{{ $app->disqualification_reason }}">
+                                ⚠️ {{ Str::limit($app->disqualification_reason, 45) }}
+                            </div>
+                        @endif
+
+                        <!-- Quick Actions (Hover Reveal Icons) -->
+                        <x-slot:quickActions>
+                            @if(auth()->user()->hasRole('super-admin') && $app->user && auth()->id() !== $app->user->id && !$app->user->hasRole('super-admin'))
+                                <a href="{{ route('impersonate.start', $app->user->id) }}" 
+                                   class="action-btn action-btn-impersonate" 
+                                   data-tooltip="Impersonate Applicant" 
+                                   aria-label="Impersonate Applicant">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="9" cy="7" r="4"/>
+                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                    </svg>
+                                </a>
+                            @endif
+
+                            <button type="button" 
+                                    class="action-btn action-btn-view" 
+                                    wire:click="viewApplicationDetails({{ $app->id }})" 
+                                    data-tooltip="View Application Dossier" 
+                                    aria-label="View Details">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
+
+                            @if($reqReferees > 0 || $app->campaign->track_type === 'ACADEMIC')
+                                <button type="button" 
+                                        class="action-btn" 
+                                        style="color: #ec4899; border-color: rgba(236,72,153,0.3); background: rgba(236,72,153,0.08);"
+                                        wire:click="openDispatchModal({{ $app->id }})" 
+                                        data-tooltip="Dispatch Reviewers">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                        <path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/>
+                                    </svg>
+                                </button>
+                            @endif
+
+                            <button type="button" 
+                                    class="action-btn action-btn-perms" 
+                                    wire:click="openTransitionModal({{ $app->id }})" 
+                                    data-tooltip="Advance Workflow Stage">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                                </svg>
+                            </button>
+                        </x-slot:quickActions>
+
+                        <!-- Kebab Dropdown Options Menu [ICON + TEXT] -->
+                        <x-slot:menuActions>
+                            <x-entity-card-menu-item 
+                                label="View Application Dossier" 
+                                click="viewApplicationDetails({{ $app->id }})">
+                                <x-slot:icon>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </x-slot:icon>
+                            </x-entity-card-menu-item>
+
+                            @if($reqReferees > 0 || $app->campaign->track_type === 'ACADEMIC')
+                                <x-entity-card-menu-item 
+                                    label="Dispatch Peer Reviewers" 
+                                    click="openDispatchModal({{ $app->id }})">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @endif
+
+                            <x-entity-card-menu-item 
+                                label="Advance Workflow Transition" 
+                                click="openTransitionModal({{ $app->id }})">
+                                <x-slot:icon>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                                </x-slot:icon>
+                            </x-entity-card-menu-item>
+
+                            @if($app->status !== 'ELIGIBLE' && $app->status !== 'APPROVED')
+                                <x-entity-card-menu-item 
+                                    label="Mark as Eligible for Board" 
+                                    click="markAsEligible({{ $app->id }})">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @endif
+
+                            <x-entity-card-menu-item 
+                                label="Mark Incomplete Dossier" 
+                                click="openIncompleteModal({{ $app->id }})">
+                                <x-slot:icon>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                </x-slot:icon>
+                            </x-entity-card-menu-item>
+
+                            <x-entity-card-menu-item 
+                                label="Reject / Disqualify Application" 
+                                click="openRejectModal({{ $app->id }})">
+                                <x-slot:icon>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                </x-slot:icon>
+                            </x-entity-card-menu-item>
+
+                            <x-entity-card-menu-item 
+                                label="Edit Application Record" 
+                                click="openEditApplicationForm({{ $app->id }})">
+                                <x-slot:icon>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                </x-slot:icon>
+                            </x-entity-card-menu-item>
+
+                            @if(auth()->user()->hasRole('super-admin') && $app->user && auth()->id() !== $app->user->id && !$app->user->hasRole('super-admin'))
+                                <div class="entity-card-menu-divider"></div>
+                                <x-entity-card-menu-item 
+                                    label="Impersonate Applicant" 
+                                    href="{{ route('impersonate.start', $app->user->id) }}" 
+                                    :impersonate="true">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @endif
+
+                            @can('delete-application')
+                                <div class="entity-card-menu-divider"></div>
+                                <x-entity-card-menu-item 
+                                    label="Delete Application" 
+                                    click="deleteApplication({{ $app->id }})" 
+                                    :danger="true"
+                                    onclick="confirm('Are you sure you want to permanently delete this application record?') || event.stopImmediatePropagation()">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @endcan
+                        </x-slot:menuActions>
+                    </x-entity-card>
+                @endforeach
+            </x-slot:cards>
+
+            <!-- Table Slot (For View Switcher) -->
+            <x-slot:table>
                 <table class="table">
                     <thead>
                         <tr>
@@ -309,7 +523,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($applications as $app)
+                        @foreach($applications as $app)
                             @php 
                                 $bStyle = $app->status_badge_style;
                                 $reviewsCount = $app->reviews->count();
@@ -318,7 +532,7 @@
                             <tr wire:key="app-row-{{ $app->id }}">
                                 <td>
                                     <div style="display: flex; align-items: center; gap: 0.85rem;">
-                                        <div class="user-avatar-circle" style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(6,182,212,0.25)); color: var(--primary); font-weight: 800; font-size: 1rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(99,102,241,0.25);">
+                                        <div class="user-avatar-circle" style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(6,182,212,0.25)); color: var(--primary); font-weight: 800; font-size: 1rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(99,102,241,0.25);">
                                             {{ strtoupper(substr($app->user->basicInfo?->first_name ?: $app->user->email, 0, 1)) }}
                                         </div>
                                         <div>
@@ -382,153 +596,59 @@
                                         </div>
                                     @endif
                                 </td>
-
-                                <!-- DIRECT OPERATIONAL ACTIONS (Send Reviewer, Mark Incomplete, Reject, Transition) -->
                                 <td style="text-align: right; vertical-align: middle;">
                                     <div class="action-btn-group justify-end">
-                                        <!-- Impersonate Applicant (Super Admin only) -->
                                         @if(auth()->user()->hasRole('super-admin') && $app->user && auth()->id() !== $app->user->id && !$app->user->hasRole('super-admin'))
                                             <a href="{{ route('impersonate.start', $app->user->id) }}" 
                                                class="action-btn action-btn-impersonate" 
-                                               data-tooltip="Impersonate Applicant ({{ $app->user->email }})"
-                                               aria-label="Impersonate Applicant">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                                                    <circle cx="9" cy="7" r="4"/>
-                                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                                                </svg>
+                                               data-tooltip="Impersonate Applicant ({{ $app->user->email }})">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                             </a>
                                         @endif
-
-                                        <!-- 1. Send to Reviewer directly from /applications -->
                                         @if($reqReferees > 0 || $app->campaign->track_type === 'ACADEMIC')
-                                            <button type="button" 
-                                                class="action-btn" 
-                                                style="color: #ec4899; border-color: rgba(236,72,153,0.3); background: rgba(236,72,153,0.08);"
-                                                wire:click="openDispatchModal({{ $app->id }})" 
-                                                data-tooltip="Dispatch Candidacy to External Peer Reviewers"
-                                                aria-label="Dispatch Reviewers">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M10 2v7.31"/>
-                                                    <path d="M14 9.3V1.99"/>
-                                                    <path d="M8.5 2h7"/>
-                                                    <path d="M14 9.3a6.5 6.5 0 1 1-4 0"/>
-                                                    <path d="M5.52 16h12.96"/>
-                                                </svg>
+                                            <button type="button" class="action-btn" style="color: #ec4899; border-color: rgba(236,72,153,0.3); background: rgba(236,72,153,0.08);" wire:click="openDispatchModal({{ $app->id }})" data-tooltip="Dispatch Candidacy to Reviewers">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>
                                             </button>
                                         @endif
-
-                                        <!-- 2. Mark Incomplete Dossier -->
-                                        <button type="button" 
-                                            class="action-btn action-btn-lock" 
-                                            wire:click="openIncompleteModal({{ $app->id }})" 
-                                            data-tooltip="Mark Incomplete Dossier (Deficiency Note)"
-                                            aria-label="Mark Incomplete">
-                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
-                                                <line x1="12" y1="9" x2="12" y2="13"/>
-                                                <line x1="12" y1="17" x2="12.01" y2="17"/>
-                                            </svg>
+                                        <button type="button" class="action-btn action-btn-lock" wire:click="openIncompleteModal({{ $app->id }})" data-tooltip="Mark Incomplete Dossier">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                                         </button>
-
-                                        <!-- 3. Reject / Disqualify -->
-                                        <button type="button" 
-                                            class="action-btn action-btn-delete" 
-                                            wire:click="openRejectModal({{ $app->id }})" 
-                                            data-tooltip="Reject or Disqualify Application with Justification"
-                                            aria-label="Reject Application">
-                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                <circle cx="12" cy="12" r="10"/>
-                                                <line x1="15" y1="9" x2="9" y2="15"/>
-                                                <line x1="9" y1="9" x2="15" y2="15"/>
-                                            </svg>
+                                        <button type="button" class="action-btn action-btn-delete" wire:click="openRejectModal({{ $app->id }})" data-tooltip="Reject or Disqualify">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
                                         </button>
-
-                                        <!-- 4. Mark Eligible 1-Click Action -->
                                         @if($app->status !== 'ELIGIBLE' && $app->status !== 'APPROVED')
-                                            <button type="button" 
-                                                class="action-btn action-btn-success" 
-                                                wire:click="markAsEligible({{ $app->id }})" 
-                                                data-tooltip="Mark as Eligible for Statutory Board"
-                                                aria-label="Mark Eligible">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                                                    <polyline points="22 4 12 14.01 9 11.01"/>
-                                                </svg>
+                                            <button type="button" class="action-btn action-btn-success" wire:click="markAsEligible({{ $app->id }})" data-tooltip="Mark as Eligible">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                                             </button>
                                         @endif
-
-                                        <!-- 5. Advance Workflow Transition -->
-                                        <button type="button" 
-                                            class="action-btn action-btn-perms" 
-                                            wire:click="openTransitionModal({{ $app->id }})" 
-                                            data-tooltip="Advance Dynamic Workflow Transition"
-                                            aria-label="Workflow Transition">
-                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M21.5 2v6h-6"/>
-                                                <path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
-                                            </svg>
+                                        <button type="button" class="action-btn action-btn-perms" wire:click="openTransitionModal({{ $app->id }})" data-tooltip="Advance Workflow Transition">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
                                         </button>
-
-                                        <!-- Details Dossier Modal -->
-                                        <button type="button" 
-                                                class="action-btn action-btn-view" 
-                                                wire:click="viewApplicationDetails({{ $app->id }})" 
-                                                data-tooltip="View Application Dossier Details"
-                                                aria-label="View Details">
-                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-                                                <circle cx="12" cy="12" r="3"/>
-                                            </svg>
+                                        <button type="button" class="action-btn action-btn-view" wire:click="viewApplicationDetails({{ $app->id }})" data-tooltip="View Application Dossier">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                                         </button>
-
-                                        <!-- Edit Modal Form -->
-                                        <button type="button" 
-                                                class="action-btn action-btn-edit" 
-                                                wire:click="openEditApplicationForm({{ $app->id }})" 
-                                                data-tooltip="Edit Application Record"
-                                                aria-label="Edit Application">
-                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                            </svg>
+                                        <button type="button" class="action-btn action-btn-edit" wire:click="openEditApplicationForm({{ $app->id }})" data-tooltip="Edit Record">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                         </button>
-
-                                        <!-- Delete Record -->
                                         @can('delete-application')
-                                            <button type="button" 
-                                                    class="action-btn action-btn-delete" 
-                                                    wire:click="deleteApplication({{ $app->id }})" 
-                                                    wire:confirm="Are you sure you want to permanently delete this application record?" 
-                                                    data-tooltip="Delete Application Record"
-                                                    aria-label="Delete Application">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <polyline points="3 6 5 6 21 6"/>
-                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                                    <line x1="10" y1="11" x2="10" y2="17"/>
-                                                    <line x1="14" y1="11" x2="14" y2="17"/>
-                                                </svg>
+                                            <button type="button" class="action-btn action-btn-delete" wire:click="deleteApplication({{ $app->id }})" wire:confirm="Are you sure you want to permanently delete this application record?" data-tooltip="Delete Application">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                                             </button>
                                         @endcan
                                     </div>
                                 </td>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="text-center" style="padding: 4rem 2rem; color: var(--color-text-muted);">
-                                    <div style="width: 54px; height: 54px; border-radius: 50%; background: rgba(99,102,241,0.1); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.85rem;">
-                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                    </div>
-                                    <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 0.35rem 0;">No Candidate Applications Found</h4>
-                                    <p style="font-size: 0.85rem; margin: 0;">No applications match your active search and filter criteria.</p>
-                                </td>
-                            </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
-            </div>
-        </div>
+            </x-slot:table>
+        </x-entity-card-grid>
+
+        <!-- Universal Import Modal for Applications -->
+        <x-entity-import-modal 
+            :isOpen="$isImportModalOpen" 
+            entityName="Job Applications" 
+            :sampleColumns="['tracking_number', 'user_email', 'campaign_code', 'status']" />
     @endif
 
     <!-- ========================================================================= -->

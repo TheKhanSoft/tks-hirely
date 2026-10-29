@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\CommitteeConstitution;
 use App\Models\WorkflowStatus;
+use App\Models\RecruitmentProcessFlow;
 
 class StatutoryConstitutionsAndStatusesSeeder extends Seeder
 {
@@ -14,13 +15,128 @@ class StatutoryConstitutionsAndStatusesSeeder extends Seeder
     public function run(): void
     {
         // -------------------------------------------------------------------------
-        // 1. STATUTORY COMMITTEE CONSTITUTIONS
+        // 1. STATUTORY COMMITTEE CONSTITUTIONS (STANDING & SELECTION BOARDS)
         // -------------------------------------------------------------------------
         $constitutions = [
+            [
+                'name' => 'Standing Scrutiny & Equivalence Committee',
+                'slug' => 'standing-scrutiny-committee',
+                'organization_sector' => 'ACADEMIC',
+                'committee_type' => 'SCRUTINY',
+                'responsible_stage' => 'stage_scrutiny',
+                'description' => 'General statutory scrutiny committee responsible for vetting applicant credentials, equivalence verification, document adequacy, and fee clearance.',
+                'required_peer_reviewers' => 0,
+                'enforce_strict_quota' => true,
+                'is_default' => false,
+                'roles_breakdown' => [
+                    ['id' => 'rule_scrutiny_1', 'name' => 'Scrutiny Convener / Senior Officer', 'count' => 1, 'category' => 'INTERNAL', 'cadre' => 'OFFICER', 'role_nature' => 'CONVENER', 'is_mandatory' => true, 'notes' => 'Chair / Convener of Scrutiny Desk'],
+                    ['id' => 'rule_scrutiny_2', 'name' => 'Credential & Equivalence Verifier', 'count' => 1, 'category' => 'INTERNAL', 'cadre' => 'OFFICER', 'role_nature' => 'MEMBER', 'is_mandatory' => true, 'notes' => 'Verifies degrees, certifications, and HEC equivalence'],
+                    ['id' => 'rule_scrutiny_3', 'name' => 'Department Subject Scrutinizer', 'count' => 1, 'category' => 'INTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'notes' => 'Internal faculty member verifying subject relevance'],
+                ],
+                'routing_flow' => [
+                    ['step' => 1, 'stage' => 'FEE_AUDIT', 'name' => 'Bank Voucher & Fee Verification', 'cadre' => 'OFFICER', 'sla_days' => 2, 'mandatory' => true],
+                    ['step' => 2, 'stage' => 'DOCUMENT_AUDIT', 'name' => 'Credential & Equivalence Verification', 'cadre' => 'OFFICER', 'sla_days' => 5, 'mandatory' => true],
+                ],
+                'eligibility_criteria' => [
+                    'min_degree_level' => 'Relevant Accredited Degree',
+                    'min_experience_years' => 1,
+                    'min_publications' => 0,
+                    'requires_fee_settlement' => true,
+                    'requires_allied_discipline' => true,
+                    'min_evaluation_percentile' => 50,
+                ],
+            ],
+            [
+                'name' => 'Academic Subject Expert Referees & Peer Review Panel',
+                'slug' => 'standing-expert-referees-panel',
+                'organization_sector' => 'ACADEMIC',
+                'committee_type' => 'EXPERT_REVIEW',
+                'responsible_stage' => 'stage_peer_review',
+                'description' => 'Standing roster and panel of external/international subject matter experts for blind academic peer review and research dossier evaluation.',
+                'required_peer_reviewers' => 3,
+                'enforce_strict_quota' => true,
+                'is_default' => false,
+                'roles_breakdown' => [
+                    ['id' => 'rule_expert_1', 'name' => 'Primary External Subject Referee', 'count' => 1, 'category' => 'EXTERNAL', 'cadre' => 'EXPERT', 'role_nature' => 'EXPERT', 'is_mandatory' => true, 'notes' => 'External subject professor from accredited university'],
+                    ['id' => 'rule_expert_2', 'name' => 'Secondary External Subject Referee', 'count' => 1, 'category' => 'EXTERNAL', 'cadre' => 'EXPERT', 'role_nature' => 'EXPERT', 'is_mandatory' => true, 'notes' => 'External subject expert matching sub-discipline'],
+                    ['id' => 'rule_expert_3', 'name' => 'International / External Subject Specialist', 'count' => 1, 'category' => 'INTERNATIONAL', 'cadre' => 'EXPERT', 'role_nature' => 'EXPERT', 'is_mandatory' => false, 'notes' => 'Overseas or national senior referee'],
+                ],
+                'routing_flow' => [
+                    ['step' => 1, 'stage' => 'BLIND_DISPATCH', 'name' => 'Blind Dossier Dispatch to Referees', 'cadre' => 'OFFICER', 'sla_days' => 3, 'mandatory' => true],
+                    ['step' => 2, 'stage' => 'EVALUATION_SUBMISSION', 'name' => 'Independent Rubric Scoring', 'cadre' => 'EXPERT', 'sla_days' => 18, 'mandatory' => true],
+                ],
+                'eligibility_criteria' => [
+                    'min_degree_level' => 'Ph.D. in Subject Field',
+                    'min_experience_years' => 5,
+                    'min_publications' => 5,
+                    'requires_fee_settlement' => true,
+                    'requires_allied_discipline' => true,
+                    'min_evaluation_percentile' => 60,
+                ],
+            ],
+            [
+                'name' => 'Appellate Grievance & Standing Review Committee',
+                'slug' => 'standing-appellate-committee',
+                'organization_sector' => 'GENERAL',
+                'committee_type' => 'APPELLATE',
+                'responsible_stage' => 'stage_appellate',
+                'description' => 'Statutory appellate tribunal hearing appeals from applicants declared ineligible or disqualified during scrutiny or review.',
+                'required_peer_reviewers' => 0,
+                'enforce_strict_quota' => true,
+                'is_default' => false,
+                'roles_breakdown' => [
+                    ['id' => 'rule_app_1', 'name' => 'Appellate Convener / Senior Dean', 'count' => 1, 'category' => 'INTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'CONVENER', 'is_mandatory' => true, 'notes' => 'Senior Institutional Dean / Chair of Appeals'],
+                    ['id' => 'rule_app_2', 'name' => 'Independent Legal / Statutory Arbiter', 'count' => 1, 'category' => 'INDEPENDENT', 'cadre' => 'LEGAL', 'role_nature' => 'ARBITER', 'is_mandatory' => true, 'notes' => 'Independent legal advisor / ombudsman delegate'],
+                    ['id' => 'rule_app_3', 'name' => 'External Academic / Administrative Specialist', 'count' => 1, 'category' => 'EXTERNAL', 'cadre' => 'OFFICER', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'notes' => 'External governance expert'],
+                    ['id' => 'rule_app_4', 'name' => 'Registrar / Committee Secretary', 'count' => 1, 'category' => 'INTERNAL', 'cadre' => 'OFFICER', 'role_nature' => 'MEMBER', 'is_mandatory' => true, 'notes' => 'Registrar / Secretarial custodian'],
+                ],
+                'routing_flow' => [
+                    ['step' => 1, 'stage' => 'GRIEVANCE_LODGING', 'name' => 'Appellate Dossier & Reason Review', 'cadre' => 'OFFICER', 'sla_days' => 5, 'mandatory' => true],
+                    ['step' => 2, 'stage' => 'TRIBUNAL_HEARING', 'name' => 'Appellate Tribunal Review & Determination', 'cadre' => 'LEGAL', 'sla_days' => 10, 'mandatory' => true],
+                ],
+                'eligibility_criteria' => [
+                    'min_degree_level' => 'Accredited Qualification',
+                    'min_experience_years' => 0,
+                    'min_publications' => 0,
+                    'requires_fee_settlement' => true,
+                    'requires_allied_discipline' => false,
+                    'min_evaluation_percentile' => 50,
+                ],
+            ],
+            [
+                'name' => 'Syndicate & Executive Governing Council',
+                'slug' => 'standing-syndicate-council',
+                'organization_sector' => 'ACADEMIC',
+                'committee_type' => 'EXECUTIVE',
+                'responsible_stage' => 'stage_syndicate',
+                'description' => 'Apex statutory governing body approving final selection board recommendations and sanctioning formal appointment offers.',
+                'required_peer_reviewers' => 0,
+                'enforce_strict_quota' => false,
+                'is_default' => false,
+                'roles_breakdown' => [
+                    ['id' => 'rule_syn_1', 'name' => 'Vice-Chancellor / Executive Rector', 'count' => 1, 'category' => 'INTERNAL', 'cadre' => 'EXECUTIVE', 'role_nature' => 'CONVENER', 'is_mandatory' => true, 'notes' => 'Head of Institution / Syndicate President'],
+                    ['id' => 'rule_syn_2', 'name' => 'Government / Higher Body Delegates', 'count' => 2, 'category' => 'EXTERNAL', 'cadre' => 'OFFICER', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'notes' => 'Chancellor / Ministry Nominees'],
+                    ['id' => 'rule_syn_3', 'name' => 'Senior Academic Council Deans', 'count' => 2, 'category' => 'INTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'notes' => 'Elected Deans & Professors of Syndicate'],
+                ],
+                'routing_flow' => [
+                    ['step' => 1, 'stage' => 'RECOMMENDATION_AUDIT', 'name' => 'Selection Board Resolution Review', 'cadre' => 'OFFICER', 'sla_days' => 5, 'mandatory' => true],
+                    ['step' => 2, 'stage' => 'COUNCIL_SANCTION', 'name' => 'Formal Syndicate Sanction & Offer Issuance', 'cadre' => 'EXECUTIVE', 'sla_days' => 7, 'mandatory' => true],
+                ],
+                'eligibility_criteria' => [
+                    'min_degree_level' => 'Terminal / Highest Degree',
+                    'min_experience_years' => 5,
+                    'min_publications' => 2,
+                    'requires_fee_settlement' => true,
+                    'requires_allied_discipline' => true,
+                    'min_evaluation_percentile' => 60,
+                ],
+            ],
             [
                 'name' => 'Statutory Selection Committee for Assistant Professor',
                 'slug' => 'statutory-selection-asst-prof',
                 'organization_sector' => 'ACADEMIC',
+                'committee_type' => 'SELECTION_BOARD',
+                'responsible_stage' => 'stage_selection_board',
                 'description' => 'Statutory Criteria: 3 External Subject Experts for peer review. Selection Committee: Dean (Convener), Concerned Dept Head, 3 Internal Faculty from same institution, 1 External Professor from other institution.',
                 'required_peer_reviewers' => 3,
                 'enforce_strict_quota' => true,
@@ -50,6 +166,8 @@ class StatutoryConstitutionsAndStatusesSeeder extends Seeder
                 'name' => 'Statutory Professorial Selection Board (Associate & Full Professor)',
                 'slug' => 'statutory-selection-professorial',
                 'organization_sector' => 'ACADEMIC',
+                'committee_type' => 'SELECTION_BOARD',
+                'responsible_stage' => 'stage_selection_board',
                 'description' => 'Statutory Criteria: 3 External / Overseas Subject Referees. Selection Board: Vice-Chancellor / Dean, 3 Internal Senior Leaders, 2 External Subject Specialists (including 1 Overseas).',
                 'required_peer_reviewers' => 3,
                 'enforce_strict_quota' => true,
@@ -79,6 +197,8 @@ class StatutoryConstitutionsAndStatusesSeeder extends Seeder
                 'name' => 'Corporate Executive & Leadership Selection Panel',
                 'slug' => 'corporate-executive-panel',
                 'organization_sector' => 'CORPORATE',
+                'committee_type' => 'SELECTION_BOARD',
+                'responsible_stage' => 'stage_selection_board',
                 'description' => 'Enterprise Criteria: Managing Director/Lead, 2 Internal Executive Officers, 2 External Industry Advisors / Technical Specialists.',
                 'required_peer_reviewers' => 0,
                 'enforce_strict_quota' => true,
@@ -107,6 +227,8 @@ class StatutoryConstitutionsAndStatusesSeeder extends Seeder
                 'name' => 'Healthcare & Clinical Specialist Appointment Board',
                 'slug' => 'healthcare-specialist-board',
                 'organization_sector' => 'HEALTHCARE',
+                'committee_type' => 'SELECTION_BOARD',
+                'responsible_stage' => 'stage_selection_board',
                 'description' => 'Medical Criteria: Chief Medical Officer, 2 Internal Clinical Consultants, 2 External Teaching Hospital Specialists.',
                 'required_peer_reviewers' => 2,
                 'enforce_strict_quota' => true,
@@ -135,6 +257,8 @@ class StatutoryConstitutionsAndStatusesSeeder extends Seeder
                 'name' => 'Public Sector Service Selection Board',
                 'slug' => 'public-sector-service-board',
                 'organization_sector' => 'PUBLIC_SECTOR',
+                'committee_type' => 'SELECTION_BOARD',
+                'responsible_stage' => 'stage_selection_board',
                 'description' => 'Public Sector Criteria: 2 Departmental Members, 1 External Public Service Delegate, 1 Independent Legal Arbiter.',
                 'required_peer_reviewers' => 0,
                 'enforce_strict_quota' => true,
@@ -164,6 +288,8 @@ class StatutoryConstitutionsAndStatusesSeeder extends Seeder
                 'name' => 'Cross-Sector Independent Evaluation Committee',
                 'slug' => 'cross-sector-independent-eval',
                 'organization_sector' => 'GENERAL',
+                'committee_type' => 'CUSTOM',
+                'responsible_stage' => 'stage_selection_board',
                 'description' => 'General statutory committee with balanced internal, external, and independent oversight.',
                 'required_peer_reviewers' => 0,
                 'enforce_strict_quota' => true,
@@ -538,5 +664,259 @@ class StatutoryConstitutionsAndStatusesSeeder extends Seeder
                 $s
             );
         }
+
+        // -------------------------------------------------------------------------
+        // 3. STATUTORY RECRUITMENT PROCESS FLOW PIPELINES
+        // -------------------------------------------------------------------------
+        $academicFlow = [
+            'name' => 'Higher Education Standard Statutory Recruitment Pipeline',
+            'slug' => 'academic-statutory-pipeline',
+            'sector' => 'ACADEMIC',
+            'description' => 'End-to-end statutory hiring pipeline: 1. Validity & Fee Settlement -> 2. Dossier Scrutiny (one-by-one verification with missing document grace period) -> 3. Academic Subject Experts (Peer Review >= 60%) -> 4. Selection Board Interview & Rubric Scoring -> 5. Syndicate Appointment Sanction (+ Appellate Grievance Branch).',
+            'stages' => RecruitmentProcessFlow::defaultAcademicPipeline(),
+            'is_default' => true,
+            'is_active' => true,
+        ];
+        RecruitmentProcessFlow::updateOrCreate(
+            ['slug' => $academicFlow['slug']],
+            $academicFlow
+        );
+
+        $corporateFlow = [
+            'name' => 'Corporate Enterprise Talent Acquisition Pipeline',
+            'slug' => 'corporate-talent-pipeline',
+            'sector' => 'CORPORATE',
+            'description' => 'Fast-track corporate executive workflow: 1. Application & Resume Screen -> 2. Technical / Competency Assessment -> 3. Executive Panel Interview -> 4. Managing Director Offer Clearance.',
+            'stages' => [
+                [
+                    'step' => 1,
+                    'id' => 'stage_application',
+                    'name' => 'Online Application & Resume Intake',
+                    'actor_type' => 'APPLICANT',
+                    'governing_role' => 'Candidate',
+                    'is_enabled' => true,
+                    'sla_days' => 10,
+                    'rule_description' => 'Candidate submits credentials and portfolio during open recruitment window.',
+                    'on_pass' => [
+                        'target_status' => 'SUBMITTED',
+                        'next_step' => 2,
+                        'label' => 'Profile Cleared ➔ Advance to HR Talent Screening',
+                    ],
+                    'on_incomplete' => null,
+                    'on_fail' => [
+                        'target_status' => 'CAMPAIGN_CLOSED',
+                        'action' => 'Submission Window Expired',
+                    ],
+                ],
+                [
+                    'step' => 2,
+                    'id' => 'stage_hr_screen',
+                    'name' => 'HR Screening & Shortlisting',
+                    'actor_type' => 'COMMITTEE',
+                    'governing_role' => 'HR Talent Team',
+                    'committee_type' => 'SCRUTINY',
+                    'is_enabled' => true,
+                    'sla_days' => 3,
+                    'rule_description' => 'HR team reviews candidate qualifications against JD benchmarks.',
+                    'on_pass' => [
+                        'target_status' => 'SCRUTINY_PASSED',
+                        'next_step' => 3,
+                        'label' => 'Shortlist Approved ➔ Advance to Technical Assessment',
+                    ],
+                    'on_incomplete' => [
+                        'target_status' => 'INCOMPLETE_DOSSIER',
+                        'allow_reupload' => true,
+                        'grace_days' => 3,
+                        'label' => 'Missing Portfolio / Docs ➔ Candidate Alerted (3-Day Grace)',
+                    ],
+                    'on_fail' => [
+                        'target_status' => 'DISQUALIFIED',
+                        'allow_appeal' => false,
+                        'require_justification' => true,
+                        'label' => 'Does Not Meet Minimum Requirements ➔ Screened Out',
+                    ],
+                ],
+                [
+                    'step' => 3,
+                    'id' => 'stage_tech_eval',
+                    'name' => 'Technical Assessment & Peer Evaluation',
+                    'actor_type' => 'EXPERT_REFEREES',
+                    'governing_role' => 'Technical Assessment Panel',
+                    'committee_type' => 'EXPERT_REVIEW',
+                    'is_enabled' => true,
+                    'sla_days' => 5,
+                    'required_experts' => 2,
+                    'pass_threshold_percent' => 70,
+                    'rule_description' => 'Evaluation of technical skills, case study or coding assessment (threshold 70%).',
+                    'on_pass' => [
+                        'target_status' => 'ELIGIBLE',
+                        'next_step' => 4,
+                        'label' => 'Assessment Passed (>= 70%) ➔ Called for Executive Interview',
+                    ],
+                    'on_incomplete' => null,
+                    'on_fail' => [
+                        'target_status' => 'REJECTED',
+                        'allow_appeal' => false,
+                        'label' => 'Assessment Score Below Threshold (< 70%) ➔ Not Selected',
+                    ],
+                ],
+                [
+                    'step' => 4,
+                    'id' => 'stage_exec_interview',
+                    'name' => 'Executive Leadership Interview',
+                    'actor_type' => 'SELECTION_BOARD',
+                    'governing_role' => 'Executive Committee',
+                    'committee_type' => 'SELECTION_BOARD',
+                    'is_enabled' => true,
+                    'sla_days' => 5,
+                    'rule_description' => 'Live interview with division heads and Managing Director.',
+                    'on_pass' => [
+                        'target_status' => 'APPROVED',
+                        'applicant_status' => 'HIRED',
+                        'label' => 'Hiring Offer Approved & Issued',
+                    ],
+                    'on_incomplete' => null,
+                    'on_fail' => [
+                        'target_status' => 'REJECTED',
+                        'label' => 'Not Selected After Executive Panel',
+                    ],
+                ],
+            ],
+            'is_default' => false,
+            'is_active' => true,
+        ];
+        RecruitmentProcessFlow::updateOrCreate(
+            ['slug' => $corporateFlow['slug']],
+            $corporateFlow
+        );
+
+        $publicSectorFlow = [
+            'name' => 'Public Sector Service Selection Pipeline',
+            'slug' => 'public-sector-civil-service-pipeline',
+            'sector' => 'PUBLIC_SECTOR',
+            'description' => 'Statutory civil service flow: 1. Domicile & Eligibility Scrutiny -> 2. Competitive Written Examination -> 3. Public Service Commission Interview -> 4. Competent Authority Notification.',
+            'stages' => [
+                [
+                    'step' => 1,
+                    'id' => 'stage_application',
+                    'name' => 'Public Notice Application Intake & Challan Verification',
+                    'actor_type' => 'APPLICANT',
+                    'governing_role' => 'Candidate',
+                    'is_enabled' => true,
+                    'sla_days' => 21,
+                    'rule_description' => 'Public candidates register within the published gazette advertisement timeline with settled Treasury challan.',
+                    'on_pass' => [
+                        'target_status' => 'FEE_PAID',
+                        'next_step' => 2,
+                        'label' => 'Challan Reconciled ➔ Move to Domicile & Credential Scrutiny',
+                    ],
+                    'on_incomplete' => null,
+                    'on_fail' => [
+                        'target_status' => 'CAMPAIGN_CLOSED',
+                        'action' => 'Public Notice Closed / Inadmissible',
+                    ],
+                ],
+                [
+                    'step' => 2,
+                    'id' => 'stage_scrutiny',
+                    'name' => 'Civil Service Domicile & Credential Scrutiny',
+                    'actor_type' => 'COMMITTEE',
+                    'governing_role' => 'Scrutiny Commission Branch',
+                    'committee_type' => 'SCRUTINY',
+                    'is_enabled' => true,
+                    'sla_days' => 10,
+                    'rule_description' => 'Scrutiny branch verifies quota, provincial domicile, age relaxation, and attested degree copies.',
+                    'on_pass' => [
+                        'target_status' => 'SCRUTINY_PASSED',
+                        'next_step' => 3,
+                        'label' => 'Eligible for Competitive Test ➔ Roll Number Issued',
+                    ],
+                    'on_incomplete' => [
+                        'target_status' => 'INCOMPLETE_DOSSIER',
+                        'allow_reupload' => true,
+                        'grace_days' => 7,
+                        'label' => 'Document Deficiencies ➔ Statutory Re-submission Notice (7-Day Grace)',
+                    ],
+                    'on_fail' => [
+                        'target_status' => 'DISQUALIFIED',
+                        'allow_appeal' => true,
+                        'require_justification' => true,
+                        'label' => 'Ineligible / Over-age / Non-compliance ➔ Disqualified (Appellate Right Open)',
+                    ],
+                ],
+                [
+                    'step' => 3,
+                    'id' => 'stage_written_exam',
+                    'name' => 'Competitive Written Assessment & Subject Vetting',
+                    'actor_type' => 'EXPERT_REFEREES',
+                    'governing_role' => 'Examination Board',
+                    'committee_type' => 'EXPERT_REVIEW',
+                    'is_enabled' => true,
+                    'sla_days' => 21,
+                    'required_experts' => 2,
+                    'pass_threshold_percent' => 50,
+                    'rule_description' => 'Competitive written examination vetted by external examiners (Qualifying benchmark: 50%).',
+                    'on_pass' => [
+                        'target_status' => 'ELIGIBLE',
+                        'next_step' => 4,
+                        'label' => 'Written Exam Qualified (>= 50%) ➔ Shortlisted for Commission Interview',
+                    ],
+                    'on_incomplete' => null,
+                    'on_fail' => [
+                        'target_status' => 'REJECTED',
+                        'allow_appeal' => true,
+                        'label' => 'Failed to Qualify Written Benchmark (< 50%)',
+                    ],
+                ],
+                [
+                    'step' => 4,
+                    'id' => 'stage_commission_interview',
+                    'name' => 'Statutory Public Service Commission Interview',
+                    'actor_type' => 'SELECTION_BOARD',
+                    'governing_role' => 'Public Service Selection Board',
+                    'committee_type' => 'SELECTION_BOARD',
+                    'is_enabled' => true,
+                    'sla_days' => 10,
+                    'rule_description' => 'Commission viva voce, psychological evaluation, and final merit list compilation.',
+                    'on_pass' => [
+                        'target_status' => 'APPROVED',
+                        'applicant_status' => 'HIRED',
+                        'label' => 'Merit Order Approved ➔ Official Gazette Appointment Notification Issued',
+                    ],
+                    'on_incomplete' => null,
+                    'on_fail' => [
+                        'target_status' => 'REJECTED',
+                        'label' => 'Not In Final Merit Quota',
+                    ],
+                ],
+                [
+                    'step' => 5,
+                    'id' => 'stage_appellate',
+                    'name' => 'Statutory Grievance & Representation Tribunal',
+                    'actor_type' => 'COMMITTEE',
+                    'governing_role' => 'Appellate Tribunal',
+                    'committee_type' => 'APPELLATE',
+                    'is_enabled' => true,
+                    'sla_days' => 15,
+                    'rule_description' => 'Statutory representation review before independent judicial / governance arbiter.',
+                    'on_pass' => [
+                        'target_status' => 'ELIGIBLE',
+                        'next_step' => 3,
+                        'label' => 'Representation Accepted ➔ Reinstated to Candidate Roster',
+                    ],
+                    'on_incomplete' => null,
+                    'on_fail' => [
+                        'target_status' => 'DISQUALIFIED',
+                        'label' => 'Representation Rejected ➔ Final Disposal',
+                    ],
+                ],
+            ],
+            'is_default' => false,
+            'is_active' => true,
+        ];
+        RecruitmentProcessFlow::updateOrCreate(
+            ['slug' => $publicSectorFlow['slug']],
+            $publicSectorFlow
+        );
     }
 }

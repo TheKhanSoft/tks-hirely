@@ -18,10 +18,14 @@ use Illuminate\Support\Str;
 use App\Services\CountryService;
 use App\Services\AcademicDisciplineMatcher;
 use App\Models\Campaign;
+use App\Livewire\Traits\WithDynamicListing;
 
 class ReviewerManagement extends Component
 {
-    use WithPagination;
+    use WithDynamicListing;
+
+    // Default per-page for card grid (16 items)
+    public $perPage = 16;
 
     // Active Navigation Tab: 'reviewers' or 'dispatch'
     public $activeTab = 'reviewers';
@@ -356,6 +360,32 @@ class ReviewerManagement extends Component
         $this->applicationReviews = [];
     }
 
+    public function exportCsv()
+    {
+        abort_unless(Auth::user()->can('view-reviewer'), 403);
+        $reviewers = ReviewerProfile::with('user')
+            ->whereDoesntHave('user.roles', fn($rq) => $rq->where('name', 'super-admin'))
+            ->withCount('reviews')
+            ->latest()
+            ->get();
+        $headers = ['Name', 'Email', 'Academic Rank', 'Subject / Discipline', 'University / Office', 'Country', 'Phone', 'Status', 'Reviews Assigned'];
+        $rows = [];
+        foreach ($reviewers as $r) {
+            $rows[] = [
+                $r->name,
+                $r->user?->email ?? 'N/A',
+                $r->academic_rank,
+                $r->subject,
+                $r->university,
+                $r->country,
+                $r->phone,
+                $r->is_active ? 'Active / Empanelled' : 'Inactive',
+                $r->reviews_count ?? 0,
+            ];
+        }
+        return $this->streamCsvDownload('academic-reviewers-' . date('Y-m-d') . '.csv', $headers, $rows);
+    }
+
     public function render()
     {
         // 1. Query Reviewer Profiles (Tab 1)
@@ -386,7 +416,7 @@ class ReviewerManagement extends Component
             $reviewersQuery->where('country', $this->countryFilter);
         }
 
-        $reviewers = $reviewersQuery->latest()->paginate(10);
+        $reviewers = $reviewersQuery->latest()->paginate($this->perPage);
 
         // 2. Query Academic Applications for Review Dispatch (Tab 2)
         $candidaciesQuery = Application::with(['campaign', 'user.basicInfo', 'reviews.reviewer.reviewerProfile'])
