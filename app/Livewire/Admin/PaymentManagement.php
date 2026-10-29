@@ -187,8 +187,16 @@ class PaymentManagement extends Component
 
         $payments = $query->orderBy('created_at', 'desc')->get();
 
+        $stats = [
+            'total' => BillingLedger::count(),
+            'settled' => BillingLedger::where('status', 'SETTLED')->count(),
+            'pending' => BillingLedger::where('status', 'PENDING')->count(),
+            'total_revenue' => BillingLedger::where('status', 'SETTLED')->sum('amount'),
+        ];
+
         return view('livewire.admin.payment-management', [
             'payments' => $payments,
+            'stats' => $stats,
         ])->layout('layouts.app', ['title' => 'Vouchers & Payments - Hirely']);
     }
 }

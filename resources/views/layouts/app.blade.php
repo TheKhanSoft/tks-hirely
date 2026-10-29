@@ -322,6 +322,29 @@
 
         <!-- Main Content Wrapper -->
         <div class="main-content">
+            @if(session()->has('impersonated_by'))
+                <!-- Prominent Super Admin Impersonation Notice Banner -->
+                <div style="background: linear-gradient(90deg, #b45309 0%, #d97706 100%); color: #ffffff; padding: 0.65rem 1.5rem; font-size: 0.88rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 10000; position: sticky; top: 0;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                        <span style="font-size: 1.25rem;">🎭</span>
+                        <div>
+                            <span>You are impersonating <strong>{{ auth()->user()->name }}</strong> ({{ auth()->user()->email }})</span>
+                            <span style="margin-left: 0.5rem; background: rgba(0,0,0,0.25); padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">
+                                {{ auth()->user()->roles->pluck('name')->join(', ') ?: 'Applicant' }}
+                            </span>
+                            <span style="opacity: 0.85; font-size: 0.78rem; margin-left: 0.5rem;">
+                                • Initiated by: <em>{{ session('impersonator_name') ?: session('impersonator_email') ?: 'Super Admin' }}</em>
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <a href="{{ route('impersonate.leave') }}" class="btn" style="background: #ffffff; color: #b45309; font-weight: 800; font-size: 0.8rem; padding: 0.35rem 0.85rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                            <span>✕ Exit Impersonation</span>
+                        </a>
+                    </div>
+                </div>
+            @endif
+
             <!-- Modern Topbar Navigation -->
             <header class="topbar">
                 <div style="display: flex; align-items: center; gap: 1rem;">

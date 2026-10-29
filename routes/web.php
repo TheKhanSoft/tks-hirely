@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\Api\KuickpayWebhookController;
 use App\Livewire\Applicant\ProfileWizard;
 use App\Livewire\Applicant\Dashboard as ApplicantDashboard;
@@ -65,6 +66,10 @@ Route::get('/bank/simulator', PaymentSimulator::class);
 
 // Protected role-based workflows
 Route::middleware('auth')->group(function () {
+    // Impersonation Control (Super Admin start, session-based restore)
+    Route::get('/admin/impersonate/{id}', [ImpersonationController::class, 'start'])->name('impersonate.start');
+    Route::get('/impersonate/leave', [ImpersonationController::class, 'leave'])->name('impersonate.leave');
+
     // -------------------------------------------------------------
     // Candidate Space
     // -------------------------------------------------------------
