@@ -4,9 +4,20 @@ namespace App\Livewire\Admin;
 
 use Livewire\Component;
 use App\Models\Application;
+use App\Models\ApplicationReview;
 use App\Models\User;
 use App\Models\Campaign;
+use App\Models\ReviewerProfile;
+use App\Models\WorkflowStatus;
+use App\Models\SystemSetting;
+use App\Services\AcademicDisciplineMatcher;
+use App\Services\CountryService;
+use App\Mail\ApplicationAssignedReviewerMail;
+use App\Mail\ReviewerCredentialsMail;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class ApplicationManagement extends Component
 {
@@ -34,10 +45,62 @@ class ApplicationManagement extends Component
     public $app_status = 'DRAFT';
     public $app_disqualification_reason;
 
+    // =========================================================================
+    // 🚀 DIRECT ACTION 1: DISPATCH TO PEER REVIEWERS DIRECTLY FROM /APPLICATIONS
+    // =========================================================================
+    public $showDispatchModal = false;
+    public $dispatchAppId = null;
+    public $dispatchApplication = null;
+    public $selectedReviewerIds = [];
+    public $dispatchReviewDueDate = null;
+    public $dispatchReviewNotes = '';
+    public $dispatchTargetRequiredExperts = 3;
+    public $dispatchAlreadyAssignedCount = 0;
+    public $dispatchRemainingRequiredExperts = 3;
+    public $dispatchReviewerSearch = '';
+    public $dispatchDisciplineFilter = '';
+    public $filterByFieldOnly = true;
+
+    // Direct Empanel Modal within Dispatch
+    public $showEmpanelModal = false;
+    public $empanelName = '';
+    public $empanelEmail = '';
+    public $empanelUniversity = '';
+    public $empanelSubject = '';
+    public $empanelRank = 'Professor';
+    public $empanelCountry = 'Pakistan';
+    public $empanelPhone = '';
+    public $empanelSpecialization = '';
+
+    // =========================================================================
+    // ⚠️ DIRECT ACTION 2: MARK AS INCOMPLETE DOSSIER
+    // =========================================================================
+    public $showIncompleteModal = false;
+    public $incompleteAppId = null;
+    public $incompleteDeficiencyNotes = '';
+
+    // =========================================================================
+    // 🚫 DIRECT ACTION 3: REJECT / DISQUALIFY APPLICATION
+    // =========================================================================
+    public $showRejectModal = false;
+    public $rejectAppId = null;
+    public $rejectReason = '';
+
+    // =========================================================================
+    // 🔄 DIRECT ACTION 4: ADVANCE DYNAMIC STATUS TRANSITION
+    // =========================================================================
+    public $showTransitionModal = false;
+    public $transitionAppId = null;
+    public $transitionApplication = null;
+    public $transitionTargetStatus = '';
+    public $transitionNotes = '';
+    public $transitionValidationErrors = [];
+
     public function mount()
     {
         abort_unless(Auth::check() && Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
         $this->loadAuxiliaryData();
+        $this->dispatchReviewDueDate = now()->addDays(14)->format('Y-m-d');
     }
 
     public function loadAuxiliaryData()
@@ -61,7 +124,7 @@ class ApplicationManagement extends Component
 
     public function openCreateApplicationForm()
     {
-        abort_unless(Auth::user()->can('create-application'), 403);
+        abort_unless(Auth::user()->can('create-application') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
         $this->resetForm();
         $this->isEditMode = false;
         $this->isFormOpen = true;
@@ -69,7 +132,7 @@ class ApplicationManagement extends Component
 
     public function openEditApplicationForm($id)
     {
-        abort_unless(Auth::user()->can('edit-application') || Auth::user()->can('change-application-status'), 403);
+        abort_unless(Auth::user()->can('edit-application') || Auth::user()->can('change-application-status') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
         $this->resetForm();
         $this->app_id = $id;
         $app = Application::findOrFail($id);
@@ -84,7 +147,7 @@ class ApplicationManagement extends Component
     public function saveApplication()
     {
         if ($this->isEditMode) {
-            abort_unless(Auth::user()->can('edit-application') || Auth::user()->can('change-application-status'), 403);
+            abort_unless(Auth::user()->can('edit-application') || Auth::user()->can('change-application-status') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
             $app = Application::findOrFail($this->app_id);
             $app->update([
                 'status' => $this->app_status,
@@ -92,7 +155,7 @@ class ApplicationManagement extends Component
             ]);
             session()->flash('message', 'Application status updated successfully.');
         } else {
-            abort_unless(Auth::user()->can('create-application'), 403);
+            abort_unless(Auth::user()->can('create-application') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
             $this->validate([
                 'app_user_id' => 'required|exists:users,id',
                 'app_campaign_id' => 'required|exists:campaigns,id',
@@ -112,22 +175,360 @@ class ApplicationManagement extends Component
 
     public function deleteApplication($id)
     {
-        abort_unless(Auth::user()->can('delete-application'), 403);
+        abort_unless(Auth::user()->can('delete-application') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
         Application::destroy($id);
         session()->flash('message', 'Application record deleted successfully.');
     }
 
     public function viewApplicationDetails($id)
     {
-        abort_unless(Auth::user()->can('view-application'), 403);
+        abort_unless(Auth::user()->can('view-application') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
         $this->selectedRecordId = $id;
         $this->selectedRecordDetails = Application::with('user.basicInfo', 'campaign', 'billingLedger', 'evaluations.boardMember', 'reviews.reviewer.reviewerProfile')->findOrFail($id);
         $this->isDetailsOpen = true;
     }
 
+    // =========================================================================
+    // 🚀 DISPATCH TO REVIEWERS MODAL LOGIC DIRECT ON /APPLICATIONS
+    // =========================================================================
+    public function openDispatchModal($applicationId)
+    {
+        abort_unless(Auth::user()->can('assign-reviewer') || Auth::user()->can('manage-reviewers') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        
+        $this->dispatchAppId = $applicationId;
+        $this->dispatchApplication = Application::with(['campaign', 'user.basicInfo', 'reviews.reviewer.reviewerProfile'])->findOrFail($applicationId);
+        $this->selectedReviewerIds = [];
+        $this->dispatchTargetRequiredExperts = $this->dispatchApplication->campaign->getRequiredPeerReviewersCount();
+        $this->dispatchAlreadyAssignedCount = $this->dispatchApplication->reviews->count();
+        $this->dispatchRemainingRequiredExperts = max(0, $this->dispatchTargetRequiredExperts - $this->dispatchAlreadyAssignedCount);
+        $this->dispatchReviewNotes = "Please evaluate the candidate's research publications, impact, and suitability for the position of {$this->dispatchApplication->campaign->title} under statutory appointment criteria.";
+        $this->dispatchReviewDueDate = now()->addDays(14)->format('Y-m-d');
+        $this->filterByFieldOnly = true;
+        $this->dispatchReviewerSearch = '';
+        $this->dispatchDisciplineFilter = '';
+        $this->resetErrorBag();
+        $this->showDispatchModal = true;
+    }
+
+    public function closeDispatchModal()
+    {
+        $this->showDispatchModal = false;
+        $this->showEmpanelModal = false;
+        $this->dispatchAppId = null;
+        $this->dispatchApplication = null;
+        $this->selectedReviewerIds = [];
+        $this->resetErrorBag();
+    }
+
+    public function toggleReviewerSelection($userId)
+    {
+        if (in_array($userId, $this->selectedReviewerIds)) {
+            $this->selectedReviewerIds = array_values(array_diff($this->selectedReviewerIds, [$userId]));
+        } else {
+            $this->selectedReviewerIds[] = $userId;
+        }
+    }
+
+    public function openEmpanelModal()
+    {
+        $this->reset(['empanelName', 'empanelEmail', 'empanelUniversity', 'empanelPhone', 'empanelSpecialization']);
+        $rawSubject = $this->dispatchApplication?->campaign?->department ?? '';
+        $this->empanelSubject = AcademicDisciplineMatcher::normalizeDepartment($rawSubject);
+        $this->empanelRank = 'Professor';
+        $this->empanelCountry = 'Pakistan';
+        $this->resetErrorBag();
+        $this->showEmpanelModal = true;
+    }
+
+    public function closeEmpanelModal()
+    {
+        $this->showEmpanelModal = false;
+        $this->resetErrorBag();
+    }
+
+    public function createAndAssignReviewer()
+    {
+        abort_unless(Auth::user()->can('create-reviewer') || Auth::user()->can('manage-reviewers') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+
+        $this->validate([
+            'empanelName' => 'required|string|min:3|max:150',
+            'empanelEmail' => 'required|email|unique:users,email',
+            'empanelUniversity' => 'required|string|min:2|max:200',
+            'empanelSubject' => 'required|string|min:2|max:150',
+            'empanelRank' => 'required|string',
+            'empanelCountry' => 'required|string',
+        ], [
+            'empanelName.required' => 'Please specify expert name.',
+            'empanelEmail.required' => 'Please provide academic email.',
+            'empanelUniversity.required' => 'Please specify expert institution.',
+        ]);
+
+        $plainPassword = 'Rev@' . rand(100000, 999999);
+
+        $user = User::create([
+            'email' => trim($this->empanelEmail),
+            'password' => Hash::make($plainPassword),
+            'is_active' => true,
+        ]);
+
+        $user->assignRole('academic-reviewer');
+
+        $profile = ReviewerProfile::create([
+            'user_id' => $user->id,
+            'name' => trim($this->empanelName),
+            'subject' => trim($this->empanelSubject),
+            'academic_rank' => trim($this->empanelRank),
+            'university' => trim($this->empanelUniversity),
+            'country' => trim($this->empanelCountry),
+            'phone' => trim($this->empanelPhone),
+            'specialization' => trim($this->empanelSpecialization),
+            'is_active' => true,
+            'created_by' => Auth::id(),
+        ]);
+
+        // Dispatch welcome email
+        try {
+            Mail::to($user->email)->send(new ReviewerCredentialsMail(
+                $profile->name,
+                $user->email,
+                $plainPassword,
+                $profile->subject,
+                $profile->academic_rank,
+                $profile->university,
+                url('/login')
+            ));
+        } catch (\Exception $e) {
+            Log::warning("Could not dispatch reviewer email: " . $e->getMessage());
+        }
+
+        // Auto select this newly empanelled expert
+        if (!in_array($user->id, $this->selectedReviewerIds)) {
+            $this->selectedReviewerIds[] = $user->id;
+        }
+
+        $this->showEmpanelModal = false;
+        session()->flash('message', "Academic Subject Expert '{$profile->name}' empanelled successfully and assigned to this dispatch!");
+    }
+
+    public function dispatchApplicationToReviewers()
+    {
+        abort_unless(Auth::user()->can('assign-reviewer') || Auth::user()->can('manage-reviewers') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+
+        $this->validate([
+            'selectedReviewerIds' => 'required|array|min:1',
+            'dispatchReviewDueDate' => 'nullable|date|after_or_equal:today',
+            'dispatchReviewNotes' => 'nullable|string|max:1000',
+        ], [
+            'selectedReviewerIds.required' => 'Please select at least one field-related academic reviewer.',
+            'selectedReviewerIds.min' => 'Please select at least one field-related academic reviewer.',
+        ]);
+
+        $application = Application::with(['campaign', 'user.basicInfo'])->findOrFail($this->dispatchAppId);
+        $assignedCount = 0;
+
+        $enforceStrict = SystemSetting::get('enforce_strict_peer_review_quorum', false);
+        $selectedCount = count($this->selectedReviewerIds);
+
+        if ($enforceStrict && $this->dispatchTargetRequiredExperts > 0) {
+            $totalProjected = $this->dispatchAlreadyAssignedCount + $selectedCount;
+            if ($totalProjected < $this->dispatchTargetRequiredExperts) {
+                $needed = $this->dispatchTargetRequiredExperts - $this->dispatchAlreadyAssignedCount;
+                $this->addError('selectedReviewerIds', "Statutory Quota: Exactly {$this->dispatchTargetRequiredExperts} external peer experts are required for {$application->campaign->title}. Please select {$needed} expert(s) (currently selected: {$selectedCount}).");
+                return;
+            } elseif ($totalProjected > $this->dispatchTargetRequiredExperts) {
+                $maxSelectable = max(0, $this->dispatchTargetRequiredExperts - $this->dispatchAlreadyAssignedCount);
+                $this->addError('selectedReviewerIds', "Statutory Quota Exceeded: At most {$maxSelectable} additional expert(s) can be selected to fulfill the statutory quorum of {$this->dispatchTargetRequiredExperts}.");
+                return;
+            }
+        }
+
+        foreach ($this->selectedReviewerIds as $reviewerUserId) {
+            $reviewerUser = User::with('reviewerProfile')->find($reviewerUserId);
+            if (!$reviewerUser) continue;
+
+            $exists = ApplicationReview::where('application_id', $application->id)
+                ->where('reviewer_id', $reviewerUserId)
+                ->exists();
+
+            if (!$exists) {
+                ApplicationReview::create([
+                    'application_id' => $application->id,
+                    'reviewer_id' => $reviewerUserId,
+                    'assigned_by' => Auth::id(),
+                    'assigned_at' => now(),
+                    'due_date' => $this->dispatchReviewDueDate ?: now()->addDays(14),
+                    'confidential_notes' => $this->dispatchReviewNotes,
+                    'status' => 'PENDING',
+                ]);
+
+                $assignedCount++;
+
+                // Notify reviewer
+                try {
+                    Mail::to($reviewerUser->email)->send(new ApplicationAssignedReviewerMail(
+                        $reviewerUser->reviewerProfile?->name ?? 'Colleague',
+                        $application->user->basicInfo ? trim($application->user->basicInfo->first_name . ' ' . $application->user->basicInfo->last_name) : 'Academic Candidate',
+                        $application->campaign->title,
+                        $application->campaign->department,
+                        $this->dispatchReviewDueDate,
+                        $this->dispatchReviewNotes,
+                        url('/reviewer/dashboard')
+                    ));
+                } catch (\Exception $e) {
+                    Log::warning("Could not dispatch review assignment email: " . $e->getMessage());
+                }
+            }
+        }
+
+        // Transition application to UNDER_REVIEW
+        $application->update(['status' => 'UNDER_REVIEW']);
+
+        session()->flash('message', "Application for '{$application->campaign->title}' successfully dispatched to {$assignedCount} subject expert(s) for external peer review!");
+        $this->closeDispatchModal();
+    }
+
+    // =========================================================================
+    // ⚠️ DIRECT ACTION 2: MARK INCOMPLETE DOSSIER
+    // =========================================================================
+    public function openIncompleteModal($applicationId)
+    {
+        abort_unless(Auth::user()->can('change-application-status') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        $this->incompleteAppId = $applicationId;
+        $app = Application::findOrFail($applicationId);
+        $this->incompleteDeficiencyNotes = $app->disqualification_reason ?: 'Candidate dossier is missing certified transcripts or statutory proofs.';
+        $this->showIncompleteModal = true;
+    }
+
+    public function closeIncompleteModal()
+    {
+        $this->showIncompleteModal = false;
+        $this->incompleteAppId = null;
+        $this->incompleteDeficiencyNotes = '';
+    }
+
+    public function markAsIncompleteDossier()
+    {
+        abort_unless(Auth::user()->can('change-application-status') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        $this->validate([
+            'incompleteDeficiencyNotes' => 'required|string|min:5|max:1000',
+        ], [
+            'incompleteDeficiencyNotes.required' => 'Please provide specific deficiency details explaining what documents or data are missing.',
+        ]);
+
+        $app = Application::findOrFail($this->incompleteAppId);
+        $app->update([
+            'status' => 'INCOMPLETE_DOSSIER',
+            'disqualification_reason' => trim($this->incompleteDeficiencyNotes),
+        ]);
+
+        session()->flash('message', "Application for '{$app->campaign->title}' marked as Incomplete Dossier. Deficiency notes recorded.");
+        $this->closeIncompleteModal();
+    }
+
+    // =========================================================================
+    // 🚫 DIRECT ACTION 3: REJECT / DISQUALIFY APPLICATION
+    // =========================================================================
+    public function openRejectModal($applicationId)
+    {
+        abort_unless(Auth::user()->can('change-application-status') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        $this->rejectAppId = $applicationId;
+        $app = Application::findOrFail($applicationId);
+        $this->rejectReason = $app->disqualification_reason ?: '';
+        $this->showRejectModal = true;
+    }
+
+    public function closeRejectModal()
+    {
+        $this->showRejectModal = false;
+        $this->rejectAppId = null;
+        $this->rejectReason = '';
+    }
+
+    public function rejectApplication()
+    {
+        abort_unless(Auth::user()->can('change-application-status') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        $this->validate([
+            'rejectReason' => 'required|string|min:5|max:1000',
+        ], [
+            'rejectReason.required' => 'Please provide the formal justification reason for disqualification or rejection.',
+        ]);
+
+        $app = Application::findOrFail($this->rejectAppId);
+        $app->update([
+            'status' => 'DISQUALIFIED',
+            'disqualification_reason' => trim($this->rejectReason),
+        ]);
+
+        session()->flash('message', "Application for '{$app->campaign->title}' has been rejected / disqualified. Justification recorded.");
+        $this->closeRejectModal();
+    }
+
+    // =========================================================================
+    // ✅ DIRECT ACTION 4: MARK AS ELIGIBLE
+    // =========================================================================
+    public function markAsEligible($applicationId)
+    {
+        abort_unless(Auth::user()->can('change-application-status') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        $app = Application::findOrFail($applicationId);
+        $app->update([
+            'status' => 'ELIGIBLE',
+            'disqualification_reason' => null,
+        ]);
+        session()->flash('message', "Application for '{$app->campaign->title}' successfully marked as Eligible for Selection Board!");
+    }
+
+    // =========================================================================
+    // 🔄 DIRECT ACTION 5: DYNAMIC STATUS TRANSITION MODAL
+    // =========================================================================
+    public function openTransitionModal($applicationId)
+    {
+        abort_unless(Auth::user()->can('change-application-status') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        $this->transitionAppId = $applicationId;
+        $this->transitionApplication = Application::with(['campaign', 'user.basicInfo', 'billingLedger', 'reviews'])->findOrFail($applicationId);
+        $this->transitionTargetStatus = '';
+        $this->transitionNotes = '';
+        $this->transitionValidationErrors = [];
+        $this->showTransitionModal = true;
+    }
+
+    public function closeTransitionModal()
+    {
+        $this->showTransitionModal = false;
+        $this->transitionAppId = null;
+        $this->transitionApplication = null;
+        $this->transitionTargetStatus = '';
+        $this->transitionNotes = '';
+        $this->transitionValidationErrors = [];
+    }
+
+    public function executeStatusTransition()
+    {
+        abort_unless(Auth::user()->can('change-application-status') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        $this->validate([
+            'transitionTargetStatus' => 'required|string',
+        ]);
+
+        $app = Application::with(['campaign', 'billingLedger', 'reviews'])->findOrFail($this->transitionAppId);
+
+        // Dynamic gate validation check
+        $validation = WorkflowStatus::validateApplicationTransition($app, $this->transitionTargetStatus, $this->transitionNotes);
+        if (!$validation['allowed']) {
+            $this->transitionValidationErrors = $validation['errors'];
+            return;
+        }
+
+        $app->update([
+            'status' => $this->transitionTargetStatus,
+            'disqualification_reason' => $this->transitionNotes ?: $app->disqualification_reason,
+        ]);
+
+        session()->flash('message', "Application successfully transitioned to '{$app->status_label}'.");
+        $this->closeTransitionModal();
+    }
+
     public function render()
     {
-        $query = Application::with('user.basicInfo', 'campaign', 'billingLedger');
+        $query = Application::with('user.basicInfo', 'campaign', 'billingLedger', 'reviews.reviewer.reviewerProfile');
 
         if (!empty($this->statusFilter)) {
             $query->where('status', $this->statusFilter);
@@ -167,6 +568,24 @@ class ApplicationManagement extends Component
 
         $applications = $query->orderBy('created_at', 'desc')->get();
 
+        // Field-matched reviewers for dispatch modal if open
+        $fieldMatchedReviewers = collect();
+        if ($this->showDispatchModal && $this->dispatchApplication) {
+            $dept = trim($this->dispatchApplication->campaign->department);
+            $campTitle = trim($this->dispatchApplication->campaign->title ?? '');
+
+            $fieldMatchedReviewers = AcademicDisciplineMatcher::queryForCandidacy(
+                $dept,
+                $campTitle,
+                $this->dispatchReviewerSearch,
+                $this->dispatchDisciplineFilter,
+                $this->filterByFieldOnly
+            )->get();
+        }
+
+        // Distinct disciplines for dispatch filter
+        $availableDisciplines = ReviewerProfile::distinct()->pluck('subject')->filter()->values();
+
         // Dynamic System KPI Metrics
         $stats = [
             'total' => Application::count(),
@@ -176,9 +595,16 @@ class ApplicationManagement extends Component
             'approved' => Application::where('status', 'APPROVED')->count(),
         ];
 
+        // All active workflow statuses for filter dropdown
+        $workflowStatuses = WorkflowStatus::forScope('APPLICATION')->where('is_active', true)->orderBy('order')->get();
+
         return view('livewire.admin.application-management', [
             'applications' => $applications,
             'stats' => $stats,
+            'fieldMatchedReviewers' => $fieldMatchedReviewers,
+            'availableDisciplines' => $availableDisciplines,
+            'workflowStatuses' => $workflowStatuses,
+            'countries' => CountryService::all(),
         ])->layout('layouts.app', ['title' => 'Applications Desk - Hirely']);
     }
 }

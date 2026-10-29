@@ -249,19 +249,38 @@
                                     </span>
                                 </td>
                                 <td style="text-align: right;">
-                                    @if(auth()->user()->can('edit-reviewer') || auth()->user()->can('manage-reviewers'))
-                                        <button type="button" 
-                                                class="btn {{ $rev->is_active ? 'btn-success' : 'btn-danger' }} btn-sm" 
-                                                style="padding: 0.25rem 0.75rem; font-size: 0.76rem; border-radius: 9999px; font-weight: 700;" 
-                                                wire:click="toggleReviewerStatus({{ $rev->id }})" 
-                                                title="Click to toggle reviewer status">
-                                            {{ $rev->is_active ? '✓ Active' : '✕ Inactive' }}
-                                        </button>
-                                    @else
-                                        <span class="badge {{ $rev->is_active ? 'badge-paid' : '' }}" style="font-size: 0.76rem;">
-                                            {{ $rev->is_active ? 'Active' : 'Inactive' }}
-                                        </span>
-                                    @endif
+                                    <div class="action-btn-group justify-end">
+                                        @if(auth()->user()->hasRole('super-admin') && $rev->user && auth()->id() !== $rev->user->id && !$rev->user->hasRole('super-admin'))
+                                            <a href="{{ route('impersonate.start', $rev->user->id) }}" 
+                                               class="action-btn action-btn-impersonate" 
+                                               data-tooltip="Impersonate Reviewer ({{ $rev->name }})"
+                                               aria-label="Impersonate Reviewer">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                                    <circle cx="9" cy="7" r="4"/>
+                                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                                </svg>
+                                            </a>
+                                        @endif
+                                        @if(auth()->user()->can('edit-reviewer') || auth()->user()->can('manage-reviewers'))
+                                            <button type="button" 
+                                                    class="action-btn {{ $rev->is_active ? 'action-btn-success' : 'action-btn-delete' }}" 
+                                                    data-tooltip="{{ $rev->is_active ? 'Active (Click to Deactivate)' : 'Inactive (Click to Activate)' }}" 
+                                                    wire:click="toggleReviewerStatus({{ $rev->id }})" 
+                                                    aria-label="Toggle Reviewer Status">
+                                                @if($rev->is_active)
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                                @else
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                                @endif
+                                            </button>
+                                        @else
+                                            <span class="badge {{ $rev->is_active ? 'badge-paid' : '' }}" style="font-size: 0.76rem;">
+                                                {{ $rev->is_active ? 'Active' : 'Inactive' }}
+                                            </span>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @empty

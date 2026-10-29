@@ -304,23 +304,50 @@
                                     <strong style="color: var(--color-text-primary); font-family: monospace;">PKR {{ number_format($camp->application_fee, 2) }}</strong>
                                 </td>
                                 <td style="text-align: right;">
-                                    <div style="display: inline-flex; gap: 0.35rem;">
+                                    <div class="action-btn-group justify-end">
+                                        @can('tune-constitution')
+                                            @php
+                                                $criteriaUrl = (auth()->user()->hasRole('registrar') && !auth()->user()->hasRole('super-admin')) ? '/registrar/criteria' : '/admin/criteria';
+                                            @endphp
+                                            <a href="{{ $criteriaUrl }}?campaign_id={{ $camp->id }}" 
+                                               class="action-btn action-btn-view" 
+                                               data-tooltip="Manage Statutory Criteria & Quotas"
+                                               aria-label="Criteria Desk">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+                                                    <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+                                                    <path d="M7 21h10"/>
+                                                    <path d="M12 3v18"/>
+                                                </svg>
+                                            </a>
+                                        @endcan
+
                                         @can('edit-campaign')
-                                            <button type="button" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.3rem;" wire:click="openEditForm({{ $camp->id }})">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <button type="button" 
+                                                    class="action-btn action-btn-edit" 
+                                                    wire:click="openEditForm({{ $camp->id }})"
+                                                    data-tooltip="Edit Campaign Particulars"
+                                                    aria-label="Edit Campaign">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                                                 </svg>
-                                                <span>Edit</span>
                                             </button>
                                         @endcan
+
                                         @can('delete-campaign')
-                                            <button type="button" class="btn btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.3rem;" wire:click="deleteCampaign({{ $camp->id }})" onclick="confirm('Are you sure you want to delete this campaign? This will cascade delete applications and committees!') || event.stopImmediatePropagation()">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <button type="button" 
+                                                    class="action-btn action-btn-delete" 
+                                                    wire:click="deleteCampaign({{ $camp->id }})" 
+                                                    onclick="confirm('Are you sure you want to delete this campaign? This will cascade delete applications and committees!') || event.stopImmediatePropagation()"
+                                                    data-tooltip="Delete Campaign"
+                                                    aria-label="Delete Campaign">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                                     <polyline points="3 6 5 6 21 6"></polyline>
                                                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                                                    <line x1="14" y1="11" x2="14" y2="17"></line>
                                                 </svg>
-                                                <span>Delete</span>
                                             </button>
                                         @endcan
                                     </div>
@@ -872,19 +899,23 @@
                                     </span>
                                 </td>
                                 <td style="text-align: right;">
-                                    @can('remove-committee')
-                                        <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.3rem;" 
-                                                wire:click="removeCommitteeAssignment({{ $asm->id }})" 
-                                                onclick="confirm('Are you sure you want to de-assign this committee member?') || event.stopImmediatePropagation()">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                                            </svg>
-                                            <span>De-assign</span>
-                                        </button>
-                                    @else
-                                        <span style="font-size: 0.75rem; color: var(--color-text-muted); font-style: italic;">Assigned</span>
-                                    @endcan
+                                    <div class="action-btn-group justify-end">
+                                        @can('remove-committee')
+                                            <button type="button" 
+                                                    class="action-btn action-btn-delete" 
+                                                    wire:click="removeCommitteeAssignment({{ $asm->id }})" 
+                                                    onclick="confirm('Are you sure you want to de-assign this committee member?') || event.stopImmediatePropagation()"
+                                                    data-tooltip="De-assign Member from Committee"
+                                                    aria-label="De-assign Member">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                </svg>
+                                            </button>
+                                        @else
+                                            <span style="font-size: 0.75rem; color: var(--color-text-muted); font-style: italic;">Assigned</span>
+                                        @endcan
+                                    </div>
                                 </td>
                             </tr>
                         @empty

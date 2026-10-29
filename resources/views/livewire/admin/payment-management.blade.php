@@ -317,22 +317,45 @@
                                     </span>
                                 </td>
                                 <td style="text-align: right;">
-                                    <div class="flex gap-2 justify-end align-center">
+                                    <div class="action-btn-group justify-end">
                                         @if($pay->status !== 'SETTLED')
                                             @if(auth()->user()->can('reconcile-payment') || auth()->user()->can('edit-payment'))
-                                                <button type="button" class="btn btn-success btn-sm" style="padding: 0.35rem 0.65rem; font-size: 0.76rem; font-weight: 700;" wire:click="markSettled({{ $pay->id }})" title="Quick reconcile this voucher to SETTLED">
-                                                    ✓ Reconcile Paid
+                                                <button type="button" 
+                                                        class="action-btn action-btn-success" 
+                                                        wire:click="markSettled({{ $pay->id }})" 
+                                                        data-tooltip="Quick Reconcile Paid (Mark Settled)"
+                                                        aria-label="Reconcile Payment">
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                        <polyline points="20 6 9 17 4 12"/>
+                                                    </svg>
                                                 </button>
                                             @endif
                                         @endif
                                         @can('edit-payment')
-                                            <button type="button" class="btn btn-secondary btn-sm" style="padding: 0.35rem 0.65rem; font-size: 0.78rem;" wire:click="openEditPaymentForm({{ $pay->id }})">
-                                                Edit
+                                            <button type="button" 
+                                                    class="action-btn action-btn-edit" 
+                                                    wire:click="openEditPaymentForm({{ $pay->id }})"
+                                                    data-tooltip="Edit Voucher Particulars"
+                                                    aria-label="Edit Voucher">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                                </svg>
                                             </button>
                                         @endcan
                                         @can('delete-payment')
-                                            <button type="button" class="btn btn-danger btn-sm" style="padding: 0.35rem 0.65rem; font-size: 0.78rem;" wire:click="deletePayment({{ $pay->id }})" onclick="confirm('Are you sure you want to permanently delete this billing voucher record?') || event.stopImmediatePropagation()">
-                                                Delete
+                                            <button type="button" 
+                                                    class="action-btn action-btn-delete" 
+                                                    wire:click="deletePayment({{ $pay->id }})" 
+                                                    onclick="confirm('Are you sure you want to permanently delete this billing voucher record?') || event.stopImmediatePropagation()"
+                                                    data-tooltip="Delete Voucher Record"
+                                                    aria-label="Delete Voucher">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="3 6 5 6 21 6"/>
+                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                                    <line x1="10" y1="11" x2="10" y2="17"/>
+                                                    <line x1="14" y1="11" x2="14" y2="17"/>
+                                                </svg>
                                             </button>
                                         @endcan
                                     </div>

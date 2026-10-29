@@ -133,16 +133,37 @@
                         </td>
                         <td>{{ $role->users->count() }} Accounts</td>
                         <td>
-                            <div class="flex gap-2">
+                            <div class="action-btn-group justify-end">
                                 @can('edit-role')
-                                    <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditRoleForm({{ $role->id }})">Edit & Sync</button>
+                                    <button type="button" 
+                                            class="action-btn action-btn-edit" 
+                                            wire:click="openEditRoleForm({{ $role->id }})"
+                                            data-tooltip="Edit & Sync Role Permissions"
+                                            aria-label="Edit Role">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                        </svg>
+                                    </button>
                                 @endcan
                                 @if(!in_array($role->name, ['super-admin', 'registrar', 'applicant']))
                                     @can('delete-role')
-                                        <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deleteRole({{ $role->id }})" onclick="confirm('Are you sure you want to delete this role?') || event.stopImmediatePropagation()">Delete</button>
+                                        <button type="button" 
+                                                class="action-btn action-btn-delete" 
+                                                wire:click="deleteRole({{ $role->id }})" 
+                                                onclick="confirm('Are you sure you want to delete this role?') || event.stopImmediatePropagation()"
+                                                data-tooltip="Delete Role"
+                                                aria-label="Delete Role">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="3 6 5 6 21 6"/>
+                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                                <line x1="10" y1="11" x2="10" y2="17"/>
+                                                <line x1="14" y1="11" x2="14" y2="17"/>
+                                            </svg>
+                                        </button>
                                     @endcan
                                 @else
-                                    <span style="color: var(--color-text-muted); font-size: 0.8rem; padding: 0.25rem 0.5rem;">System Core Locked</span>
+                                    <span class="badge" style="background: rgba(255,255,255,0.05); color: var(--color-text-muted); font-size: 0.72rem;">System Core Locked</span>
                                 @endif
                             </div>
                         </td>
@@ -182,12 +203,33 @@
                         </td>
                         <td><code>{{ $perm->guard_name }}</code></td>
                         <td>
-                            <div class="flex gap-2">
+                            <div class="action-btn-group justify-end">
                                 @can('edit-permission')
-                                    <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditPermissionForm({{ $perm->id }})">Edit</button>
+                                    <button type="button" 
+                                            class="action-btn action-btn-edit" 
+                                            wire:click="openEditPermissionForm({{ $perm->id }})"
+                                            data-tooltip="Edit Permission Slug"
+                                            aria-label="Edit Permission">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                        </svg>
+                                    </button>
                                 @endcan
                                 @can('delete-permission')
-                                    <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deletePermission({{ $perm->id }})" onclick="confirm('Are you sure you want to delete this permission? This will revoke it from all roles.') || event.stopImmediatePropagation()">Delete</button>
+                                    <button type="button" 
+                                            class="action-btn action-btn-delete" 
+                                            wire:click="deletePermission({{ $perm->id }})" 
+                                            onclick="confirm('Are you sure you want to delete this permission? This will revoke it from all roles.') || event.stopImmediatePropagation()"
+                                            data-tooltip="Delete System Permission"
+                                            aria-label="Delete Permission">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="3 6 5 6 21 6"/>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                            <line x1="10" y1="11" x2="10" y2="17"/>
+                                            <line x1="14" y1="11" x2="14" y2="17"/>
+                                        </svg>
+                                    </button>
                                 @endcan
                             </div>
                         </td>

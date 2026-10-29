@@ -140,7 +140,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('campaign_id')->constrained('campaigns')->onDelete('restrict');
-            $table->enum('status', ['DRAFT', 'SUBMITTED', 'PAID', 'ELIGIBLE', 'INELIGIBLE', 'APPEALED', 'UNDER_REVIEW', 'APPROVED', 'REJECTED'])->default('DRAFT');
+            $table->string('status', 50)->default('DRAFT');
             $table->timestamp('submission_timestamp')->nullable();
             $table->text('disqualification_reason')->nullable(); // Structural code / administrative reference on eligibility failure
             $table->text('appeal_letter')->nullable(); // User's appeal text

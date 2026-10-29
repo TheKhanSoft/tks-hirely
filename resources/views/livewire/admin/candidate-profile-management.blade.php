@@ -322,26 +322,57 @@
                                     @endcan
                                 </td>
                                 <td style="text-align: right;">
-                                    <div class="flex gap-2 justify-end align-center">
-                                        @if(auth()->user()->hasRole('super-admin') && $basicInfo->user && auth()->id() !== $basicInfo->user->id)
-                                            <a href="{{ route('impersonate.start', $basicInfo->user->id) }}" class="btn btn-warning btn-sm" style="padding: 0.35rem 0.65rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.25rem; background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.35); text-decoration: none;" title="Impersonate this candidate (Super Admin only)">
-                                                <span>🎭 Impersonate</span>
+                                    <div class="action-btn-group justify-end">
+                                        @if(auth()->user()->hasRole('super-admin') && $basicInfo->user && auth()->id() !== $basicInfo->user->id && !$basicInfo->user->hasRole('super-admin'))
+                                            <a href="{{ route('impersonate.start', $basicInfo->user->id) }}" 
+                                               class="action-btn action-btn-impersonate" 
+                                               data-tooltip="Impersonate {{ $basicInfo->first_name ?: $basicInfo->user->email }}"
+                                               aria-label="Impersonate Candidate">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                                    <circle cx="9" cy="7" r="4"/>
+                                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                                </svg>
                                             </a>
                                         @endif
                                         @if(auth()->user()->can('view-candidate-dossier') || auth()->user()->can('view-basic-info'))
-                                            <button type="button" class="btn btn-secondary btn-sm" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.35rem;" wire:click="viewBasicInfoDetails({{ $basicInfo->id }})">
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                                                <span>Dossier</span>
+                                            <button type="button" 
+                                                    class="action-btn action-btn-view" 
+                                                    data-tooltip="View Candidate Dossier" 
+                                                    wire:click="viewBasicInfoDetails({{ $basicInfo->id }})"
+                                                    aria-label="View Candidate Dossier">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                                    <circle cx="12" cy="12" r="3"/>
+                                                </svg>
                                             </button>
                                         @endif
                                         @can('edit-basic-info')
-                                            <button type="button" class="btn btn-secondary btn-sm" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" wire:click="openEditBasicInfoForm({{ $basicInfo->id }})">
-                                                Edit
+                                            <button type="button" 
+                                                    class="action-btn action-btn-edit" 
+                                                    data-tooltip="Edit Profile Particulars" 
+                                                    wire:click="openEditBasicInfoForm({{ $basicInfo->id }})"
+                                                    aria-label="Edit Profile">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                                </svg>
                                             </button>
                                         @endcan
                                         @can('delete-basic-info')
-                                            <button type="button" class="btn btn-danger btn-sm" style="padding: 0.35rem 0.65rem; font-size: 0.78rem;" wire:click="deleteBasicInfo({{ $basicInfo->id }})" onclick="confirm('Are you sure you want to permanently delete this candidate profile?') || event.stopImmediatePropagation()">
-                                                Delete
+                                            <button type="button" 
+                                                    class="action-btn action-btn-delete" 
+                                                    data-tooltip="Delete Candidate Profile" 
+                                                    wire:click="deleteBasicInfo({{ $basicInfo->id }})" 
+                                                    onclick="confirm('Are you sure you want to permanently delete this candidate profile?') || event.stopImmediatePropagation()"
+                                                    aria-label="Delete Profile">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="3 6 5 6 21 6"/>
+                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                                    <line x1="10" y1="11" x2="10" y2="17"/>
+                                                    <line x1="14" y1="11" x2="14" y2="17"/>
+                                                </svg>
                                             </button>
                                         @endcan
                                     </div>
@@ -513,7 +544,20 @@
                     </div>
                 @endif
 
-                <div class="mt-5 flex justify-end" style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                <div class="mt-5 flex justify-between items-center" style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                    <div>
+                        @if(auth()->user()->hasRole('super-admin') && $selectedRecordDetails->user && auth()->id() !== $selectedRecordDetails->user->id && !$selectedRecordDetails->user->hasRole('super-admin'))
+                            <a href="{{ route('impersonate.start', $selectedRecordDetails->user->id) }}" class="btn btn-warning" style="display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 700; text-decoration: none;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
+                                <span>🎭 Impersonate Candidate</span>
+                            </a>
+                        @endif
+                    </div>
                     <button type="button" class="btn btn-secondary" wire:click="$set('isDetailsOpen', false)" style="padding: 0.45rem 1.25rem;">Close Dossier Vault</button>
                 </div>
             </div>

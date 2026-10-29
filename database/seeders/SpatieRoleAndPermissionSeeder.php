@@ -92,6 +92,8 @@ class SpatieRoleAndPermissionSeeder extends Seeder
 
             // System Settings & Workflows
             'manage-settings',
+            'manage-statuses',
+            'manage-constitutions',
         ]);
 
         $scrutinyPanel = Role::firstOrCreate(['name' => 'scrutiny-committee', 'guard_name' => 'web']);

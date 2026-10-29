@@ -5,10 +5,16 @@ namespace App\Livewire\Admin;
 use Livewire\Component;
 use App\Models\Campaign;
 use App\Models\SystemSetting;
+use App\Models\CommitteeConstitution;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class ConstitutionCriteriaManagement extends Component
 {
+    // View tab switching: 'campaign_constitution' or 'board_registry'
+    public $activeTab = 'campaign_constitution';
+
+    // Campaign tuning state
     public $selected_campaign_id = null;
     public $constitution_title = '';
     public $constitution_description = '';
@@ -17,16 +23,6 @@ class ConstitutionCriteriaManagement extends Component
 
     /**
      * Dynamic flexible constitution rules repeater.
-     * Each item: [
-     *   'id' => string,
-     *   'name' => string,
-     *   'count' => int,
-     *   'category' => 'INTERNAL'|'EXTERNAL'|'INTERNATIONAL'|'INDEPENDENT',
-     *   'cadre' => 'FACULTY'|'OFFICER'|'EXPERT'|'EXECUTIVE'|'LEGAL'|'ANY',
-     *   'role_nature' => 'CONVENER'|'MEMBER'|'SECRETARY'|'EXPERT'|'ARBITER',
-     *   'is_mandatory' => bool,
-     *   'notes' => string
-     * ]
      */
     public $rules = [];
 
@@ -34,9 +30,35 @@ class ConstitutionCriteriaManagement extends Component
     public $saveAsDefaultType = '';
     public $showPresetNotice = false;
 
+    // ==========================================
+    // 🏛️ STATUTORY BOARDS & COMMITTEES REGISTRY
+    // ==========================================
+    public $showBoardModal = false;
+    public $isEditBoard = false;
+    public $selectedBoardId = null;
+    public $sectorFilter = 'ALL';
+
+    // Board form fields
+    public $board_name = '';
+    public $board_slug = '';
+    public $board_sector = 'ACADEMIC';
+    public $board_description = '';
+    public $board_required_peer_reviewers = 3;
+    public $board_enforce_strict_quota = true;
+    public $board_roles = [];
+    public $board_routing_flow = [];
+    public $board_eligibility = [
+        'min_degree_level' => 'Ph.D. / Terminal Degree',
+        'min_experience_years' => 3,
+        'min_publications' => 2,
+        'requires_fee_settlement' => true,
+        'requires_allied_discipline' => true,
+        'min_evaluation_percentile' => 60,
+    ];
+
     public function mount($campaign_id = null)
     {
-        abort_unless(Auth::user()->can('tune-constitution'), 403);
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
 
         $requestedCampaignId = $campaign_id ?: request()->query('campaign_id');
         if ($requestedCampaignId && Campaign::where('id', $requestedCampaignId)->exists()) {
@@ -46,7 +68,16 @@ class ConstitutionCriteriaManagement extends Component
             $this->selected_campaign_id = $firstActive ? $firstActive->id : Campaign::first()?->id;
         }
 
+        if (request()->query('tab') === 'registry') {
+            $this->activeTab = 'board_registry';
+        }
+
         $this->loadConstitution();
+    }
+
+    public function setTab($tab)
+    {
+        $this->activeTab = $tab;
     }
 
     public function updatedSelectedCampaignId($val)
@@ -89,7 +120,6 @@ class ConstitutionCriteriaManagement extends Component
                 ];
             }, $sourceRules, array_keys($sourceRules));
         } else {
-            // Build initial dynamic rules from numeric quotas if rules array is missing
             $internal = (int)($constitution['required_internal'] ?? 2);
             $external = (int)($constitution['required_external'] ?? 2);
             $intl = (int)($constitution['required_international'] ?? 1);
@@ -148,7 +178,7 @@ class ConstitutionCriteriaManagement extends Component
     }
 
     /**
-     * Add a new dynamic constitution rule / slot.
+     * Add a new dynamic constitution rule / slot for campaign.
      */
     public function addRule()
     {
@@ -164,9 +194,6 @@ class ConstitutionCriteriaManagement extends Component
         ];
     }
 
-    /**
-     * Remove a rule row by index.
-     */
     public function removeRule($index)
     {
         if (isset($this->rules[$index])) {
@@ -175,9 +202,6 @@ class ConstitutionCriteriaManagement extends Component
         }
     }
 
-    /**
-     * Increment or decrement count for a rule row.
-     */
     public function updateRuleCount($index, $delta)
     {
         if (isset($this->rules[$index])) {
@@ -186,9 +210,6 @@ class ConstitutionCriteriaManagement extends Component
         }
     }
 
-    /**
-     * Toggle mandatory / ex-officio badge for a rule.
-     */
     public function toggleMandatory($index)
     {
         if (isset($this->rules[$index])) {
@@ -268,11 +289,46 @@ class ConstitutionCriteriaManagement extends Component
     }
 
     /**
+     * Apply a saved master constitution from the registry to the active campaign.
+     */
+    public function applyBoardConstitutionToCampaign($boardId)
+    {
+        $board = CommitteeConstitution::findOrFail($boardId);
+        $this->constitution_title = $board->name;
+        $this->constitution_description = $board->description;
+        $this->required_peer_reviewers = $board->required_peer_reviewers;
+        $this->enforce_strict_quota = $board->enforce_strict_quota;
+
+        $sourceRules = $board->roles_breakdown ?? [];
+        $this->rules = array_map(function ($r, $idx) {
+            return [
+                'id' => $r['id'] ?? ('rule_' . uniqid() . '_' . $idx),
+                'name' => $r['name'] ?? 'Committee Member',
+                'count' => max(1, (int)($r['count'] ?? 1)),
+                'category' => $r['category'] ?? 'INTERNAL',
+                'cadre' => $r['cadre'] ?? 'FACULTY',
+                'role_nature' => $r['role_nature'] ?? 'MEMBER',
+                'is_mandatory' => !empty($r['is_mandatory']),
+                'notes' => $r['notes'] ?? '',
+            ];
+        }, $sourceRules, array_keys($sourceRules));
+
+        if ($this->selected_campaign_id) {
+            $campaign = Campaign::find($this->selected_campaign_id);
+            if ($campaign) {
+                $campaign->update(['constitution_id' => $board->id]);
+            }
+        }
+
+        session()->flash('message', "Board Constitution '{$board->name}' successfully loaded into active campaign!");
+    }
+
+    /**
      * Save the dynamic constitution specification to the selected campaign.
      */
     public function saveConstitution()
     {
-        abort_unless(Auth::user()->can('tune-constitution'), 403);
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
 
         $this->validate([
             'selected_campaign_id' => 'required|exists:campaigns,id',
@@ -319,12 +375,9 @@ class ConstitutionCriteriaManagement extends Component
         session()->flash('message', "Statutory Committee Constitution & Criteria successfully updated for {$campaign->title} (Total Quorum: {$totalCount} members).");
     }
 
-    /**
-     * Save the tuned criteria as the system-wide default preset.
-     */
     public function saveAsSystemDefault()
     {
-        abort_unless(Auth::user()->can('tune-constitution'), 403);
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
 
         $campaign = Campaign::findOrFail($this->selected_campaign_id);
         $lower = strtolower($campaign->title);
@@ -338,6 +391,193 @@ class ConstitutionCriteriaManagement extends Component
         }
 
         session()->flash('message', "Statutory peer review quotas saved to system default configuration.");
+    }
+
+    // ==========================================
+    // 🛠️ CUSTOM BOARD / CONSTITUTION CRUD METHODS
+    // ==========================================
+    public function openCreateBoardModal()
+    {
+        $this->resetBoardForm();
+        $this->isEditBoard = false;
+        $this->selectedBoardId = null;
+        $this->board_name = '';
+        $this->board_slug = '';
+        $this->board_sector = 'ACADEMIC';
+        $this->board_description = '';
+        $this->board_required_peer_reviewers = 3;
+        $this->board_enforce_strict_quota = true;
+
+        $this->board_roles = [
+            ['id' => 'r_' . uniqid(), 'name' => 'Board Convener / Head', 'count' => 1, 'category' => 'INTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'CONVENER', 'is_mandatory' => true, 'notes' => 'Institutional Convener'],
+            ['id' => 'r_' . uniqid(), 'name' => 'Internal Evaluators', 'count' => 2, 'category' => 'INTERNAL', 'cadre' => 'FACULTY', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'notes' => 'Internal Subject Specialists'],
+            ['id' => 'r_' . uniqid(), 'name' => 'External Subject Experts', 'count' => 2, 'category' => 'EXTERNAL', 'cadre' => 'EXPERT', 'role_nature' => 'MEMBER', 'is_mandatory' => false, 'notes' => 'External Experts from Other Institutions'],
+        ];
+
+        $this->board_routing_flow = [
+            ['step' => 1, 'stage' => 'INITIAL_SCRUTINY', 'name' => 'Administrative & Document Scrutiny', 'cadre' => 'OFFICER', 'sla_days' => 5, 'mandatory' => true],
+            ['step' => 2, 'stage' => 'PEER_REVIEW', 'name' => 'External Subject Expert Peer Review', 'cadre' => 'EXPERT', 'sla_days' => 14, 'mandatory' => true],
+            ['step' => 3, 'stage' => 'BOARD_INTERVIEW', 'name' => 'Statutory Board Viva & Interview', 'cadre' => 'FACULTY', 'sla_days' => 7, 'mandatory' => true],
+            ['step' => 4, 'stage' => 'FINAL_SANCTION', 'name' => 'Governing Authority Appointment Sanction', 'cadre' => 'EXECUTIVE', 'sla_days' => 10, 'mandatory' => true],
+        ];
+
+        $this->showBoardModal = true;
+    }
+
+    public function openEditBoardModal($id)
+    {
+        $board = CommitteeConstitution::findOrFail($id);
+        $this->isEditBoard = true;
+        $this->selectedBoardId = $board->id;
+        $this->board_name = $board->name;
+        $this->board_slug = $board->slug;
+        $this->board_sector = $board->organization_sector;
+        $this->board_description = $board->description;
+        $this->board_required_peer_reviewers = $board->required_peer_reviewers;
+        $this->board_enforce_strict_quota = $board->enforce_strict_quota;
+        $this->board_roles = $board->roles_breakdown ?? [];
+        $this->board_routing_flow = $board->getEffectiveRoutingFlow();
+        $this->board_eligibility = $board->getEffectiveEligibilityCriteria();
+
+        $this->showBoardModal = true;
+    }
+
+    public function closeBoardModal()
+    {
+        $this->showBoardModal = false;
+        $this->resetBoardForm();
+    }
+
+    public function resetBoardForm()
+    {
+        $this->reset([
+            'board_name',
+            'board_slug',
+            'board_description',
+            'board_roles',
+            'board_routing_flow',
+        ]);
+        $this->board_sector = 'ACADEMIC';
+        $this->board_required_peer_reviewers = 3;
+        $this->board_enforce_strict_quota = true;
+        $this->showBoardModal = false;
+    }
+
+    public function addBoardRole()
+    {
+        $this->board_roles[] = [
+            'id' => 'r_' . uniqid(),
+            'name' => '',
+            'count' => 1,
+            'category' => 'INTERNAL',
+            'cadre' => 'FACULTY',
+            'role_nature' => 'MEMBER',
+            'is_mandatory' => false,
+            'notes' => '',
+        ];
+    }
+
+    public function removeBoardRole($index)
+    {
+        if (isset($this->board_roles[$index])) {
+            unset($this->board_roles[$index]);
+            $this->board_roles = array_values($this->board_roles);
+        }
+    }
+
+    public function addRoutingStep()
+    {
+        $nextStep = count($this->board_routing_flow) + 1;
+        $this->board_routing_flow[] = [
+            'step' => $nextStep,
+            'stage' => 'STAGE_' . $nextStep,
+            'name' => 'Operational Review Stage ' . $nextStep,
+            'cadre' => 'OFFICER',
+            'sla_days' => 7,
+            'mandatory' => true,
+        ];
+    }
+
+    public function removeRoutingStep($index)
+    {
+        if (isset($this->board_routing_flow[$index])) {
+            unset($this->board_routing_flow[$index]);
+            $this->board_routing_flow = array_values($this->board_routing_flow);
+            foreach ($this->board_routing_flow as $k => &$step) {
+                $step['step'] = $k + 1;
+            }
+        }
+    }
+
+    public function saveBoardModel()
+    {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+
+        $this->validate([
+            'board_name' => 'required|string|min:3|max:200',
+            'board_sector' => 'required|string|in:ACADEMIC,CORPORATE,HEALTHCARE,PUBLIC_SECTOR,JUDICIAL,DEFENSE,GENERAL',
+            'board_required_peer_reviewers' => 'required|integer|min:0|max:20',
+            'board_roles' => 'required|array|min:1',
+            'board_roles.*.name' => 'required|string|min:2|max:150',
+            'board_roles.*.count' => 'required|integer|min:1|max:50',
+            'board_roles.*.category' => 'required|in:INTERNAL,EXTERNAL,INTERNATIONAL,INDEPENDENT',
+        ]);
+
+        $total = collect($this->board_roles)->sum('count');
+        $internal = collect($this->board_roles)->where('category', 'INTERNAL')->sum('count');
+        $external = collect($this->board_roles)->where('category', 'EXTERNAL')->sum('count');
+        $intl = collect($this->board_roles)->where('category', 'INTERNATIONAL')->sum('count');
+        $indep = collect($this->board_roles)->where('category', 'INDEPENDENT')->sum('count');
+
+        $data = [
+            'name' => $this->board_name,
+            'slug' => $this->board_slug ?: Str::slug($this->board_name) . '-' . rand(100, 999),
+            'organization_sector' => $this->board_sector,
+            'description' => $this->board_description,
+            'required_total' => $total,
+            'required_internal' => $internal,
+            'required_external' => $external,
+            'required_international' => $intl,
+            'required_independent' => $indep,
+            'required_peer_reviewers' => (int)$this->board_required_peer_reviewers,
+            'enforce_strict_quota' => (bool)$this->board_enforce_strict_quota,
+            'roles_breakdown' => $this->board_roles,
+            'routing_flow' => $this->board_routing_flow,
+            'eligibility_criteria' => $this->board_eligibility,
+            'created_by' => Auth::id(),
+            'is_active' => true,
+        ];
+
+        if ($this->isEditBoard && $this->selectedBoardId) {
+            $board = CommitteeConstitution::findOrFail($this->selectedBoardId);
+            $board->update($data);
+            session()->flash('message', "Statutory Board Constitution '{$board->name}' updated successfully.");
+        } else {
+            $board = CommitteeConstitution::create($data);
+            session()->flash('message', "Statutory Board Constitution '{$board->name}' registered successfully with {$total} member quorum.");
+        }
+
+        $this->closeBoardModal();
+    }
+
+    public function deleteBoardModel($id)
+    {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        $board = CommitteeConstitution::findOrFail($id);
+        $name = $board->name;
+        $board->delete();
+        session()->flash('message', "Statutory Board '{$name}' removed from directory.");
+    }
+
+    public function cloneBoardModel($id)
+    {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        $source = CommitteeConstitution::findOrFail($id);
+        $clone = $source->replicate(['slug', 'created_at', 'updated_at']);
+        $clone->name = $source->name . ' (Clone)';
+        $clone->slug = Str::slug($clone->name) . '-' . rand(1000, 9999);
+        $clone->save();
+        session()->flash('message', "Board Constitution '{$source->name}' duplicated successfully as '{$clone->name}'.");
     }
 
     // ==========================================
@@ -397,11 +637,17 @@ class ConstitutionCriteriaManagement extends Component
     {
         $campaigns = Campaign::orderBy('created_at', 'desc')->get();
 
+        $constitutionsQuery = CommitteeConstitution::orderBy('name');
+        if ($this->sectorFilter !== 'ALL') {
+            $constitutionsQuery->where('organization_sector', $this->sectorFilter);
+        }
+        $registeredBoards = $constitutionsQuery->get();
+
         return view('livewire.admin.constitution-criteria-management', [
             'campaigns' => $campaigns,
             'currentCampaign' => $this->currentCampaign,
             'metrics' => $this->campaignMetrics,
-        ])->layout('layouts.app', ['title' => 'Statutory Committee Criteria - Hirely']);
+            'registeredBoards' => $registeredBoards,
+        ])->layout('layouts.app', ['title' => 'Statutory Board & Committee Engine - Hirely']);
     }
 }
-

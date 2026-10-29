@@ -1914,6 +1914,179 @@ html.light .card-ambient-mesh {
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 0 1px 1px rgba(0, 0, 0, 0.02);
 }
 
+/* =======================================================
+   🎨 MODERN PREMIUM ACTION BUTTONS & HARDWARE TOOLTIPS
+   ======================================================= */
+.action-btn-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.action-btn {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    user-select: none;
+}
+
+.action-btn:hover {
+    transform: translateY(-1.5px);
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.4);
+    color: var(--color-text-primary);
+}
+
+.action-btn:active {
+    transform: translateY(0);
+}
+
+.action-btn svg {
+    width: 15px;
+    height: 15px;
+    stroke-width: 2.1;
+    pointer-events: none;
+    transition: transform 0.15s ease;
+}
+
+.action-btn:hover svg {
+    transform: scale(1.08);
+}
+
+/* Color Specializations */
+.action-btn-view:hover {
+    background: rgba(6, 182, 212, 0.15);
+    border-color: rgba(6, 182, 212, 0.4);
+    color: var(--secondary);
+}
+
+.action-btn-edit:hover {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: rgba(99, 102, 241, 0.4);
+    color: var(--primary);
+}
+
+.action-btn-delete:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: var(--danger);
+}
+
+.action-btn-impersonate {
+    background: rgba(245, 158, 11, 0.08);
+    border-color: rgba(245, 158, 11, 0.25);
+    color: var(--warning);
+}
+
+.action-btn-impersonate:hover {
+    background: rgba(245, 158, 11, 0.22);
+    border-color: rgba(245, 158, 11, 0.55);
+    color: #fbbf24;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.25);
+}
+
+.action-btn-perms:hover {
+    background: rgba(168, 85, 247, 0.15);
+    border-color: rgba(168, 85, 247, 0.4);
+    color: #c084fc;
+}
+
+.action-btn-success:hover {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: var(--success);
+}
+
+.action-btn-lock:hover {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.4);
+    color: var(--warning);
+}
+
+/* Light theme overrides */
+html.light .action-btn {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #475569;
+}
+
+html.light .action-btn:hover {
+    box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.1);
+}
+
+/* Pure CSS Ultra-Smooth Tooltip System */
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 7px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px) scale(0.96);
+    background: #0f172a;
+    color: #f8fafc;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 10px 24px -4px rgba(0, 0, 0, 0.75), 0 0 1px 1px rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.16s cubic-bezier(0.16, 1, 0.3, 1), transform 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 99999;
+}
+
+[data-tooltip]::after {
+    content: '';
+    position: absolute;
+    bottom: calc(100% + 2px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    border-width: 5px 5px 0 5px;
+    border-style: solid;
+    border-color: #0f172a transparent transparent transparent;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.16s cubic-bezier(0.16, 1, 0.3, 1), transform 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+    z-index: 99999;
+}
+
+[data-tooltip]:hover::before,
+[data-tooltip]:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0) scale(1);
+}
+
+html.light [data-tooltip]::before {
+    background: #1e293b;
+    color: #ffffff;
+    border-color: rgba(0, 0, 0, 0.2);
+}
+
+html.light [data-tooltip]::after {
+    border-color: #1e293b transparent transparent transparent;
+}
+
 /* Custom modern scrollbars */
 ::-webkit-scrollbar {
     width: 6px;

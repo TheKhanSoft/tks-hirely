@@ -196,9 +196,44 @@
                         </td>
                         <td><span style="font-size: 0.85rem; color: var(--color-text-secondary); font-family: monospace;">{{ $u->created_at?->format('Y-m-d H:i') ?: 'System default' }}</span></td>
                         <td>
-                            <div class="flex gap-2">
-                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditUserForm({{ $u->id }})">Edit</button>
-                                <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deleteUser({{ $u->id }})" onclick="confirm('Are you sure you want to delete this user?') || event.stopImmediatePropagation()" :disabled="auth()->id() == $u->id">Delete</button>
+                            <div class="action-btn-group">
+                                @if(auth()->user()->hasRole('super-admin') && auth()->id() !== $u->id && !$u->hasRole('super-admin'))
+                                    <a href="{{ route('impersonate.start', $u->id) }}" 
+                                       class="action-btn action-btn-impersonate" 
+                                       data-tooltip="Impersonate {{ $u->email }}"
+                                       aria-label="Impersonate User">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="9" cy="7" r="4"/>
+                                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                        </svg>
+                                    </a>
+                                @endif
+                                <button type="button" 
+                                        class="action-btn action-btn-edit" 
+                                        wire:click="openEditUserForm({{ $u->id }})"
+                                        data-tooltip="Edit User Account"
+                                        aria-label="Edit User">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                </button>
+                                <button type="button" 
+                                        class="action-btn action-btn-delete" 
+                                        wire:click="deleteUser({{ $u->id }})" 
+                                        onclick="confirm('Are you sure you want to delete this user?') || event.stopImmediatePropagation()" 
+                                        :disabled="auth()->id() == $u->id"
+                                        data-tooltip="Delete User Account"
+                                        aria-label="Delete User">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="3 6 5 6 21 6"/>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                        <line x1="10" y1="11" x2="10" y2="17"/>
+                                        <line x1="14" y1="11" x2="14" y2="17"/>
+                                    </svg>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -254,12 +289,33 @@
                         </td>
                         <td>{{ $role->users->count() }} Accounts</td>
                         <td>
-                            <div class="flex gap-2">
-                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditRoleForm({{ $role->id }})">Edit & Sync</button>
+                            <div class="action-btn-group">
+                                <button type="button" 
+                                        class="action-btn action-btn-edit" 
+                                        wire:click="openEditRoleForm({{ $role->id }})"
+                                        data-tooltip="Edit & Sync Permissions"
+                                        aria-label="Edit Role">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                </button>
                                 @if(!in_array($role->name, ['super-admin', 'registrar', 'applicant']))
-                                    <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deleteRole({{ $role->id }})" onclick="confirm('Are you sure you want to delete this role?') || event.stopImmediatePropagation()">Delete</button>
+                                    <button type="button" 
+                                            class="action-btn action-btn-delete" 
+                                            wire:click="deleteRole({{ $role->id }})" 
+                                            onclick="confirm('Are you sure you want to delete this role?') || event.stopImmediatePropagation()"
+                                            data-tooltip="Delete Role"
+                                            aria-label="Delete Role">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="3 6 5 6 21 6"/>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                            <line x1="10" y1="11" x2="10" y2="17"/>
+                                            <line x1="14" y1="11" x2="14" y2="17"/>
+                                        </svg>
+                                    </button>
                                 @else
-                                    <span style="color: var(--color-text-muted); font-size: 0.8rem;">System Locked</span>
+                                    <span class="badge" style="background: rgba(255,255,255,0.05); color: var(--color-text-muted); font-size: 0.72rem;">Locked</span>
                                 @endif
                             </div>
                         </td>
@@ -297,9 +353,30 @@
                         <td><code style="background: rgba(99,102,241,0.1); color: var(--primary); padding: 0.2rem 0.5rem; border-radius: 4px;">{{ $perm->name }}</code></td>
                         <td><code>{{ $perm->guard_name }}</code></td>
                         <td>
-                            <div class="flex gap-2">
-                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditPermissionForm({{ $perm->id }})">Edit</button>
-                                <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deletePermission({{ $perm->id }})" onclick="confirm('Are you sure you want to delete this permission? This will detach it from all roles.') || event.stopImmediatePropagation()">Delete</button>
+                            <div class="action-btn-group">
+                                <button type="button" 
+                                        class="action-btn action-btn-edit" 
+                                        wire:click="openEditPermissionForm({{ $perm->id }})"
+                                        data-tooltip="Edit Permission Slug"
+                                        aria-label="Edit Permission">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                </button>
+                                <button type="button" 
+                                        class="action-btn action-btn-delete" 
+                                        wire:click="deletePermission({{ $perm->id }})" 
+                                        onclick="confirm('Are you sure you want to delete this permission? This will detach it from all roles.') || event.stopImmediatePropagation()"
+                                        data-tooltip="Delete Permission"
+                                        aria-label="Delete Permission">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="3 6 5 6 21 6"/>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                        <line x1="10" y1="11" x2="10" y2="17"/>
+                                        <line x1="14" y1="11" x2="14" y2="17"/>
+                                    </svg>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -409,9 +486,30 @@
                                     <small style="color: var(--color-text-secondary)">Close: {{ $camp->closing_date?->format('Y-m-d') }}</small>
                                 </td>
                                 <td>
-                                    <div class="flex gap-2">
-                                        <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditCampaignForm({{ $camp->id }})">Edit</button>
-                                        <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deleteCampaign({{ $camp->id }})" onclick="confirm('Are you sure you want to delete this campaign?') || event.stopImmediatePropagation()">Delete</button>
+                                    <div class="action-btn-group">
+                                        <button type="button" 
+                                                class="action-btn action-btn-edit" 
+                                                wire:click="openEditCampaignForm({{ $camp->id }})"
+                                                data-tooltip="Edit Campaign"
+                                                aria-label="Edit Campaign">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                            </svg>
+                                        </button>
+                                        <button type="button" 
+                                                class="action-btn action-btn-delete" 
+                                                wire:click="deleteCampaign({{ $camp->id }})" 
+                                                onclick="confirm('Are you sure you want to delete this campaign?') || event.stopImmediatePropagation()"
+                                                data-tooltip="Delete Campaign"
+                                                aria-label="Delete Campaign">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="3 6 5 6 21 6"/>
+                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                                <line x1="10" y1="11" x2="10" y2="17"/>
+                                                <line x1="14" y1="11" x2="14" y2="17"/>
+                                            </svg>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -552,10 +650,53 @@
                         </td>
                         <td><span style="font-size: 0.85rem; color: var(--color-text-secondary); font-family: monospace;">{{ $app->submission_timestamp ?: 'In draft' }}</span></td>
                         <td>
-                            <div class="flex gap-2">
-                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="viewApplicationDetails({{ $app->id }})">Details</button>
-                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditApplicationForm({{ $app->id }})">Status</button>
-                                <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deleteApplication({{ $app->id }})" onclick="confirm('Are you sure you want to delete this application record?') || event.stopImmediatePropagation()">Delete</button>
+                            <div class="action-btn-group">
+                                @if(auth()->user()->hasRole('super-admin') && $app->user && auth()->id() !== $app->user->id && !$app->user->hasRole('super-admin'))
+                                    <a href="{{ route('impersonate.start', $app->user->id) }}" 
+                                       class="action-btn action-btn-impersonate" 
+                                       data-tooltip="Impersonate Applicant ({{ $app->user->email }})"
+                                       aria-label="Impersonate Applicant">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="9" cy="7" r="4"/>
+                                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                        </svg>
+                                    </a>
+                                @endif
+                                <button type="button" 
+                                        class="action-btn action-btn-view" 
+                                        wire:click="viewApplicationDetails({{ $app->id }})"
+                                        data-tooltip="View Application Dossier"
+                                        aria-label="View Details">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                                <button type="button" 
+                                        class="action-btn action-btn-edit" 
+                                        wire:click="openEditApplicationForm({{ $app->id }})"
+                                        data-tooltip="Manage Application Status"
+                                        aria-label="Edit Status">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                </button>
+                                <button type="button" 
+                                        class="action-btn action-btn-delete" 
+                                        wire:click="deleteApplication({{ $app->id }})" 
+                                        onclick="confirm('Are you sure you want to delete this application record?') || event.stopImmediatePropagation()"
+                                        data-tooltip="Delete Application Record"
+                                        aria-label="Delete Application">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="3 6 5 6 21 6"/>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                        <line x1="10" y1="11" x2="10" y2="17"/>
+                                        <line x1="14" y1="11" x2="14" y2="17"/>
+                                    </svg>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -636,10 +777,53 @@
                             </span>
                         </td>
                         <td>
-                            <div class="flex gap-2">
-                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="viewBasicInfoDetails({{ $basicInfo->id }})">Full Profile Details</button>
-                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditBasicInfoForm({{ $basicInfo->id }})">Basic Details</button>
-                                <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deleteBasicInfo({{ $basicInfo->id }})" onclick="confirm('Are you sure you want to delete this profile?') || event.stopImmediatePropagation()">Delete</button>
+                            <div class="action-btn-group">
+                                @if(auth()->user()->hasRole('super-admin') && $basicInfo->user && auth()->id() !== $basicInfo->user->id && !$basicInfo->user->hasRole('super-admin'))
+                                    <a href="{{ route('impersonate.start', $basicInfo->user->id) }}" 
+                                       class="action-btn action-btn-impersonate" 
+                                       data-tooltip="Impersonate {{ $basicInfo->first_name ?: $basicInfo->user->email }}"
+                                       aria-label="Impersonate Candidate">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="9" cy="7" r="4"/>
+                                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                        </svg>
+                                    </a>
+                                @endif
+                                <button type="button" 
+                                        class="action-btn action-btn-view" 
+                                        wire:click="viewBasicInfoDetails({{ $basicInfo->id }})"
+                                        data-tooltip="View Full Dossier"
+                                        aria-label="View Full Dossier">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                                <button type="button" 
+                                        class="action-btn action-btn-edit" 
+                                        wire:click="openEditBasicInfoForm({{ $basicInfo->id }})"
+                                        data-tooltip="Edit Profile Particulars"
+                                        aria-label="Edit Profile">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                </button>
+                                <button type="button" 
+                                        class="action-btn action-btn-delete" 
+                                        wire:click="deleteBasicInfo({{ $basicInfo->id }})" 
+                                        onclick="confirm('Are you sure you want to delete this profile?') || event.stopImmediatePropagation()"
+                                        data-tooltip="Delete Profile"
+                                        aria-label="Delete Profile">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="3 6 5 6 21 6"/>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                        <line x1="10" y1="11" x2="10" y2="17"/>
+                                        <line x1="14" y1="11" x2="14" y2="17"/>
+                                    </svg>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -720,9 +904,30 @@
                         <td><code>{{ $pay->transaction_id ?: 'N/A' }}</code></td>
                         <td><span style="font-size: 0.85rem; color: var(--color-text-secondary); font-family: monospace;">{{ $pay->payment_timestamp ?: 'Unpaid' }}</span></td>
                         <td>
-                            <div class="flex gap-2">
-                                <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="openEditPaymentForm({{ $pay->id }})">Reconcile / Edit</button>
-                                <button type="button" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" wire:click="deletePayment({{ $pay->id }})" onclick="confirm('Are you sure you want to delete this payment record?') || event.stopImmediatePropagation()">Delete</button>
+                            <div class="action-btn-group">
+                                <button type="button" 
+                                        class="action-btn action-btn-edit" 
+                                        wire:click="openEditPaymentForm({{ $pay->id }})"
+                                        data-tooltip="Reconcile / Edit Voucher"
+                                        aria-label="Edit Voucher">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                </button>
+                                <button type="button" 
+                                        class="action-btn action-btn-delete" 
+                                        wire:click="deletePayment({{ $pay->id }})" 
+                                        onclick="confirm('Are you sure you want to delete this payment record?') || event.stopImmediatePropagation()"
+                                        data-tooltip="Delete Voucher Record"
+                                        aria-label="Delete Voucher">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="3 6 5 6 21 6"/>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                        <line x1="10" y1="11" x2="10" y2="17"/>
+                                        <line x1="14" y1="11" x2="14" y2="17"/>
+                                    </svg>
+                                </button>
                             </div>
                         </td>
                     </tr>

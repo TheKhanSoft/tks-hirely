@@ -17,7 +17,7 @@
                         Applications & Candidacies Desk
                     </h1>
                     <p class="card-subtitle" style="margin: 0.2rem 0 0;">
-                        Candidate application registry, qualification dossiers, scrutiny transitions, and appointment milestones.
+                        Direct operational desk: dispatch to reviewers, mark incomplete dossiers, reject/disqualify, verify eligibility, and advance workflow transitions.
                     </p>
                 </div>
             </div>
@@ -40,7 +40,7 @@
 
     <!-- Live Executive KPI Summary Cards -->
     @if(!$isFormOpen && !$isDetailsOpen)
-        <div class="grid grid-cols-5 gap-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
             <div class="metric-card" style="--card-accent: var(--primary); --metric-icon-bg: var(--primary-light); --metric-icon-color: var(--primary);">
                 <div class="metric-header">
                     <span class="metric-label">Total Applications</span>
@@ -170,9 +170,13 @@
                 <div class="grid grid-cols-2 gap-5 mt-4">
                     <x-select label="Application Processing Status *" :error="$errors->first('app_status')">
                         <select class="form-control form-select" wire:model="app_status">
+                            @foreach($workflowStatuses as $ws)
+                                <option value="{{ $ws->code }}">{{ $ws->label }} ({{ $ws->code }})</option>
+                            @endforeach
                             <option value="DRAFT">Draft State</option>
-                            <option value="SUBMITTED">Submitted (Pending Payment)</option>
-                            <option value="PAID">Paid / In Scrutiny Queue</option>
+                            <option value="SUBMITTED">Submitted</option>
+                            <option value="PAID">Paid / Settled</option>
+                            <option value="INCOMPLETE_DOSSIER">Incomplete Dossier</option>
                             <option value="ELIGIBLE">Eligible (Scrutiny Verified)</option>
                             <option value="INELIGIBLE">Ineligible (Disqualified)</option>
                             <option value="APPEALED">Appealed (Grievance Review)</option>
@@ -182,8 +186,8 @@
                         </select>
                     </x-select>
 
-                    <x-input label="Disqualification / Ineligibility Justification" :error="$errors->first('app_reason')">
-                        <input type="text" class="form-control" wire:model="app_reason" placeholder="e.g. Deficient post-PhD experience or missing equivalence certificate">
+                    <x-input label="Disqualification / Ineligibility Justification" :error="$errors->first('app_disqualification_reason')">
+                        <input type="text" class="form-control" wire:model="app_disqualification_reason" placeholder="e.g. Deficient post-PhD experience or missing equivalence certificate">
                     </x-input>
                 </div>
 
@@ -260,9 +264,13 @@
                 <div style="flex: 1; min-width: 170px;">
                     <select class="form-control form-select" wire:model.live="statusFilter">
                         <option value="">All Statuses</option>
+                        @foreach($workflowStatuses as $ws)
+                            <option value="{{ $ws->code }}">{{ $ws->label }}</option>
+                        @endforeach
                         <option value="DRAFT">Draft</option>
                         <option value="SUBMITTED">Submitted</option>
                         <option value="PAID">Paid / In Scrutiny</option>
+                        <option value="INCOMPLETE_DOSSIER">Incomplete Dossier</option>
                         <option value="ELIGIBLE">Eligible</option>
                         <option value="INELIGIBLE">Ineligible</option>
                         <option value="APPEALED">Appealed</option>
@@ -287,22 +295,26 @@
             </div>
         </div>
 
-        <!-- Modern Applications Table -->
+        <!-- Modern Applications Table with Direct Operational Controls -->
         <div class="card" style="padding: 0; overflow: hidden; border-color: var(--border-color); box-shadow: var(--shadow-sm);">
             <div class="table-container">
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Candidate Reference</th>
-                            <th>Target Vacancy & Track</th>
-                            <th>Financial Settlement</th>
-                            <th>Processing Stage</th>
-                            <th>Submission Timeline</th>
-                            <th style="text-align: right;">Actions</th>
+                            <th style="width: 24%;">Candidate Reference</th>
+                            <th style="width: 22%;">Target Vacancy & Quotas</th>
+                            <th style="width: 14%;">Fee Voucher</th>
+                            <th style="width: 15%;">Lifecycle Stage</th>
+                            <th style="width: 25%; text-align: right;">Direct Operational Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($applications as $app)
+                            @php 
+                                $bStyle = $app->status_badge_style;
+                                $reviewsCount = $app->reviews->count();
+                                $reqReferees = $app->campaign->getRequiredPeerReviewersCount();
+                            @endphp
                             <tr wire:key="app-row-{{ $app->id }}">
                                 <td>
                                     <div style="display: flex; align-items: center; gap: 0.85rem;">
@@ -326,16 +338,18 @@
                                 <td>
                                     <div>
                                         <strong style="color: var(--color-text-primary); font-size: 0.94rem;">{{ $app->campaign->title }}</strong>
-                                        <div style="display: flex; gap: 0.4rem; align-items: center; margin-top: 3px;">
+                                        <div style="display: flex; gap: 0.4rem; align-items: center; margin-top: 3px; flex-wrap: wrap;">
                                             <span style="font-size: 0.74rem; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--primary);">
                                                 {{ $app->campaign->job_code }}
                                             </span>
                                             <span class="badge" style="background: rgba(99,102,241,0.1); color: var(--primary); font-size: 0.68rem; padding: 0.12rem 0.45rem; font-weight: 700;">
                                                 {{ $app->campaign->track_type }}
                                             </span>
-                                            <span style="font-size: 0.72rem; color: var(--color-text-muted);">
-                                                {{ $app->campaign->department }}
-                                            </span>
+                                            @if($reqReferees > 0)
+                                                <span class="badge" style="background: {{ $reviewsCount >= $reqReferees ? 'rgba(16,185,129,0.15)' : 'rgba(236,72,153,0.15)' }}; color: {{ $reviewsCount >= $reqReferees ? '#10b981' : '#ec4899' }}; font-size: 0.68rem; font-weight: 700;">
+                                                    Referees: {{ $reviewsCount }}/{{ $reqReferees }}
+                                                </span>
+                                            @endif
                                         </div>
                                     </div>
                                 </td>
@@ -359,67 +373,150 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if($app->status === 'APPROVED')
-                                        <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3); font-weight: 800; font-size: 0.76rem;">
-                                            ✓ Approved Selection
-                                        </span>
-                                    @elseif($app->status === 'UNDER_REVIEW')
-                                        <span class="badge" style="background: rgba(6,182,212,0.15); color: var(--secondary); border: 1px solid rgba(6,182,212,0.3); font-weight: 800; font-size: 0.76rem;">
-                                            ⏳ In Peer Review
-                                        </span>
-                                    @elseif($app->status === 'ELIGIBLE')
-                                        <span class="badge" style="background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); font-weight: 800; font-size: 0.76rem;">
-                                            ✓ Eligible
-                                        </span>
-                                    @elseif($app->status === 'INELIGIBLE' || $app->status === 'REJECTED')
-                                        <span class="badge" style="background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); font-weight: 800; font-size: 0.76rem;">
-                                            ✕ {{ $app->status }}
-                                        </span>
-                                        @if($app->disqualification_reason)
-                                            <div style="color: var(--danger); font-size: 0.72rem; margin-top: 2px; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $app->disqualification_reason }}">
-                                                {{ $app->disqualification_reason }}
-                                            </div>
-                                        @endif
-                                    @elseif($app->status === 'APPEALED')
-                                        <span class="badge" style="background: rgba(245,158,11,0.15); color: var(--warning); border: 1px solid rgba(245,158,11,0.3); font-weight: 800; font-size: 0.76rem;">
-                                            ⚠ Grievance Appealed
-                                        </span>
-                                    @else
-                                        <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25); font-weight: 800; font-size: 0.76rem;">
-                                            {{ $app->status }}
-                                        </span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <div style="font-size: 0.82rem; color: var(--color-text-secondary); font-family: 'JetBrains Mono', monospace;">
-                                        {{ $app->submission_timestamp ? \Carbon\Carbon::parse($app->submission_timestamp)->format('Y-m-d H:i') : 'Draft state' }}
-                                    </div>
-                                    @if($app->submission_timestamp)
-                                        <div style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 2px;">
-                                            {{ \Carbon\Carbon::parse($app->submission_timestamp)->diffForHumans() }}
+                                    <span class="badge" style="background: {{ $bStyle['bg'] }}; color: {{ $bStyle['text'] }}; border: 1px solid {{ $bStyle['border'] }}; font-weight: 800; font-size: 0.76rem;">
+                                        {{ $app->status_label }}
+                                    </span>
+                                    @if($app->disqualification_reason)
+                                        <div style="color: var(--danger); font-size: 0.72rem; margin-top: 3px; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $app->disqualification_reason }}">
+                                            ⚠️ {{ $app->disqualification_reason }}
                                         </div>
                                     @endif
                                 </td>
-                                <td style="text-align: right;">
-                                    <div class="flex gap-2 justify-end align-center">
-                                        @can('view-application')
-                                            <button type="button" class="btn btn-secondary btn-sm" style="padding: 0.35rem 0.7rem; font-size: 0.78rem;" wire:click="viewApplicationDetails({{ $app->id }})">Details</button>
-                                        @endcan
-                                        @if(auth()->user()->can('change-application-status') || auth()->user()->can('edit-application'))
-                                            <button type="button" class="btn btn-secondary btn-sm" style="padding: 0.35rem 0.7rem; font-size: 0.78rem;" wire:click="openEditApplicationForm({{ $app->id }})">Status</button>
+
+                                <!-- DIRECT OPERATIONAL ACTIONS (Send Reviewer, Mark Incomplete, Reject, Transition) -->
+                                <td style="text-align: right; vertical-align: middle;">
+                                    <div class="action-btn-group justify-end">
+                                        <!-- Impersonate Applicant (Super Admin only) -->
+                                        @if(auth()->user()->hasRole('super-admin') && $app->user && auth()->id() !== $app->user->id && !$app->user->hasRole('super-admin'))
+                                            <a href="{{ route('impersonate.start', $app->user->id) }}" 
+                                               class="action-btn action-btn-impersonate" 
+                                               data-tooltip="Impersonate Applicant ({{ $app->user->email }})"
+                                               aria-label="Impersonate Applicant">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                                    <circle cx="9" cy="7" r="4"/>
+                                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                                </svg>
+                                            </a>
                                         @endif
-                                        @if(auth()->user()->can('scrutinize-application') || auth()->user()->can('verify-documents'))
-                                            <a href="/admin/verification/{{ $app->id }}" class="btn btn-secondary btn-sm" style="padding: 0.35rem 0.7rem; font-size: 0.78rem; text-decoration: none;" title="Open Verification Desk">Verify</a>
+
+                                        <!-- 1. Send to Reviewer directly from /applications -->
+                                        @if($reqReferees > 0 || $app->campaign->track_type === 'ACADEMIC')
+                                            <button type="button" 
+                                                class="action-btn" 
+                                                style="color: #ec4899; border-color: rgba(236,72,153,0.3); background: rgba(236,72,153,0.08);"
+                                                wire:click="openDispatchModal({{ $app->id }})" 
+                                                data-tooltip="Dispatch Candidacy to External Peer Reviewers"
+                                                aria-label="Dispatch Reviewers">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M10 2v7.31"/>
+                                                    <path d="M14 9.3V1.99"/>
+                                                    <path d="M8.5 2h7"/>
+                                                    <path d="M14 9.3a6.5 6.5 0 1 1-4 0"/>
+                                                    <path d="M5.52 16h12.96"/>
+                                                </svg>
+                                            </button>
                                         @endif
+
+                                        <!-- 2. Mark Incomplete Dossier -->
+                                        <button type="button" 
+                                            class="action-btn action-btn-lock" 
+                                            wire:click="openIncompleteModal({{ $app->id }})" 
+                                            data-tooltip="Mark Incomplete Dossier (Deficiency Note)"
+                                            aria-label="Mark Incomplete">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                                                <line x1="12" y1="9" x2="12" y2="13"/>
+                                                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                            </svg>
+                                        </button>
+
+                                        <!-- 3. Reject / Disqualify -->
+                                        <button type="button" 
+                                            class="action-btn action-btn-delete" 
+                                            wire:click="openRejectModal({{ $app->id }})" 
+                                            data-tooltip="Reject or Disqualify Application with Justification"
+                                            aria-label="Reject Application">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <circle cx="12" cy="12" r="10"/>
+                                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                                <line x1="9" y1="9" x2="15" y2="15"/>
+                                            </svg>
+                                        </button>
+
+                                        <!-- 4. Mark Eligible 1-Click Action -->
+                                        @if($app->status !== 'ELIGIBLE' && $app->status !== 'APPROVED')
+                                            <button type="button" 
+                                                class="action-btn action-btn-success" 
+                                                wire:click="markAsEligible({{ $app->id }})" 
+                                                data-tooltip="Mark as Eligible for Statutory Board"
+                                                aria-label="Mark Eligible">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                                    <polyline points="22 4 12 14.01 9 11.01"/>
+                                                </svg>
+                                            </button>
+                                        @endif
+
+                                        <!-- 5. Advance Workflow Transition -->
+                                        <button type="button" 
+                                            class="action-btn action-btn-perms" 
+                                            wire:click="openTransitionModal({{ $app->id }})" 
+                                            data-tooltip="Advance Dynamic Workflow Transition"
+                                            aria-label="Workflow Transition">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M21.5 2v6h-6"/>
+                                                <path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                                            </svg>
+                                        </button>
+
+                                        <!-- Details Dossier Modal -->
+                                        <button type="button" 
+                                                class="action-btn action-btn-view" 
+                                                wire:click="viewApplicationDetails({{ $app->id }})" 
+                                                data-tooltip="View Application Dossier Details"
+                                                aria-label="View Details">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                        </button>
+
+                                        <!-- Edit Modal Form -->
+                                        <button type="button" 
+                                                class="action-btn action-btn-edit" 
+                                                wire:click="openEditApplicationForm({{ $app->id }})" 
+                                                data-tooltip="Edit Application Record"
+                                                aria-label="Edit Application">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                            </svg>
+                                        </button>
+
+                                        <!-- Delete Record -->
                                         @can('delete-application')
-                                            <button type="button" class="btn btn-danger btn-sm" style="padding: 0.35rem 0.65rem; font-size: 0.78rem;" wire:click="deleteApplication({{ $app->id }})" onclick="confirm('Are you sure you want to permanently delete this application record?') || event.stopImmediatePropagation()">Delete</button>
+                                            <button type="button" 
+                                                    class="action-btn action-btn-delete" 
+                                                    wire:click="deleteApplication({{ $app->id }})" 
+                                                    wire:confirm="Are you sure you want to permanently delete this application record?" 
+                                                    data-tooltip="Delete Application Record"
+                                                    aria-label="Delete Application">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="3 6 5 6 21 6"/>
+                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                                    <line x1="10" y1="11" x2="10" y2="17"/>
+                                                    <line x1="14" y1="11" x2="14" y2="17"/>
+                                                </svg>
+                                            </button>
                                         @endcan
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center" style="padding: 4rem 2rem; color: var(--color-text-muted);">
+                                <td colspan="5" class="text-center" style="padding: 4rem 2rem; color: var(--color-text-muted);">
                                     <div style="width: 54px; height: 54px; border-radius: 50%; background: rgba(99,102,241,0.1); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.85rem;">
                                         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                                     </div>
@@ -430,6 +527,347 @@
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+        </div>
+    @endif
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 1: DIRECT DISPATCH TO PEER REVIEWERS (FROM /APPLICATIONS ROUTE)     -->
+    <!-- ========================================================================= -->
+    @if($showDispatchModal && $dispatchApplication)
+        <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1.5rem;">
+            <div class="card" style="width: 100%; max-width: 900px; max-height: 90vh; overflow-y: auto; background: #0f172a; border-color: rgba(236, 72, 153, 0.35); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); padding: 1.75rem;">
+                
+                <!-- Modal Header -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem;">
+                            <span class="badge" style="background: rgba(236, 72, 153, 0.2); color: #ec4899; font-size: 0.72rem; font-weight: 800;">
+                                EXTERNAL PEER REVIEW DISPATCH
+                            </span>
+                            <span class="badge" style="background: rgba(255, 255, 255, 0.06); color: var(--color-text-secondary); font-size: 0.72rem;">
+                                {{ $dispatchApplication->tracking_number }}
+                            </span>
+                        </div>
+                        <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--color-text-primary); margin: 0;">
+                            Dispatch Candidacy for External Academic Peer Review
+                        </h3>
+                        <p style="font-size: 0.85rem; color: var(--color-text-secondary); margin: 0.25rem 0 0 0;">
+                            Candidate: <strong style="color: var(--color-text-primary);">{{ $dispatchApplication->user->basicInfo ? ($dispatchApplication->user->basicInfo->first_name . ' ' . $dispatchApplication->user->basicInfo->last_name) : $dispatchApplication->user->email }}</strong> &bull; {{ $dispatchApplication->campaign->title }}
+                        </p>
+                    </div>
+                    <button type="button" wire:click="closeDispatchModal" style="background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 1.25rem;">✕</button>
+                </div>
+
+                <!-- Statutory Quorum Callout -->
+                <div style="background: rgba(236, 72, 153, 0.08); border: 1px solid rgba(236, 72, 153, 0.25); border-radius: var(--radius-sm); padding: 0.85rem 1.25rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                    <div>
+                        <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: #ec4899; letter-spacing: 0.05em;">
+                            STATUTORY REFEREE QUOTA
+                        </div>
+                        <div style="font-size: 0.9rem; font-weight: 700; color: var(--color-text-primary);">
+                            {{ $dispatchTargetRequiredExperts }} Experts Required &bull; {{ $dispatchAlreadyAssignedCount }} Currently Assigned &bull; <span style="color: #ec4899;">{{ count($selectedReviewerIds) }} Selected Now</span>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-secondary btn-sm" wire:click="openEmpanelModal" style="font-size: 0.8rem; font-weight: 700; color: var(--primary); border-color: rgba(99,102,241,0.4); display: inline-flex; align-items: center; gap: 0.35rem;">
+                        <span>+ Empanel New Expert</span>
+                    </button>
+                </div>
+
+                <!-- Reviewer Filtering & Search -->
+                <div style="display: flex; gap: 0.75rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap;">
+                    <div style="flex: 2; min-width: 220px; position: relative;">
+                        <input type="text" class="form-control" wire:model.live.debounce.250ms="dispatchReviewerSearch" placeholder="Search experts by name, university, or country..." style="font-size: 0.85rem; padding-left: 2rem;" />
+                        <span style="position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); font-size: 0.8rem; color: var(--color-text-muted);">🔍</span>
+                    </div>
+
+                    <div style="flex: 1; min-width: 180px;">
+                        <select class="form-control form-select" wire:model.live="dispatchDisciplineFilter" style="font-size: 0.85rem;">
+                            <option value="">All Allied Disciplines</option>
+                            @foreach($availableDisciplines as $disc)
+                                <option value="{{ $disc }}">{{ $disc }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; cursor: pointer; color: var(--color-text-secondary);">
+                        <input type="checkbox" wire:model.live="filterByFieldOnly" style="width: 15px; height: 15px;" />
+                        <span>Allied Field Match Only</span>
+                    </label>
+                </div>
+
+                <!-- Reviewers Selection List -->
+                <div style="max-height: 240px; overflow-y: auto; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); margin-bottom: 1.25rem;">
+                    @forelse($fieldMatchedReviewers as $revProfile)
+                        @php $isSelected = in_array($revProfile->user_id, $selectedReviewerIds); @endphp
+                        <div wire:click="toggleReviewerSelection({{ $revProfile->user_id }})" 
+                            style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.04); display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: {{ $isSelected ? 'rgba(236, 72, 153, 0.12)' : 'transparent' }}; transition: background 0.15s ease;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <input type="checkbox" checked="{{ $isSelected ? 'checked' : '' }}" style="width: 17px; height: 17px; pointer-events: none;" />
+                                <div>
+                                    <div style="font-weight: 700; font-size: 0.9rem; color: var(--color-text-primary);">
+                                        {{ $revProfile->name }}
+                                        <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: var(--primary); font-size: 0.68rem; margin-left: 0.35rem;">
+                                            {{ $revProfile->academic_rank }}
+                                        </span>
+                                    </div>
+                                    <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 2px;">
+                                        {{ $revProfile->university }} &bull; {{ $revProfile->country }} &bull; <strong style="color: var(--secondary);">{{ $revProfile->subject }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <span class="badge" style="background: {{ $isSelected ? '#ec4899' : 'rgba(255,255,255,0.06)' }}; color: {{ $isSelected ? '#ffffff' : 'var(--color-text-muted)' }}; font-size: 0.72rem; font-weight: 700;">
+                                {{ $isSelected ? 'Selected' : 'Click to Select' }}
+                            </span>
+                        </div>
+                    @empty
+                        <div style="text-align: center; padding: 2rem; color: var(--color-text-muted); font-size: 0.85rem;">
+                            No matching experts found. Try unchecking "Allied Field Match Only" or click "+ Empanel New Expert" to register a new referee.
+                        </div>
+                    @endforelse
+                </div>
+
+                @error('selectedReviewerIds')
+                    <div class="alert alert-danger mb-4" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-size: 0.85rem;">
+                        {{ $message }}
+                    </div>
+                @enderror
+
+                <!-- Review Instructions & Due Date -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div class="md:col-span-2">
+                        <label class="form-label" style="font-size: 0.76rem; font-weight: 700;">CONFIDENTIAL EVALUATION GUIDANCE NOTES</label>
+                        <textarea class="form-control" rows="2" wire:model.defer="dispatchReviewNotes" style="font-size: 0.82rem;"></textarea>
+                    </div>
+                    <div>
+                        <label class="form-label" style="font-size: 0.76rem; font-weight: 700;">REVIEW REPORT DUE DATE</label>
+                        <input type="date" class="form-control" wire:model.defer="dispatchReviewDueDate" style="font-size: 0.85rem;" />
+                    </div>
+                </div>
+
+                <!-- Modal Actions -->
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+                    <button type="button" class="btn btn-secondary" wire:click="closeDispatchModal" style="padding: 0.6rem 1.25rem; font-size: 0.85rem;">Cancel</button>
+                    <button type="button" class="btn btn-primary" wire:click="dispatchApplicationToReviewers" style="padding: 0.6rem 1.75rem; font-size: 0.88rem; font-weight: 700; background: #ec4899; border-color: #ec4899;">
+                        Dispatched to {{ count($selectedReviewerIds) }} Expert(s)
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    @endif
+
+    <!-- ========================================================================= -->
+    <!-- SUB-MODAL: EMPANEL NEW EXPERT ON THE FLY                                  -->
+    <!-- ========================================================================= -->
+    @if($showEmpanelModal)
+        <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 1.5rem;">
+            <div class="card" style="width: 100%; max-width: 650px; background: #0f172a; border-color: rgba(99, 102, 241, 0.4); padding: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                    <h4 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--color-text-primary);">
+                        + Empanel & Assign Academic Subject Expert
+                    </h4>
+                    <button type="button" wire:click="closeEmpanelModal" style="background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 1.2rem;">✕</button>
+                </div>
+
+                <form wire:submit.prevent="createAndAssignReviewer">
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="form-label" style="font-size: 0.75rem; font-weight: 700;">FULL NAME & TITLE *</label>
+                            <input type="text" class="form-control" wire:model.defer="empanelName" placeholder="Prof. Dr. Jane Doe" required />
+                            @error('empanelName') <span class="text-danger" style="font-size: 0.72rem;">{{ $message }}</span> @enderror
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.75rem; font-weight: 700;">ACADEMIC EMAIL *</label>
+                            <input type="email" class="form-control" wire:model.defer="empanelEmail" placeholder="referee@university.edu" required />
+                            @error('empanelEmail') <span class="text-danger" style="font-size: 0.72rem;">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="form-label" style="font-size: 0.75rem; font-weight: 700;">AFFILIATED INSTITUTION *</label>
+                            <input type="text" class="form-control" wire:model.defer="empanelUniversity" placeholder="Oxford / MIT / NUST" required />
+                            @error('empanelUniversity') <span class="text-danger" style="font-size: 0.72rem;">{{ $message }}</span> @enderror
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.75rem; font-weight: 700;">SUBJECT / DISCIPLINE *</label>
+                            <input type="text" class="form-control" wire:model.defer="empanelSubject" placeholder="Computer Science" required />
+                            @error('empanelSubject') <span class="text-danger" style="font-size: 0.72rem;">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div>
+                            <label class="form-label" style="font-size: 0.75rem; font-weight: 700;">ACADEMIC RANK *</label>
+                            <select class="form-control form-select" wire:model.defer="empanelRank">
+                                <option value="Distinguished Professor">Distinguished Professor</option>
+                                <option value="Professor">Tenured Professor</option>
+                                <option value="Associate Professor">Associate Professor</option>
+                                <option value="Industry Fellow">Industry Research Fellow</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.75rem; font-weight: 700;">COUNTRY *</label>
+                            <select class="form-control form-select" wire:model.defer="empanelCountry">
+                                @foreach($countries as $cntry)
+                                    <option value="{{ $cntry }}">{{ $cntry }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 0.5rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+                        <button type="button" class="btn btn-secondary" wire:click="closeEmpanelModal" style="padding: 0.5rem 1rem; font-size: 0.82rem;">Cancel</button>
+                        <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1.4rem; font-size: 0.85rem; font-weight: 700;">Empanel & Assign</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 2: MARK AS INCOMPLETE DOSSIER DIRECT ACTION                         -->
+    <!-- ========================================================================= -->
+    @if($showIncompleteModal)
+        <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1.5rem;">
+            <div class="card" style="width: 100%; max-width: 580px; background: #0f172a; border-color: rgba(245, 158, 11, 0.4); padding: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                    <div>
+                        <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; font-size: 0.72rem; font-weight: 800; margin-bottom: 0.25rem;">
+                            SCRUTINY DEFICIENCY NOTICE
+                        </span>
+                        <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: var(--color-text-primary);">
+                            Mark Application as Incomplete Dossier
+                        </h3>
+                    </div>
+                    <button type="button" wire:click="closeIncompleteModal" style="background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 1.2rem;">✕</button>
+                </div>
+
+                <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin-bottom: 1rem;">
+                    Record the specific credential deficiencies or missing documents. The candidate will see this justification and be alerted to provide required documents.
+                </p>
+
+                <div class="mb-4">
+                    <label class="form-label" style="font-size: 0.76rem; font-weight: 700;">DEFICIENCY JUSTIFICATION & MISSING DOCUMENTS *</label>
+                    <textarea class="form-control" rows="4" wire:model.defer="incompleteDeficiencyNotes" placeholder="e.g. Official MSc degree transcript not certified; Missing 3 years industrial experience letter..." required></textarea>
+                    @error('incompleteDeficiencyNotes') <span class="text-danger" style="font-size: 0.72rem;">{{ $message }}</span> @enderror
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+                    <button type="button" class="btn btn-secondary" wire:click="closeIncompleteModal" style="padding: 0.55rem 1.15rem; font-size: 0.82rem;">Cancel</button>
+                    <button type="button" class="btn btn-primary" wire:click="markAsIncompleteDossier" style="background: #f59e0b; border-color: #f59e0b; padding: 0.55rem 1.5rem; font-size: 0.85rem; font-weight: 700;">
+                        Mark as Incomplete
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 3: REJECT / DISQUALIFY APPLICATION DIRECT ACTION                    -->
+    <!-- ========================================================================= -->
+    @if($showRejectModal)
+        <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1.5rem;">
+            <div class="card" style="width: 100%; max-width: 580px; background: #0f172a; border-color: rgba(239, 68, 68, 0.4); padding: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                    <div>
+                        <span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; font-size: 0.72rem; font-weight: 800; margin-bottom: 0.25rem;">
+                            FORMAL REJECTION / DISQUALIFICATION
+                        </span>
+                        <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: var(--color-text-primary);">
+                            Reject / Disqualify Candidacy
+                        </h3>
+                    </div>
+                    <button type="button" wire:click="closeRejectModal" style="background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 1.2rem;">✕</button>
+                </div>
+
+                <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin-bottom: 1rem;">
+                    Specify formal statutory justification for ineligibility or board rejection. This justification is permanently recorded for audit logs and appellate grievance review.
+                </p>
+
+                <div class="mb-4">
+                    <label class="form-label" style="font-size: 0.76rem; font-weight: 700;">FORMAL DISQUALIFICATION / REJECTION REASON *</label>
+                    <textarea class="form-control" rows="4" wire:model.defer="rejectReason" placeholder="e.g. Does not fulfill statutory criteria: Less than 5 years required post-PhD experience..." required></textarea>
+                    @error('rejectReason') <span class="text-danger" style="font-size: 0.72rem;">{{ $message }}</span> @enderror
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+                    <button type="button" class="btn btn-secondary" wire:click="closeRejectModal" style="padding: 0.55rem 1.15rem; font-size: 0.82rem;">Cancel</button>
+                    <button type="button" class="btn btn-primary" wire:click="rejectApplication" style="background: #ef4444; border-color: #ef4444; padding: 0.55rem 1.5rem; font-size: 0.85rem; font-weight: 700;">
+                        Confirm Rejection
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 4: DYNAMIC LIFECYCLE STATUS TRANSITION DIRECT ACTION                -->
+    <!-- ========================================================================= -->
+    @if($showTransitionModal && $transitionApplication)
+        <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1.5rem;">
+            <div class="card" style="width: 100%; max-width: 620px; background: #0f172a; border-color: rgba(99, 102, 241, 0.4); padding: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                    <div>
+                        <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: var(--primary); font-size: 0.72rem; font-weight: 800; margin-bottom: 0.25rem;">
+                            DYNAMIC STATUS TRANSITION ENGINE
+                        </span>
+                        <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: var(--color-text-primary);">
+                            Transition Lifecycle Stage
+                        </h3>
+                    </div>
+                    <button type="button" wire:click="closeTransitionModal" style="background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 1.2rem;">✕</button>
+                </div>
+
+                <div style="background: rgba(15, 23, 42, 0.6); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--color-text-muted);">CURRENT STATUS</div>
+                        <strong style="color: var(--color-text-primary); font-size: 0.95rem;">{{ $transitionApplication->status_label }}</strong>
+                    </div>
+                    <span class="badge" style="background: {{ $transitionApplication->status_badge_style['bg'] }}; color: {{ $transitionApplication->status_badge_style['text'] }}; border: 1px solid {{ $transitionApplication->status_badge_style['border'] }}; font-weight: 800; font-size: 0.78rem;">
+                        {{ $transitionApplication->status }}
+                    </span>
+                </div>
+
+                <!-- Gate Validation Errors Alert -->
+                @if(!empty($transitionValidationErrors))
+                    <div class="alert alert-danger mb-4" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-size: 0.82rem;">
+                        <strong style="display: block; margin-bottom: 0.25rem;">⚠️ Transition Blocked by Lifecycle Policy:</strong>
+                        <ul style="margin: 0; padding-left: 1.25rem;">
+                            @foreach($transitionValidationErrors as $vErr)
+                                <li>{{ $vErr }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <div class="mb-4">
+                    <label class="form-label" style="font-size: 0.76rem; font-weight: 700;">SELECT TARGET TRANSITION STAGE *</label>
+                    <select class="form-control form-select" wire:model.defer="transitionTargetStatus" style="font-size: 0.88rem; font-weight: 600;">
+                        <option value="">-- Choose Allowed Destination Status --</option>
+                        @foreach($transitionApplication->getAllowedNextTransitions() as $targetState)
+                            <option value="{{ $targetState['code'] }}">
+                                ➔ {{ $targetState['label'] }} ({{ $targetState['code'] }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('transitionTargetStatus') <span class="text-danger" style="font-size: 0.72rem;">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label" style="font-size: 0.76rem; font-weight: 700;">TRANSITION AUDIT NOTES / JUSTIFICATION</label>
+                    <textarea class="form-control" rows="2" wire:model.defer="transitionNotes" placeholder="Reason, remarks, or scrutiny audit notes..."></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+                    <button type="button" class="btn btn-secondary" wire:click="closeTransitionModal" style="padding: 0.55rem 1.15rem; font-size: 0.82rem;">Cancel</button>
+                    <button type="button" class="btn btn-primary" wire:click="executeStatusTransition" style="padding: 0.55rem 1.5rem; font-size: 0.85rem; font-weight: 700;">
+                        Execute Transition
+                    </button>
+                </div>
             </div>
         </div>
     @endif
@@ -456,7 +894,7 @@
                         </div>
                         <div>
                             <span class="badge" style="padding: 0.35rem 0.85rem; font-size: 0.8rem; border-radius: 999px; font-weight: 800; background: rgba(99,102,241,0.15); color: var(--primary); border: 1px solid rgba(99,102,241,0.3);">
-                                {{ $selectedRecordDetails->status }}
+                                {{ $selectedRecordDetails->status_label }}
                             </span>
                         </div>
                     </div>
@@ -507,16 +945,16 @@
                 </div>
 
                 <!-- Academic Peer Reviews Card -->
-                @if($selectedRecordDetails->campaign->track_type === 'ACADEMIC')
+                @if($selectedRecordDetails->campaign->track_type === 'ACADEMIC' || $selectedRecordDetails->reviews->count() > 0)
                     <div class="card mb-4" style="padding: 1.25rem; background: rgba(6, 182, 212, 0.04); border-color: rgba(6, 182, 212, 0.25);">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
                             <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: var(--secondary); letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.4rem;">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
                                 <span>External Peer Review Referees ({{ count($selectedRecordDetails->reviews ?? []) }} Assigned)</span>
                             </div>
-                            <a href="/admin/reviewers" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; text-decoration: none;">
-                                Open Reviewers Desk →
-                            </a>
+                            <button type="button" class="btn btn-secondary btn-sm" wire:click="openDispatchModal({{ $selectedRecordDetails->id }})" style="font-size: 0.75rem; color: #ec4899; font-weight: 700;">
+                                + Dispatch More Experts
+                            </button>
                         </div>
 
                         @if(!empty($selectedRecordDetails->reviews) && count($selectedRecordDetails->reviews) > 0)
@@ -532,9 +970,9 @@
                                             </span>
                                         </div>
                                         <div>
-                                            @if($rev->status === 'SUBMITTED')
+                                            @if($rev->status === 'SUBMITTED' || $rev->status === 'COMPLETED')
                                                 <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--success); font-weight: 800; font-size: 0.76rem;">
-                                                    ✓ {{ $rev->overall_score }}/100 • {{ str_replace('_', ' ', $rev->recommendation) }}
+                                                    ✓ {{ $rev->overall_score }}/100 • {{ str_replace('_', ' ', $rev->recommendation ?? 'Completed') }}
                                                 </span>
                                             @else
                                                 <span class="badge" style="background: rgba(245,158,11,0.15); color: var(--warning); font-size: 0.75rem; font-weight: 700;">
@@ -554,14 +992,26 @@
                 @endif
 
                 <div class="mt-5 flex justify-between align-center" style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
-                    @if(auth()->user()->can('scrutinize-application') || auth()->user()->can('verify-documents'))
-                        <a href="/admin/verification/{{ $selectedRecordDetails->id }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; font-weight: 700;">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                            <span>Open Scrutiny Verification Desk</span>
-                        </a>
-                    @else
-                        <div></div>
-                    @endif
+                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                        @if(auth()->user()->hasRole('super-admin') && $selectedRecordDetails->user && auth()->id() !== $selectedRecordDetails->user->id && !$selectedRecordDetails->user->hasRole('super-admin'))
+                            <a href="{{ route('impersonate.start', $selectedRecordDetails->user->id) }}" class="btn btn-warning" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; font-weight: 700;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
+                                <span>🎭 Impersonate Applicant</span>
+                            </a>
+                        @endif
+
+                        @if(auth()->user()->can('scrutinize-application') || auth()->user()->can('verify-documents'))
+                            <a href="/admin/verification/{{ $selectedRecordDetails->id }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; font-weight: 700;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                <span>Open Scrutiny Verification Desk</span>
+                            </a>
+                        @endif
+                    </div>
                     <button type="button" class="btn btn-secondary" wire:click="$set('isDetailsOpen', false)" style="padding: 0.45rem 1.25rem;">Close Dossier</button>
                 </div>
             </div>

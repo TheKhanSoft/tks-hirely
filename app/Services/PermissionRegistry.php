@@ -305,6 +305,14 @@ class PermissionRegistry
                     'label' => 'Manage System Settings',
                     'description' => 'Configure recruitment pipelines, document requirements, statutory constitutions, and organization settings',
                 ],
+                'manage-statuses' => [
+                    'label' => 'Manage Dynamic Statuses & Lifecycles',
+                    'description' => 'Configure application, applicant, and pipeline statuses, gate requirements, and transition flows',
+                ],
+                'manage-constitutions' => [
+                    'label' => 'Manage Board & Committee Constitutions',
+                    'description' => 'Create, edit, and configure statutory boards, routing pipelines, eligibility criteria, and quotas across sectors',
+                ],
             ],
         ];
     }

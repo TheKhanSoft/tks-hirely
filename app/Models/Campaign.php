@@ -21,6 +21,7 @@ class Campaign extends Model
         'is_active',
         'require_transcript_proof',
         'scoring_rules',
+        'constitution_id',
     ];
 
     protected $casts = [
@@ -62,6 +63,14 @@ class Campaign extends Model
     }
 
     /**
+     * Statutory board constitution assigned to this campaign.
+     */
+    public function constitution(): BelongsTo
+    {
+        return $this->belongsTo(CommitteeConstitution::class, 'constitution_id');
+    }
+
+    /**
      * Get statutory committee constitution requirements for this campaign.
      */
     public function getCommitteeConstitution(): array
@@ -73,6 +82,29 @@ class Campaign extends Model
                 $constitution['rules'] = $constitution['roles_breakdown'];
             }
             return $constitution;
+        }
+
+        if ($this->constitution_id) {
+            $c = $this->constitution;
+            if ($c) {
+                return [
+                    'id' => $c->id,
+                    'title' => $c->name,
+                    'description' => $c->description,
+                    'organization_sector' => $c->organization_sector,
+                    'required_total' => $c->required_total,
+                    'required_internal' => $c->required_internal,
+                    'required_external' => $c->required_external,
+                    'required_international' => $c->required_international,
+                    'required_independent' => $c->required_independent,
+                    'required_peer_reviewers' => $c->required_peer_reviewers,
+                    'enforce_strict_quota' => $c->enforce_strict_quota,
+                    'roles_breakdown' => $c->roles_breakdown ?? [],
+                    'rules' => $c->roles_breakdown ?? [],
+                    'routing_flow' => $c->getEffectiveRoutingFlow(),
+                    'eligibility_criteria' => $c->getEffectiveEligibilityCriteria(),
+                ];
+            }
         }
 
         // Dynamically resolve preset constitution based on post title & track from SystemSetting

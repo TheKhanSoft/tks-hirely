@@ -376,28 +376,64 @@
                                     @endcan
                                 </td>
                                 <td style="text-align: right;">
-                                    <div class="flex gap-2 justify-end align-center">
+                                    <div class="action-btn-group justify-end">
+                                        {{-- 1. Impersonate (Strictly Super Admin only, not self, not another super admin) --}}
+                                        @if(auth()->user()->hasRole('super-admin') && auth()->id() !== $u->id && !$u->hasRole('super-admin'))
+                                            <a href="{{ route('impersonate.start', $u->id) }}" 
+                                               class="action-btn action-btn-impersonate" 
+                                               data-tooltip="Impersonate {{ $displayName ?: $u->email }}"
+                                               aria-label="Impersonate User">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                                    <circle cx="9" cy="7" r="4"/>
+                                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                                </svg>
+                                            </a>
+                                        @endif
+
+                                        {{-- 2. View Personnel Dossier --}}
                                         @can('view-user-dossier')
-                                            <button type="button" class="btn btn-secondary btn-sm" style="padding: 0.35rem 0.65rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.3rem;" wire:click="viewPersonnelDetails({{ $u->id }})">
-                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                                                <span>Dossier</span>
+                                            <button type="button" class="action-btn action-btn-view" wire:click="viewPersonnelDetails({{ $u->id }})" data-tooltip="View Personnel Dossier">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                                    <polyline points="14 2 14 8 20 8"/>
+                                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                                    <polyline points="10 9 9 9 8 9"/>
+                                                </svg>
                                             </button>
                                         @endcan
+
+                                        {{-- 3. Manage Direct Permissions --}}
                                         @can('assign-user-permissions')
-                                            <button type="button" class="btn btn-secondary btn-sm" style="padding: 0.35rem 0.65rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.25rem;" wire:click="openDirectPermissionsModal({{ $u->id }})" title="Grant extra direct permissions on top of role">
-                                                <span>🔑</span>
-                                                <span>Perms</span>
+                                            <button type="button" class="action-btn action-btn-perms" wire:click="openDirectPermissionsModal({{ $u->id }})" data-tooltip="Direct Extra Permissions">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                    <circle cx="7.5" cy="15.5" r="5.5"/>
+                                                    <path d="m21 2-9.6 9.6"/>
+                                                    <path d="m15.5 7.5 3 3L22 7l-3-3"/>
+                                                </svg>
                                             </button>
                                         @endcan
+
+                                        {{-- 4. Edit User Account --}}
                                         @can('edit-user')
-                                            <button type="button" class="btn btn-secondary btn-sm" style="padding: 0.35rem 0.65rem; font-size: 0.78rem;" wire:click="openEditUserForm({{ $u->id }})">
-                                                Edit
+                                            <button type="button" class="action-btn action-btn-edit" wire:click="openEditUserForm({{ $u->id }})" data-tooltip="Edit User Account">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                                </svg>
                                             </button>
                                         @endcan
+
+                                        {{-- 5. Delete User Account --}}
                                         @if(auth()->id() !== $u->id)
                                             @can('delete-user')
-                                                <button type="button" class="btn btn-danger btn-sm" style="padding: 0.35rem 0.65rem; font-size: 0.78rem;" wire:click="deleteUser({{ $u->id }})" onclick="confirm('Are you sure you want to permanently delete this user account?') || event.stopImmediatePropagation()">
-                                                    Delete
+                                                <button type="button" class="action-btn action-btn-delete" wire:click="deleteUser({{ $u->id }})" onclick="confirm('Are you sure you want to permanently delete this user account?') || event.stopImmediatePropagation()" data-tooltip="Delete User Account">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                        <polyline points="3 6 5 6 21 6"/>
+                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                                    </svg>
                                                 </button>
                                             @endcan
                                         @endif

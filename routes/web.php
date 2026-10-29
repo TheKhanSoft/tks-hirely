@@ -20,6 +20,7 @@ use App\Livewire\Admin\RolePermissionManagement;
 use App\Livewire\Admin\AuditLogManagement;
 use App\Livewire\Admin\SystemSettings;
 use App\Livewire\Admin\ConstitutionCriteriaManagement;
+use App\Livewire\Admin\WorkflowStatusManagement;
 use App\Livewire\Reviewer\EvaluationDesk;
 use App\Livewire\Board\LiveGradingPanel;
 use App\Livewire\Board\Dashboard as BoardDashboard;
@@ -107,6 +108,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/registrar/campaigns', CampaignCrud::class);
     Route::get('/registrar/criteria', ConstitutionCriteriaManagement::class);
     Route::get('/registrar/constitution', function() { return redirect('/registrar/criteria'); });
+    Route::get('/registrar/constitutions', ConstitutionCriteriaManagement::class);
+    Route::get('/registrar/statuses', WorkflowStatusManagement::class);
     Route::get('/registrar/applications', ApplicationManagement::class);
     Route::get('/registrar/candidates', CandidateProfileManagement::class);
     Route::get('/registrar/candidate-profiles', function() { return redirect('/registrar/candidates'); });
@@ -126,6 +129,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/campaigns', CampaignCrud::class);
     Route::get('/admin/criteria', ConstitutionCriteriaManagement::class);
     Route::get('/admin/constitution', function() { return redirect('/admin/criteria'); });
+    Route::get('/admin/constitutions', ConstitutionCriteriaManagement::class);
+    Route::get('/admin/statuses', WorkflowStatusManagement::class);
     Route::get('/admin/applications', ApplicationManagement::class);
     Route::get('/admin/candidates', CandidateProfileManagement::class);
     Route::get('/admin/candidate-profiles', function() { return redirect('/admin/candidates'); });
