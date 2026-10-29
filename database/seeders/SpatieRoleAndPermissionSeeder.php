@@ -153,5 +153,6 @@ class SpatieRoleAndPermissionSeeder extends Seeder
         $reviewerShort->syncPermissions($reviewer->permissions);
 
         $adminShort = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        $adminShort->syncPermissions($registrar->permissions);
     }
 }

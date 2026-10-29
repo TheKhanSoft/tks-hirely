@@ -4,6 +4,7 @@
     'subtitle' => null,
     'avatar' => null,
     'avatarInitial' => null,
+    'avatarImage' => null,
     'avatarBadge' => null,
     'avatarBg' => null,
     'avatarClass' => null,
@@ -38,6 +39,10 @@
             <div style="display: flex; align-items: center; gap: 0.75rem; min-width: 0; flex: 1;">
                 @if(isset($avatarSlot))
                     {{ $avatarSlot }}
+                @elseif($avatarImage)
+                    <div class="entity-card-avatar {{ $avatarClass }}" style="overflow: hidden; padding: 0; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; {{ $avatarBg }}">
+                        <img src="{{ $avatarImage }}" alt="{{ $title }}" onerror="this.style.display='none'; this.parentElement.innerText='{{ substr($title, 0, 1) }}';" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
+                    </div>
                 @elseif($avatar || $avatarInitial)
                     <div class="entity-card-avatar {{ $avatarClass }}" @if($avatarBg) style="{{ $avatarBg }}" @endif>
                         {{ $avatar ?: $avatarInitial }}

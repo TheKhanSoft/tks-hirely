@@ -1,60 +1,59 @@
 <div>
-    <!-- Console Control Header -->
-    <div class="card mb-6" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; position: relative; overflow: hidden;">
-        <div style="position: absolute; right: -2rem; top: -2rem; width: 140px; height: 140px; background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%); pointer-events: none;"></div>
+    <!-- Executive Control Header -->
+    <div class="page-hero-header">
         <div>
-            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem;">
-                <div class="brand-icon-box" style="width: 38px; height: 38px; border-radius: 10px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="brand-icon-box" style="background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(79,70,229,0.4)); box-shadow: 0 4px 14px rgba(99,102,241,0.25);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="color: #ffffff;">
                         <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path>
                         <path d="M12 6a4 4 0 1 0 4 4 4 4 0 0 0-4-4z"></path>
                     </svg>
                 </div>
                 <div>
-                    <h2 class="card-title" style="margin: 0; font-size: 1.35rem;">System Entity Console</h2>
-                    <p class="card-subtitle" style="margin: 0;">Unified management desk for administrative control, roles registry, candidate applications, vouchers, and audit logs</p>
+                    <h1>System Entity & Operations Console</h1>
+                    <p>Unified management desk for administrative control, roles registry, candidate applications, vouchers, and audit logs.</p>
                 </div>
             </div>
         </div>
-        <div>
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
             @if(!$isFormOpen && !$isDetailsOpen)
                 @if($activeTab === 'users' && auth()->user()->can('create-user'))
-                    <button type="button" class="btn btn-primary" wire:click="openCreateUserForm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <button type="button" class="btn btn-primary" wire:click="openCreateUserForm" style="display: inline-flex; align-items: center; gap: 0.5rem; border-radius: 10px; font-weight: 700; padding: 0.65rem 1.35rem; box-shadow: 0 4px 18px -2px rgba(99,102,241,0.5);">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        <span>Register User</span>
+                        <span>+ Register User</span>
                     </button>
                 @elseif($activeTab === 'roles' && auth()->user()->can('create-role'))
-                    <button type="button" class="btn btn-primary" wire:click="openCreateRoleForm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <button type="button" class="btn btn-primary" wire:click="openCreateRoleForm" style="display: inline-flex; align-items: center; gap: 0.5rem; border-radius: 10px; font-weight: 700; padding: 0.65rem 1.35rem; box-shadow: 0 4px 18px -2px rgba(99,102,241,0.5);">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        <span>Add Role</span>
+                        <span>+ Add Role</span>
                     </button>
                 @elseif($activeTab === 'permissions' && auth()->user()->can('create-permission'))
-                    <button type="button" class="btn btn-primary" wire:click="openCreatePermissionForm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <button type="button" class="btn btn-primary" wire:click="openCreatePermissionForm" style="display: inline-flex; align-items: center; gap: 0.5rem; border-radius: 10px; font-weight: 700; padding: 0.65rem 1.35rem; box-shadow: 0 4px 18px -2px rgba(99,102,241,0.5);">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        <span>Add Permission</span>
+                        <span>+ Add Permission</span>
                     </button>
                 @elseif($activeTab === 'campaigns' && auth()->user()->can('create-campaign'))
-                    <button type="button" class="btn btn-primary" wire:click="openCreateCampaignForm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <button type="button" class="btn btn-primary" wire:click="openCreateCampaignForm" style="display: inline-flex; align-items: center; gap: 0.5rem; border-radius: 10px; font-weight: 700; padding: 0.65rem 1.35rem; box-shadow: 0 4px 18px -2px rgba(99,102,241,0.5);">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        <span>Create Campaign</span>
+                        <span>+ Create Campaign</span>
                     </button>
                 @elseif($activeTab === 'applications' && auth()->user()->can('create-application'))
-                    <button type="button" class="btn btn-primary" wire:click="openCreateApplicationForm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <button type="button" class="btn btn-primary" wire:click="openCreateApplicationForm" style="display: inline-flex; align-items: center; gap: 0.5rem; border-radius: 10px; font-weight: 700; padding: 0.65rem 1.35rem; box-shadow: 0 4px 18px -2px rgba(99,102,241,0.5);">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        <span>Add Application</span>
+                        <span>+ Add Application</span>
                     </button>
                 @elseif($activeTab === 'basic_infos' && auth()->user()->can('create-basic-info'))
-                    <button type="button" class="btn btn-primary" wire:click="openCreateBasicInfoForm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <button type="button" class="btn btn-primary" wire:click="openCreateBasicInfoForm" style="display: inline-flex; align-items: center; gap: 0.5rem; border-radius: 10px; font-weight: 700; padding: 0.65rem 1.35rem; box-shadow: 0 4px 18px -2px rgba(99,102,241,0.5);">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        <span>Create Profile</span>
+                        <span>+ Create Profile</span>
                     </button>
                 @elseif($activeTab === 'payments' && auth()->user()->can('create-payment'))
-                    <button type="button" class="btn btn-primary" wire:click="openCreatePaymentForm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <button type="button" class="btn btn-primary" wire:click="openCreatePaymentForm" style="display: inline-flex; align-items: center; gap: 0.5rem; border-radius: 10px; font-weight: 700; padding: 0.65rem 1.35rem; box-shadow: 0 4px 18px -2px rgba(99,102,241,0.5);">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        <span>Log Payment</span>
+                        <span>+ Log Payment</span>
                     </button>
                 @elseif($activeTab === 'logs' && auth()->user()->can('delete-audit-log') && count($logs ?? []) > 0)
-                    <button type="button" class="btn btn-danger" wire:click="clearAuditLogs" onclick="confirm('Are you sure you want to permanently purge all security logs?') || event.stopImmediatePropagation()" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <button type="button" class="btn btn-danger" wire:click="clearAuditLogs" onclick="confirm('Are you sure you want to permanently purge all security logs?') || event.stopImmediatePropagation()" style="display: inline-flex; align-items: center; gap: 0.5rem; border-radius: 10px; font-weight: 700; padding: 0.65rem 1.35rem;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         <span>Purge Logs</span>
                     </button>

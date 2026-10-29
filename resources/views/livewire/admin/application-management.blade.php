@@ -294,6 +294,11 @@
                         $displayName = $app->user->basicInfo ? ($app->user->basicInfo->first_name . ' ' . $app->user->basicInfo->last_name) : $app->user->email;
                         $isPaid = $app->billingLedger?->status === 'SETTLED';
                         $avatarTheme = $isPaid ? 'avatar-theme-emerald' : 'avatar-theme-amber';
+                        $isClosedOrCompleted = $app->campaign?->is_closed || $app->campaign?->is_completed;
+                        $isSuperAdmin = auth()->user()?->hasRole('super-admin');
+                        $canModifyApp = $isSuperAdmin || !$isClosedOrCompleted;
+                        $isFinalized = in_array($app->status, ['APPOINTED', 'OFFERED', 'SELECTED']);
+                        $canDeleteApp = $isSuperAdmin || (!$isClosedOrCompleted && !$isFinalized);
                     @endphp
 
                     <x-entity-card 
@@ -301,6 +306,7 @@
                         :title="$displayName" 
                         :subtitle="$app->campaign->title"
                         :avatar="strtoupper(substr($app->user->basicInfo?->first_name ?: $app->user->email, 0, 1))"
+                        :avatar-image="$app->user->basicInfo?->profile_picture_url"
                         :avatarClass="$avatarTheme">
                         
                         <!-- Badge Slot: Lifecycle Stage -->
@@ -395,47 +401,97 @@
                             </button>
 
                             @if($reqReferees > 0 || $app->campaign->track_type === 'ACADEMIC')
-                                <button type="button" 
-                                        class="action-btn" 
-                                        style="color: #ec4899; border-color: rgba(236,72,153,0.3); background: rgba(236,72,153,0.08);"
-                                        wire:click="openDispatchModal({{ $app->id }})" 
-                                        data-tooltip="Dispatch Reviewers">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                                        <path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/>
-                                    </svg>
-                                </button>
+                                @if($canModifyApp)
+                                    <button type="button" 
+                                            class="action-btn" 
+                                            style="color: #ec4899; border-color: rgba(236,72,153,0.3); background: rgba(236,72,153,0.08);"
+                                            wire:click="openDispatchModal({{ $app->id }})" 
+                                            data-tooltip="Dispatch Reviewers">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                            <path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/>
+                                        </svg>
+                                    </button>
+                                @else
+                                    <button type="button" 
+                                            class="action-btn disabled" 
+                                            disabled 
+                                            data-tooltip="Locked: Campaign completed or closed" 
+                                            style="opacity: 0.45; cursor: not-allowed;">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                        </svg>
+                                    </button>
+                                @endif
                             @endif
 
                             @if($reviewsCount >= 1 && ($app->status === 'UNDER_REVIEW' || $reviewsCount >= 2))
-                                <button type="button" 
-                                        class="action-btn" 
-                                        style="color: #10b981; border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.1);"
-                                        wire:click="evaluatePeerReviewResults({{ $app->id }})" 
-                                        data-tooltip="Evaluate Peer Review Results (Passing Criteria)">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                                </button>
+                                @if($canModifyApp)
+                                    <button type="button" 
+                                            class="action-btn" 
+                                            style="color: #10b981; border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.1);"
+                                            wire:click="evaluatePeerReviewResults({{ $app->id }})" 
+                                            data-tooltip="Evaluate Peer Review Results (Passing Criteria)">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                                    </button>
+                                @else
+                                    <button type="button" 
+                                            class="action-btn disabled" 
+                                            disabled 
+                                            data-tooltip="Locked: Campaign completed or closed" 
+                                            style="opacity: 0.45; cursor: not-allowed;">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                        </svg>
+                                    </button>
+                                @endif
                             @endif
 
-                            <button type="button" 
-                                    class="action-btn action-btn-perms" 
-                                    wire:click="openTransitionModal({{ $app->id }})" 
-                                    data-tooltip="Advance Workflow Stage">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                                    <path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
-                                </svg>
-                            </button>
+                            @if($canModifyApp)
+                                <button type="button" 
+                                        class="action-btn action-btn-perms" 
+                                        wire:click="openTransitionModal({{ $app->id }})" 
+                                        data-tooltip="Advance Workflow Stage">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                        <path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                                    </svg>
+                                </button>
+                            @else
+                                <button type="button" 
+                                        class="action-btn disabled" 
+                                        disabled 
+                                        data-tooltip="Workflow Locked: Position completed or closed" 
+                                        style="opacity: 0.45; cursor: not-allowed;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                </button>
+                            @endif
                         </x-slot:quickActions>
 
                         <!-- Kebab Dropdown Options Menu [ICON + TEXT] -->
                         <x-slot:menuActions>
                             @if($reviewsCount >= 1)
-                                <x-entity-card-menu-item 
-                                    label="Evaluate Peer Review Verdict" 
-                                    click="evaluatePeerReviewResults({{ $app->id }})">
-                                    <x-slot:icon>
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                                    </x-slot:icon>
-                                </x-entity-card-menu-item>
+                                @if($canModifyApp)
+                                    <x-entity-card-menu-item 
+                                        label="Evaluate Peer Review Verdict" 
+                                        click="evaluatePeerReviewResults({{ $app->id }})">
+                                        <x-slot:icon>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                                        </x-slot:icon>
+                                    </x-entity-card-menu-item>
+                                @else
+                                    <x-entity-card-menu-item 
+                                        :disabled="true" 
+                                        label="Evaluate Peer Review (Locked)" 
+                                        tooltip="Locked: Campaign completed or closed">
+                                        <x-slot:icon>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                        </x-slot:icon>
+                                    </x-entity-card-menu-item>
+                                @endif
                             @endif
                             <x-entity-card-menu-item 
                                 label="View Application Dossier" 
@@ -446,56 +502,122 @@
                             </x-entity-card-menu-item>
 
                             @if($reqReferees > 0 || $app->campaign->track_type === 'ACADEMIC')
+                                @if($canModifyApp)
+                                    <x-entity-card-menu-item 
+                                        label="Dispatch Peer Reviewers" 
+                                        click="openDispatchModal({{ $app->id }})">
+                                        <x-slot:icon>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>
+                                        </x-slot:icon>
+                                    </x-entity-card-menu-item>
+                                @else
+                                    <x-entity-card-menu-item 
+                                        :disabled="true" 
+                                        label="Dispatch Peer Reviewers (Locked)" 
+                                        tooltip="Locked: Campaign completed or closed">
+                                        <x-slot:icon>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                        </x-slot:icon>
+                                    </x-entity-card-menu-item>
+                                @endif
+                            @endif
+
+                            @if($canModifyApp)
                                 <x-entity-card-menu-item 
-                                    label="Dispatch Peer Reviewers" 
-                                    click="openDispatchModal({{ $app->id }})">
+                                    label="Advance Workflow Transition" 
+                                    click="openTransitionModal({{ $app->id }})">
                                     <x-slot:icon>
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @else
+                                <x-entity-card-menu-item 
+                                    :disabled="true" 
+                                    label="Advance Workflow Transition (Locked)" 
+                                    tooltip="Locked: Campaign completed or closed">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                                     </x-slot:icon>
                                 </x-entity-card-menu-item>
                             @endif
-
-                            <x-entity-card-menu-item 
-                                label="Advance Workflow Transition" 
-                                click="openTransitionModal({{ $app->id }})">
-                                <x-slot:icon>
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-                                </x-slot:icon>
-                            </x-entity-card-menu-item>
 
                             @if($app->status !== 'ELIGIBLE' && $app->status !== 'APPROVED')
+                                @if($canModifyApp)
+                                    <x-entity-card-menu-item 
+                                        label="Mark as Eligible for Board" 
+                                        click="markAsEligible({{ $app->id }})">
+                                        <x-slot:icon>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                        </x-slot:icon>
+                                    </x-entity-card-menu-item>
+                                @else
+                                    <x-entity-card-menu-item 
+                                        :disabled="true" 
+                                        label="Mark as Eligible (Locked)" 
+                                        tooltip="Locked: Campaign completed or closed">
+                                        <x-slot:icon>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                        </x-slot:icon>
+                                    </x-entity-card-menu-item>
+                                @endif
+                            @endif
+
+                            @if($canModifyApp)
                                 <x-entity-card-menu-item 
-                                    label="Mark as Eligible for Board" 
-                                    click="markAsEligible({{ $app->id }})">
+                                    label="Mark Incomplete Dossier" 
+                                    click="openIncompleteModal({{ $app->id }})">
                                     <x-slot:icon>
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @else
+                                <x-entity-card-menu-item 
+                                    :disabled="true" 
+                                    label="Mark Incomplete Dossier (Locked)" 
+                                    tooltip="Locked: Campaign completed or closed">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                                     </x-slot:icon>
                                 </x-entity-card-menu-item>
                             @endif
 
-                            <x-entity-card-menu-item 
-                                label="Mark Incomplete Dossier" 
-                                click="openIncompleteModal({{ $app->id }})">
-                                <x-slot:icon>
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                                </x-slot:icon>
-                            </x-entity-card-menu-item>
+                            @if($canModifyApp)
+                                <x-entity-card-menu-item 
+                                    label="Reject / Disqualify Application" 
+                                    click="openRejectModal({{ $app->id }})">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @else
+                                <x-entity-card-menu-item 
+                                    :disabled="true" 
+                                    label="Reject / Disqualify (Locked)" 
+                                    tooltip="Locked: Campaign completed or closed">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @endif
 
-                            <x-entity-card-menu-item 
-                                label="Reject / Disqualify Application" 
-                                click="openRejectModal({{ $app->id }})">
-                                <x-slot:icon>
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                                </x-slot:icon>
-                            </x-entity-card-menu-item>
-
-                            <x-entity-card-menu-item 
-                                label="Edit Application Record" 
-                                click="openEditApplicationForm({{ $app->id }})">
-                                <x-slot:icon>
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                                </x-slot:icon>
-                            </x-entity-card-menu-item>
+                            @if($canModifyApp)
+                                <x-entity-card-menu-item 
+                                    label="Edit Application Record" 
+                                    click="openEditApplicationForm({{ $app->id }})">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @else
+                                <x-entity-card-menu-item 
+                                    :disabled="true" 
+                                    label="Edit Application Record (Locked)" 
+                                    tooltip="Locked: Campaign completed or closed">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @endif
 
                             @if(auth()->user()->hasRole('super-admin') && $app->user && auth()->id() !== $app->user->id && !$app->user->hasRole('super-admin'))
                                 <div class="entity-card-menu-divider"></div>
@@ -511,15 +633,26 @@
 
                             @can('delete-application')
                                 <div class="entity-card-menu-divider"></div>
-                                <x-entity-card-menu-item 
-                                    label="Delete Application" 
-                                    click="deleteApplication({{ $app->id }})" 
-                                    :danger="true"
-                                    onclick="confirm('Are you sure you want to permanently delete this application record?') || event.stopImmediatePropagation()">
-                                    <x-slot:icon>
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-                                    </x-slot:icon>
-                                </x-entity-card-menu-item>
+                                @if($canDeleteApp)
+                                    <x-entity-card-menu-item 
+                                        label="Delete Application" 
+                                        click="deleteApplication({{ $app->id }})" 
+                                        :danger="true"
+                                        onclick="confirm('Are you sure you want to permanently delete this application record?') || event.stopImmediatePropagation()">
+                                        <x-slot:icon>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                        </x-slot:icon>
+                                    </x-entity-card-menu-item>
+                                @else
+                                    <x-entity-card-menu-item 
+                                        :disabled="true" 
+                                        label="Delete Application (Locked)" 
+                                        tooltip="Locked: Finalized or closed campaign applications cannot be deleted without Super Admin privileges">
+                                        <x-slot:icon>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                        </x-slot:icon>
+                                    </x-entity-card-menu-item>
+                                @endif
                             @endcan
                         </x-slot:menuActions>
                     </x-entity-card>
@@ -544,13 +677,24 @@
                                 $bStyle = $app->status_badge_style;
                                 $reviewsCount = $app->reviews->count();
                                 $reqReferees = $app->campaign->getRequiredPeerReviewersCount();
+                                $isClosedOrCompleted = $app->campaign?->is_closed || $app->campaign?->is_completed;
+                                $isSuperAdmin = auth()->user()?->hasRole('super-admin');
+                                $canModifyApp = $isSuperAdmin || !$isClosedOrCompleted;
+                                $isFinalized = in_array($app->status, ['APPOINTED', 'OFFERED', 'SELECTED']);
+                                $canDeleteApp = $isSuperAdmin || (!$isClosedOrCompleted && !$isFinalized);
                             @endphp
                             <tr wire:key="app-row-{{ $app->id }}">
                                 <td>
                                     <div style="display: flex; align-items: center; gap: 0.85rem;">
-                                        <div class="user-avatar-circle" style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(6,182,212,0.25)); color: var(--primary); font-weight: 800; font-size: 1rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(99,102,241,0.25);">
-                                            {{ strtoupper(substr($app->user->basicInfo?->first_name ?: $app->user->email, 0, 1)) }}
-                                        </div>
+                                        @if($app->user->basicInfo?->profile_picture_url)
+                                            <div class="user-avatar-circle" style="width: 40px; height: 40px; border-radius: 12px; overflow: hidden; padding: 0; flex-shrink: 0; border: 1.5px solid var(--border-color); box-shadow: var(--shadow-sm);">
+                                                <img src="{{ $app->user->basicInfo->profile_picture_url }}" alt="{{ $app->user->email }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+                                        @else
+                                            <div class="user-avatar-circle" style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(6,182,212,0.25)); color: var(--primary); font-weight: 800; font-size: 1rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(99,102,241,0.25);">
+                                                {{ strtoupper(substr($app->user->basicInfo?->first_name ?: $app->user->email, 0, 1)) }}
+                                            </div>
+                                        @endif
                                         <div>
                                             <div style="font-weight: 800; color: var(--color-text-primary); font-size: 0.96rem;">
                                                 {{ $app->user->basicInfo ? ($app->user->basicInfo->first_name . ' ' . $app->user->basicInfo->last_name) : $app->user->email }}
@@ -617,9 +761,18 @@
                                         <button type="button" class="action-btn action-btn-view" wire:click="viewApplicationDetails({{ $app->id }})" data-tooltip="View Application Dossier">
                                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                                         </button>
-                                        <button type="button" class="action-btn action-btn-perms" wire:click="openTransitionModal({{ $app->id }})" data-tooltip="Advance Workflow Transition">
-                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-                                        </button>
+                                        @if($canModifyApp)
+                                            <button type="button" class="action-btn action-btn-perms" wire:click="openTransitionModal({{ $app->id }})" data-tooltip="Advance Workflow Transition">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                                            </button>
+                                        @else
+                                            <button type="button" class="action-btn disabled" disabled data-tooltip="Workflow Locked: Position completed or closed" style="opacity: 0.45; cursor: not-allowed;">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                                </svg>
+                                            </button>
+                                        @endif
 
                                         <!-- 3-Dot More Actions Dropdown -->
                                         <div class="table-action-dropdown-wrap" @click.outside="openMenu = false">
@@ -636,47 +789,87 @@
                                             </button>
                                             <div class="table-action-dropdown" x-show="openMenu" x-cloak style="display: none;" @click="openMenu = false">
                                                 @if($reqReferees > 0 || $app->campaign->track_type === 'ACADEMIC')
-                                                    <button type="button" class="table-action-menu-item" wire:click="openDispatchModal({{ $app->id }})">
-                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color: #ec4899;"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>
-                                                        <span>Dispatch to Reviewers</span>
-                                                    </button>
+                                                    @if($canModifyApp)
+                                                        <button type="button" class="table-action-menu-item" wire:click="openDispatchModal({{ $app->id }})">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color: #ec4899;"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>
+                                                            <span>Dispatch to Reviewers</span>
+                                                        </button>
+                                                    @else
+                                                        <button type="button" class="table-action-menu-item disabled" disabled title="Locked: Position completed or closed">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                                            <span>Dispatch Reviewers (Locked)</span>
+                                                        </button>
+                                                    @endif
                                                 @endif
+
                                                 @if($reviewsCount >= 1 && ($app->status === 'UNDER_REVIEW' || $reviewsCount >= 2))
-                                                    <button type="button" class="table-action-menu-item success" wire:click="evaluatePeerReviewResults({{ $app->id }})">
-                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                                                        <span>Evaluate Peer Review</span>
-                                                    </button>
+                                                    @if($canModifyApp)
+                                                        <button type="button" class="table-action-menu-item success" wire:click="evaluatePeerReviewResults({{ $app->id }})">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                                                            <span>Evaluate Peer Review</span>
+                                                        </button>
+                                                    @else
+                                                        <button type="button" class="table-action-menu-item disabled" disabled title="Locked: Position completed or closed">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                                            <span>Evaluate Review (Locked)</span>
+                                                        </button>
+                                                    @endif
                                                 @endif
+
                                                 @if($app->status !== 'ELIGIBLE' && $app->status !== 'APPROVED')
-                                                    <button type="button" class="table-action-menu-item success" wire:click="markAsEligible({{ $app->id }})">
-                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                                                        <span>Mark as Eligible</span>
+                                                    @if($canModifyApp)
+                                                        <button type="button" class="table-action-menu-item success" wire:click="markAsEligible({{ $app->id }})">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                                            <span>Mark as Eligible</span>
+                                                        </button>
+                                                    @else
+                                                        <button type="button" class="table-action-menu-item disabled" disabled title="Locked: Position completed or closed">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                                            <span>Mark Eligible (Locked)</span>
+                                                        </button>
+                                                    @endif
+                                                @endif
+
+                                                @if($canModifyApp)
+                                                    <button type="button" class="table-action-menu-item" wire:click="openIncompleteModal({{ $app->id }})">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color: var(--warning);"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                                        <span>Mark Incomplete</span>
+                                                    </button>
+                                                    <button type="button" class="table-action-menu-item danger" wire:click="openRejectModal({{ $app->id }})">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                                        <span>Reject / Disqualify</span>
+                                                    </button>
+                                                    <button type="button" class="table-action-menu-item" wire:click="openEditApplicationForm({{ $app->id }})">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                                        <span>Edit Application</span>
+                                                    </button>
+                                                @else
+                                                    <button type="button" class="table-action-menu-item disabled" disabled title="Locked: Position completed or closed">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                                        <span>Edit Application (Locked)</span>
                                                     </button>
                                                 @endif
-                                                <button type="button" class="table-action-menu-item" wire:click="openIncompleteModal({{ $app->id }})">
-                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color: var(--warning);"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                                                    <span>Mark Incomplete</span>
-                                                </button>
-                                                <button type="button" class="table-action-menu-item danger" wire:click="openRejectModal({{ $app->id }})">
-                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                                                    <span>Reject / Disqualify</span>
-                                                </button>
-                                                <button type="button" class="table-action-menu-item" wire:click="openEditApplicationForm({{ $app->id }})">
-                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                                                    <span>Edit Application</span>
-                                                </button>
+
                                                 @if(auth()->user()->hasRole('super-admin') && $app->user && auth()->id() !== $app->user->id && !$app->user->hasRole('super-admin'))
                                                     <a href="{{ route('impersonate.start', $app->user->id) }}" class="table-action-menu-item impersonate">
                                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                                         <span>Impersonate Applicant</span>
                                                     </a>
                                                 @endif
+
                                                 @can('delete-application')
                                                     <div class="table-action-menu-divider"></div>
-                                                    <button type="button" class="table-action-menu-item danger" wire:click="deleteApplication({{ $app->id }})" wire:confirm="Are you sure you want to permanently delete this application record?">
-                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-                                                        <span>Delete Application</span>
-                                                    </button>
+                                                    @if($canDeleteApp)
+                                                        <button type="button" class="table-action-menu-item danger" wire:click="deleteApplication({{ $app->id }})" wire:confirm="Are you sure you want to permanently delete this application record?">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                                            <span>Delete Application</span>
+                                                        </button>
+                                                    @else
+                                                        <button type="button" class="table-action-menu-item disabled" disabled title="Locked: Finalized or closed campaign applications cannot be deleted">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                                            <span>Delete Application (Locked)</span>
+                                                        </button>
+                                                    @endif
                                                 @endcan
                                             </div>
                                         </div>
@@ -1045,9 +1238,15 @@
                 <div style="background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(6,182,212,0.08)); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.25rem;">
                     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
                         <div style="display: flex; align-items: center; gap: 1rem;">
-                            <div class="user-avatar-circle" style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, var(--primary), var(--secondary)); font-size: 1.25rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; justify-content: center;">
-                                {{ strtoupper(substr($selectedRecordDetails->user->basicInfo?->first_name ?: $selectedRecordDetails->user->email, 0, 1)) }}
-                            </div>
+                            @if($selectedRecordDetails->user->basicInfo?->profile_picture_url)
+                                <div class="user-avatar-circle" style="width: 52px; height: 52px; border-radius: 14px; overflow: hidden; padding: 0; flex-shrink: 0; border: 2px solid var(--primary); box-shadow: var(--shadow-sm);">
+                                    <img src="{{ $selectedRecordDetails->user->basicInfo->profile_picture_url }}" alt="{{ $selectedRecordDetails->user->email }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                            @else
+                                <div class="user-avatar-circle" style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, var(--primary), var(--secondary)); font-size: 1.25rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; justify-content: center;">
+                                    {{ strtoupper(substr($selectedRecordDetails->user->basicInfo?->first_name ?: $selectedRecordDetails->user->email, 0, 1)) }}
+                                </div>
+                            @endif
                             <div>
                                 <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--color-text-primary);">
                                     {{ $selectedRecordDetails->user->basicInfo ? ($selectedRecordDetails->user->basicInfo->first_name . ' ' . $selectedRecordDetails->user->basicInfo->last_name) : $selectedRecordDetails->user->email }}

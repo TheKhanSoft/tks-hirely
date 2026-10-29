@@ -304,6 +304,7 @@
                         :title="$displayName ?: $u->email" 
                         :subtitle="$displayName ? $u->email : 'Registered User'"
                         :avatar="strtoupper(substr($displayName ?: $u->email, 0, 1))"
+                        :avatar-image="$u->profile_picture_url"
                         :avatarClass="$avatarTheme"
                         :is-active="$u->is_active">
                         
@@ -519,9 +520,15 @@
                             <tr wire:key="user-row-{{ $u->id }}">
                                 <td>
                                     <div style="display: flex; align-items: center; gap: 0.85rem;">
-                                        <div class="user-avatar-circle" style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, rgba(99,102,241,0.22), rgba(6,182,212,0.22)); color: var(--primary); font-weight: 800; font-size: 1rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(99,102,241,0.25);">
-                                            {{ strtoupper(substr($displayName ?: $u->email, 0, 1)) }}
-                                        </div>
+                                        @if($u->profile_picture_url)
+                                            <div class="user-avatar-circle" style="width: 40px; height: 40px; border-radius: 12px; overflow: hidden; padding: 0; flex-shrink: 0; border: 1.5px solid var(--border-color); box-shadow: var(--shadow-sm);">
+                                                <img src="{{ $u->profile_picture_url }}" alt="{{ $u->email }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+                                        @else
+                                            <div class="user-avatar-circle" style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, rgba(99,102,241,0.22), rgba(6,182,212,0.22)); color: var(--primary); font-weight: 800; font-size: 1rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(99,102,241,0.25);">
+                                                {{ strtoupper(substr($displayName ?: $u->email, 0, 1)) }}
+                                            </div>
+                                        @endif
                                         <div style="overflow: hidden;">
                                             @if($displayName)
                                                 <div style="font-weight: 800; color: var(--color-text-primary); font-size: 0.94rem;">
@@ -672,9 +679,15 @@
             <div style="max-height: 75vh; overflow-y: auto; padding-right: 0.25rem;">
                 <!-- Personnel Banner -->
                 <div style="display: flex; align-items: center; gap: 1rem; background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(6,182,212,0.08)); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.25rem;">
-                    <div class="user-avatar-circle" style="width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, var(--primary), var(--secondary)); font-size: 1.35rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; justify-content: center;">
-                        {{ strtoupper(substr($pName, 0, 1)) }}
-                    </div>
+                    @if($selectedPersonnel->profile_picture_url)
+                        <div class="user-avatar-circle" style="width: 56px; height: 56px; border-radius: 14px; overflow: hidden; padding: 0; flex-shrink: 0; border: 2px solid var(--primary); box-shadow: var(--shadow-sm);">
+                            <img src="{{ $selectedPersonnel->profile_picture_url }}" alt="{{ $pName }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                    @else
+                        <div class="user-avatar-circle" style="width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, var(--primary), var(--secondary)); font-size: 1.35rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; justify-content: center;">
+                            {{ strtoupper(substr($pName, 0, 1)) }}
+                        </div>
+                    @endif
                     <div style="flex: 1;">
                         <h3 style="margin: 0; font-size: 1.3rem; font-weight: 800; color: var(--color-text-primary);">
                             {{ $pName }}

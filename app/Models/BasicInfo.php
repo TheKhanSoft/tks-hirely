@@ -16,6 +16,7 @@ class BasicInfo extends Model
     protected $fillable = [
         'user_id',
         'track_type',
+        'profile_picture',
         'first_name',
         'last_name',
         'cnic_number',
@@ -147,5 +148,26 @@ class BasicInfo extends Model
     public function referees(): HasMany
     {
         return $this->hasMany(Referee::class, 'basic_info_id');
+    }
+
+    /**
+     * Get candidate profile picture URL.
+     */
+    public function getProfilePictureUrlAttribute(): ?string
+    {
+        if (!empty($this->profile_picture)) {
+            if (str_starts_with($this->profile_picture, 'http://') || str_starts_with($this->profile_picture, 'https://') || str_starts_with($this->profile_picture, 'data:image')) {
+                return $this->profile_picture;
+            }
+            return asset('storage/' . $this->profile_picture);
+        }
+
+        // Realistic dummy candidate avatar fallback
+        $name = urlencode(trim(($this->first_name ?? '') . ' ' . ($this->last_name ?? '')));
+        if (!empty($name)) {
+            return "https://ui-avatars.com/api/?name={$name}&background=6366f1&color=ffffff&bold=true&rounded=true&size=128";
+        }
+
+        return null;
     }
 }

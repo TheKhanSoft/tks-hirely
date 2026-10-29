@@ -122,6 +122,7 @@ class SystemSetting extends Model
             'noc' => 'require_noc_employed',
             'publications' => 'require_publications_academic',
             'challan_receipt' => 'require_challan_receipt_upload',
+            'photo', 'profile_picture' => 'require_profile_picture',
             default => "require_{$docType}",
         };
 

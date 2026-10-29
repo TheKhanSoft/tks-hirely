@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use App\Models\BasicInfo;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -10,7 +11,7 @@ use App\Livewire\Traits\WithDynamicListing;
 
 class CandidateProfileManagement extends Component
 {
-    use WithDynamicListing;
+    use WithDynamicListing, WithFileUploads;
 
     // View state
     public $isFormOpen = false;
@@ -18,9 +19,6 @@ class CandidateProfileManagement extends Component
     public $isDetailsOpen = false;
     public $selectedRecordId;
     public $selectedRecordDetails = null;
-
-    // Default per-page for card grid (16 items)
-    public $perPage = 16;
 
     // Search & Filters
     public $search = '';
@@ -34,6 +32,8 @@ class CandidateProfileManagement extends Component
     public $bi_id;
     public $bi_user_id;
     public $bi_track_type = 'ACADEMIC';
+    public $bi_profile_picture;
+    public $bi_existing_profile_picture;
     public $bi_first_name;
     public $bi_last_name;
     public $bi_cnic_number;
@@ -61,6 +61,8 @@ class CandidateProfileManagement extends Component
         $this->reset([
             'bi_id',
             'bi_user_id',
+            'bi_profile_picture',
+            'bi_existing_profile_picture',
             'bi_first_name',
             'bi_last_name',
             'bi_cnic_number',
@@ -89,6 +91,7 @@ class CandidateProfileManagement extends Component
         $basicInfo = BasicInfo::findOrFail($id);
         $this->bi_user_id = $basicInfo->user_id;
         $this->bi_track_type = $basicInfo->track_type;
+        $this->bi_existing_profile_picture = $basicInfo->profile_picture;
         $this->bi_first_name = $basicInfo->first_name;
         $this->bi_last_name = $basicInfo->last_name;
         $this->bi_cnic_number = $basicInfo->cnic_number;
@@ -107,16 +110,23 @@ class CandidateProfileManagement extends Component
                 'bi_last_name' => 'required|string|max:100',
                 'bi_cnic_number' => 'required|string|max:15|unique:basic_infos,cnic_number,' . $this->bi_id,
                 'bi_dob' => 'required|date',
+                'bi_profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             ]);
 
             $basicInfo = BasicInfo::findOrFail($this->bi_id);
-            $basicInfo->update([
+            $updateData = [
                 'first_name' => $this->bi_first_name,
                 'last_name' => $this->bi_last_name,
                 'cnic_number' => $this->bi_cnic_number,
                 'date_of_birth' => $this->bi_dob,
                 'is_locked' => $this->bi_is_locked,
-            ]);
+            ];
+
+            if ($this->bi_profile_picture) {
+                $updateData['profile_picture'] = $this->bi_profile_picture->store('profile_pictures', 'public');
+            }
+
+            $basicInfo->update($updateData);
             session()->flash('message', 'Candidate profile updated successfully.');
         } else {
             abort_unless(Auth::user()->can('create-basic-info'), 403);
@@ -126,9 +136,10 @@ class CandidateProfileManagement extends Component
                 'bi_last_name' => 'required|string|max:100',
                 'bi_cnic_number' => 'required|string|max:15|unique:basic_infos,cnic_number',
                 'bi_dob' => 'required|date',
+                'bi_profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             ]);
 
-            BasicInfo::create([
+            $createData = [
                 'user_id' => $this->bi_user_id,
                 'track_type' => $this->bi_track_type,
                 'first_name' => $this->bi_first_name,
@@ -136,7 +147,13 @@ class CandidateProfileManagement extends Component
                 'cnic_number' => $this->bi_cnic_number,
                 'date_of_birth' => $this->bi_dob,
                 'is_locked' => $this->bi_is_locked,
-            ]);
+            ];
+
+            if ($this->bi_profile_picture) {
+                $createData['profile_picture'] = $this->bi_profile_picture->store('profile_pictures', 'public');
+            }
+
+            BasicInfo::create($createData);
             session()->flash('message', 'Candidate profile created successfully.');
         }
 

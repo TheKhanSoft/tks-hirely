@@ -15,9 +15,6 @@ class RolePermissionManagement extends Component
     // Active sub-tab
     public $activeSubTab = 'roles'; // 'roles' or 'permissions'
 
-    // Listing defaults (16 cards per page = clean 4x4 or 3-5 per row)
-    public $perPage = 16;
-
     // View state
     public $isFormOpen = false;
     public $isEditMode = false;

@@ -27,9 +27,15 @@
     <div class="card mb-6" style="border-color: var(--secondary-glow); background: linear-gradient(135deg, var(--bg-card), rgba(6, 182, 212, 0.04));">
         <div class="flex justify-between align-center" style="flex-wrap: wrap; gap: 1.5rem;">
             <div style="display: flex; align-items: center; gap: 1rem;">
-                <div class="user-avatar-circle" style="width: 52px; height: 52px; font-size: 1.25rem; background: linear-gradient(135deg, var(--secondary), #0284c7);">
-                    {{ strtoupper(substr($application->user->basicInfo?->first_name ?: $application->user->email, 0, 1)) }}
-                </div>
+                @if($application->user->basicInfo?->profile_picture_url)
+                    <div class="user-avatar-circle" style="width: 52px; height: 52px; border-radius: 14px; overflow: hidden; padding: 0; flex-shrink: 0; border: 2px solid var(--secondary); box-shadow: var(--shadow-sm);">
+                        <img src="{{ $application->user->basicInfo->profile_picture_url }}" alt="Candidate" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                @else
+                    <div class="user-avatar-circle" style="width: 52px; height: 52px; font-size: 1.25rem; background: linear-gradient(135deg, var(--secondary), #0284c7);">
+                        {{ strtoupper(substr($application->user->basicInfo?->first_name ?: $application->user->email, 0, 1)) }}
+                    </div>
+                @endif
                 <div>
                     <span style="color: var(--color-text-muted); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Candidate Profile</span>
                     <h2 style="color: var(--color-text-primary); font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; margin: 0.15rem 0;">

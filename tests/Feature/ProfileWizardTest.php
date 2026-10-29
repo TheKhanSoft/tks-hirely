@@ -36,9 +36,12 @@ class ProfileWizardTest extends TestCase
 
         $this->actingAs($user);
 
+        $fakePhoto = \Illuminate\Http\UploadedFile::fake()->image('zafar_passport.jpg', 300, 300);
+
         // Test Livewire component
         Livewire::test(ProfileWizard::class)
             ->set('campaign_id', $campaign->id)
+            ->set('profile_picture', $fakePhoto)
             ->set('first_name', 'Zafar')
             ->set('last_name', '') // optional last name
             ->set('cnic_number', '3740512345671') // without dashes
@@ -62,6 +65,9 @@ class ProfileWizardTest extends TestCase
         $this->assertNull($basicInfo->last_name);
         // Assert CNIC is formatted with dashes
         $this->assertEquals('37405-1234567-1', $basicInfo->cnic_number);
+        $this->assertNotNull($basicInfo->profile_picture);
+        $this->assertStringContainsString('profile_pictures/', $basicInfo->profile_picture);
+        $this->assertNotNull($basicInfo->profile_picture_url);
 
         $this->assertEquals('House 123, Street 4, Islamabad Updated', $basicInfo->permanent_address);
         $this->assertEquals('House 123, Street 4, Islamabad Updated', $basicInfo->mailing_address);
@@ -351,6 +357,7 @@ class ProfileWizardTest extends TestCase
 
         // Step 1: Does NOT require campaign_id anymore
         $component = Livewire::test(ProfileWizard::class)
+            ->set('profile_picture', \Illuminate\Http\UploadedFile::fake()->image('hamza.jpg', 300, 300))
             ->set('first_name', 'Hamza')
             ->set('last_name', 'Tariq')
             ->set('cnic_number', '37405-1234567-9')
@@ -512,5 +519,109 @@ class ProfileWizardTest extends TestCase
             ->assertHasNoErrors();
 
         $this->assertCount(2, $user->fresh()->applications);
+    }
+
+    public function test_candidate_photo_is_strictly_required_on_new_profile_and_persisted(): void
+    {
+        $this->seed(\Database\Seeders\SpatieRoleAndPermissionSeeder::class);
+
+        $user = User::factory()->create();
+        $user->assignRole('applicant');
+
+        $campaign = Campaign::create([
+            'job_code' => 'PHOTO-001',
+            'title' => 'Lecturer Mathematics',
+            'track_type' => 'ACADEMIC',
+            'department' => 'Mathematics',
+            'opening_date' => now()->subDay(),
+            'closing_date' => now()->addDays(15),
+            'application_fee' => 1000.00,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($user);
+
+        // 1. Attempting Step 1 without profile picture fails validation
+        Livewire::test(ProfileWizard::class)
+            ->set('campaign_id', $campaign->id)
+            ->set('first_name', 'Hamza')
+            ->set('last_name', 'Abbasi')
+            ->set('cnic_number', '37405-9999999-1')
+            ->set('date_of_birth', '1996-03-20')
+            ->set('father_name', 'Tariq Abbasi')
+            ->set('phone_number', '03009999999')
+            ->set('place_of_birth', 'Islamabad')
+            ->set('domicile', 'Punjab')
+            ->set('permanent_address', 'F-7/2 Islamabad')
+            ->set('mailing_address', 'F-7/2 Islamabad')
+            ->call('nextStep')
+            ->assertHasErrors(['profile_picture' => 'required']);
+
+        // 2. Uploading valid candidate photo passes Step 1 and persists
+        $photo = \Illuminate\Http\UploadedFile::fake()->image('passport_hamza.png', 400, 500);
+
+        Livewire::test(ProfileWizard::class)
+            ->set('campaign_id', $campaign->id)
+            ->set('profile_picture', $photo)
+            ->set('first_name', 'Hamza')
+            ->set('last_name', 'Abbasi')
+            ->set('cnic_number', '37405-9999999-1')
+            ->set('date_of_birth', '1996-03-20')
+            ->set('father_name', 'Tariq Abbasi')
+            ->set('phone_number', '03009999999')
+            ->set('place_of_birth', 'Islamabad')
+            ->set('domicile', 'Punjab')
+            ->set('permanent_address', 'F-7/2 Islamabad')
+            ->set('mailing_address', 'F-7/2 Islamabad')
+            ->call('nextStep')
+            ->assertHasNoErrors()
+            ->assertSet('currentStep', 2);
+
+        $saved = BasicInfo::where('user_id', $user->id)->first();
+        $this->assertNotNull($saved);
+        $this->assertNotNull($saved->profile_picture);
+        $this->assertNotEmpty($saved->profile_picture_url);
+        $this->assertStringContainsString('storage/profile_pictures', $saved->profile_picture_url);
+
+        // 3. User with existing profile picture does not need to re-upload when navigating
+        Livewire::test(ProfileWizard::class)
+            ->set('currentStep', 1)
+            ->call('nextStep')
+            ->assertHasNoErrors()
+            ->assertSet('currentStep', 2);
+    }
+
+    public function test_admin_candidate_profile_management_can_upload_and_display_photo(): void
+    {
+        $this->seed(\Database\Seeders\SpatieRoleAndPermissionSeeder::class);
+
+        $admin = User::factory()->create();
+        $admin->assignRole('super-admin');
+
+        $applicant = User::factory()->create(['email' => 'newapplicant@example.com']);
+        $applicant->assignRole('applicant');
+
+        $this->actingAs($admin);
+
+        $photo = \Illuminate\Http\UploadedFile::fake()->image('admin_upload.jpg', 300, 300);
+
+        \Livewire\Livewire::test(\App\Livewire\Admin\CandidateProfileManagement::class)
+            ->call('openCreateBasicInfoForm')
+            ->set('bi_user_id', $applicant->id)
+            ->set('bi_first_name', 'Bilal')
+            ->set('bi_last_name', 'Siddiqui')
+            ->set('bi_cnic_number', '42101-1122334-5')
+            ->set('bi_dob', '1992-08-10')
+            ->set('bi_track_type', 'ACADEMIC')
+            ->set('bi_profile_picture', $photo)
+            ->call('saveBasicInfo')
+            ->assertHasNoErrors();
+
+        $candidateInfo = BasicInfo::where('user_id', $applicant->id)->first();
+        $this->assertNotNull($candidateInfo);
+        $this->assertEquals('Bilal', $candidateInfo->first_name);
+        $this->assertNotNull($candidateInfo->profile_picture);
+        $this->assertNotNull($candidateInfo->profile_picture_url);
+        $this->assertNotNull($applicant->fresh()->profile_picture_url);
     }
 }

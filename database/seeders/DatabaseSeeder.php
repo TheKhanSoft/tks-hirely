@@ -213,8 +213,8 @@ class DatabaseSeeder extends Seeder
                 'title' => 'Director IT Operations',
                 'track_type' => 'ADMINISTRATIVE',
                 'department' => 'Information Technology Services',
-                'opening_date' => now()->subDays(2),
-                'closing_date' => now()->addDays(15),
+                'opening_date' => now()->subDays(60),
+                'closing_date' => now()->subDays(15),
                 'application_fee' => 5000.00,
                 'is_active' => true,
                 'scoring_rules' => [
@@ -230,8 +230,8 @@ class DatabaseSeeder extends Seeder
                 'title' => 'Security Patrol Officer',
                 'track_type' => 'SUPPORT',
                 'department' => 'Campus Security Division',
-                'opening_date' => now()->subDays(1),
-                'closing_date' => now()->addDays(10),
+                'opening_date' => now()->subDays(50),
+                'closing_date' => now()->subDays(10),
                 'application_fee' => 500.00,
                 'is_active' => true,
                 'scoring_rules' => [
@@ -240,5 +240,8 @@ class DatabaseSeeder extends Seeder
                 ]
             ]
         );
+
+        // 4. Run Comprehensive Pakistan Recruitment Demo Seeder
+        $this->call(PakistanRecruitmentDemoSeeder::class);
     }
 }

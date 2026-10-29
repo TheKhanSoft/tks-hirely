@@ -17,9 +17,6 @@ class UserManagement extends Component
     public $isFormOpen = false;
     public $isEditMode = false;
 
-    // Default per-page for card grid (16 provides 4 full rows of 4 cards)
-    public $perPage = 16;
-
     // Filters & Search
     public $search = '';
     public $roleFilter = '';

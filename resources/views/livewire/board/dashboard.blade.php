@@ -128,9 +128,15 @@
                         <tr wire:key="board-cand-{{ $cand->id }}">
                             <td>
                                 <div style="display: flex; align-items: center; gap: 0.85rem;">
-                                    <div class="user-avatar-circle" style="width: 38px; height: 38px; font-size: 0.85rem; font-weight: 800; background: linear-gradient(135deg, rgba(6,182,212,0.25), rgba(99,102,241,0.25)); color: var(--secondary); border: 1px solid rgba(6,182,212,0.3);">
-                                        {{ strtoupper(substr($cand->user->basicInfo?->first_name ?: $cand->user->email, 0, 1)) }}
-                                    </div>
+                                    @if($cand->user->basicInfo?->profile_picture_url)
+                                        <div class="user-avatar-circle" style="width: 38px; height: 38px; border-radius: 12px; overflow: hidden; padding: 0; flex-shrink: 0; border: 1px solid var(--border-color);">
+                                            <img src="{{ $cand->user->basicInfo->profile_picture_url }}" alt="Candidate" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                    @else
+                                        <div class="user-avatar-circle" style="width: 38px; height: 38px; font-size: 0.85rem; font-weight: 800; background: linear-gradient(135deg, rgba(6,182,212,0.25), rgba(99,102,241,0.25)); color: var(--secondary); border: 1px solid rgba(6,182,212,0.3);">
+                                            {{ strtoupper(substr($cand->user->basicInfo?->first_name ?: $cand->user->email, 0, 1)) }}
+                                        </div>
+                                    @endif
                                     <div>
                                         <strong style="color: var(--color-text-primary); font-size: 0.95rem;">
                                             {{ $cand->user->basicInfo ? trim($cand->user->basicInfo->first_name . ' ' . $cand->user->basicInfo->last_name) : $cand->user->email }}

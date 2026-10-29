@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\Application;
 use App\Models\Campaign;
+use App\Models\Advertisement;
 use App\Models\BillingLedger;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,6 +23,8 @@ class Dashboard extends Component
     public $showApplyModal = false;
     public $selectedCampaignIdForModal = null;
     public $campaignSearch = '';
+    public $campaignYearFilter = '';
+    public $campaignAdFilter = '';
 
     // Print-ready official challan slip modal
     public $showSlipModal = false;
@@ -88,7 +91,17 @@ class Dashboard extends Component
     {
         $this->showApplyModal = false;
         $this->selectedCampaignIdForModal = null;
+        $this->campaignSearch = '';
+        $this->campaignYearFilter = '';
+        $this->campaignAdFilter = '';
         $this->resetErrorBag();
+    }
+
+    public function resetCampaignFilters()
+    {
+        $this->campaignSearch = '';
+        $this->campaignYearFilter = '';
+        $this->campaignAdFilter = '';
     }
 
     public function selectCampaignForModal($campaignId)
@@ -217,7 +230,28 @@ class Dashboard extends Component
                   ->orWhere('department', 'like', $search);
             });
         }
+        if (!empty($this->campaignYearFilter)) {
+            $y = (int)$this->campaignYearFilter;
+            $activeCampaignsQuery->where(function ($q) use ($y) {
+                $q->whereHas('advertisement', fn($aq) => $aq->where('year', $y))
+                  ->orWhere(function($oq) use ($y) {
+                      $oq->whereNull('advertisement_id')->whereYear('opening_date', $y);
+                  });
+            });
+        }
+        if (!empty($this->campaignAdFilter)) {
+            $activeCampaignsQuery->where('advertisement_id', $this->campaignAdFilter);
+        }
         $availableCampaigns = $activeCampaignsQuery->orderBy('title')->get();
+
+        $applicantAdYears = Advertisement::distinct()->whereNotNull('year')->pluck('year')->all();
+        $applicantYears = collect(array_unique(array_merge($applicantAdYears, [(int)date('Y')])))->sortDesc()->values();
+
+        $adQuery = Advertisement::where('is_active', true)->where('valid_to', '>=', now())->withCount('campaigns');
+        if (!empty($this->campaignYearFilter)) {
+            $adQuery->where('year', (int)$this->campaignYearFilter);
+        }
+        $applicantAdvertisements = $adQuery->orderBy('year', 'desc')->orderBy('advertisement_no')->get();
 
         // Calculate dossier completeness percentage
         $completion = 0;
@@ -240,6 +274,8 @@ class Dashboard extends Component
             'allApplications' => $allApplications,
             'appliedCampaignIds' => $appliedCampaignIds,
             'availableCampaigns' => $availableCampaigns,
+            'applicantYears' => $applicantYears,
+            'applicantAdvertisements' => $applicantAdvertisements,
             'completion' => $completion,
             'totalApplications' => $allApplications->count(),
             'paidCount' => $allApplications->whereIn('status', ['PAID', 'ELIGIBLE', 'APPROVED'])->count(),

@@ -455,8 +455,12 @@
                         @endphp
                         <!-- User Detail in Topbar -->
                         <div class="topbar-user-badge" style="display: flex; align-items: center; gap: 0.65rem; background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.25rem 0.65rem 0.25rem 0.35rem; border-radius: 9999px;">
-                            <div class="user-avatar-circle" style="width: 32px; height: 32px; font-size: 0.82rem; font-weight: 700; flex-shrink: 0;">
-                                {{ $topInitial }}
+                            <div class="user-avatar-circle" style="width: 32px; height: 32px; font-size: 0.82rem; font-weight: 700; flex-shrink: 0; overflow: hidden; padding: 0; border: 1px solid var(--border-color);">
+                                @if($topUser->profile_picture_url)
+                                    <img src="{{ $topUser->profile_picture_url }}" alt="{{ $topName ?: $topUser->email }}" onerror="this.style.display='none';" style="width: 100%; height: 100%; object-fit: cover;">
+                                @else
+                                    {{ $topInitial }}
+                                @endif
                             </div>
                             <div style="display: flex; flex-direction: column; text-align: left; line-height: 1.15; max-width: 170px;">
                                 <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $topUser->email }}">

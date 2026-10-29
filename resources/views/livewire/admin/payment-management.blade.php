@@ -374,27 +374,54 @@
                                 @endif
                             @endif
 
+                            @php
+                                $isSuperAdmin = auth()->user()?->hasRole('super-admin');
+                                $canModifyPayment = $isSuperAdmin || $pay->status !== 'SETTLED';
+                            @endphp
+
                             @can('edit-payment')
-                                <x-entity-card-menu-item 
-                                    label="Edit Voucher Particulars" 
-                                    click="openEditPaymentForm({{ $pay->id }})">
-                                    <x-slot:icon>
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                                    </x-slot:icon>
-                                </x-entity-card-menu-item>
+                                @if($canModifyPayment)
+                                    <x-entity-card-menu-item 
+                                        label="Edit Voucher Particulars" 
+                                        click="openEditPaymentForm({{ $pay->id }})">
+                                        <x-slot:icon>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                        </x-slot:icon>
+                                    </x-entity-card-menu-item>
+                                @else
+                                    <x-entity-card-menu-item 
+                                        :disabled="true" 
+                                        label="Edit Voucher (Locked: Settled)" 
+                                        tooltip="Settled financial records cannot be modified without Super Admin privileges">
+                                        <x-slot:icon>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                        </x-slot:icon>
+                                    </x-entity-card-menu-item>
+                                @endif
                             @endcan
 
                             @can('delete-payment')
                                 <div class="entity-card-menu-divider"></div>
-                                <x-entity-card-menu-item 
-                                    label="Delete Billing Record" 
-                                    click="deletePayment({{ $pay->id }})" 
-                                    :danger="true"
-                                    onclick="confirm('Are you sure you want to permanently delete this billing voucher record?') || event.stopImmediatePropagation()">
-                                    <x-slot:icon>
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-                                    </x-slot:icon>
-                                </x-entity-card-menu-item>
+                                @if($canModifyPayment)
+                                    <x-entity-card-menu-item 
+                                        label="Delete Billing Record" 
+                                        click="deletePayment({{ $pay->id }})" 
+                                        :danger="true"
+                                        onclick="confirm('Are you sure you want to permanently delete this billing voucher record?') || event.stopImmediatePropagation()">
+                                        <x-slot:icon>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                        </x-slot:icon>
+                                    </x-entity-card-menu-item>
+                                @else
+                                    <x-entity-card-menu-item 
+                                        :disabled="true" 
+                                        label="Delete Record (Locked: Settled)" 
+                                        tooltip="Settled financial records cannot be deleted without Super Admin privileges">
+                                        <x-slot:icon>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                        </x-slot:icon>
+                                    </x-entity-card-menu-item>
+                                @endif
                             @endcan
                         </x-slot:menuActions>
                     </x-entity-card>
@@ -512,31 +539,62 @@
                                                 </svg>
                                             </button>
                                             <div class="table-action-dropdown" x-show="openMenu" x-cloak style="display: none;" @click="openMenu = false">
+                                                @php
+                                                    $isSuperAdmin = auth()->user()?->hasRole('super-admin');
+                                                    $canModifyPayment = $isSuperAdmin || $pay->status !== 'SETTLED';
+                                                @endphp
+
                                                 @can('edit-payment')
-                                                    <button type="button" 
-                                                            class="table-action-menu-item" 
-                                                            wire:click="openEditPaymentForm({{ $pay->id }})">
-                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                                        </svg>
-                                                        <span>Edit Voucher Particulars</span>
-                                                    </button>
+                                                    @if($canModifyPayment)
+                                                        <button type="button" 
+                                                                class="table-action-menu-item" 
+                                                                wire:click="openEditPaymentForm({{ $pay->id }})">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                                            </svg>
+                                                            <span>Edit Voucher Particulars</span>
+                                                        </button>
+                                                    @else
+                                                        <button type="button" 
+                                                                class="table-action-menu-item disabled" 
+                                                                disabled
+                                                                title="Settled financial records cannot be modified without Super Admin privileges">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                                            </svg>
+                                                            <span>Edit Voucher (Locked: Settled)</span>
+                                                        </button>
+                                                    @endif
                                                 @endcan
                                                 @can('delete-payment')
                                                     <div class="table-action-menu-divider"></div>
-                                                    <button type="button" 
-                                                            class="table-action-menu-item danger" 
-                                                            wire:click="deletePayment({{ $pay->id }})" 
-                                                            onclick="confirm('Are you sure you want to permanently delete this billing voucher record?') || event.stopImmediatePropagation()">
-                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                            <polyline points="3 6 5 6 21 6"/>
-                                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                                            <line x1="10" y1="11" x2="10" y2="17"/>
-                                                            <line x1="14" y1="11" x2="14" y2="17"/>
-                                                        </svg>
-                                                        <span>Delete Voucher Record</span>
-                                                    </button>
+                                                    @if($canModifyPayment)
+                                                        <button type="button" 
+                                                                class="table-action-menu-item danger" 
+                                                                wire:click="deletePayment({{ $pay->id }})" 
+                                                                onclick="confirm('Are you sure you want to permanently delete this billing voucher record?') || event.stopImmediatePropagation()">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                                <polyline points="3 6 5 6 21 6"/>
+                                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                                                <line x1="10" y1="11" x2="10" y2="17"/>
+                                                                <line x1="14" y1="11" x2="14" y2="17"/>
+                                                            </svg>
+                                                            <span>Delete Voucher Record</span>
+                                                        </button>
+                                                    @else
+                                                        <button type="button" 
+                                                                class="table-action-menu-item disabled" 
+                                                                disabled
+                                                                title="Settled financial records cannot be deleted without Super Admin privileges">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                                            </svg>
+                                                            <span>Delete Record (Locked: Settled)</span>
+                                                        </button>
+                                                    @endif
                                                 @endcan
                                             </div>
                                         </div>

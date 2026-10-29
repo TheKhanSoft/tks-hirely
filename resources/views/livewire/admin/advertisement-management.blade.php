@@ -96,12 +96,25 @@
         </div>
     @endif
 
+    @if(session()->has('error'))
+        <div class="card mb-4" style="background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.4); padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 0.6rem; color: #ef4444; font-size: 0.85rem; font-weight: 700;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span>{{ session('error') }}</span>
+            </div>
+            <button type="button" wire:click="$refresh" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.9rem;">✕</button>
+        </div>
+    @endif
+
     <!-- Dynamic Card Grid & Table View Component -->
     <x-entity-card-grid 
-        title="Official Advertisements & Notices"
-        :total-count="$advertisements->total()"
-        :paginator="$advertisements"
-        :view-mode="$viewMode"
+        :items="$advertisements"
+        entityName="Advertisements"
+        searchPlaceholder="Search by advertisement no, title, or newspaper reference..."
+        :perPage="$perPage"
+        :viewMode="$viewMode"
+        gridClass="grid-3-cols"
+        exportAction="exportCsv"
     >
         <x-slot:filters>
             <div style="width: 130px;">
@@ -122,27 +135,36 @@
                     <option value="INACTIVE">Inactive Only</option>
                 </select>
             </div>
+
+            @if(!empty($search) || !empty($yearFilter) || $statusFilter !== 'ALL')
+                <button type="button" class="btn btn-secondary btn-sm" wire:click="$set('search', ''); $set('yearFilter', ''); $set('statusFilter', 'ALL');" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.78rem;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    <span>Reset Filters</span>
+                </button>
+            @endif
         </x-slot:filters>
 
         <x-slot:headerActions>
             @can('create-campaign')
-                <button type="button" class="btn btn-primary" wire:click="openCreateModal" style="padding: 0.45rem 0.9rem; font-size: 0.82rem; font-weight: 700;">
+                <button type="button" class="btn btn-primary" wire:click="openCreateModal" style="padding: 0.45rem 0.9rem; font-size: 0.82rem; font-weight: 700; border-radius: 8px;">
                     + New Advertisement
                 </button>
             @endcan
         </x-slot:headerActions>
 
         <!-- Card Grid View -->
-        @foreach($advertisements as $ad)
-            @php
-                $badge = $ad->status_badge;
-                $isExpired = $ad->is_expired;
-                $isExtended = $ad->is_extended;
-            @endphp
-            <x-entity-card
-                :key="'ad-card-'.$ad->id"
-                avatar-initial="📢"
-                avatar-class="avatar-theme-indigo"
+        <x-slot:cards>
+            @foreach($advertisements as $ad)
+                @php
+                    $badge = $ad->status_badge;
+                    $isExpired = $ad->is_expired;
+                    $isExtended = $ad->is_extended;
+                @endphp
+                <x-entity-card
+                    :id="$ad->id"
+                    :key="'ad-card-'.$ad->id"
+                    avatar-initial="📢"
+                    avatar-class="avatar-theme-indigo"
                 :avatar-badge="(string)$ad->year"
                 :subtitle="$ad->newspaper_reference ?: 'Direct Notification'"
                 :is-active="$ad->is_active && !$isExpired"
@@ -235,11 +257,16 @@
 
                 <!-- Quick Hover Actions -->
                 <x-slot:quickActions>
+                    @php
+                        $isSuperAdmin = auth()->user()->hasRole('super-admin');
+                        $canEditAd = !$isExpired || $isSuperAdmin;
+                    @endphp
+
                     @can('edit-campaign')
                         <button type="button" 
                                 class="action-btn action-btn-view" 
                                 wire:click="openExtendModal({{ $ad->id }})" 
-                                data-tooltip="Extend Validity / Corrigendum" 
+                                data-tooltip="Extend Validity / Issue Corrigendum" 
                                 aria-label="Extend Validity">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>
                         </button>
@@ -256,60 +283,101 @@
                     <button type="button" 
                             class="action-btn action-btn-view" 
                             wire:click="openJobsModal({{ $ad->id }})" 
-                            data-tooltip="View Advertised Jobs" 
+                            data-tooltip="View Advertised Jobs ({{ $ad->campaigns_count }})" 
                             aria-label="View Jobs">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
                     </button>
 
                     @can('edit-campaign')
-                        <button type="button" 
-                                class="action-btn action-btn-edit" 
-                                wire:click="openEditModal({{ $ad->id }})" 
-                                data-tooltip="Edit Advertisement" 
-                                aria-label="Edit Advertisement">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                        </button>
+                        @if($canEditAd)
+                            <button type="button" 
+                                    class="action-btn action-btn-edit" 
+                                    wire:click="openEditModal({{ $ad->id }})" 
+                                    data-tooltip="{{ $isExpired ? 'Edit Advertisement (Super Admin Override)' : 'Edit Advertisement Particulars' }}" 
+                                    aria-label="Edit Advertisement">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            </button>
+                        @else
+                            <button type="button" 
+                                    class="action-btn action-btn-disabled" 
+                                    disabled 
+                                    data-tooltip="Locked: Advertisement expired (Super Admin only)" 
+                                    aria-label="Locked: Expired">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            </button>
+                        @endif
 
-                        <button type="button" 
-                                class="action-btn {{ $ad->is_active ? 'action-btn-success' : 'action-btn-delete' }}" 
-                                data-tooltip="{{ $ad->is_active ? 'Active (Click to Deactivate)' : 'Inactive (Click to Activate)' }}" 
-                                wire:click="toggleAdvertisementStatus({{ $ad->id }})" 
-                                aria-label="Toggle Status">
-                            @if($ad->is_active)
+                        @if($ad->is_active)
+                            <button type="button" 
+                                    class="action-btn action-btn-success" 
+                                    data-tooltip="Active (Click to Deactivate)" 
+                                    wire:click="toggleAdvertisementStatus({{ $ad->id }})" 
+                                    aria-label="Toggle Status">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                            @else
+                            </button>
+                        @elseif($isExpired && !$isSuperAdmin)
+                            <button type="button" 
+                                    class="action-btn action-btn-disabled" 
+                                    disabled 
+                                    data-tooltip="Locked: Extend validity date to reactivate expired advertisement" 
+                                    aria-label="Locked: Expired">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                            @endif
-                        </button>
+                            </button>
+                        @else
+                            <button type="button" 
+                                    class="action-btn action-btn-delete" 
+                                    data-tooltip="Inactive (Click to Activate)" 
+                                    wire:click="toggleAdvertisementStatus({{ $ad->id }})" 
+                                    aria-label="Toggle Status">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        @endif
                     @endcan
                 </x-slot:quickActions>
 
                 <!-- Kebab Menu Items -->
                 <x-slot:menuItems>
-                    <x-entity-card-menu-item wire-click="openExtendModal({{ $ad->id }})" label="Extend Validity Date">
+                    <x-entity-card-menu-item click="openExtendModal({{ $ad->id }})" label="Extend Validity Date">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                     </x-entity-card-menu-item>
 
-                    <x-entity-card-menu-item wire-click="openHistoryModal({{ $ad->id }})" label="View Date Tracks & History">
+                    <x-entity-card-menu-item click="openHistoryModal({{ $ad->id }})" label="View Date Tracks & History">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                     </x-entity-card-menu-item>
 
-                    <x-entity-card-menu-item wire-click="openJobsModal({{ $ad->id }})" label="View Advertised Jobs ({{ $ad->campaigns_count }})">
+                    <x-entity-card-menu-item click="openJobsModal({{ $ad->id }})" label="View Advertised Jobs ({{ $ad->campaigns_count }})">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
                     </x-entity-card-menu-item>
 
                     @can('edit-campaign')
-                        <x-entity-card-menu-item wire-click="openEditModal({{ $ad->id }})" label="Edit Advertisement Particulars">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                        </x-entity-card-menu-item>
+                        @if($canEditAd)
+                            <x-entity-card-menu-item click="openEditModal({{ $ad->id }})" label="Edit Advertisement Particulars">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            </x-entity-card-menu-item>
+                        @else
+                            <x-entity-card-menu-item :disabled="true" label="Edit Advertisement (Locked: Expired)" tooltip="Locked: Completed/expired advertisements require Super Admin to modify">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            </x-entity-card-menu-item>
+                        @endif
 
-                        <x-entity-card-menu-item wire-click="toggleAdvertisementStatus({{ $ad->id }})" label="{{ $ad->is_active ? 'Deactivate Advertisement' : 'Activate Advertisement' }}">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                        </x-entity-card-menu-item>
+                        @if($ad->is_active)
+                            <x-entity-card-menu-item click="toggleAdvertisementStatus({{ $ad->id }})" label="Deactivate Advertisement">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                            </x-entity-card-menu-item>
+                        @elseif($isExpired && !$isSuperAdmin)
+                            <x-entity-card-menu-item :disabled="true" label="Activate Advertisement (Locked: Expired)" tooltip="Extend validity date via Corrigendum before activating">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            </x-entity-card-menu-item>
+                        @else
+                            <x-entity-card-menu-item click="toggleAdvertisementStatus({{ $ad->id }})" label="Activate Advertisement">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            </x-entity-card-menu-item>
+                        @endif
                     @endcan
                 </x-slot:menuItems>
             </x-entity-card>
         @endforeach
+        </x-slot:cards>
 
         <!-- Table View Slot -->
         <x-slot:table>
@@ -772,7 +840,18 @@
                             </p>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-secondary btn-sm" wire:click="closeJobsModal" style="padding: 0.35rem 0.65rem;">✕</button>
+                    @php
+                        $campaignsBaseUrl = (auth()->user()->hasRole('registrar') && !auth()->user()->hasRole('super-admin')) ? '/registrar/campaigns' : '/admin/campaigns';
+                    @endphp
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <a href="{{ url($campaignsBaseUrl . '?advertisement_id=' . $selectedAdvertisementForJobs->id) }}" 
+                           class="btn btn-primary btn-sm" 
+                           style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.78rem; font-weight: 700; text-decoration: none;">
+                            <span>Filter in Campaigns Desk</span>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        </a>
+                        <button type="button" class="btn btn-secondary btn-sm" wire:click="closeJobsModal" style="padding: 0.35rem 0.65rem;">✕</button>
+                    </div>
                 </div>
 
                 @if(!empty($advertisedJobs) && count($advertisedJobs) > 0)
@@ -839,8 +918,8 @@
                 @endif
 
                 <div class="flex justify-between align-center mt-4" style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
-                    <a href="{{ url('/admin/campaigns') }}" class="btn btn-primary btn-sm" style="text-decoration: none;">
-                        Manage All Job Campaigns
+                    <a href="{{ url($campaignsBaseUrl . '?advertisement_id=' . $selectedAdvertisementForJobs->id) }}" class="btn btn-primary btn-sm" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+                        <span>Open & Manage {{ count($advertisedJobs) }} Position{{ count($advertisedJobs) === 1 ? '' : 's' }} in Campaigns Desk →</span>
                     </a>
                     <button type="button" class="btn btn-secondary" wire:click="closeJobsModal">Close</button>
                 </div>

@@ -2,30 +2,30 @@
     <!-- Left Pane: Verification Panel & Checklist -->
     <div class="split-left">
         <!-- Header Card -->
-        <div class="card mb-4" style="border-color: var(--secondary-glow); position: relative; overflow: hidden;">
-            <div style="position: absolute; right: -2rem; top: -2rem; width: 120px; height: 120px; background: radial-gradient(circle, var(--secondary-glow) 0%, transparent 70%); pointer-events: none;"></div>
-            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
-                <div class="brand-icon-box" style="width: 36px; height: 36px; border-radius: 8px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--secondary);">
+        <div class="card mb-4" style="border-color: rgba(6,182,212,0.3); background: linear-gradient(135deg, rgba(6,182,212,0.06) 0%, rgba(15,23,42,0.85) 100%); backdrop-filter: blur(16px); position: relative; overflow: hidden; padding: 1.35rem 1.5rem; border-radius: var(--radius-lg);">
+            <div style="position: absolute; right: -2rem; top: -2rem; width: 140px; height: 140px; background: radial-gradient(circle, var(--secondary-glow) 0%, transparent 70%); pointer-events: none;"></div>
+            <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.65rem;">
+                <div class="brand-icon-box" style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, rgba(6,182,212,0.25), rgba(14,165,233,0.4)); box-shadow: 0 4px 14px rgba(6,182,212,0.25); display: flex; align-items: center; justify-content: center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                         <polyline points="14 2 14 8 20 8"></polyline>
                         <path d="m9 15 2 2 4-4"></path>
                     </svg>
                 </div>
                 <div>
-                    <h2 class="card-title" style="margin: 0; font-size: 1.25rem;">Candidate Scrutiny Checklist</h2>
-                    <p class="card-subtitle" style="margin: 0;">
-                        Dossier for <strong style="color: var(--color-text-primary);">{{ trim(($application->user->basicInfo?->first_name ?? '') . ' ' . ($application->user->basicInfo?->last_name ?? '')) }}</strong>
+                    <h2 class="card-title" style="margin: 0; font-size: 1.35rem; font-weight: 800; letter-spacing: -0.02em;">Candidate Scrutiny Checklist</h2>
+                    <p class="card-subtitle" style="margin: 0.15rem 0 0;">
+                        Verification dossier for <strong style="color: var(--color-text-primary);">{{ trim(($application->user->basicInfo?->first_name ?? '') . ' ' . ($application->user->basicInfo?->last_name ?? '')) }}</strong>
                     </p>
                 </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; color: var(--color-text-secondary); padding-top: 0.5rem; border-top: 1px solid var(--border-color); flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; color: var(--color-text-secondary); padding-top: 0.65rem; border-top: 1px solid rgba(255, 255, 255, 0.08); flex-wrap: wrap;">
                 <span>Campaign: <strong style="color: var(--color-text-primary);">{{ $application->campaign->title }}</strong></span>
                 <span>•</span>
-                <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary);">{{ $application->campaign->track_type }} Track</span>
+                <span class="badge" style="background: rgba(99,102,241,0.15); color: var(--primary); font-weight: 700;">{{ $application->campaign->track_type }} Track</span>
                 @if($application->campaign->advertisement)
                     <span>•</span>
-                    <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); font-weight: 800;">
+                    <span class="badge" style="background: rgba(6,182,212,0.15); color: var(--secondary); font-weight: 800; border: 1px solid rgba(6,182,212,0.3);">
                         📢 {{ $application->campaign->advertisement->advertisement_no }} (Year {{ $application->campaign->advertisement->year }})
                     </span>
                 @endif
@@ -55,20 +55,41 @@
                 <h3 class="card-title" style="margin: 0; font-size: 1.05rem; color: var(--secondary);">Bio-Data & CNIC Verification</h3>
             </div>
             
-            <div class="grid grid-cols-2 gap-3 mb-4" style="font-size: 0.9rem; background: var(--bg-tertiary); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                <div><span style="color: var(--color-text-secondary);">Full Name:</span> <strong style="color: var(--color-text-primary);">{{ trim(($application->user->basicInfo?->first_name ?? '') . ' ' . ($application->user->basicInfo?->last_name ?? '')) }}</strong></div>
-                <div><span style="color: var(--color-text-secondary);">CNIC Number:</span> <code style="color: var(--secondary); font-weight: 700;">{{ $application->user->basicInfo?->cnic_number }}</code></div>
-                <div><span style="color: var(--color-text-secondary);">DOB:</span> <strong style="color: var(--color-text-primary);">{{ $application->user->basicInfo?->date_of_birth?->format('Y-m-d') }}</strong></div>
-                <div><span style="color: var(--color-text-secondary);">Quota:</span> <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary);">{{ $application->user->basicInfo?->quota ?? 'General Merit' }}</span></div>
+            <div style="display: flex; gap: 1.15rem; align-items: center; background: var(--bg-tertiary); padding: 0.85rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 1rem;">
+                @if($application->user->basicInfo?->profile_picture_url)
+                    <div style="width: 60px; height: 70px; border-radius: 8px; border: 1.5px solid var(--secondary); overflow: hidden; flex-shrink: 0; box-shadow: var(--shadow-sm);">
+                        <img src="{{ $application->user->basicInfo->profile_picture_url }}" alt="Candidate Photograph" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                @else
+                    <div style="width: 55px; height: 55px; border-radius: 12px; background: rgba(99,102,241,0.15); color: var(--primary); font-size: 1.35rem; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        {{ strtoupper(substr($application->user->basicInfo?->first_name ?: $application->user->email, 0, 1)) }}
+                    </div>
+                @endif
+
+                <div class="grid grid-cols-2 gap-3" style="font-size: 0.9rem; flex: 1;">
+                    <div><span style="color: var(--color-text-secondary);">Full Name:</span> <strong style="color: var(--color-text-primary);">{{ trim(($application->user->basicInfo?->first_name ?? '') . ' ' . ($application->user->basicInfo?->last_name ?? '')) }}</strong></div>
+                    <div><span style="color: var(--color-text-secondary);">CNIC Number:</span> <code style="color: var(--secondary); font-weight: 700;">{{ $application->user->basicInfo?->cnic_number }}</code></div>
+                    <div><span style="color: var(--color-text-secondary);">DOB:</span> <strong style="color: var(--color-text-primary);">{{ $application->user->basicInfo?->date_of_birth?->format('Y-m-d') }}</strong></div>
+                    <div><span style="color: var(--color-text-secondary);">Quota:</span> <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary);">{{ $application->user->basicInfo?->quota ?? 'General Merit' }}</span></div>
+                </div>
             </div>
             
-            @if(isset($application->user->basicInfo?->dynamic_attributes['disability_cert_path']))
-                <button type="button" class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 0.75rem;" 
-                    wire:click="viewDocument('Disability Certificate', '{{ $application->user->basicInfo->dynamic_attributes['disability_cert_path'] }}', 'CERTIFICATE')">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                    <span>Inspect Disability Certificate</span>
-                </button>
-            @endif
+            <div class="flex gap-2" style="flex-wrap: wrap; margin-bottom: 0.75rem;">
+                @if($application->user->basicInfo?->profile_picture)
+                    <button type="button" class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.4rem;" 
+                        wire:click="viewDocument('Candidate Photograph', '{{ $application->user->basicInfo->profile_picture }}', 'PHOTOGRAPH')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                        <span>Inspect Formal Photograph</span>
+                    </button>
+                @endif
+                @if(isset($application->user->basicInfo?->dynamic_attributes['disability_cert_path']))
+                    <button type="button" class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.4rem;" 
+                        wire:click="viewDocument('Disability Certificate', '{{ $application->user->basicInfo->dynamic_attributes['disability_cert_path'] }}', 'CERTIFICATE')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        <span>Inspect Disability Certificate</span>
+                    </button>
+                @endif
+            </div>
 
             <label style="display: flex; align-items: center; gap: 0.6rem; cursor: pointer; padding: 0.5rem; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
                 <input type="checkbox" wire:model="verified_biodata" style="width: 1.15rem; height: 1.15rem; accent-color: var(--primary);">
@@ -390,6 +411,12 @@
                         <h2 style="font-family: 'Plus Jakarta Sans', sans-serif; color: var(--color-text-primary); font-size: 1.65rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.25rem;">OFFICIAL ATTESTATION PROOF</h2>
                         <p style="font-size: 0.8rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.1em;">Verified Document Record</p>
                         
+                        @if($viewingDocType === 'PHOTOGRAPH' || preg_match('/\.(jpg|jpeg|png|webp)$/i', $viewingDocPath))
+                            <div style="margin: 1.5rem auto 1rem; width: 140px; height: 165px; border-radius: 12px; border: 2.5px solid var(--secondary); overflow: hidden; box-shadow: var(--shadow-md); background: #000;">
+                                <img src="/storage/{{ $viewingDocPath }}" alt="Candidate Photograph" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                        @endif
+
                         <div style="border-top: 1.5px solid var(--border-color); border-bottom: 1.5px solid var(--border-color); padding: 1.5rem 0; margin: 1.5rem 0;">
                             <p style="font-style: italic; color: var(--color-text-secondary); font-size: 0.95rem; margin-bottom: 0.5rem;">This official dossier entry confirms the digital record validation of:</p>
                             <h3 style="font-size: 1.45rem; font-weight: 800; color: var(--color-text-primary); margin: 0.25rem 0;">

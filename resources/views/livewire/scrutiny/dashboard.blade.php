@@ -168,9 +168,15 @@
                         <tr wire:key="scrutiny-app-{{ $app->id }}">
                             <td>
                                 <div style="display: flex; align-items: center; gap: 0.85rem;">
-                                    <div class="user-avatar-circle" style="width: 38px; height: 38px; font-size: 0.85rem; font-weight: 800; background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(6,182,212,0.25)); color: var(--primary); border: 1px solid rgba(99,102,241,0.3);">
-                                        {{ strtoupper(substr($app->user->basicInfo?->first_name ?: $app->user->email, 0, 1)) }}
-                                    </div>
+                                    @if($app->user->basicInfo?->profile_picture_url)
+                                        <div class="user-avatar-circle" style="width: 38px; height: 38px; border-radius: 12px; overflow: hidden; padding: 0; flex-shrink: 0; border: 1px solid var(--border-color);">
+                                            <img src="{{ $app->user->basicInfo->profile_picture_url }}" alt="Candidate" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                    @else
+                                        <div class="user-avatar-circle" style="width: 38px; height: 38px; font-size: 0.85rem; font-weight: 800; background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(6,182,212,0.25)); color: var(--primary); border: 1px solid rgba(99,102,241,0.3);">
+                                            {{ strtoupper(substr($app->user->basicInfo?->first_name ?: $app->user->email, 0, 1)) }}
+                                        </div>
+                                    @endif
                                     <div>
                                         <strong style="color: var(--color-text-primary); font-size: 0.95rem;">
                                             {{ $app->user->basicInfo ? trim($app->user->basicInfo->first_name . ' ' . $app->user->basicInfo->last_name) : $app->user->email }}

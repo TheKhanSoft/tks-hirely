@@ -139,6 +139,38 @@
                     </div>
                 @endif
 
+                <!-- Candidate Photograph Upload with Live Preview -->
+                <div style="background: var(--bg-tertiary); border: 1.5px dashed var(--border-color); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;">
+                    <div style="width: 64px; height: 72px; border-radius: 10px; border: 1.5px solid var(--primary); overflow: hidden; background: var(--bg-card); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: var(--shadow-sm);">
+                        @if ($bi_profile_picture)
+                            <img src="{{ $bi_profile_picture->temporaryUrl() }}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
+                        @elseif ($bi_existing_profile_picture)
+                            <img src="{{ asset('storage/' . $bi_existing_profile_picture) }}" alt="Photo" style="width: 100%; height: 100%; object-fit: cover;">
+                        @else
+                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--color-text-muted);">
+                                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                <span style="font-size: 0.58rem; font-weight: 700; text-transform: uppercase;">No Photo</span>
+                            </div>
+                        @endif
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <label style="font-size: 0.85rem; font-weight: 700; color: var(--color-text-primary); display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.25rem;">
+                            <span>Candidate Photograph (Passport Size)</span>
+                            @if($bi_existing_profile_picture)
+                                <span class="badge badge-paid" style="font-size: 0.65rem; padding: 0.1rem 0.45rem;">Current Photo Attached</span>
+                            @endif
+                        </label>
+                        <input type="file" wire:model="bi_profile_picture" class="form-control" accept="image/jpeg,image/png,image/jpg,image/webp" style="font-size: 0.82rem; padding: 0.35rem 0.55rem;">
+                        <div class="flex align-center gap-2 mt-1" style="font-size: 0.72rem; color: var(--color-text-muted);">
+                            <span>Max 2MB (JPG, PNG, WEBP)</span>
+                            <div wire:loading wire:target="bi_profile_picture" style="color: var(--secondary); font-weight: 700;">• Uploading image...</div>
+                        </div>
+                        @error('bi_profile_picture')
+                            <span style="color: var(--danger); font-size: 0.78rem; font-weight: 700; display: block; margin-top: 0.25rem;">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-2 gap-5">
                     <x-input label="First Name *" :error="$errors->first('bi_first_name')">
                         <input type="text" class="form-control" wire:model="bi_first_name" placeholder="Candidate given name">
@@ -237,6 +269,7 @@
                         :title="$basicInfo->first_name . ' ' . $basicInfo->last_name" 
                         :subtitle="$basicInfo->user?->email"
                         :avatar="strtoupper(substr($basicInfo->first_name ?: 'C', 0, 1))"
+                        :avatar-image="$basicInfo->profile_picture_url"
                         :avatarClass="$trackTheme"
                         :is-active="!$basicInfo->is_locked">
                         
@@ -425,9 +458,15 @@
                             <tr wire:key="profile-row-{{ $basicInfo->id }}">
                                 <td>
                                     <div style="display: flex; align-items: center; gap: 0.85rem;">
-                                        <div class="user-avatar-circle" style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(6,182,212,0.25)); color: var(--primary); font-weight: 800; font-size: 1rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(99,102,241,0.25);">
-                                            {{ strtoupper(substr($basicInfo->first_name ?: 'C', 0, 1)) }}
-                                        </div>
+                                        @if($basicInfo->profile_picture_url)
+                                            <div class="user-avatar-circle" style="width: 40px; height: 40px; border-radius: 12px; overflow: hidden; padding: 0; flex-shrink: 0; border: 1.5px solid var(--border-color); box-shadow: var(--shadow-sm);">
+                                                <img src="{{ $basicInfo->profile_picture_url }}" alt="{{ $basicInfo->first_name }}" onerror="this.style.display='none';" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+                                        @else
+                                            <div class="user-avatar-circle" style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(6,182,212,0.25)); color: var(--primary); font-weight: 800; font-size: 1rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(99,102,241,0.25);">
+                                                {{ strtoupper(substr($basicInfo->first_name ?: 'C', 0, 1)) }}
+                                            </div>
+                                        @endif
                                         <div>
                                             <div style="font-weight: 800; color: var(--color-text-primary); font-size: 0.96rem;">
                                                 {{ $basicInfo->first_name }} {{ $basicInfo->last_name }}
@@ -561,9 +600,15 @@
                 <!-- Candidate Bio Header Card -->
                 <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(6,182,212,0.08)); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.25rem;">
                     <div style="display: flex; align-items: center; gap: 1rem;">
-                        <div class="user-avatar-circle" style="width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, var(--primary), var(--secondary)); font-size: 1.35rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; justify-content: center;">
-                            {{ strtoupper(substr($selectedRecordDetails->first_name ?: $selectedRecordDetails->user->email, 0, 1)) }}
-                        </div>
+                        @if($selectedRecordDetails->profile_picture_url)
+                            <div class="user-avatar-circle" style="width: 56px; height: 56px; border-radius: 14px; overflow: hidden; padding: 0; flex-shrink: 0; border: 2px solid var(--primary); box-shadow: var(--shadow-sm);">
+                                <img src="{{ $selectedRecordDetails->profile_picture_url }}" alt="{{ $selectedRecordDetails->first_name }}" onerror="this.style.display='none';" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                        @else
+                            <div class="user-avatar-circle" style="width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, var(--primary), var(--secondary)); font-size: 1.35rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; justify-content: center;">
+                                {{ strtoupper(substr($selectedRecordDetails->first_name ?: $selectedRecordDetails->user->email, 0, 1)) }}
+                            </div>
+                        @endif
                         <div>
                             <h3 style="margin: 0; font-size: 1.35rem; font-weight: 800; color: var(--color-text-primary);">
                                 {{ $selectedRecordDetails->first_name }} {{ $selectedRecordDetails->last_name }}

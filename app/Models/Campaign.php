@@ -273,4 +273,64 @@ class Campaign extends Model
     {
         return $this->hasMany(Application::class);
     }
+
+    /**
+     * Determine if campaign is closed by date or explicitly deactivated.
+     */
+    public function getIsClosedAttribute(): bool
+    {
+        return (bool)($this->closing_date && now()->gt($this->closing_date));
+    }
+
+    /**
+     * Determine if campaign recruitment cycle is fully completed/archived.
+     */
+    public function getIsCompletedAttribute(): bool
+    {
+        if ($this->closing_date && now()->gt($this->closing_date)) {
+            $totalApps = $this->applications()->where('status', '!=', 'DRAFT')->count();
+            if ($totalApps > 0) {
+                $decidedApps = $this->applications()->whereIn('status', ['APPROVED', 'REJECTED', 'INELIGIBLE', 'APPOINTED', 'DISQUALIFIED'])->count();
+                return $decidedApps >= $totalApps;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Status badge metadata based on campaign state.
+     */
+    public function getStatusBadgeAttribute(): array
+    {
+        if ($this->is_completed) {
+            return [
+                'label' => 'COMPLETED / LOCKED',
+                'color' => '#8b5cf6',
+                'class' => 'badge-purple',
+                'icon' => 'lock',
+            ];
+        }
+        if (!$this->is_active) {
+            return [
+                'label' => 'INACTIVE / SUSPENDED',
+                'color' => '#f59e0b',
+                'class' => 'badge-warning',
+                'icon' => 'inactive',
+            ];
+        }
+        if ($this->is_closed) {
+            return [
+                'label' => 'CLOSED (DEADLINE PASSED)',
+                'color' => '#ef4444',
+                'class' => 'badge-danger',
+                'icon' => 'closed',
+            ];
+        }
+        return [
+            'label' => 'ACTIVE POSITION',
+            'color' => '#10b981',
+            'class' => 'badge-success',
+            'icon' => 'active',
+        ];
+    }
 }

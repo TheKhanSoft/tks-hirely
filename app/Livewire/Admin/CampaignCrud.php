@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use Livewire\Component;
+use Livewire\Attributes\Url;
 use App\Models\Campaign;
 use App\Models\Advertisement;
 use App\Models\User;
@@ -32,7 +33,18 @@ class CampaignCrud extends Component
     public $constitution_id = null;
     public $process_flow_id = null;
     public $advertisement_id = null;
+
+    #[Url(as: 'ad')]
     public $advertisementFilter = '';
+
+    #[Url(as: 'year')]
+    public $yearFilter = '';
+
+    #[Url(as: 'track')]
+    public $trackFilter = 'ALL';
+
+    #[Url(as: 'status')]
+    public $statusFilter = 'ALL';
 
     // Flexible Academic Division & Marks Criteria Properties
     public $use_custom_academic_criteria = false;
@@ -115,12 +127,63 @@ class CampaignCrud extends Component
     public function mount()
     {
         abort_unless(Auth::check() && (Auth::user()->can('view-campaign') || Auth::user()->can('view-committee')), 403);
+
+        // Pre-fill filters from incoming query parameters if supplied
+        if (request()->has('advertisement_id') && empty($this->advertisementFilter)) {
+            $this->advertisementFilter = (string)request()->query('advertisement_id');
+        }
+        if (request()->has('year') && empty($this->yearFilter)) {
+            $this->yearFilter = (string)request()->query('year');
+        }
+        if (!empty($this->advertisementFilter) && empty($this->yearFilter) && $this->advertisementFilter !== 'NONE') {
+            $ad = Advertisement::find($this->advertisementFilter);
+            if ($ad) {
+                $this->yearFilter = (string)$ad->year;
+            }
+        }
+
         $this->loadCampaigns();
         if ($this->campaigns->isNotEmpty()) {
             $this->selected_campaign_id = $this->campaigns->first()->id;
             $this->syncConstitutionFromCampaign($this->selected_campaign_id);
         }
         $this->loadCommitteeData();
+    }
+
+    public function updatingAdvertisementFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingYearFilter($newYear)
+    {
+        $this->resetPage();
+        if (!empty($newYear) && !empty($this->advertisementFilter) && $this->advertisementFilter !== 'NONE') {
+            $ad = Advertisement::find($this->advertisementFilter);
+            if ($ad && (int)$ad->year !== (int)$newYear) {
+                $this->advertisementFilter = '';
+            }
+        }
+    }
+
+    public function updatingTrackFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingStatusFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function resetFilters()
+    {
+        $this->search = '';
+        $this->advertisementFilter = '';
+        $this->yearFilter = '';
+        $this->trackFilter = 'ALL';
+        $this->statusFilter = 'ALL';
+        $this->resetPage();
     }
 
     public function loadCampaigns()
@@ -234,9 +297,15 @@ class CampaignCrud extends Component
     public function openEditForm($id)
     {
         abort_unless(Auth::user()->can('edit-campaign'), 403);
+        $campaign = Campaign::findOrFail($id);
+
+        if (($campaign->is_completed || $campaign->is_closed) && !Auth::user()->hasRole('super-admin')) {
+            session()->flash('error', 'Security Policy: This recruitment campaign is completed or closed. Modifications are locked for audit integrity and restricted to Super Admin.');
+            return;
+        }
+
         $this->resetForm();
         $this->campaign_id = $id;
-        $campaign = Campaign::findOrFail($id);
         
         $this->job_code = $campaign->job_code;
         $this->title = $campaign->title;
@@ -378,7 +447,11 @@ class CampaignCrud extends Component
         ];
 
         if ($this->isEditMode) {
-            Campaign::findOrFail($this->campaign_id)->update($data);
+            $campaign = Campaign::findOrFail($this->campaign_id);
+            if (($campaign->is_completed || $campaign->is_closed) && !Auth::user()->hasRole('super-admin')) {
+                abort(403, 'Unauthorized: Completed or closed recruitment campaigns can only be modified by Super Admin.');
+            }
+            $campaign->update($data);
             session()->flash('message', 'Campaign updated successfully.');
         } else {
             Campaign::create($data);
@@ -393,7 +466,12 @@ class CampaignCrud extends Component
     public function deleteCampaign($id)
     {
         abort_unless(Auth::user()->can('delete-campaign'), 403);
-        Campaign::destroy($id);
+        $campaign = Campaign::findOrFail($id);
+        if (($campaign->is_completed || $campaign->is_closed || $campaign->applications()->exists()) && !Auth::user()->hasRole('super-admin')) {
+            session()->flash('error', 'Security Policy: Completed campaigns or campaigns with submitted applications cannot be deleted by non-super-admins.');
+            return;
+        }
+        $campaign->delete();
         $this->loadCampaigns();
         $this->loadCommitteeData();
         session()->flash('message', 'Campaign deleted successfully.');
@@ -749,6 +827,11 @@ class CampaignCrud extends Component
         }
 
         $campaign = Campaign::findOrFail($this->selected_campaign_id);
+        if (($campaign->is_completed || $campaign->is_closed) && !Auth::user()->hasRole('super-admin')) {
+            $this->addError('constitution_required_total', 'Security Policy: Statutory constitution cannot be altered for a completed or closed campaign.');
+            return;
+        }
+
         $rules = $campaign->scoring_rules ?? [];
         $rules['committee_constitution'] = [
             'required_total' => (int)$this->constitution_required_total,
@@ -825,6 +908,11 @@ class CampaignCrud extends Component
 
         // 3. Exact Statutory Quota Check (for Scrutiny / Selection Panel)
         $campaign = Campaign::findOrFail($this->selected_campaign_id);
+        if (($campaign->is_completed || $campaign->is_closed) && !Auth::user()->hasRole('super-admin')) {
+            $this->addError('selected_user_id', 'Security Policy: Committee allocations are locked because this recruitment campaign is completed or closed.');
+            return;
+        }
+
         $metrics = $campaign->getCommitteeMetrics();
         $constitution = $metrics['constitution'];
 
@@ -878,6 +966,12 @@ class CampaignCrud extends Component
     public function removeCommitteeAssignment($id)
     {
         abort_unless(Auth::user()->can('remove-committee'), 403);
+        $assignment = CampaignCommittee::with('campaign')->findOrFail($id);
+        if ($assignment->campaign && ($assignment->campaign->is_completed || $assignment->campaign->is_closed) && !Auth::user()->hasRole('super-admin')) {
+            session()->flash('error', 'Security Policy: Committee allocations for completed or closed campaigns are locked.');
+            return;
+        }
+
         CampaignCommittee::destroy($id);
         session()->flash('message', 'Committee member de-assigned successfully.');
         $this->loadCommitteeData();
@@ -906,6 +1000,11 @@ class CampaignCrud extends Component
     public function openLinkModal($campaignId)
     {
         $camp = Campaign::findOrFail($campaignId);
+        if (($camp->is_completed || $camp->is_closed) && !Auth::user()->hasRole('super-admin')) {
+            session()->flash('error', 'Security Policy: Statutory Board & Process Flow cannot be altered for a completed or closed campaign.');
+            return;
+        }
+
         $this->linkCampaignId = $camp->id;
         $this->link_constitution_id = $camp->constitution_id;
         $this->link_process_flow_id = $camp->process_flow_id;
@@ -924,6 +1023,12 @@ class CampaignCrud extends Component
     {
         if (!$this->linkCampaignId) return;
         $camp = Campaign::findOrFail($this->linkCampaignId);
+        if (($camp->is_completed || $camp->is_closed) && !Auth::user()->hasRole('super-admin')) {
+            session()->flash('error', 'Security Policy: Completed or closed campaigns cannot have their Board or Flow modified.');
+            $this->closeLinkModal();
+            return;
+        }
+
         $camp->update([
             'constitution_id' => $this->link_constitution_id ?: null,
             'process_flow_id' => $this->link_process_flow_id ?: null,
@@ -933,32 +1038,98 @@ class CampaignCrud extends Component
         $this->closeLinkModal();
     }
 
+    public function toggleCampaignStatus($campaignId)
+    {
+        abort_unless(Auth::user()->can('edit-campaign'), 403);
+        $camp = Campaign::findOrFail($campaignId);
+
+        $isDeadlineExpired = (bool)($camp->closing_date && now()->gt($camp->closing_date));
+        if ($isDeadlineExpired && !$camp->is_active && !Auth::user()->hasRole('super-admin')) {
+            session()->flash('error', 'Security Policy: Re-activating an expired/closed campaign requires Super Admin authorization or an extended closing date.');
+            return;
+        }
+
+        $camp->is_active = !$camp->is_active;
+        $camp->save();
+        $this->loadCampaigns();
+
+        session()->flash('message', "Campaign '{$camp->title}' status toggled to " . ($camp->is_active ? 'ACTIVE' : 'INACTIVE / SUSPENDED') . ".");
+    }
+
     public function render()
     {
-        $campQuery = Campaign::with(['advertisement', 'constitution', 'processFlow']);
+        $campQuery = Campaign::with(['advertisement', 'constitution', 'processFlow', 'applications']);
         if (!empty($this->search)) {
-            $campQuery->where(function($q) {
-                $q->where('title', 'like', '%' . $this->search . '%')
-                  ->orWhere('job_code', 'like', '%' . $this->search . '%')
-                  ->orWhere('department', 'like', '%' . $this->search . '%')
-                  ->orWhereHas('advertisement', function($aq) {
-                      $aq->where('advertisement_no', 'like', '%' . $this->search . '%')
-                         ->orWhere('title', 'like', '%' . $this->search . '%');
+            $s = '%' . trim($this->search) . '%';
+            $campQuery->where(function($q) use ($s) {
+                $q->where('title', 'like', $s)
+                  ->orWhere('job_code', 'like', $s)
+                  ->orWhere('department', 'like', $s)
+                  ->orWhereHas('advertisement', function($aq) use ($s) {
+                      $aq->where('advertisement_no', 'like', $s)
+                         ->orWhere('title', 'like', $s);
+                  });
+            });
+        }
+
+        if (!empty($this->yearFilter)) {
+            $year = (int)$this->yearFilter;
+            $campQuery->where(function($q) use ($year) {
+                $q->whereHas('advertisement', fn($aq) => $aq->where('year', $year))
+                  ->orWhere(function($oq) use ($year) {
+                      $oq->whereNull('advertisement_id')->whereYear('opening_date', $year);
                   });
             });
         }
 
         if (!empty($this->advertisementFilter)) {
-            $campQuery->where('advertisement_id', $this->advertisementFilter);
+            if ($this->advertisementFilter === 'NONE') {
+                $campQuery->whereNull('advertisement_id');
+            } else {
+                $campQuery->where('advertisement_id', $this->advertisementFilter);
+            }
+        }
+
+        if (!empty($this->trackFilter) && $this->trackFilter !== 'ALL') {
+            $campQuery->where('track_type', $this->trackFilter);
+        }
+
+        if ($this->statusFilter === 'ACTIVE') {
+            $campQuery->where(function($q) {
+                $q->where('is_active', true)->where('closing_date', '>=', now());
+            });
+        } elseif ($this->statusFilter === 'CLOSED') {
+            $campQuery->where(function($q) {
+                $q->where('is_active', false)->orWhere('closing_date', '<', now());
+            });
         }
 
         $paginatedCampaigns = $campQuery->orderBy('created_at', 'desc')->paginate($this->perPage);
+
+        // Distinct years from advertisements and campaigns
+        $adYears = Advertisement::distinct()->whereNotNull('year')->pluck('year')->map(fn($y) => (int)$y)->all();
+        $campYears = Campaign::whereNotNull('opening_date')->pluck('opening_date')->map(fn($d) => (int)\Carbon\Carbon::parse($d)->year)->all();
+        $availableYears = collect(array_unique(array_merge($adYears, $campYears, [(int)date('Y')])))->sortDesc()->values();
+
+        // Filter advertisements dropdown (filtered by year if yearFilter is active)
+        $filterAdQuery = Advertisement::withCount('campaigns')->orderBy('year', 'desc')->orderBy('advertisement_no');
+        if (!empty($this->yearFilter)) {
+            $filterAdQuery->where('year', (int)$this->yearFilter);
+        }
+        $filterAdvertisements = $filterAdQuery->get();
+
+        $selectedAdModel = (!empty($this->advertisementFilter) && $this->advertisementFilter !== 'NONE')
+            ? Advertisement::withCount('campaigns')->find($this->advertisementFilter)
+            : null;
 
         return view('livewire.admin.campaign-crud', [
             'paginatedCampaigns' => $paginatedCampaigns,
             'statutoryBoards' => CommitteeConstitution::orderBy('name')->get(),
             'processFlows' => RecruitmentProcessFlow::orderBy('name')->get(),
             'advertisements' => Advertisement::orderBy('year', 'desc')->orderBy('title')->get(),
+            'filterAdvertisements' => $filterAdvertisements,
+            'availableYears' => $availableYears,
+            'selectedAdModel' => $selectedAdModel,
         ])->layout('layouts.app');
     }
 }

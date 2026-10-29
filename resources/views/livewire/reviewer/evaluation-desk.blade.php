@@ -79,9 +79,15 @@
             <tr wire:key="eval-row-{{ $rev->id }}">
                 <td>
                     <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <div style="width: 34px; height: 34px; border-radius: 50%; background: rgba(6,182,212,0.15); color: var(--secondary); font-weight: 800; font-size: 0.8rem; display: flex; align-items: center; justify-content: center;">
-                            {{ strtoupper(substr($rev->application->user->basicInfo?->first_name ?: 'C', 0, 1)) }}
-                        </div>
+                        @if($rev->application->user->basicInfo?->profile_picture_url)
+                            <div style="width: 34px; height: 34px; border-radius: 50%; overflow: hidden; flex-shrink: 0; border: 1px solid var(--border-color);">
+                                <img src="{{ $rev->application->user->basicInfo->profile_picture_url }}" alt="Candidate" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                        @else
+                            <div style="width: 34px; height: 34px; border-radius: 50%; background: rgba(6,182,212,0.15); color: var(--secondary); font-weight: 800; font-size: 0.8rem; display: flex; align-items: center; justify-content: center;">
+                                {{ strtoupper(substr($rev->application->user->basicInfo?->first_name ?: 'C', 0, 1)) }}
+                            </div>
+                        @endif
                         <strong style="color: var(--color-text-primary); font-size: 0.95rem;">
                             {{ $rev->application->user->basicInfo ? trim($rev->application->user->basicInfo->first_name . ' ' . $rev->application->user->basicInfo->last_name) : 'Academic Candidate' }}
                         </strong>

@@ -19,9 +19,6 @@ class ConstitutionCriteriaManagement extends Component
     // View tab switching: 'board_registry', 'process_flow', or 'campaign_constitution'
     public $activeTab = 'board_registry';
 
-    // Default perPage
-    public $perPage = 16;
-
     // Campaign tuning state
     public $selected_campaign_id = null;
     public $constitution_title = '';
@@ -716,7 +713,12 @@ class ConstitutionCriteriaManagement extends Component
     public function deleteBoardModel($id)
     {
         abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
-        $board = CommitteeConstitution::findOrFail($id);
+        $board = CommitteeConstitution::with('campaigns')->findOrFail($id);
+        if ($board->campaigns()->exists() && !Auth::user()->hasRole('super-admin')) {
+            session()->flash('error', "Cannot delete Board '{$board->name}' because it is assigned to active or completed recruitment campaigns. Super Admin override required.");
+            return;
+        }
+
         $name = $board->name;
         $board->delete();
         session()->flash('message', "Statutory Board '{$name}' removed from directory.");

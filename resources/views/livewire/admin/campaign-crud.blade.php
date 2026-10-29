@@ -32,6 +32,25 @@
         </div>
     </div>
 
+    @if(session()->has('message'))
+        <div class="card mb-4" style="background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.4); padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 0.6rem; color: #10b981; font-size: 0.85rem; font-weight: 700;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>{{ session('message') }}</span>
+            </div>
+            <button type="button" wire:click="$refresh" style="background: none; border: none; color: #10b981; cursor: pointer; font-size: 0.9rem;">✕</button>
+        </div>
+    @endif
+    @if(session()->has('error'))
+        <div class="card mb-4" style="background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.4); padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 0.6rem; color: #ef4444; font-size: 0.85rem; font-weight: 700;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span>{{ session('error') }}</span>
+            </div>
+            <button type="button" wire:click="$refresh" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.9rem;">✕</button>
+        </div>
+    @endif
+
     <!-- Segmented Tab Navigation -->
     <div style="display: flex; gap: 0.5rem; background: var(--bg-tertiary); padding: 0.35rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); width: fit-content; margin-bottom: 1.5rem;">
         @can('view-campaign')
@@ -467,11 +486,121 @@
                 searchPlaceholder="Search campaigns by job code, title, or department..."
                 :perPage="$perPage" 
                 :viewMode="$viewMode" 
+                gridClass="grid-3-cols"
                 exportAction="exportCsv" 
                 importAction="openImportModal">
+
+                <!-- Filters Slot: Year, Advertisement, Track, Status Filters -->
+                <x-slot:filters>
+                    <!-- Recruitment Cycle / Advertisement Year Filter -->
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <span style="font-size: 0.76rem; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase;">Year:</span>
+                        <select class="form-control form-select" wire:model.live="yearFilter" style="width: auto; min-width: 125px; padding: 0.35rem 0.65rem; font-size: 0.82rem; font-weight: 700;">
+                            <option value="">All Years</option>
+                            @foreach($availableYears as $yr)
+                                <option value="{{ $yr }}">Year {{ $yr }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Official Advertisement Filter (Cascaded with Year) -->
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <span style="font-size: 0.76rem; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase;">Advertisement:</span>
+                        <select class="form-control form-select" wire:model.live="advertisementFilter" style="width: auto; min-width: 250px; max-width: 380px; padding: 0.35rem 0.65rem; font-size: 0.82rem; font-weight: 700;">
+                            <option value="">All Advertisements @if(!empty($yearFilter))({{ $yearFilter }})@endif</option>
+                            <option value="NONE">Standalone Jobs (No Advertisement)</option>
+                            @foreach($filterAdvertisements as $ad)
+                                <option value="{{ $ad->id }}">
+                                    📢 {{ $ad->advertisement_no }} — {{ \Illuminate\Support\Str::limit($ad->title, 32) }} ({{ $ad->campaigns_count }} {{ \Illuminate\Support\Str::plural('job', $ad->campaigns_count) }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Career Track Filter -->
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <span style="font-size: 0.76rem; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase;">Track:</span>
+                        <select class="form-control form-select" wire:model.live="trackFilter" style="width: auto; min-width: 135px; padding: 0.35rem 0.65rem; font-size: 0.82rem; font-weight: 700;">
+                            <option value="ALL">All Tracks</option>
+                            <option value="ACADEMIC">Academic Faculty</option>
+                            <option value="ADMINISTRATIVE">Administrative</option>
+                            <option value="SUPPORT">Support Staff</option>
+                        </select>
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <span style="font-size: 0.76rem; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase;">Status:</span>
+                        <select class="form-control form-select" wire:model.live="statusFilter" style="width: auto; min-width: 130px; padding: 0.35rem 0.65rem; font-size: 0.82rem; font-weight: 700;">
+                            <option value="ALL">All Statuses</option>
+                            <option value="ACTIVE">Active Only</option>
+                            <option value="CLOSED">Closed Only</option>
+                        </select>
+                    </div>
+
+                    <!-- Active Filter Clear Button -->
+                    @if(!empty($search) || !empty($yearFilter) || !empty($advertisementFilter) || $trackFilter !== 'ALL' || $statusFilter !== 'ALL')
+                        <button type="button" class="btn btn-secondary btn-sm" wire:click="resetFilters" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.78rem;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            <span>Reset Filters</span>
+                        </button>
+                    @endif
+                </x-slot:filters>
+
+                <x-slot:headerActions>
+                    @can('create-campaign')
+                        <button type="button" class="btn btn-primary" wire:click="openCreateForm" style="padding: 0.45rem 0.9rem; font-size: 0.82rem; font-weight: 700; border-radius: 8px;">
+                            + New Campaign
+                        </button>
+                    @endcan
+                </x-slot:headerActions>
                 
                 <!-- Cards Slot (3 to 5 Cards Per Row) -->
                 <x-slot:cards>
+                    @if($selectedAdModel)
+                        <div style="grid-column: 1 / -1; width: 100%; background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 12px; padding: 1rem 1.35rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.75rem;">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(6, 182, 212, 0.15); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; border: 1px solid rgba(6, 182, 212, 0.3);">
+                                    📢
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--secondary); letter-spacing: 0.06em;">
+                                        Filtered by Official Parent Advertisement &bull; Year {{ $selectedAdModel->year }}
+                                    </div>
+                                    <div style="font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); margin-top: 0.1rem;">
+                                        {{ $selectedAdModel->advertisement_no }} — {{ $selectedAdModel->title }}
+                                    </div>
+                                    <div style="font-size: 0.78rem; color: var(--color-text-secondary); margin-top: 0.2rem; display: flex; align-items: center; gap: 0.85rem; flex-wrap: wrap;">
+                                        <span>Validity: <strong style="color: var(--color-text-primary);">{{ $selectedAdModel->formatted_validity }}</strong></span>
+                                        <span>•</span>
+                                        <span>Mapped Jobs: <strong style="color: var(--secondary);">{{ $selectedAdModel->campaigns_count }} positions</strong></span>
+                                        <span>•</span>
+                                        <span>Status: <strong style="color: {{ $selectedAdModel->is_expired ? '#ef4444' : '#10b981' }}">{{ $selectedAdModel->status_badge['label'] }}</strong></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <a href="{{ (auth()->user()->hasRole('registrar') && !auth()->user()->hasRole('super-admin')) ? '/registrar/advertisements' : '/admin/advertisements' }}" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                    <span>Advertisements Desk</span>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                                </a>
+                                <button type="button" class="btn btn-secondary btn-sm" wire:click="$set('advertisementFilter', '')" style="font-size: 0.78rem; color: #ef4444;">
+                                    ✕ Clear Advertisement Filter
+                                </button>
+                            </div>
+                        </div>
+                    @elseif(!empty($yearFilter))
+                        <div style="grid-column: 1 / -1; width: 100%; background: rgba(99, 102, 241, 0.06); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 8px; padding: 0.65rem 1rem; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                            <div style="font-size: 0.82rem; color: var(--color-text-primary); font-weight: 700; display: inline-flex; align-items: center; gap: 0.5rem;">
+                                <span>📅 Showing recruitment campaigns for Year <strong>{{ $yearFilter }}</strong></span>
+                                <span class="badge badge-indigo" style="font-size: 0.7rem;">{{ $paginatedCampaigns->total() }} total positions</span>
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-sm" wire:click="$set('yearFilter', '')" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">
+                                Show All Years ✕
+                            </button>
+                        </div>
+                    @endif
+
                     @foreach($paginatedCampaigns as $camp)
                         @php
                             $criteriaUrl = (auth()->user()->hasRole('registrar') && !auth()->user()->hasRole('super-admin')) ? '/registrar/criteria' : '/admin/criteria';
@@ -480,6 +609,10 @@
                                 'ADMINISTRATIVE' => 'avatar-theme-cyan',
                                 default => 'avatar-theme-emerald',
                             };
+                            $isClosed = $camp->is_closed;
+                            $isCompleted = $camp->is_completed;
+                            $isSuperAdmin = auth()->user()->hasRole('super-admin');
+                            $canModify = !$isClosed || $isSuperAdmin;
                         @endphp
 
                         <x-entity-card 
@@ -488,7 +621,7 @@
                             :subtitle="$camp->department"
                             :avatar="substr($camp->job_code, 0, 2)"
                             :avatarClass="$campTheme"
-                            :is-active="now()->lte($camp->closing_date)">
+                            :is-active="!$isClosed">
                             
                             <!-- Badge Slot: Application Fee & Recruitment Status (Above action strip) -->
                             <x-slot:badge>
@@ -496,9 +629,25 @@
                                     <span class="badge badge-amber" style="font-size: 0.72rem; font-weight: 800; font-family: 'JetBrains Mono', monospace;">
                                         PKR {{ number_format($camp->application_fee, 0) }}
                                     </span>
-                                    <span style="font-size: 0.72rem; font-weight: 800; color: {{ now()->lte($camp->closing_date) ? '#10b981' : '#ef4444' }};">
-                                        {{ now()->lte($camp->closing_date) ? '● ACTIVE POSITION' : '● CLOSED' }}
-                                    </span>
+                                    @if($isCompleted)
+                                        <span style="font-size: 0.72rem; font-weight: 800; color: #a855f7; display: inline-flex; align-items: center; gap: 0.3rem;">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                            <span>COMPLETED / LOCKED</span>
+                                        </span>
+                                    @elseif($isClosed)
+                                        <span style="font-size: 0.72rem; font-weight: 800; color: #ef4444; display: inline-flex; align-items: center; gap: 0.3rem;">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                            <span>CLOSED (DEADLINE PASSED)</span>
+                                        </span>
+                                    @elseif(!$camp->is_active)
+                                        <span style="font-size: 0.72rem; font-weight: 800; color: #f59e0b; display: inline-flex; align-items: center; gap: 0.3rem;">
+                                            <span>⚠️ SUSPENDED</span>
+                                        </span>
+                                    @else
+                                        <span style="font-size: 0.72rem; font-weight: 800; color: #10b981; display: inline-flex; align-items: center; gap: 0.3rem;">
+                                            <span>● ACTIVE POSITION</span>
+                                        </span>
+                                    @endif
                                 </div>
                             </x-slot:badge>
 
@@ -523,9 +672,13 @@
                             @if($camp->advertisement)
                                 <div class="entity-card-metric-row">
                                     <span class="entity-card-metric-label">Advertisement:</span>
-                                    <span class="badge" style="background: rgba(6, 182, 212, 0.12); color: var(--secondary); font-weight: 800; font-size: 0.72rem; border: 1px solid rgba(6, 182, 212, 0.25);">
+                                    <button type="button" 
+                                            wire:click="$set('advertisementFilter', '{{ $camp->advertisement_id }}'); $set('yearFilter', '{{ $camp->advertisement->year }}')"
+                                            class="badge" 
+                                            style="background: rgba(6, 182, 212, 0.12); color: var(--secondary); font-weight: 800; font-size: 0.72rem; border: 1px solid rgba(6, 182, 212, 0.25); cursor: pointer;"
+                                            title="Filter by {{ $camp->advertisement->advertisement_no }}">
                                         📢 {{ $camp->advertisement->advertisement_no }}
-                                    </span>
+                                    </button>
                                 </div>
                             @endif
 
@@ -538,8 +691,11 @@
 
                             <div class="entity-card-metric-row">
                                 <span class="entity-card-metric-label">Closing Date:</span>
-                                <span class="entity-card-metric-value" style="color: var(--color-text-primary);">
+                                <span class="entity-card-metric-value" style="color: {{ $isClosed ? '#ef4444' : 'var(--color-text-primary)' }}; font-weight: {{ $isClosed ? '700' : '500' }};">
                                     {{ $camp->closing_date?->format('Y-m-d') }}
+                                    @if($isClosed)
+                                        <small style="color: #ef4444; font-size: 0.7rem;">(Expired)</small>
+                                    @endif
                                 </span>
                             </div>
 
@@ -566,6 +722,7 @@
 
                             <!-- Quick Actions (Hover Reveal Icons) -->
                             <x-slot:quickActions>
+                                <!-- View Campaign Details -->
                                 <button type="button" 
                                     class="action-btn action-btn-view" 
                                     wire:click="viewCampaignDetails({{ $camp->id }})" 
@@ -576,21 +733,34 @@
                                         <circle cx="12" cy="12" r="3"/>
                                     </svg>
                                 </button>
-                                <button type="button" 
-                                    class="action-btn action-btn-view" 
-                                    wire:click="openLinkModal({{ $camp->id }})" 
-                                    data-tooltip="Link Statutory Board & Process Flow" 
-                                    aria-label="Link Board and Flow">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                                    </svg>
-                                </button>
 
+                                <!-- Link Statutory Board & Process Flow -->
+                                @if($canModify)
+                                    <button type="button" 
+                                        class="action-btn action-btn-view" 
+                                        wire:click="openLinkModal({{ $camp->id }})" 
+                                        data-tooltip="{{ $isClosed ? 'Link Board & Flow (Super Admin Override)' : 'Link Statutory Board & Process Flow' }}" 
+                                        aria-label="Link Board and Flow">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                                        </svg>
+                                    </button>
+                                @else
+                                    <button type="button" 
+                                        class="action-btn action-btn-disabled" 
+                                        disabled 
+                                        data-tooltip="Locked: Campaign is completed/closed (Super Admin only)" 
+                                        aria-label="Locked: Completed">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                    </button>
+                                @endif
+
+                                <!-- Statutory Criteria & Quotas Desk -->
                                 @can('tune-constitution')
                                     <a href="{{ $criteriaUrl }}?campaign_id={{ $camp->id }}" 
                                        class="action-btn action-btn-view" 
-                                       data-tooltip="Manage Statutory Criteria & Quotas"
+                                       data-tooltip="{{ $canModify ? 'Manage Statutory Criteria & Quotas' : 'View Statutory Criteria (Locked)' }}"
                                        aria-label="Criteria Desk">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                                             <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
@@ -601,17 +771,63 @@
                                     </a>
                                 @endcan
 
+                                <!-- Edit Campaign Particulars -->
                                 @can('edit-campaign')
-                                    <button type="button" 
-                                            class="action-btn action-btn-edit" 
-                                            wire:click="openEditForm({{ $camp->id }})" 
-                                            data-tooltip="Edit Campaign Particulars" 
-                                            aria-label="Edit Campaign">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                        </svg>
-                                    </button>
+                                    @if($canModify)
+                                        <button type="button" 
+                                                class="action-btn action-btn-edit" 
+                                                wire:click="openEditForm({{ $camp->id }})" 
+                                                data-tooltip="{{ $isClosed ? 'Edit Campaign (Super Admin Override)' : 'Edit Campaign Particulars' }}" 
+                                                aria-label="Edit Campaign">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                            </svg>
+                                        </button>
+                                    @else
+                                        <button type="button" 
+                                                class="action-btn action-btn-disabled" 
+                                                disabled 
+                                                data-tooltip="Locked: Campaign is completed/closed (Super Admin only)" 
+                                                aria-label="Locked: Edit restricted">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                        </button>
+                                    @endif
+
+                                    <!-- Status Toggle Action (Active / Suspended / Re-open) -->
+                                    @if($camp->is_active && !$isClosed)
+                                        <button type="button" 
+                                                class="action-btn action-btn-success" 
+                                                wire:click="toggleCampaignStatus({{ $camp->id }})" 
+                                                data-tooltip="Active (Click to Suspend Position)" 
+                                                aria-label="Suspend Position">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                        </button>
+                                    @elseif(!$camp->is_active && !$isClosed)
+                                        <button type="button" 
+                                                class="action-btn action-btn-delete" 
+                                                wire:click="toggleCampaignStatus({{ $camp->id }})" 
+                                                data-tooltip="Suspended (Click to Activate)" 
+                                                aria-label="Activate Position">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                        </button>
+                                    @elseif($isClosed && $isSuperAdmin)
+                                        <button type="button" 
+                                                class="action-btn action-btn-edit" 
+                                                wire:click="toggleCampaignStatus({{ $camp->id }})" 
+                                                data-tooltip="Closed: Reopen (Super Admin Override)" 
+                                                aria-label="Reopen Position">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                        </button>
+                                    @else
+                                        <button type="button" 
+                                                class="action-btn action-btn-disabled" 
+                                                disabled 
+                                                data-tooltip="Locked: Campaign deadline passed" 
+                                                aria-label="Locked">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                        </button>
+                                    @endif
                                 @endcan
                             </x-slot:quickActions>
 
@@ -624,16 +840,29 @@
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                                     </x-slot:icon>
                                 </x-entity-card-menu-item>
-                                <x-entity-card-menu-item 
-                                    label="Link Board & Process Flow" 
-                                    click="openLinkModal({{ $camp->id }})">
-                                    <x-slot:icon>
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                                    </x-slot:icon>
-                                </x-entity-card-menu-item>
+
+                                @if($canModify)
+                                    <x-entity-card-menu-item 
+                                        label="{{ $isClosed ? 'Link Board & Flow (Super Admin Override)' : 'Link Board & Process Flow' }}" 
+                                        click="openLinkModal({{ $camp->id }})">
+                                        <x-slot:icon>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                                        </x-slot:icon>
+                                    </x-entity-card-menu-item>
+                                @else
+                                    <x-entity-card-menu-item 
+                                        label="Link Board & Flow (Locked: Completed)" 
+                                        :disabled="true" 
+                                        tooltip="Locked: Campaign is completed/closed (Super Admin only)">
+                                        <x-slot:icon>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                        </x-slot:icon>
+                                    </x-entity-card-menu-item>
+                                @endif
+
                                 @can('tune-constitution')
                                     <x-entity-card-menu-item 
-                                        label="Statutory Criteria & Quotas" 
+                                        label="{{ $canModify ? 'Statutory Criteria & Quotas' : 'View Statutory Criteria (Locked)' }}" 
                                         href="{{ $criteriaUrl }}?campaign_id={{ $camp->id }}">
                                         <x-slot:icon>
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/></svg>
@@ -650,26 +879,68 @@
                                 </x-entity-card-menu-item>
 
                                 @can('edit-campaign')
-                                    <x-entity-card-menu-item 
-                                        label="Edit Campaign Particulars" 
-                                        click="openEditForm({{ $camp->id }})">
-                                        <x-slot:icon>
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                        </x-slot:icon>
-                                    </x-entity-card-menu-item>
+                                    @if($camp->is_active && !$isClosed)
+                                        <x-entity-card-menu-item 
+                                            label="Suspend / Deactivate Position" 
+                                            click="toggleCampaignStatus({{ $camp->id }})">
+                                            <x-slot:icon>
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                            </x-slot:icon>
+                                        </x-entity-card-menu-item>
+                                    @elseif(!$camp->is_active && !$isClosed)
+                                        <x-entity-card-menu-item 
+                                            label="Activate Position" 
+                                            click="toggleCampaignStatus({{ $camp->id }})">
+                                            <x-slot:icon>
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                            </x-slot:icon>
+                                        </x-entity-card-menu-item>
+                                    @endif
+
+                                    @if($canModify)
+                                        <x-entity-card-menu-item 
+                                            label="{{ $isClosed ? 'Edit Campaign (Super Admin Override)' : 'Edit Campaign Particulars' }}" 
+                                            click="openEditForm({{ $camp->id }})">
+                                            <x-slot:icon>
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                            </x-slot:icon>
+                                        </x-entity-card-menu-item>
+                                    @else
+                                        <x-entity-card-menu-item 
+                                            label="Edit Campaign (Locked: Completed)" 
+                                            :disabled="true" 
+                                            tooltip="Locked: Completed/closed campaigns can only be edited by Super Admin">
+                                            <x-slot:icon>
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                            </x-slot:icon>
+                                        </x-entity-card-menu-item>
+                                    @endif
                                 @endcan
 
                                 @can('delete-campaign')
-                                    <div class="entity-card-menu-divider"></div>
-                                    <x-entity-card-menu-item 
-                                        label="Delete Campaign" 
-                                        click="deleteCampaign({{ $camp->id }})" 
-                                        :danger="true"
-                                        onclick="confirm('Are you sure you want to delete this campaign? This will cascade delete applications and committees!') || event.stopImmediatePropagation()">
-                                        <x-slot:icon>
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                                        </x-slot:icon>
-                                    </x-entity-card-menu-item>
+                                    @if($canModify && !$camp->applications()->exists())
+                                        <div class="entity-card-menu-divider"></div>
+                                        <x-entity-card-menu-item 
+                                            label="Delete Campaign" 
+                                            click="deleteCampaign({{ $camp->id }})" 
+                                            :danger="true"
+                                            onclick="confirm('Are you sure you want to delete this campaign? This will cascade delete applications and committees!') || event.stopImmediatePropagation()">
+                                            <x-slot:icon>
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                            </x-slot:icon>
+                                        </x-entity-card-menu-item>
+                                    @elseif($isSuperAdmin)
+                                        <div class="entity-card-menu-divider"></div>
+                                        <x-entity-card-menu-item 
+                                            label="Force Delete Campaign (Super Admin)" 
+                                            click="deleteCampaign({{ $camp->id }})" 
+                                            :danger="true"
+                                            onclick="confirm('WARNING: Force delete campaign with existing data as Super Admin?') || event.stopImmediatePropagation()">
+                                            <x-slot:icon>
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                            </x-slot:icon>
+                                        </x-entity-card-menu-item>
+                                    @endif
                                 @endcan
                             </x-slot:menuActions>
                         </x-entity-card>
@@ -678,6 +949,34 @@
 
                 <!-- Table Slot (For View Switcher) -->
                 <x-slot:table>
+                    @if($selectedAdModel)
+                        <div style="width: 100%; background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 10px; padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <span style="font-size: 1.3rem;">📢</span>
+                                <div>
+                                    <strong style="color: var(--color-text-primary); font-size: 0.95rem;">{{ $selectedAdModel->advertisement_no }} — {{ $selectedAdModel->title }}</strong>
+                                    <div style="font-size: 0.76rem; color: var(--color-text-secondary); margin-top: 0.1rem;">
+                                        Cycle Year {{ $selectedAdModel->year }} &bull; Validity: {{ $selectedAdModel->formatted_validity }} &bull; {{ $selectedAdModel->campaigns_count }} positions
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <button type="button" class="btn btn-secondary btn-sm" wire:click="$set('advertisementFilter', '')" style="font-size: 0.76rem; color: #ef4444;">
+                                    ✕ Clear Filter
+                                </button>
+                            </div>
+                        </div>
+                    @elseif(!empty($yearFilter))
+                        <div style="width: 100%; background: rgba(99, 102, 241, 0.06); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 8px; padding: 0.55rem 0.85rem; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem;">
+                            <span style="font-size: 0.82rem; color: var(--color-text-primary); font-weight: 700;">
+                                📅 Showing recruitment campaigns for Year <strong>{{ $yearFilter }}</strong> ({{ $paginatedCampaigns->total() }} total positions)
+                            </span>
+                            <button type="button" class="btn btn-secondary btn-sm" wire:click="$set('yearFilter', '')" style="font-size: 0.74rem; padding: 0.2rem 0.5rem;">
+                                Show All Years ✕
+                            </button>
+                        </div>
+                    @endif
+
                     <table class="table">
                         <thead>
                             <tr>
@@ -692,6 +991,13 @@
                         </thead>
                         <tbody>
                             @foreach($paginatedCampaigns as $camp)
+                                @php
+                                    $badge = $camp->status_badge;
+                                    $isClosed = $camp->is_closed;
+                                    $isCompleted = $camp->is_completed;
+                                    $isSuperAdmin = auth()->user()?->hasRole('super-admin');
+                                    $canModify = $isSuperAdmin || (!$isClosed && !$isCompleted);
+                                @endphp
                                 <tr>
                                     <td>
                                         <code style="background: rgba(99,102,241,0.1); color: var(--primary); padding: 0.25rem 0.6rem; border-radius: 6px; font-weight: 700; border: 1px solid rgba(99,102,241,0.2);">
@@ -701,10 +1007,17 @@
                                     <td>
                                         <div style="font-weight: 700; color: var(--color-text-primary); display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
                                             <span>{{ $camp->title }}</span>
+                                            <span class="badge {{ $badge['class'] }}" style="background: {{ $badge['color'] }}20; color: {{ $badge['color'] }}; border: 1px solid {{ $badge['color'] }}40; font-size: 0.68rem; font-weight: 800;">
+                                                {{ $badge['icon'] }} {{ $badge['label'] }}
+                                            </span>
                                             @if($camp->advertisement)
-                                                <span class="badge" style="background: rgba(6, 182, 212, 0.12); color: var(--secondary); font-size: 0.68rem; font-weight: 800;">
+                                                <button type="button" 
+                                                        wire:click="$set('advertisementFilter', '{{ $camp->advertisement_id }}'); $set('yearFilter', '{{ $camp->advertisement->year }}')"
+                                                        class="badge" 
+                                                        style="background: rgba(6, 182, 212, 0.12); color: var(--secondary); font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(6, 182, 212, 0.25); cursor: pointer;"
+                                                        title="Filter by {{ $camp->advertisement->advertisement_no }}">
                                                     📢 {{ $camp->advertisement->advertisement_no }}
-                                                </span>
+                                                </button>
                                             @endif
                                         </div>
                                         <small style="color: var(--color-text-secondary); display: flex; align-items: center; gap: 0.25rem; margin-top: 0.15rem;">
@@ -741,13 +1054,19 @@
                                                 <span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #10b981; font-size: 0.7rem; font-weight: 600;">
                                                     🔄 {{ $camp->processFlow?->name ?? 'Standard Pipeline' }}
                                                 </span>
-                                                <button type="button" 
-                                                    class="btn btn-secondary" 
-                                                    wire:click="openLinkModal({{ $camp->id }})" 
-                                                    style="padding: 0.15rem 0.45rem; font-size: 0.68rem; font-weight: 700; border-radius: 4px;"
-                                                    title="Link / Change Statutory Board & Flow">
-                                                    🔗 Change
-                                                </button>
+                                                @if($canModify)
+                                                    <button type="button" 
+                                                        class="btn btn-secondary" 
+                                                        wire:click="openLinkModal({{ $camp->id }})" 
+                                                        style="padding: 0.15rem 0.45rem; font-size: 0.68rem; font-weight: 700; border-radius: 4px;"
+                                                        title="Link / Change Statutory Board & Flow">
+                                                        🔗 Change
+                                                    </button>
+                                                @else
+                                                    <span class="badge" style="background: rgba(148, 163, 184, 0.15); color: #94a3b8; font-size: 0.65rem;" title="Locked: Completed or closed campaigns cannot be modified without Super Admin privileges.">
+                                                        🔒 Locked
+                                                    </span>
+                                                @endif
                                             </div>
                                         </div>
                                     </td>
@@ -778,9 +1097,18 @@
                                                 </svg>
                                             </button>
                                             @can('edit-campaign')
-                                                <button type="button" class="action-btn action-btn-edit" wire:click="openEditForm({{ $camp->id }})" data-tooltip="Edit Campaign">
-                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                                </button>
+                                                @if($canModify)
+                                                    <button type="button" class="action-btn action-btn-edit" wire:click="openEditForm({{ $camp->id }})" data-tooltip="Edit Campaign Particulars" aria-label="Edit Campaign">
+                                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                                    </button>
+                                                @else
+                                                    <button type="button" class="action-btn disabled" disabled data-tooltip="Action Locked: {{ $isCompleted ? 'Completed' : 'Closed' }} position (Super Admin override only)" aria-label="Locked" style="opacity: 0.45; cursor: not-allowed;">
+                                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                                        </svg>
+                                                    </button>
+                                                @endif
                                             @endcan
 
                                             <!-- 3-Dot More Actions Dropdown -->
@@ -797,15 +1125,29 @@
                                                     </svg>
                                                 </button>
                                                 <div class="table-action-dropdown" x-show="openMenu" x-cloak style="display: none;" @click="openMenu = false">
-                                                    <button type="button" 
-                                                        class="table-action-menu-item" 
-                                                        wire:click="openLinkModal({{ $camp->id }})">
-                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                                                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                                                        </svg>
-                                                        <span>Link Board & Flow</span>
-                                                    </button>
+                                                    @if($canModify)
+                                                        <button type="button" 
+                                                            class="table-action-menu-item" 
+                                                            wire:click="openLinkModal({{ $camp->id }})">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                                                            </svg>
+                                                            <span>Link Board & Flow</span>
+                                                        </button>
+                                                    @else
+                                                        <button type="button" 
+                                                            class="table-action-menu-item disabled" 
+                                                            disabled 
+                                                            title="Locked: Completed or closed campaigns cannot be modified without Super Admin privileges.">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                                            </svg>
+                                                            <span>Link Board & Flow (Locked)</span>
+                                                        </button>
+                                                    @endif
+
                                                     @can('tune-constitution')
                                                         @php
                                                             $criteriaUrl = (auth()->user()->hasRole('registrar') && !auth()->user()->hasRole('super-admin')) ? '/registrar/criteria' : '/admin/criteria';
@@ -815,12 +1157,74 @@
                                                             <span>Statutory Criteria & Quotas</span>
                                                         </a>
                                                     @endcan
+
+                                                    @can('edit-campaign')
+                                                        @if($camp->is_active)
+                                                            @if($canModify)
+                                                                <button type="button" 
+                                                                    class="table-action-menu-item" 
+                                                                    wire:click="toggleCampaignStatus({{ $camp->id }})">
+                                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                                        <circle cx="12" cy="12" r="10"></circle>
+                                                                        <line x1="10" y1="15" x2="10" y2="9"></line>
+                                                                        <line x1="14" y1="15" x2="14" y2="9"></line>
+                                                                    </svg>
+                                                                    <span>Suspend Position</span>
+                                                                </button>
+                                                            @else
+                                                                <button type="button" 
+                                                                    class="table-action-menu-item disabled" 
+                                                                    disabled
+                                                                    title="Position is completed / closed.">
+                                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                                                    </svg>
+                                                                    <span>Status Locked (Closed)</span>
+                                                                </button>
+                                                            @endif
+                                                        @else
+                                                            @if($isSuperAdmin || (!$isClosed && !$isCompleted))
+                                                                <button type="button" 
+                                                                    class="table-action-menu-item success" 
+                                                                    wire:click="toggleCampaignStatus({{ $camp->id }})">
+                                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                                        <circle cx="12" cy="12" r="10"></circle>
+                                                                        <polygon points="10 8 16 12 10 16 10 8"></polygon>
+                                                                    </svg>
+                                                                    <span>Reactivate Position</span>
+                                                                </button>
+                                                            @else
+                                                                <button type="button" 
+                                                                    class="table-action-menu-item disabled" 
+                                                                    disabled
+                                                                    title="Closed or completed positions require Super Admin privileges to reactivate.">
+                                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                                                    </svg>
+                                                                    <span>Reactivate (Locked: Expired)</span>
+                                                                </button>
+                                                            @endif
+                                                        @endif
+                                                    @endcan
+
                                                     @can('delete-campaign')
                                                         <div class="table-action-menu-divider"></div>
-                                                        <button type="button" class="table-action-menu-item danger" wire:click="deleteCampaign({{ $camp->id }})" onclick="confirm('Are you sure you want to delete this campaign? This will cascade delete applications and committees!') || event.stopImmediatePropagation()">
-                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                                                            <span>Delete Campaign</span>
-                                                        </button>
+                                                        @if($canModify)
+                                                            <button type="button" class="table-action-menu-item danger" wire:click="deleteCampaign({{ $camp->id }})" onclick="confirm('Are you sure you want to delete this campaign? This will cascade delete applications and committees!') || event.stopImmediatePropagation()">
+                                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                                                <span>Delete Campaign</span>
+                                                            </button>
+                                                        @else
+                                                            <button type="button" class="table-action-menu-item disabled" disabled title="Locked: Completed or closed campaigns cannot be deleted without Super Admin privileges.">
+                                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                                                </svg>
+                                                                <span>Delete Campaign (Locked)</span>
+                                                            </button>
+                                                        @endif
                                                     @endcan
                                                 </div>
                                             </div>

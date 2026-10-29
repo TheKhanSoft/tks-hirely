@@ -19,9 +19,6 @@ class PaymentManagement extends Component
     public $isDetailsOpen = false;
     public $selectedPayment = null;
 
-    // Default per-page for card grid (16 items)
-    public $perPage = 16;
-
     // Filters & Search
     public $search = '';
     public $statusFilter = '';
@@ -79,6 +76,10 @@ class PaymentManagement extends Component
         $this->resetForm();
         $this->pay_id = $id;
         $ledger = BillingLedger::findOrFail($id);
+        if ($ledger->status === 'SETTLED' && !Auth::user()->hasRole('super-admin')) {
+            abort(403, 'Settled payment ledgers cannot be edited. Super Admin audit override required.');
+        }
+
         $this->pay_app_id = $ledger->application_id;
         $this->pay_consumer_id = $ledger->consumer_id;
         $this->pay_amount = $ledger->amount;
@@ -106,11 +107,15 @@ class PaymentManagement extends Component
     {
         if ($this->isEditMode) {
             abort_unless(Auth::user()->can('edit-payment'), 403);
+            $ledger = BillingLedger::findOrFail($this->pay_id);
+            if ($ledger->status === 'SETTLED' && !Auth::user()->hasRole('super-admin')) {
+                abort(403, 'Settled payment ledgers cannot be edited. Super Admin audit override required.');
+            }
+
             $this->validate([
                 'pay_amount' => 'required|numeric',
                 'pay_status' => 'required|in:PENDING,AUTHORIZED,SETTLED,EXPIRED',
             ]);
-            $ledger = BillingLedger::findOrFail($this->pay_id);
             $ledger->update([
                 'amount' => $this->pay_amount,
                 'status' => $this->pay_status,
@@ -173,7 +178,12 @@ class PaymentManagement extends Component
     public function deletePayment($id)
     {
         abort_unless(Auth::user()->can('delete-payment'), 403);
-        BillingLedger::destroy($id);
+        $ledger = BillingLedger::findOrFail($id);
+        if ($ledger->status === 'SETTLED' && !Auth::user()->hasRole('super-admin')) {
+            abort(403, 'Settled payment ledgers cannot be deleted. Super Admin audit override required.');
+        }
+
+        $ledger->delete();
         session()->flash('message', 'Billing record deleted.');
         $this->loadAuxiliaryData();
     }

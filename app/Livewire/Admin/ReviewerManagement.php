@@ -24,9 +24,6 @@ class ReviewerManagement extends Component
 {
     use WithDynamicListing;
 
-    // Default per-page for card grid (16 items)
-    public $perPage = 16;
-
     // Active Navigation Tab: 'reviewers' or 'dispatch'
     public $activeTab = 'reviewers';
 

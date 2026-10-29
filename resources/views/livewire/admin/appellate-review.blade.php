@@ -46,9 +46,15 @@
                              style="padding: 0.85rem 1rem; border-radius: var(--radius-sm); border: 1px solid {{ $selectedAppealId == $app->id ? 'var(--warning)' : 'var(--border-color)' }}; background: {{ $selectedAppealId == $app->id ? 'rgba(245, 158, 11, 0.08)' : 'var(--bg-btn-secondary)' }}; cursor: pointer; transition: var(--transition-fast);"
                              class="flex justify-between align-center">
                             <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                <div class="user-avatar-circle" style="width: 34px; height: 34px; font-size: 0.75rem; background: linear-gradient(135deg, var(--warning), #d97706);">
-                                    {{ strtoupper(substr($app->user->basicInfo?->first_name ?: $app->user->email, 0, 1)) }}
-                                </div>
+                                @if($app->user->basicInfo?->profile_picture_url)
+                                    <div class="user-avatar-circle" style="width: 34px; height: 34px; overflow: hidden; padding: 0; flex-shrink: 0; border: 1px solid var(--border-color);">
+                                        <img src="{{ $app->user->basicInfo->profile_picture_url }}" alt="Candidate" style="width: 100%; height: 100%; object-fit: cover;">
+                                    </div>
+                                @else
+                                    <div class="user-avatar-circle" style="width: 34px; height: 34px; font-size: 0.75rem; background: linear-gradient(135deg, var(--warning), #d97706);">
+                                        {{ strtoupper(substr($app->user->basicInfo?->first_name ?: $app->user->email, 0, 1)) }}
+                                    </div>
+                                @endif
                                 <div>
                                     <strong style="color: var(--color-text-primary); font-size: 0.92rem;">
                                         {{ $app->user->basicInfo ? trim($app->user->basicInfo->first_name . ' ' . $app->user->basicInfo->last_name) : $app->user->email }}

@@ -54,8 +54,79 @@
         <!-- ========================================== -->
         @if ($currentStep === 1)
             <div wire:key="step-wrapper-1">
-                <x-card wire:key="step-card-1" title="Step 1: Personal Bio-Data Details">
+                <x-card wire:key="step-card-1" title="Step 1: Personal Bio-Data & Candidate Identification">
                 <div class="flex-col gap-6">
+                    <!-- Mandatory Candidate Photograph Section -->
+                    <div wire:key="candidate-photo-box" style="background: linear-gradient(135deg, rgba(99,102,241,0.06), rgba(6,182,212,0.04)); border: 1.5px dashed {{ $errors->has('profile_picture') ? 'var(--danger)' : 'var(--border-color)' }}; border-radius: var(--radius-md); padding: 1.5rem; display: flex; gap: 1.75rem; align-items: center; flex-wrap: wrap;">
+                        <!-- Preview Column -->
+                        <div style="flex-shrink: 0; text-align: center;">
+                            <div style="width: 120px; height: 135px; border-radius: 12px; border: 2px solid {{ $errors->has('profile_picture') ? 'var(--danger)' : 'var(--primary)' }}; overflow: hidden; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center; position: relative; box-shadow: var(--shadow-sm); margin: 0 auto;">
+                                @if ($profile_picture)
+                                    <img src="{{ $profile_picture->temporaryUrl() }}" alt="Candidate Preview" style="width: 100%; height: 100%; object-fit: cover;">
+                                @elseif ($existing_profile_picture)
+                                    <img src="{{ asset('storage/' . $existing_profile_picture) }}" alt="Candidate Photograph" style="width: 100%; height: 100%; object-fit: cover;">
+                                @else
+                                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--color-text-muted); padding: 0.5rem;">
+                                        <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.6; margin-bottom: 0.35rem;">
+                                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="12" cy="7" r="4"/>
+                                        </svg>
+                                        <span style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted);">Photo Required</span>
+                                    </div>
+                                @endif
+
+                                @if ($existing_profile_picture && !$profile_picture)
+                                    <span style="position: absolute; bottom: 4px; left: 4px; right: 4px; background: rgba(16, 185, 129, 0.9); color: #fff; font-size: 0.62rem; font-weight: 800; border-radius: 4px; padding: 1px 0; text-transform: uppercase;">Saved</span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Upload & Instructions Column -->
+                        <div style="flex: 1; min-width: 260px;">
+                            <div class="flex align-center gap-2" style="margin-bottom: 0.35rem;">
+                                <h4 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary);">
+                                    Candidate Photograph <span style="color: var(--danger); font-size: 1.1rem;">*</span>
+                                </h4>
+                                @if ($existing_profile_picture)
+                                    <span class="badge badge-paid" style="font-size: 0.7rem; font-weight: 700;">✓ Attached</span>
+                                @else
+                                    <span class="badge" style="background: rgba(239, 68, 68, 0.12); color: var(--danger); font-size: 0.7rem; font-weight: 800;">Mandatory</span>
+                                @endif
+                            </div>
+                            <p style="font-size: 0.84rem; color: var(--color-text-secondary); margin: 0 0 0.85rem; line-height: 1.5;">
+                                Upload a recent formal passport-size photo with a plain white or blue background. This picture is required for identity verification and will appear on your official roll number / interview slip and scrutiny records.
+                            </p>
+
+                            <div style="display: flex; align-items: center; gap: 0.85rem; flex-wrap: wrap;">
+                                <div style="flex: 1; min-width: 220px; max-width: 380px;">
+                                    <input type="file" 
+                                           class="form-control" 
+                                           wire:model="profile_picture" 
+                                           accept="image/png,image/jpeg,image/jpg,image/webp" 
+                                           {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
+                                </div>
+                                <div wire:loading wire:target="profile_picture" style="font-size: 0.82rem; font-weight: 700; color: var(--secondary); display: inline-flex; align-items: center; gap: 0.4rem;">
+                                    <svg class="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10"></path></svg>
+                                    <span>Uploading & validating photo...</span>
+                                </div>
+                            </div>
+
+                            <div class="flex align-center gap-3" style="margin-top: 0.5rem; font-size: 0.74rem; color: var(--color-text-muted);">
+                                <span>Format: <strong>JPG, PNG, WEBP</strong></span>
+                                <span>&bull;</span>
+                                <span>Max Size: <strong>2 MB</strong></span>
+                                <span>&bull;</span>
+                                <span>Formal passport orientation</span>
+                            </div>
+
+                            @error('profile_picture')
+                                <div style="color: var(--danger); font-size: 0.82rem; font-weight: 700; margin-top: 0.45rem;">
+                                    ⚠ {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-6">
                         <x-input label="First Name *" :error="$errors->first('first_name')">
                             <input type="text" class="form-control" wire:model="first_name" {{ $basicInfo?->is_locked ? 'disabled' : '' }} placeholder="e.g. Ali">
@@ -1156,13 +1227,24 @@
                             <x-select label="Select Recruitment Campaign to Apply For *" :error="$errors->first('campaign_id')">
                                 <select class="form-control form-select" wire:model.live="campaign_id">
                                     <option value="">-- Choose Position / Vacancy --</option>
-                                    @foreach ($campaigns as $camp)
-                                        @php
-                                            $isAlreadyApplied = in_array($camp->id, $appliedCampaignIds);
-                                        @endphp
-                                        <option value="{{ $camp->id }}" {{ $isAlreadyApplied ? 'disabled' : '' }}>
-                                            {{ $isAlreadyApplied ? '✓ [ALREADY APPLIED] ' : '' }}{{ $camp->title }} (Job Code: {{ $camp->job_code }}{{ $camp->advertisement ? ' | Adv: ' . $camp->advertisement->advertisement_no : '' }} | Track: {{ $camp->track_type }})
-                                        </option>
+                                    @php
+                                        $groupedCampaigns = $campaigns->groupBy(function($c) {
+                                            return $c->advertisement 
+                                                ? ('📢 ' . $c->advertisement->advertisement_no . ' — ' . $c->advertisement->title . ' (Year ' . $c->advertisement->year . ')')
+                                                : '🏛️ Direct / Standalone Positions';
+                                        });
+                                    @endphp
+                                    @foreach ($groupedCampaigns as $groupName => $groupCamps)
+                                        <optgroup label="{{ $groupName }}">
+                                            @foreach ($groupCamps as $camp)
+                                                @php
+                                                    $isAlreadyApplied = in_array($camp->id, $appliedCampaignIds);
+                                                @endphp
+                                                <option value="{{ $camp->id }}" {{ $isAlreadyApplied ? 'disabled' : '' }}>
+                                                    {{ $isAlreadyApplied ? '✓ [ALREADY APPLIED] ' : '' }}{{ $camp->title }} (Job Code: {{ $camp->job_code }} | Track: {{ $camp->track_type }})
+                                                </option>
+                                            @endforeach
+                                        </optgroup>
                                     @endforeach
                                 </select>
                             </x-select>
@@ -1393,13 +1475,24 @@
                                 <x-select label="Select Additional Vacancy *" :error="$errors->first('campaign_id')">
                                     <select class="form-control form-select" wire:model.live="campaign_id">
                                         <option value="">-- Choose Position --</option>
-                                        @foreach ($campaigns as $camp)
-                                            @php
-                                                $isAlreadyApplied = in_array($camp->id, $appliedCampaignIds);
-                                            @endphp
-                                            <option value="{{ $camp->id }}" {{ $isAlreadyApplied ? 'disabled' : '' }}>
-                                                {{ $isAlreadyApplied ? '✓ [ALREADY APPLIED] ' : '' }}{{ $camp->title }} ({{ $camp->job_code }}) - PKR {{ number_format($camp->application_fee) }}
-                                            </option>
+                                        @php
+                                            $groupedAdditionalCampaigns = $campaigns->groupBy(function($c) {
+                                                return $c->advertisement 
+                                                    ? ('📢 ' . $c->advertisement->advertisement_no . ' — ' . $c->advertisement->title . ' (Year ' . $c->advertisement->year . ')')
+                                                    : '🏛️ Direct / Standalone Positions';
+                                            });
+                                        @endphp
+                                        @foreach ($groupedAdditionalCampaigns as $groupName => $groupCamps)
+                                            <optgroup label="{{ $groupName }}">
+                                                @foreach ($groupCamps as $camp)
+                                                    @php
+                                                        $isAlreadyApplied = in_array($camp->id, $appliedCampaignIds);
+                                                    @endphp
+                                                    <option value="{{ $camp->id }}" {{ $isAlreadyApplied ? 'disabled' : '' }}>
+                                                        {{ $isAlreadyApplied ? '✓ [ALREADY APPLIED] ' : '' }}{{ $camp->title }} ({{ $camp->job_code }}) - PKR {{ number_format($camp->application_fee) }}
+                                                    </option>
+                                                @endforeach
+                                            </optgroup>
                                         @endforeach
                                     </select>
                                 </x-select>

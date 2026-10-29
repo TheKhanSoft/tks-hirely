@@ -133,6 +133,11 @@ class AdvertisementManagement extends Component
     public function openEditModal($adId)
     {
         $ad = Advertisement::findOrFail($adId);
+        if (($ad->is_expired || !$ad->is_active) && !Auth::user()->hasRole('super-admin')) {
+            session()->flash('error', 'Security Restriction: Expired or inactive advertisements are locked for editing. Modifications require Super Admin authorization.');
+            return;
+        }
+
         $this->editingAdvertisementId = $ad->id;
         $this->advertisement_no = $ad->advertisement_no;
         $this->title = $ad->title;
@@ -159,6 +164,10 @@ class AdvertisementManagement extends Component
         $this->validate();
 
         $ad = Advertisement::findOrFail($this->editingAdvertisementId);
+        if (($ad->is_expired || !$ad->is_active) && !Auth::user()->hasRole('super-admin')) {
+            abort(403, 'Unauthorized: Expired advertisements can only be modified by Super Admin.');
+        }
+
         $ad->update([
             'advertisement_no' => trim($this->advertisement_no),
             'title' => trim($this->title),
@@ -177,6 +186,12 @@ class AdvertisementManagement extends Component
     public function toggleAdvertisementStatus($adId)
     {
         $ad = Advertisement::findOrFail($adId);
+
+        if ($ad->is_expired && !$ad->is_active && !Auth::user()->hasRole('super-admin')) {
+            session()->flash('error', 'Security Policy: Cannot reactivate an expired advertisement directly. Please issue a Date Extension / Corrigendum first.');
+            return;
+        }
+
         $ad->is_active = !$ad->is_active;
         $ad->save();
 

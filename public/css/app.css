@@ -2472,6 +2472,22 @@ html.light [data-tooltip]::after {
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
 }
 
+.entity-cards-grid.grid-3-cols {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.15rem;
+}
+@media (min-width: 640px) {
+    .entity-cards-grid.grid-3-cols {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (min-width: 1024px) {
+    .entity-cards-grid.grid-3-cols {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
+
 /* 4-to-5-column variant for compact cards like Users and Candidates */
 .entity-cards-grid.cols-compact {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -2703,6 +2719,8 @@ html.light .entity-card-body {
 .entity-card-status-toggle-btn:hover {
     filter: brightness(1.15);
 }
+
+.entity-card-metric-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -2844,6 +2862,18 @@ html.light .entity-card-menu-item:hover {
     color: #f59e0b;
 }
 
+.entity-card-menu-item.disabled,
+.entity-card-menu-item:disabled {
+    opacity: 0.45;
+    cursor: not-allowed !important;
+}
+
+.entity-card-menu-item.disabled:hover,
+.entity-card-menu-item:disabled:hover {
+    background: transparent !important;
+    color: inherit !important;
+}
+
 .entity-card-menu-divider {
     height: 1px;
     background: rgba(255, 255, 255, 0.08);
@@ -2943,6 +2973,18 @@ html.light .table-action-menu-item:hover {
 .table-action-menu-item.impersonate:hover {
     background: rgba(245, 158, 11, 0.15);
     color: #f59e0b;
+}
+
+.table-action-menu-item.disabled,
+.table-action-menu-item:disabled {
+    opacity: 0.45;
+    cursor: not-allowed !important;
+}
+
+.table-action-menu-item.disabled:hover,
+.table-action-menu-item:disabled:hover {
+    background: transparent !important;
+    color: inherit !important;
 }
 
 .table-action-menu-divider {

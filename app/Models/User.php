@@ -114,4 +114,12 @@ class User extends Authenticatable
     {
         return $this->hasAnyRoleOtherThan('applicant') || $this->reviewerProfile()->exists() || $this->committees()->exists();
     }
+
+    /**
+     * Get candidate/user profile picture URL.
+     */
+    public function getProfilePictureUrlAttribute(): ?string
+    {
+        return $this->basicInfo?->profile_picture_url;
+    }
 }

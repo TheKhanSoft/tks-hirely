@@ -15,9 +15,9 @@ trait WithDynamicListing
     public $search = '';
 
     /**
-     * Number of items to display per page (default 16 or 12 for neat 4 or 3 card rows).
+     * Number of items to display per page (default 12 for neat 3 card rows).
      */
-    public $perPage = 16;
+    public $perPage = 12;
 
     /**
      * Active listing view mode: 'grid' (cards, default) or 'table' (tabular list).
@@ -44,6 +44,14 @@ trait WithDynamicListing
     public function updatingPerPage()
     {
         $this->resetPage();
+    }
+
+    /**
+     * Use custom sleek pagination view matching dark/light design system.
+     */
+    public function paginationView()
+    {
+        return 'components.pagination';
     }
 
     /**

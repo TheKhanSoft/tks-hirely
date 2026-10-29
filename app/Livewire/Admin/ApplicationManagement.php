@@ -32,9 +32,6 @@ class ApplicationManagement extends Component
     public $selectedRecordId;
     public $selectedRecordDetails = null;
 
-    // Default per-page for card grid (16 items)
-    public $perPage = 16;
-
     // Filters & Search
     public $search = '';
     public $statusFilter = '';
@@ -106,7 +103,7 @@ class ApplicationManagement extends Component
 
     public function mount()
     {
-        abort_unless(Auth::check() && Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::check() && Auth::user()->hasAnyRole(['super-admin', 'registrar', 'admin']), 403);
         $this->loadAuxiliaryData();
         $this->dispatchReviewDueDate = now()->addDays(14)->format('Y-m-d');
     }
@@ -141,9 +138,14 @@ class ApplicationManagement extends Component
     public function openEditApplicationForm($id)
     {
         abort_unless(Auth::user()->can('edit-application') || Auth::user()->can('change-application-status') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        $app = Application::with('campaign')->findOrFail($id);
+        if (!Auth::user()->hasRole('super-admin') && ($app->campaign?->is_completed || $app->campaign?->is_closed)) {
+            session()->flash('error', 'Recruitment for this position has closed or completed. Modifying applications requires Super Admin privileges.');
+            return;
+        }
+
         $this->resetForm();
         $this->app_id = $id;
-        $app = Application::findOrFail($id);
         $this->app_user_id = $app->user_id;
         $this->app_campaign_id = $app->campaign_id;
         $this->app_status = $app->status;
@@ -156,7 +158,12 @@ class ApplicationManagement extends Component
     {
         if ($this->isEditMode) {
             abort_unless(Auth::user()->can('edit-application') || Auth::user()->can('change-application-status') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
-            $app = Application::findOrFail($this->app_id);
+            $app = Application::with('campaign')->findOrFail($this->app_id);
+            if (!Auth::user()->hasRole('super-admin') && ($app->campaign?->is_completed || $app->campaign?->is_closed)) {
+                session()->flash('error', 'Recruitment for this position has closed or completed. Modifying applications requires Super Admin privileges.');
+                return;
+            }
+
             $app->update([
                 'status' => $this->app_status,
                 'disqualification_reason' => $this->app_disqualification_reason,
@@ -184,7 +191,20 @@ class ApplicationManagement extends Component
     public function deleteApplication($id)
     {
         abort_unless(Auth::user()->can('delete-application') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
-        Application::destroy($id);
+        $app = Application::with('campaign')->findOrFail($id);
+
+        if (!Auth::user()->hasRole('super-admin')) {
+            if ($app->campaign?->is_completed || $app->campaign?->is_closed) {
+                session()->flash('error', 'Security Policy: Applications in closed or completed recruitment cycles cannot be deleted.');
+                return;
+            }
+            if (in_array($app->status, ['APPOINTED', 'OFFERED', 'SELECTED'])) {
+                session()->flash('error', 'Security Policy: Finalized or appointed applications cannot be deleted. Contact Super Admin for emergency adjustments.');
+                return;
+            }
+        }
+
+        $app->delete();
         session()->flash('message', 'Application record deleted successfully.');
     }
 
@@ -205,6 +225,10 @@ class ApplicationManagement extends Component
         
         $this->dispatchAppId = $applicationId;
         $this->dispatchApplication = Application::with(['campaign', 'user.basicInfo', 'reviews.reviewer.reviewerProfile'])->findOrFail($applicationId);
+        if (!Auth::user()->hasRole('super-admin') && ($this->dispatchApplication->campaign?->is_completed || $this->dispatchApplication->campaign?->is_closed)) {
+            abort(403, 'Reviewers cannot be dispatched for a closed or completed campaign.');
+        }
+
         $this->selectedReviewerIds = [];
         $this->dispatchTargetRequiredExperts = $this->dispatchApplication->campaign->getRequiredPeerReviewersCount();
         $this->dispatchAlreadyAssignedCount = $this->dispatchApplication->reviews->count();
@@ -403,7 +427,11 @@ class ApplicationManagement extends Component
     {
         abort_unless(Auth::user()->can('change-application-status') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
         $this->incompleteAppId = $applicationId;
-        $app = Application::findOrFail($applicationId);
+        $app = Application::with('campaign')->findOrFail($applicationId);
+        if (!Auth::user()->hasRole('super-admin') && ($app->campaign?->is_completed || $app->campaign?->is_closed)) {
+            abort(403, 'Application dossier status cannot be altered for a closed or completed campaign.');
+        }
+
         $this->incompleteDeficiencyNotes = $app->disqualification_reason ?: 'Candidate dossier is missing certified transcripts or statutory proofs.';
         $this->showIncompleteModal = true;
     }
@@ -424,7 +452,11 @@ class ApplicationManagement extends Component
             'incompleteDeficiencyNotes.required' => 'Please provide specific deficiency details explaining what documents or data are missing.',
         ]);
 
-        $app = Application::findOrFail($this->incompleteAppId);
+        $app = Application::with('campaign')->findOrFail($this->incompleteAppId);
+        if (!Auth::user()->hasRole('super-admin') && ($app->campaign?->is_completed || $app->campaign?->is_closed)) {
+            abort(403, 'Application dossier status cannot be altered for a closed or completed campaign.');
+        }
+
         $app->update([
             'status' => 'INCOMPLETE_DOSSIER',
             'disqualification_reason' => trim($this->incompleteDeficiencyNotes),
@@ -441,7 +473,11 @@ class ApplicationManagement extends Component
     {
         abort_unless(Auth::user()->can('change-application-status') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
         $this->rejectAppId = $applicationId;
-        $app = Application::findOrFail($applicationId);
+        $app = Application::with('campaign')->findOrFail($applicationId);
+        if (!Auth::user()->hasRole('super-admin') && ($app->campaign?->is_completed || $app->campaign?->is_closed)) {
+            abort(403, 'Application cannot be rejected or disqualified for a closed or completed campaign.');
+        }
+
         $this->rejectReason = $app->disqualification_reason ?: '';
         $this->showRejectModal = true;
     }
@@ -462,7 +498,11 @@ class ApplicationManagement extends Component
             'rejectReason.required' => 'Please provide the formal justification reason for disqualification or rejection.',
         ]);
 
-        $app = Application::findOrFail($this->rejectAppId);
+        $app = Application::with('campaign')->findOrFail($this->rejectAppId);
+        if (!Auth::user()->hasRole('super-admin') && ($app->campaign?->is_completed || $app->campaign?->is_closed)) {
+            abort(403, 'Application cannot be rejected or disqualified for a closed or completed campaign.');
+        }
+
         $app->update([
             'status' => 'DISQUALIFIED',
             'disqualification_reason' => trim($this->rejectReason),
@@ -478,7 +518,11 @@ class ApplicationManagement extends Component
     public function markAsEligible($applicationId)
     {
         abort_unless(Auth::user()->can('change-application-status') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
-        $app = Application::findOrFail($applicationId);
+        $app = Application::with('campaign')->findOrFail($applicationId);
+        if (!Auth::user()->hasRole('super-admin') && ($app->campaign?->is_completed || $app->campaign?->is_closed)) {
+            abort(403, 'Application eligibility cannot be altered for a closed or completed campaign.');
+        }
+
         $app->update([
             'status' => 'ELIGIBLE',
             'disqualification_reason' => null,
@@ -494,6 +538,10 @@ class ApplicationManagement extends Component
         abort_unless(Auth::user()->can('change-application-status') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
         $this->transitionAppId = $applicationId;
         $this->transitionApplication = Application::with(['campaign', 'user.basicInfo', 'billingLedger', 'reviews'])->findOrFail($applicationId);
+        if (!Auth::user()->hasRole('super-admin') && ($this->transitionApplication->campaign?->is_completed || $this->transitionApplication->campaign?->is_closed)) {
+            abort(403, 'Workflow transition is locked for closed or completed campaigns.');
+        }
+
         $this->transitionTargetStatus = '';
         $this->transitionNotes = '';
         $this->transitionValidationErrors = [];
@@ -518,6 +566,9 @@ class ApplicationManagement extends Component
         ]);
 
         $app = Application::with(['campaign', 'billingLedger', 'reviews'])->findOrFail($this->transitionAppId);
+        if (!Auth::user()->hasRole('super-admin') && ($app->campaign?->is_completed || $app->campaign?->is_closed)) {
+            abort(403, 'Workflow transition is locked for closed or completed campaigns.');
+        }
 
         // Dynamic gate validation check
         $validation = WorkflowStatus::validateApplicationTransition($app, $this->transitionTargetStatus, $this->transitionNotes);
@@ -539,6 +590,9 @@ class ApplicationManagement extends Component
     {
         abort_unless(Auth::user()->can('change-application-status') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
         $app = Application::with(['campaign.constitution', 'campaign.processFlow', 'reviews'])->findOrFail($applicationId);
+        if (!Auth::user()->hasRole('super-admin') && ($app->campaign?->is_completed || $app->campaign?->is_closed)) {
+            abort(403, 'Peer review evaluation is locked for closed or completed campaigns.');
+        }
         
         $verdict = $app->evaluatePeerReviewVerdict();
         

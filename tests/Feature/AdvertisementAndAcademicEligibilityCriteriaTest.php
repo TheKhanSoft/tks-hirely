@@ -184,6 +184,30 @@ class AdvertisementAndAcademicEligibilityCriteriaTest extends TestCase
         $this->assertTrue($ad->fresh()->is_extended);
     }
 
+    public function test_advertisements_desk_renders_card_grid_with_records(): void
+    {
+        $registrar = User::factory()->create();
+        $registrar->assignRole('registrar');
+
+        $ad = Advertisement::create([
+            'advertisement_no' => 'ADV-2026/09',
+            'title' => 'Distinguished Professorship Cycle',
+            'year' => (int)date('Y'),
+            'valid_from' => now()->subDay(),
+            'valid_to' => now()->addDays(25),
+            'newspaper_reference' => 'Dawn & Jang',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($registrar);
+
+        Livewire::test(AdvertisementManagement::class)
+            ->assertSee('ADV-2026/09')
+            ->assertSee('Distinguished Professorship Cycle')
+            ->assertDontSee('No Advertisements Found')
+            ->assertDontSee('No Records Found');
+    }
+
     public function test_jobs_belong_under_advertisement_and_can_be_mapped(): void
     {
         $ad = Advertisement::create([

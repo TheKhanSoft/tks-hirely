@@ -3,6 +3,8 @@
     'subtitle' => null,
     'icon' => null,
     'items' => null,
+    'paginator' => null,
+    'totalCount' => null,
     'search' => null,
     'searchPlaceholder' => 'Search records by name, email, identifier...',
     'perPage' => 16,
@@ -15,6 +17,10 @@
     'entityName' => 'Records',
     'gridClass' => '',
 ])
+
+@php
+    $items = $items ?? $paginator;
+@endphp
 
 <div>
     <!-- Unified Listing Control Ribbon -->
@@ -132,7 +138,7 @@
 
     <!-- Active Content Area: Card Grid vs Table -->
     @php
-        $count = $items ? ($items instanceof \Illuminate\Pagination\LengthAwarePaginator ? $items->total() : count($items)) : 0;
+        $count = $items ? ($items instanceof \Illuminate\Pagination\LengthAwarePaginator ? $items->total() : count($items)) : ($totalCount ?? 0);
     @endphp
 
     @if($count > 0)
@@ -159,7 +165,7 @@
 
             @if($items instanceof \Illuminate\Pagination\LengthAwarePaginator && $items->hasPages())
                 <div>
-                    {{ $items->links() }}
+                    {{ $items->links('components.pagination') }}
                 </div>
             @endif
         </div>

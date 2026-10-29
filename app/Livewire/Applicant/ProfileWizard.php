@@ -20,6 +20,7 @@ use App\Models\Patent;
 use App\Models\PortfolioItem;
 use App\Models\Training;
 use App\Models\Referee;
+use App\Models\SystemSetting;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
@@ -31,6 +32,8 @@ class ProfileWizard extends Component
     public $totalSteps = 8;
     
     // Step 1: Bio-Data
+    public $profile_picture;
+    public $existing_profile_picture;
     public $campaign_id;
     public $selectedAppId;
     public $track_type = 'ACADEMIC';
@@ -190,7 +193,12 @@ class ProfileWizard extends Component
     public function getRules()
     {
         if ($this->currentStep === 1) {
+            $isPhotoRequired = SystemSetting::isDocumentRequired('photo');
+
             return [
+                'profile_picture' => ($isPhotoRequired && empty($this->existing_profile_picture))
+                    ? 'required|image|mimes:jpeg,png,jpg,webp|max:2048'
+                    : 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
                 'first_name' => 'required|string|max:100',
                 'last_name' => 'nullable|string|max:100',
                 'cnic_number' => ['required', 'regex:/^[0-9]{5}-[0-9]{7}-[0-9]{1}$/'],
@@ -222,6 +230,10 @@ class ProfileWizard extends Component
     }
 
     protected $messages = [
+        'profile_picture.required' => 'Candidate passport-size photograph is mandatory. Please provide a formal photo.',
+        'profile_picture.image' => 'The candidate photograph must be a valid image file.',
+        'profile_picture.mimes' => 'The photograph must be in JPEG, PNG, JPG, or WEBP format.',
+        'profile_picture.max' => 'The candidate photograph size must not exceed 2MB.',
         'campaign_id.required' => 'Please select the recruitment campaign you wish to apply for before generating your voucher.',
         'cnic_number.regex' => 'The CNIC number format must be 12345-1234567-1.',
         'phone_number.required' => 'Mobile / Contact number is required.',
@@ -233,8 +245,9 @@ class ProfileWizard extends Component
     {
         $this->campaign_id = Auth::user()->applications()->first()?->campaign_id;
         
-        $basicInfo = Auth::user()->basicInfo;
+        $basicInfo = Auth::user()->fresh()?->basicInfo;
         if ($basicInfo) {
+            $this->existing_profile_picture = $basicInfo->profile_picture;
             $this->first_name = $basicInfo->first_name;
             $this->last_name = $basicInfo->last_name;
             $this->cnic_number = $basicInfo->cnic_number;
@@ -460,36 +473,45 @@ class ProfileWizard extends Component
     // Save basicInfo Step 1
     protected function saveProfileStep1()
     {
+        $payload = [
+            'track_type' => $this->trackType,
+            'first_name' => $this->first_name,
+            'last_name' => $this->last_name ?: null,
+            'cnic_number' => $this->cnic_number,
+            'date_of_birth' => $this->date_of_birth,
+            'quota' => $this->quota,
+            'gender' => $this->gender,
+            'father_name' => $this->father_name,
+            'phone_number' => $this->phone_number,
+            'secondary_phone' => $this->secondary_phone,
+            'secondary_email' => $this->secondary_email,
+            'same_address' => $this->same_address,
+            'permanent_address' => $this->permanent_address,
+            'mailing_address' => $this->mailing_address,
+            'place_of_birth' => $this->place_of_birth,
+            'nationality' => $this->nationality,
+            'religion' => $this->religion,
+            'marital_status' => $this->marital_status,
+            'domicile' => $this->domicile,
+        ];
+
+        if ($this->profile_picture) {
+            $path = $this->profile_picture->store('profile_pictures', 'public');
+            $payload['profile_picture'] = $path;
+            $this->existing_profile_picture = $path;
+            $this->profile_picture = null;
+        }
+
         $basicInfo = BasicInfo::updateOrCreate(
             ['user_id' => Auth::id()],
-            [
-                'track_type' => $this->trackType,
-                'first_name' => $this->first_name,
-                'last_name' => $this->last_name ?: null,
-                'cnic_number' => $this->cnic_number,
-                'date_of_birth' => $this->date_of_birth,
-                'quota' => $this->quota,
-                'gender' => $this->gender,
-                'father_name' => $this->father_name,
-                'phone_number' => $this->phone_number,
-                'secondary_phone' => $this->secondary_phone,
-                'secondary_email' => $this->secondary_email,
-                'same_address' => $this->same_address,
-                'permanent_address' => $this->permanent_address,
-                'mailing_address' => $this->mailing_address,
-                'place_of_birth' => $this->place_of_birth,
-                'nationality' => $this->nationality,
-                'religion' => $this->religion,
-                'marital_status' => $this->marital_status,
-                'domicile' => $this->domicile,
-            ]
+            $payload
         );
 
         if ($this->disability_cert) {
             $path = $this->disability_cert->store('certificates', 'public');
             $basicInfo->update([
                 'dynamic_attributes' => array_merge(
-                    $basicInfo->dynamic_attributes,
+                    $basicInfo->dynamic_attributes ?? [],
                     ['disability_cert_path' => $path]
                 )
             ]);

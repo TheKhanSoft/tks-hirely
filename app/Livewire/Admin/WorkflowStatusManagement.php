@@ -15,9 +15,6 @@ class WorkflowStatusManagement extends Component
     // Active scope tab: 'APPLICATION', 'APPLICANT', 'SYSTEM'
     public $activeScope = 'APPLICATION';
 
-    // Listing default (16 per page = 4x4 or 3-5 per row)
-    public $perPage = 16;
-
     // Modal state
     public $showModal = false;
     public $isEdit = false;

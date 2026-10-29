@@ -80,8 +80,12 @@
             <div class="flex justify-between align-center" style="flex-wrap: wrap; gap: 1.75rem;">
                 <!-- Candidate Identity Block -->
                 <div class="flex align-center gap-4" style="flex: 1; min-width: 280px;">
-                    <div class="applicant-avatar">
-                        {{ strtoupper(substr($basicInfo->first_name ?: auth()->user()->email, 0, 1)) }}
+                    <div class="applicant-avatar" style="overflow: hidden; padding: 0; display: flex; align-items: center; justify-content: center; position: relative;">
+                        @if($basicInfo->profile_picture_url)
+                            <img src="{{ $basicInfo->profile_picture_url }}" alt="{{ $basicInfo->first_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        @else
+                            {{ strtoupper(substr($basicInfo->first_name ?: auth()->user()->email, 0, 1)) }}
+                        @endif
                         <div class="applicant-avatar-verified" title="Verified Identity Record">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="20 6 9 17 4 12"/>
@@ -587,14 +591,46 @@
                     <button type="button" class="btn btn-secondary btn-sm" wire:click="closeApplyModal">✕</button>
                 </div>
 
-                <!-- Search Filter & Notice -->
-                <div style="padding: 1rem 1.5rem; background: var(--bg-surface); border-bottom: 1px solid var(--border-color);">
+                <!-- Search & Cascaded Advertisement / Year Filter Bar -->
+                <div style="padding: 1rem 1.5rem; background: var(--bg-surface); border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.75rem;">
                     <div style="position: relative;">
                         <input type="text" class="form-control" wire:model.live.debounce.250ms="campaignSearch" placeholder="Filter positions by title, job code, or department..." style="padding-left: 2.5rem; font-size: 0.88rem;">
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); pointer-events: none;">
                             <circle cx="11" cy="11" r="8"/>
                             <path d="m21 21-4.3-4.3"/>
                         </svg>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                        <!-- Filter by Year -->
+                        <div style="display: flex; align-items: center; gap: 0.35rem;">
+                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase;">Year:</span>
+                            <select class="form-control form-select" wire:model.live="campaignYearFilter" style="width: auto; min-width: 110px; padding: 0.35rem 0.65rem; font-size: 0.82rem; font-weight: 700;">
+                                <option value="">All Years</option>
+                                @foreach($applicantYears as $yr)
+                                    <option value="{{ $yr }}">Year {{ $yr }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Filter by Advertisement -->
+                        <div style="display: flex; align-items: center; gap: 0.35rem; flex: 1; min-width: 200px;">
+                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase;">Advertisement:</span>
+                            <select class="form-control form-select" wire:model.live="campaignAdFilter" style="width: 100%; padding: 0.35rem 0.65rem; font-size: 0.82rem; font-weight: 700;">
+                                <option value="">All Advertisements</option>
+                                @foreach($applicantAdvertisements as $ad)
+                                    <option value="{{ $ad->id }}">
+                                        📢 {{ $ad->advertisement_no }} — {{ \Illuminate\Support\Str::limit($ad->title, 36) }} ({{ $ad->campaigns_count }} {{ \Illuminate\Support\Str::plural('job', $ad->campaigns_count) }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        @if(!empty($campaignSearch) || !empty($campaignYearFilter) || !empty($campaignAdFilter))
+                            <button type="button" class="btn btn-secondary btn-sm" wire:click="resetCampaignFilters" style="font-size: 0.78rem; padding: 0.35rem 0.75rem;">
+                                ✕ Reset Filters
+                            </button>
+                        @endif
                     </div>
                 </div>
 
@@ -796,47 +832,56 @@
                             </div>
 
                             <!-- Candidate & Position Data Grid -->
-                            <div style="border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; margin-bottom: 1.5rem; font-size: 0.85rem;">
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid #e2e8f0;">
-                                    <div style="padding: 0.65rem 1rem; border-right: 1px solid #e2e8f0; background: #fafafa;">
-                                        <span style="color: #64748b; font-size: 0.75rem; display: block;">Candidate Full Name:</span>
-                                        <strong style="color: #0f172a; font-size: 0.95rem;">
-                                            {{ $selectedSlipApp->user->basicInfo ? trim($selectedSlipApp->user->basicInfo->first_name . ' ' . $selectedSlipApp->user->basicInfo->last_name) : $selectedSlipApp->user->email }}
-                                        </strong>
+                            <div style="display: flex; gap: 1rem; align-items: stretch; margin-bottom: 1.5rem;">
+                                <div style="flex: 1; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; font-size: 0.85rem;">
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid #e2e8f0;">
+                                        <div style="padding: 0.65rem 1rem; border-right: 1px solid #e2e8f0; background: #fafafa;">
+                                            <span style="color: #64748b; font-size: 0.75rem; display: block;">Candidate Full Name:</span>
+                                            <strong style="color: #0f172a; font-size: 0.95rem;">
+                                                {{ $selectedSlipApp->user->basicInfo ? trim($selectedSlipApp->user->basicInfo->first_name . ' ' . $selectedSlipApp->user->basicInfo->last_name) : $selectedSlipApp->user->email }}
+                                            </strong>
+                                        </div>
+                                        <div style="padding: 0.65rem 1rem; background: #fafafa;">
+                                            <span style="color: #64748b; font-size: 0.75rem; display: block;">CNIC / National Identity:</span>
+                                            <strong style="font-family: 'JetBrains Mono', monospace; color: #0f172a; font-size: 0.95rem;">
+                                                {{ $selectedSlipApp->user->basicInfo?->cnic_number ?? 'N/A' }}
+                                            </strong>
+                                        </div>
                                     </div>
-                                    <div style="padding: 0.65rem 1rem; background: #fafafa;">
-                                        <span style="color: #64748b; font-size: 0.75rem; display: block;">CNIC / National Identity:</span>
-                                        <strong style="font-family: 'JetBrains Mono', monospace; color: #0f172a; font-size: 0.95rem;">
-                                            {{ $selectedSlipApp->user->basicInfo?->cnic_number ?? 'N/A' }}
-                                        </strong>
+
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid #e2e8f0;">
+                                        <div style="padding: 0.65rem 1rem; border-right: 1px solid #e2e8f0;">
+                                            <span style="color: #64748b; font-size: 0.75rem; display: block;">Position Applied For:</span>
+                                            <strong style="color: #0f172a;">{{ $selectedSlipApp->campaign->title }}</strong>
+                                        </div>
+                                        <div style="padding: 0.65rem 1rem;">
+                                            <span style="color: #64748b; font-size: 0.75rem; display: block;">Job Code & Track:</span>
+                                            <strong style="font-family: 'JetBrains Mono', monospace; color: #0284c7;">
+                                                {{ $selectedSlipApp->campaign->job_code }} ({{ $selectedSlipApp->campaign->track_type }} Track)
+                                            </strong>
+                                        </div>
+                                    </div>
+
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr;">
+                                        <div style="padding: 0.65rem 1rem; border-right: 1px solid #e2e8f0;">
+                                            <span style="color: #64748b; font-size: 0.75rem; display: block;">Academic Discipline / Department:</span>
+                                            <strong style="color: #0f172a;">{{ $selectedSlipApp->campaign->department }}</strong>
+                                        </div>
+                                        <div style="padding: 0.65rem 1rem;">
+                                            <span style="color: #64748b; font-size: 0.75rem; display: block;">Application Dossier Status:</span>
+                                            <span style="color: #059669; font-weight: 700; text-transform: uppercase;">
+                                                Fee Settled ({{ $selectedSlipApp->status }})
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid #e2e8f0;">
-                                    <div style="padding: 0.65rem 1rem; border-right: 1px solid #e2e8f0;">
-                                        <span style="color: #64748b; font-size: 0.75rem; display: block;">Position Applied For:</span>
-                                        <strong style="color: #0f172a;">{{ $selectedSlipApp->campaign->title }}</strong>
+                                @if($selectedSlipApp->user->basicInfo?->profile_picture_url)
+                                    <div style="width: 105px; flex-shrink: 0; border: 1.5px solid #cbd5e1; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; padding: 4px;">
+                                        <img src="{{ $selectedSlipApp->user->basicInfo->profile_picture_url }}" alt="Candidate Photo" style="width: 100%; height: 110px; object-fit: cover; border-radius: 4px;">
+                                        <span style="font-size: 0.58rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-top: 3px;">Candidate</span>
                                     </div>
-                                    <div style="padding: 0.65rem 1rem;">
-                                        <span style="color: #64748b; font-size: 0.75rem; display: block;">Job Code & Track:</span>
-                                        <strong style="font-family: 'JetBrains Mono', monospace; color: #0284c7;">
-                                            {{ $selectedSlipApp->campaign->job_code }} ({{ $selectedSlipApp->campaign->track_type }} Track)
-                                        </strong>
-                                    </div>
-                                </div>
-
-                                <div style="display: grid; grid-template-columns: 1fr 1fr;">
-                                    <div style="padding: 0.65rem 1rem; border-right: 1px solid #e2e8f0;">
-                                        <span style="color: #64748b; font-size: 0.75rem; display: block;">Academic Discipline / Department:</span>
-                                        <strong style="color: #0f172a;">{{ $selectedSlipApp->campaign->department }}</strong>
-                                    </div>
-                                    <div style="padding: 0.65rem 1rem;">
-                                        <span style="color: #64748b; font-size: 0.75rem; display: block;">Application Dossier Status:</span>
-                                        <span style="color: #059669; font-weight: 700; text-transform: uppercase;">
-                                            Fee Settled ({{ $selectedSlipApp->status }})
-                                        </span>
-                                    </div>
-                                </div>
+                                @endif
                             </div>
 
                             <!-- Financial Breakdown -->
