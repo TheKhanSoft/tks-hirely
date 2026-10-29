@@ -104,7 +104,7 @@ class UniversalSearchPaletteTest extends TestCase
             'application_id' => $app2->id,
             'consumer_id' => '1000998877',
             'amount' => 5000,
-            'status' => 'PAID',
+            'status' => 'SETTLED',
         ]);
 
         $this->actingAs($applicant1);
@@ -174,9 +174,11 @@ class UniversalSearchPaletteTest extends TestCase
 
         $candProfile = BasicInfo::create([
             'user_id' => $candUser->id,
+            'track_type' => 'ACADEMIC',
             'first_name' => 'Zubair',
             'last_name' => 'Ahmad',
             'cnic_number' => '17301-8899001-3',
+            'date_of_birth' => '1990-01-01',
             'phone_number' => '0300-1234567',
         ]);
 
@@ -316,5 +318,56 @@ class UniversalSearchPaletteTest extends TestCase
         $test->set('query', 'Review Expert');
         $results = $test->instance()->getSearchResults();
         $this->assertEmpty($results);
+    }
+
+    public function test_academic_reviewer_only_sees_peer_review_desk()
+    {
+        $reviewerUser = User::factory()->create(['email' => 'reviewer@university.edu']);
+        $reviewerUser->assignRole('academic-reviewer');
+
+        $this->actingAs($reviewerUser);
+
+        $test = Livewire::test(UniversalSearchPalette::class)
+            ->call('openPalette');
+
+        $categories = $test->instance()->getAvailableCategories();
+
+        $this->assertArrayHasKey('navigation', $categories);
+        $this->assertArrayNotHasKey('reviewers', $categories);
+        $this->assertArrayNotHasKey('candidates', $categories);
+        $this->assertArrayNotHasKey('payments', $categories);
+        $this->assertArrayNotHasKey('users', $categories);
+
+        $test->set('query', 'Review');
+        $results = $test->instance()->getSearchResults();
+        $this->assertTrue(collect($results)->contains(fn($r) => str_contains($r['url'], '/reviewer/dashboard')));
+    }
+
+    public function test_super_admin_has_universal_search_across_all_modules()
+    {
+        $superAdmin = User::factory()->create(['email' => 'superadmin@university.edu']);
+        $superAdmin->assignRole('super-admin');
+
+        $this->actingAs($superAdmin);
+
+        $test = Livewire::test(UniversalSearchPalette::class)
+            ->call('openPalette');
+
+        $categories = $test->instance()->getAvailableCategories();
+
+        $this->assertArrayHasKey('navigation', $categories);
+        $this->assertArrayHasKey('campaigns', $categories);
+        $this->assertArrayHasKey('advertisements', $categories);
+        $this->assertArrayHasKey('applications', $categories);
+        $this->assertArrayHasKey('candidates', $categories);
+        $this->assertArrayHasKey('reviewers', $categories);
+        $this->assertArrayHasKey('payments', $categories);
+        $this->assertArrayHasKey('constitutions', $categories);
+        $this->assertArrayHasKey('users', $categories);
+
+        // Super admin links use /admin
+        $test->set('query', 'Operations Desk');
+        $results = $test->instance()->getSearchResults();
+        $this->assertTrue(collect($results)->contains(fn($r) => $r['url'] === '/admin/dashboard'));
     }
 }

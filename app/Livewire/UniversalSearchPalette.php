@@ -122,11 +122,13 @@ class UniversalSearchPalette extends Component
 
         $isSuperAdmin = $user->hasRole('super-admin');
         $isRegistrar = $user->hasRole('registrar');
+        $isStaffAdmin = $isSuperAdmin || $isRegistrar || $user->hasRole('admin');
         $isScrutiny = $user->hasAnyRole(['scrutiny-committee', 'scrutiny']) || $user->can('scrutinize-application');
         $isBoard = $user->hasAnyRole(['selection-board-member', 'board-member', 'board']) || $user->can('access-board-grading') || $user->can('evaluate-application');
         $isAppellate = $user->hasAnyRole(['appellate-committee', 'appellate']) || $user->can('view-appeal') || $user->can('process-appeal');
         $isReviewer = $user->hasAnyRole(['academic-reviewer', 'reviewer']) || $user->can('evaluate-academic-dossier');
         $isApplicant = $user->hasRole('applicant');
+        $isApplicantOnly = $isApplicant && !$isStaffAdmin;
 
         $baseRoute = ($isRegistrar && !$isSuperAdmin) ? '/registrar' : '/admin';
         $searchTerm = trim($this->query);
@@ -223,7 +225,7 @@ class UniversalSearchPalette extends Component
                 ];
             }
 
-            if ($isSuperAdmin || $isRegistrar || $user->can('view-application')) {
+            if ($isStaffAdmin || ($user->can('view-application') && !$isApplicantOnly)) {
                 $navItems[] = [
                     'id' => 'nav_app',
                     'title' => 'Applications Dossiers Desk',
@@ -555,7 +557,7 @@ class UniversalSearchPalette extends Component
 
         // 4. Applications Dossiers
         if ($this->activeCategory === 'all' || $this->activeCategory === 'applications') {
-            if ($isSuperAdmin || $isRegistrar || $user->can('view-application')) {
+            if ($isStaffAdmin || ($user->can('view-application') && !$isApplicantOnly)) {
                 $appQuery = Application::with(['campaign.advertisement', 'user.basicInfo', 'billingLedger'])
                     ->orderBy('created_at', 'desc');
 
@@ -607,13 +609,22 @@ class UniversalSearchPalette extends Component
                     ->orderBy('created_at', 'desc');
 
                 if ($hasSearch) {
-                    $appQuery->where(function ($q) use ($likeTerm) {
+                    $rawId = preg_replace('/[^0-9]/', '', $searchTerm);
+                    $isAppGeneric = str_contains(strtolower($searchTerm), 'app');
+                    $appQuery->where(function ($q) use ($likeTerm, $rawId, $isAppGeneric) {
                         $q->where('id', 'like', $likeTerm)
                           ->orWhere('status', 'like', $likeTerm)
                           ->orWhereHas('campaign', function ($cq) use ($likeTerm) {
                               $cq->where('title', 'like', $likeTerm)
                                  ->orWhere('job_code', 'like', $likeTerm);
                           });
+
+                        if (!empty($rawId)) {
+                            $q->orWhere('id', $rawId);
+                        }
+                        if ($isAppGeneric) {
+                            $q->orWhereRaw('1 = 1');
+                        }
                     });
                 }
 
