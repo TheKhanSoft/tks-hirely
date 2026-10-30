@@ -101,6 +101,28 @@ class ApplicationManagement extends Component
     public $transitionNotes = '';
     public $transitionValidationErrors = [];
 
+    // =========================================================================
+    // 📜 DIRECT ACTION 5: STATUTORY APPOINTMENT & OFFER LETTER
+    // =========================================================================
+    public $showAppointmentLetterModal = false;
+    public $appointmentApplication = null;
+
+    public function openAppointmentLetterModal($appId)
+    {
+        $this->appointmentApplication = Application::with([
+            'user.basicInfo.academicDegrees',
+            'campaign.advertisement',
+            'evaluations',
+        ])->findOrFail($appId);
+        $this->showAppointmentLetterModal = true;
+    }
+
+    public function closeAppointmentLetterModal()
+    {
+        $this->showAppointmentLetterModal = false;
+        $this->appointmentApplication = null;
+    }
+
     public function mount()
     {
         abort_unless(Auth::check() && (

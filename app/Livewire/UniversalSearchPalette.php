@@ -79,7 +79,7 @@ class UniversalSearchPalette extends Component
             $categories['campaigns'] = ['label' => 'Job Campaigns', 'icon' => 'briefcase'];
         }
 
-        if ($isSuperAdmin || $isRegistrar || $user->can('view-campaign')) {
+        if ($isSuperAdmin || $isRegistrar || $user->can('view-advertisement') || $user->can('view-campaign')) {
             $categories['advertisements'] = ['label' => 'Advertisements', 'icon' => 'calendar'];
         }
 
@@ -91,7 +91,7 @@ class UniversalSearchPalette extends Component
             $categories['candidates'] = ['label' => 'Candidate Profiles', 'icon' => 'users'];
         }
 
-        if ($isSuperAdmin || $isRegistrar || $user->can('manage-reviewers')) {
+        if ($isSuperAdmin || $isRegistrar || $user->can('manage-reviewers') || $user->can('view-reviewer')) {
             $categories['reviewers'] = ['label' => 'Reviewers & Experts', 'icon' => 'award'];
         }
 
@@ -156,7 +156,7 @@ class UniversalSearchPalette extends Component
                 ];
             }
 
-            if ($isSuperAdmin || $isRegistrar || $user->can('view-campaign')) {
+            if ($isSuperAdmin || $isRegistrar || $user->can('view-advertisement') || $user->can('view-campaign')) {
                 $navItems[] = [
                     'id' => 'nav_adv',
                     'title' => 'Advertisements Management',
@@ -270,7 +270,7 @@ class UniversalSearchPalette extends Component
                 ];
             }
 
-            if ($isSuperAdmin || $isRegistrar || $user->can('manage-reviewers')) {
+            if ($isSuperAdmin || $isRegistrar || $user->can('manage-reviewers') || $user->can('view-reviewer')) {
                 $navItems[] = [
                     'id' => 'nav_rev',
                     'title' => 'Academic Reviewers & Experts',
@@ -526,7 +526,7 @@ class UniversalSearchPalette extends Component
 
         // 3. Official Advertisements
         if ($this->activeCategory === 'all' || $this->activeCategory === 'advertisements') {
-            if ($isSuperAdmin || $isRegistrar || $user->can('view-campaign')) {
+            if ($isSuperAdmin || $isRegistrar || $user->can('view-advertisement') || $user->can('view-campaign')) {
                 $aQuery = Advertisement::orderBy('year', 'desc')->orderBy('created_at', 'desc');
                 if ($hasSearch) {
                     $aQuery->where(function ($q) use ($likeTerm) {
@@ -718,7 +718,7 @@ class UniversalSearchPalette extends Component
 
         // 6. Reviewers & Experts
         if ($this->activeCategory === 'all' || $this->activeCategory === 'reviewers') {
-            if ($isSuperAdmin || $isRegistrar || $user->can('manage-reviewers')) {
+            if ($isSuperAdmin || $isRegistrar || $user->can('manage-reviewers') || $user->can('view-reviewer')) {
                 $rQuery = ReviewerProfile::orderBy('created_at', 'desc');
                 if ($hasSearch) {
                     $rQuery->where(function ($q) use ($likeTerm) {

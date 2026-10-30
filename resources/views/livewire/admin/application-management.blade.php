@@ -501,6 +501,16 @@
                                 </x-slot:icon>
                             </x-entity-card-menu-item>
 
+                            @if(in_array($app->status, ['APPROVED', 'SELECTED', 'ELIGIBLE']))
+                                <x-entity-card-menu-item 
+                                    label="Print Appointment Letter" 
+                                    click="openAppointmentLetterModal({{ $app->id }})">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @endif
+
                             @if($reqReferees > 0 || $app->campaign->track_type === 'ACADEMIC')
                                 @if($canModifyApp)
                                     <x-entity-card-menu-item 
@@ -800,6 +810,13 @@
                                                             <span>Dispatch Reviewers (Locked)</span>
                                                         </button>
                                                     @endif
+
+                                                @if(in_array($app->status, ['APPROVED', 'SELECTED', 'ELIGIBLE']))
+                                                    <button type="button" class="table-action-menu-item" wire:click="openAppointmentLetterModal({{ $app->id }})">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                                                        <span>Print Appointment Letter</span>
+                                                    </button>
+                                                @endif
                                                 @endif
 
                                                 @if($reviewsCount >= 1 && ($app->status === 'UNDER_REVIEW' || $reviewsCount >= 2))
@@ -814,6 +831,13 @@
                                                             <span>Evaluate Review (Locked)</span>
                                                         </button>
                                                     @endif
+
+                                                @if(in_array($app->status, ['APPROVED', 'SELECTED', 'ELIGIBLE']))
+                                                    <button type="button" class="table-action-menu-item" wire:click="openAppointmentLetterModal({{ $app->id }})">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                                                        <span>Print Appointment Letter</span>
+                                                    </button>
+                                                @endif
                                                 @endif
 
                                                 @if($app->status !== 'ELIGIBLE' && $app->status !== 'APPROVED')
@@ -828,6 +852,13 @@
                                                             <span>Mark Eligible (Locked)</span>
                                                         </button>
                                                     @endif
+
+                                                @if(in_array($app->status, ['APPROVED', 'SELECTED', 'ELIGIBLE']))
+                                                    <button type="button" class="table-action-menu-item" wire:click="openAppointmentLetterModal({{ $app->id }})">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                                                        <span>Print Appointment Letter</span>
+                                                    </button>
+                                                @endif
                                                 @endif
 
                                                 @if($canModifyApp)
@@ -870,6 +901,13 @@
                                                             <span>Delete Application (Locked)</span>
                                                         </button>
                                                     @endif
+
+                                                @if(in_array($app->status, ['APPROVED', 'SELECTED', 'ELIGIBLE']))
+                                                    <button type="button" class="table-action-menu-item" wire:click="openAppointmentLetterModal({{ $app->id }})">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                                                        <span>Print Appointment Letter</span>
+                                                    </button>
+                                                @endif
                                                 @endcan
                                             </div>
                                         </div>
@@ -1377,6 +1415,125 @@
                         @endif
                     </div>
                     <button type="button" class="btn btn-secondary" wire:click="$set('isDetailsOpen', false)" style="padding: 0.45rem 1.25rem;">Close Dossier</button>
+                </div>
+            </div>
+        @endif
+    </x-modal>
+
+    <!-- Official Printable Appointment / Offer Letter Modal -->
+    <x-modal :show="$showAppointmentLetterModal" title="Formal Statutory Appointment / Offer Letter" closeAction="closeAppointmentLetterModal" style="max-width: 900px; width: 95%;">
+        @if($appointmentApplication)
+            @php
+                $appBi = $appointmentApplication->user->basicInfo;
+                $candName = $appBi ? trim($appBi->first_name . ' ' . $appBi->last_name) : $appointmentApplication->user->email;
+                $bpsGrade = match($appointmentApplication->campaign->track_type) {
+                    'ACADEMIC' => 'BPS-19 / TTS',
+                    'ADMINISTRATIVE' => 'BPS-18',
+                    default => 'BPS-16',
+                };
+            @endphp
+            <div style="max-height: 75vh; overflow-y: auto; padding-right: 0.5rem;" id="printable-appointment-letter">
+                <!-- Formal Document Paper Container -->
+                <div style="background: #ffffff; color: #1e293b; padding: 3rem 2.5rem; border-radius: 8px; border: 2px solid #cbd5e1; box-shadow: 0 4px 20px rgba(0,0,0,0.1); font-family: 'Times New Roman', Times, serif; line-height: 1.6;">
+                    
+                    <!-- Official Letterhead -->
+                    <div style="text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 1.25rem; margin-bottom: 1.5rem;">
+                        <div style="font-size: 0.85rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #475569;">
+                            HIGHER EDUCATION RECRUITMENT COMMISSION • ISLAMIC REPUBLIC OF PAKISTAN
+                        </div>
+                        <h2 style="font-size: 1.65rem; font-weight: 800; color: #0f172a; margin: 0.4rem 0 0.15rem; letter-spacing: 0.02em;">
+                            OFFICE OF THE REGISTRAR (STATUTORY APPOINTMENTS)
+                        </h2>
+                        <div style="font-size: 0.85rem; color: #64748b;">
+                            University Secretariat, Sector H-9, Islamabad &bull; Tel: +92-51-9040000 &bull; registrar@hirely.edu.pk
+                        </div>
+                    </div>
+
+                    <!-- Dispatch Ref & Date -->
+                    <div style="display: flex; justify-content: space-between; font-size: 0.92rem; margin-bottom: 1.75rem; border-bottom: 1px dashed #cbd5e1; padding-bottom: 0.75rem;">
+                        <div>
+                            <strong>No. Estab/Appt/{{ str_pad($appointmentApplication->id, 5, '0', STR_PAD_LEFT) }}/{{ date('Y') }}</strong>
+                        </div>
+                        <div>
+                            <strong>Dated Islamabad, the:</strong> {{ now()->format('d F, Y') }}
+                        </div>
+                    </div>
+
+                    <!-- Addressee -->
+                    <div style="margin-bottom: 1.5rem; font-size: 0.95rem;">
+                        <div><strong>To,</strong></div>
+                        <div style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin-top: 0.25rem;">{{ $candName }}</div>
+                        <div>S/D/O: {{ $appBi?->father_name ?? 'Al-Haj Guardian' }}</div>
+                        <div>CNIC No: <code style="font-family: monospace; font-weight: 700;">{{ $appBi?->cnic_number ?? 'N/A' }}</code> &bull; Domicile: <strong>{{ $appBi?->quota ?? 'Open Merit' }}</strong></div>
+                        <div>Mailing Address: {{ $appBi?->mailing_address ?? 'House 14, Islamabad, Pakistan' }}</div>
+                    </div>
+
+                    <!-- Subject -->
+                    <div style="background: #f8fafc; border-left: 4px solid #0f172a; padding: 0.75rem 1rem; margin-bottom: 1.5rem;">
+                        <strong style="text-transform: uppercase; font-size: 0.95rem; color: #0f172a;">
+                            SUBJECT: STATUTORY APPOINTMENT ORDER AS {{ strtoupper($appointmentApplication->campaign->title) }} ({{ $bpsGrade }})
+                        </strong>
+                    </div>
+
+                    <!-- Letter Body -->
+                    <div style="font-size: 0.92rem; text-align: justify; color: #334155;">
+                        <p style="margin-bottom: 1rem;">
+                            On the statutory recommendation of the Selection Board meeting and subsequent confirmation by the Syndicate, the Competent Authority is pleased to offer you appointment as <strong>{{ $appointmentApplication->campaign->title }}</strong> ({{ $bpsGrade }}) in the Department of <strong>{{ $appointmentApplication->campaign->department }}</strong> on regular terms with immediate effect, subject to the following statutory terms and conditions:
+                        </p>
+
+                        <ol style="padding-left: 1.5rem; margin-bottom: 1.5rem;">
+                            <li style="margin-bottom: 0.45rem;">
+                                <strong>Pay & Allowances:</strong> Pay Scale {{ $bpsGrade }} with usual allowances as sanctioned by the Government and adopted by the University from time to time.
+                            </li>
+                            <li style="margin-bottom: 0.45rem;">
+                                <strong>Probationary Period:</strong> You will be on probation for a period of one (01) year extendable by another year as per University Statutes.
+                            </li>
+                            <li style="margin-bottom: 0.45rem;">
+                                <strong>Medical Fitness & Police Verification:</strong> The appointment is subject to production of Medical Fitness Certificate from the Authorized Medical Board and clearance from Special Branch / Security Agencies.
+                            </li>
+                            <li style="margin-bottom: 0.45rem;">
+                                <strong>Verification of Credentials:</strong> If any degree, diploma, publication, medal, or testimonial submitted in your application dossier is found fake, fabricated, or forged at any stage, this appointment order shall stand cancelled ab-initio without notice, followed by statutory legal proceedings.
+                            </li>
+                        </ol>
+
+                        <p style="margin-bottom: 1.5rem;">
+                            If you accept the offer on the above terms and conditions, you are required to report for duty to the undersigned within <strong>fifteen (15) days</strong> of the issuance of this order, failing which this statutory offer shall automatically stand withdrawn without further notice.
+                        </p>
+                    </div>
+
+                    <!-- Signatures Block -->
+                    <div style="display: flex; justify-content: space-between; margin-top: 3.5rem; padding-top: 1rem;">
+                        <div style="text-align: left; font-size: 0.85rem; color: #475569;">
+                            <strong>Copy forwarded for information to:</strong><br>
+                            1. Dean, Faculty of {{ $appointmentApplication->campaign->department }}<br>
+                            2. Treasurer / Finance Division<br>
+                            3. Personal File / Recruitment Docket<br>
+                            4. Office Order File
+                        </div>
+
+                        <div style="text-align: center; min-width: 240px;">
+                            <div style="border-bottom: 1px solid #0f172a; width: 85%; margin: 0 auto 0.5rem;"></div>
+                            <strong style="font-size: 0.95rem; color: #0f172a; display: block;">REGISTRAR</strong>
+                            <div style="font-size: 0.8rem; color: #64748b;">Statutory Recruitment Authority</div>
+                            <div style="font-size: 0.75rem; color: #64748b;">Government of Pakistan</div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Print & Dismiss Actions -->
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem;">
+                    <button type="button" class="btn btn-secondary" wire:click="closeAppointmentLetterModal">
+                        Close
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="window.print()" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1.25rem; font-weight: 700;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                            <polyline points="6 9 6 2 18 2 18 9"/>
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                            <rect width="12" height="8" x="6" y="14"/>
+                        </svg>
+                        <span>Print Official Appointment Letter</span>
+                    </button>
                 </div>
             </div>
         @endif

@@ -16,6 +16,40 @@ class Dashboard extends Component
     public $trackFilter = '';
     public $campaignFilter = '';
     public $statusFilter = 'PAID'; // Default to PAID (awaiting scrutiny)
+    public $viewMode = 'grid';
+    public $perPage = 12;
+
+    public $isCertificateModalOpen = false;
+    public $selectedAppForCertificate = null;
+
+    public function setViewMode($mode)
+    {
+        $this->viewMode = in_array($mode, ['grid', 'table']) ? $mode : 'grid';
+    }
+
+    public function openCertificateModal($appId)
+    {
+        abort_unless(Auth::check() && (
+            Auth::user()->can('scrutinize-application') ||
+            Auth::user()->can('view-application') ||
+            Auth::user()->hasAnyRole(['super-admin', 'registrar', 'scrutiny-committee', 'scrutiny'])
+        ), 403);
+
+        $this->selectedAppForCertificate = Application::with([
+            'user.basicInfo.academicDegrees',
+            'user.basicInfo.experiences',
+            'user.basicInfo.researchPublications',
+            'campaign.advertisement',
+            'verificationReviews'
+        ])->findOrFail($appId);
+        $this->isCertificateModalOpen = true;
+    }
+
+    public function closeCertificateModal()
+    {
+        $this->isCertificateModalOpen = false;
+        $this->selectedAppForCertificate = null;
+    }
 
     public function mount()
     {
@@ -87,7 +121,7 @@ class Dashboard extends Component
             });
         }
 
-        $applications = $query->paginate(15);
+        $applications = $query->paginate($this->perPage);
         $campaigns = Campaign::select('id', 'title', 'job_code', 'department')->orderBy('title')->get();
 
         return view('livewire.scrutiny.dashboard', [

@@ -145,7 +145,6 @@ class SpatieRoleAndPermissionSeeder extends Seeder
         $reviewer = Role::firstOrCreate(['name' => 'academic-reviewer', 'guard_name' => 'web']);
         $reviewer->syncPermissions([
             'view-application',
-            'view-reviewer',
             'evaluate-academic-dossier',
         ]);
 

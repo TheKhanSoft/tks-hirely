@@ -7,6 +7,8 @@ use App\Models\Application;
 use App\Models\Campaign;
 use App\Models\User;
 use App\Models\CampaignCommittee;
+use App\Models\BillingLedger;
+use App\Models\BasicInfo;
 use Illuminate\Support\Facades\Auth;
 
 class Dashboard extends Component
@@ -45,7 +47,47 @@ class Dashboard extends Component
         // 3. Active campaigns monitor
         $campaigns = Campaign::withCount('applications')->get();
 
-        // 4. Determine list of applications to display based on roles & permissions
+        // 4. Recruitment Funnel Analytics
+        $totalApps = max(1, Application::count());
+        $funnel = [
+            'total' => Application::count(),
+            'fee_settled' => BillingLedger::where('status', 'SETTLED')->count(),
+            'scrutiny_cleared' => Application::whereIn('status', ['ELIGIBLE', 'APPROVED', 'UNDER_REVIEW'])->count(),
+            'peer_reviewed' => Application::whereHas('reviews', fn($q) => $q->where('status', 'SUBMITTED'))->count(),
+            'board_approved' => Application::where('status', 'APPROVED')->orWhereHas('evaluations')->count(),
+        ];
+        $funnel['fee_settled_pct'] = round(($funnel['fee_settled'] / $totalApps) * 100);
+        $funnel['scrutiny_cleared_pct'] = round(($funnel['scrutiny_cleared'] / $totalApps) * 100);
+        $funnel['peer_reviewed_pct'] = round(($funnel['peer_reviewed'] / $totalApps) * 100);
+        $funnel['board_approved_pct'] = round(($funnel['board_approved'] / $totalApps) * 100);
+
+        // 5. Quota Distribution Analytics
+        $quotaStats = BasicInfo::selectRaw('COALESCE(quota, "Open Merit") as quota_name, count(*) as count')
+            ->groupBy('quota_name')
+            ->orderByDesc('count')
+            ->take(6)
+            ->get();
+        $totalQuotaCount = max(1, $quotaStats->sum('count'));
+
+        // 6. Revenue & 1Link Settlement Analytics
+        $settledSum = (float)BillingLedger::where('status', 'SETTLED')->sum('amount');
+        $pendingSum = (float)BillingLedger::where('status', 'PENDING')->sum('amount');
+        $totalBilling = max(1, $settledSum + $pendingSum);
+        $revenueStats = [
+            'settled' => $settledSum,
+            'pending' => $pendingSum,
+            'settlement_rate' => round(($settledSum / $totalBilling) * 100, 1),
+            'settled_txns' => BillingLedger::where('status', 'SETTLED')->count(),
+            'total_txns' => BillingLedger::count(),
+        ];
+
+        // 7. Recent System Activity Feed
+        $recentApplications = Application::with(['user.basicInfo', 'campaign.advertisement'])
+            ->orderBy('id', 'desc')
+            ->take(8)
+            ->get();
+
+        // 8. Determine list of applications to display based on roles & permissions
         $pendingScrutiny = [];
         $pendingEvaluations = [];
         
@@ -67,6 +109,11 @@ class Dashboard extends Component
             'metrics' => $metrics,
             'tracks' => $tracks,
             'campaigns' => $campaigns,
+            'funnel' => $funnel,
+            'quotaStats' => $quotaStats,
+            'totalQuotaCount' => $totalQuotaCount,
+            'revenueStats' => $revenueStats,
+            'recentApplications' => $recentApplications,
             'pendingScrutiny' => $pendingScrutiny,
             'pendingEvaluations' => $pendingEvaluations,
         ])->layout('layouts.app');

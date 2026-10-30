@@ -16,6 +16,56 @@ class Dashboard extends Component
     public $search = '';
     public $campaignFilter = '';
     public $trackFilter = '';
+    public $viewMode = 'grid';
+    public $perPage = 12;
+
+    public $isRosterModalOpen = false;
+    public $rosterCampaign = null;
+    public $rosterApplications = [];
+
+    public function setViewMode($mode)
+    {
+        $this->viewMode = in_array($mode, ['grid', 'table']) ? $mode : 'grid';
+    }
+
+    public function openRosterModal($campaignId = null)
+    {
+        $cid = $campaignId ?: $this->campaignFilter ?: Campaign::first()?->id;
+        if (!$cid) return;
+
+        $this->rosterCampaign = Campaign::with('advertisement')->findOrFail($cid);
+
+        $apps = Application::with(['user.basicInfo.academicDegrees', 'evaluations'])
+            ->where('campaign_id', $cid)
+            ->whereIn('status', ['ELIGIBLE', 'UNDER_REVIEW', 'APPROVED'])
+            ->get();
+
+        // Calculate merit scores and sort descending
+        $this->rosterApplications = $apps->map(function ($app) {
+            $avgInterview = $app->evaluations->isNotEmpty() ? $app->evaluations->avg('interview_score') : 35.0;
+            $academicScore = 40.0;
+            $totalMerit = round($academicScore + $avgInterview, 2);
+            return [
+                'app' => $app,
+                'name' => $app->user->basicInfo ? trim($app->user->basicInfo->first_name . ' ' . $app->user->basicInfo->last_name) : $app->user->email,
+                'cnic' => $app->user->basicInfo?->cnic_number ?? 'N/A',
+                'quota' => $app->user->basicInfo?->quota ?? 'Open Merit',
+                'academic_score' => $academicScore,
+                'interview_score' => round($avgInterview, 2),
+                'total_score' => $totalMerit,
+                'status' => $app->status,
+            ];
+        })->sortByDesc('total_score')->values()->all();
+
+        $this->isRosterModalOpen = true;
+    }
+
+    public function closeRosterModal()
+    {
+        $this->isRosterModalOpen = false;
+        $this->rosterCampaign = null;
+        $this->rosterApplications = [];
+    }
 
     public function mount()
     {
@@ -70,7 +120,7 @@ class Dashboard extends Component
             });
         }
 
-        $candidates = $query->paginate(15);
+        $candidates = $query->paginate($this->perPage);
         $campaigns = Campaign::select('id', 'title', 'job_code', 'department')->orderBy('title')->get();
 
         $stats = [
