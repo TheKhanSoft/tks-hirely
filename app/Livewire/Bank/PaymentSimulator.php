@@ -5,6 +5,7 @@ namespace App\Livewire\Bank;
 use Livewire\Component;
 use App\Models\BillingLedger;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\KuickpayWebhookController;
 
@@ -45,6 +46,15 @@ class PaymentSimulator extends Component
     {
         if (!$this->foundLedger) {
             return;
+        }
+
+        if (Auth::check()) {
+            $user = Auth::user();
+            $isOwner = $this->foundLedger->application?->user_id === $user->id;
+            $hasPerm = $user->can('simulate-payment') || $user->can('reconcile-payment');
+            if (!$isOwner && !$hasPerm) {
+                abort(403, 'Unauthorized to simulate settlement for this voucher.');
+            }
         }
 
         // Generate a random 1Link transaction reference

@@ -34,7 +34,11 @@ class ApplicationVerification extends Component
 
     public function mount($id)
     {
-        abort_unless(Auth::check() && Auth::user()->hasAnyRole(['super-admin', 'registrar', 'scrutiny-committee']), 403);
+        abort_unless(Auth::check() && (
+            Auth::user()->can('scrutinize-application') ||
+            Auth::user()->can('view-application') ||
+            Auth::user()->hasAnyRole(['super-admin', 'registrar', 'scrutiny-committee', 'scrutiny'])
+        ), 403);
 
         $this->applicationId = $id;
         $this->application = Application::with([
@@ -51,6 +55,8 @@ class ApplicationVerification extends Component
 
     public function autoFillAcademicDisqualification()
     {
+        abort_unless(Auth::user()->can('scrutinize-application') || Auth::user()->can('change-application-status'), 403);
+
         $evaluation = \App\Services\AcademicEligibilityEvaluator::evaluateCandidate(
             $this->application->user?->basicInfo,
             $this->application->campaign
@@ -63,6 +69,13 @@ class ApplicationVerification extends Component
 
     public function viewDocument($name, $path, $type = 'Default')
     {
+        abort_unless(
+            Auth::user()->can('verify-documents') ||
+            Auth::user()->can('scrutinize-application') ||
+            Auth::user()->can('view-application'),
+            403
+        );
+
         $this->viewingDocName = $name;
         $this->viewingDocPath = $path;
         $this->viewingDocType = $type;
@@ -71,6 +84,13 @@ class ApplicationVerification extends Component
     // Toggle individual verification state in DB for audit trail
     public function toggleVerifyMedal($medalId)
     {
+        abort_unless(
+            Auth::user()->can('verify-medal') ||
+            Auth::user()->can('verify-documents') ||
+            Auth::user()->can('scrutinize-application'),
+            403
+        );
+
         $medal = AcademicMedal::findOrFail($medalId);
         $medal->update([
             'is_verified' => !$medal->is_verified,
@@ -81,6 +101,13 @@ class ApplicationVerification extends Component
 
     public function toggleVerifyPublication($pubId)
     {
+        abort_unless(
+            Auth::user()->can('verify-publication') ||
+            Auth::user()->can('verify-documents') ||
+            Auth::user()->can('scrutinize-application'),
+            403
+        );
+
         $pub = Publication::findOrFail($pubId);
         $pub->update([
             'is_verified' => !$pub->is_verified,
@@ -91,6 +118,13 @@ class ApplicationVerification extends Component
 
     public function toggleVerifyProject($projId)
     {
+        abort_unless(
+            Auth::user()->can('verify-project') ||
+            Auth::user()->can('verify-documents') ||
+            Auth::user()->can('scrutinize-application'),
+            403
+        );
+
         $proj = ResearchProject::findOrFail($projId);
         $proj->update([
             'is_verified' => !$proj->is_verified,
@@ -101,6 +135,13 @@ class ApplicationVerification extends Component
 
     public function toggleVerifyEvent($eventId)
     {
+        abort_unless(
+            Auth::user()->can('verify-event') ||
+            Auth::user()->can('verify-documents') ||
+            Auth::user()->can('scrutinize-application'),
+            403
+        );
+
         $event = ProfessionalEvent::findOrFail($eventId);
         $event->update([
             'is_verified' => !$event->is_verified,
@@ -112,6 +153,8 @@ class ApplicationVerification extends Component
     // Main eligibility transitions
     public function markEligible()
     {
+        abort_unless(Auth::user()->can('scrutinize-application') || Auth::user()->can('change-application-status'), 403);
+
         $this->application->update([
             'status' => 'ELIGIBLE',
             'disqualification_reason' => null
@@ -124,11 +167,14 @@ class ApplicationVerification extends Component
 
     public function openDisqualificationForm()
     {
+        abort_unless(Auth::user()->can('scrutinize-application') || Auth::user()->can('change-application-status'), 403);
         $this->showDisqualificationModal = true;
     }
 
     public function markIneligible()
     {
+        abort_unless(Auth::user()->can('scrutinize-application') || Auth::user()->can('change-application-status'), 403);
+
         $this->validate([
             'disqualification_reason' => 'required|string|min:10',
         ], [

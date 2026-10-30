@@ -67,6 +67,7 @@ class AdvertisementManagement extends Component
     public function mount()
     {
         abort_unless(Auth::check() && (
+            Auth::user()->can('view-advertisement') ||
             Auth::user()->can('view-campaign') ||
             Auth::user()->hasAnyRole(['super-admin', 'registrar'])
         ), 403);
@@ -88,6 +89,8 @@ class AdvertisementManagement extends Component
 
     public function openCreateModal()
     {
+        abort_unless(Auth::user()->can('create-advertisement') || Auth::user()->can('create-campaign'), 403);
+
         $this->reset([
             'advertisement_no',
             'title',
@@ -112,6 +115,8 @@ class AdvertisementManagement extends Component
 
     public function createAdvertisement()
     {
+        abort_unless(Auth::user()->can('create-advertisement') || Auth::user()->can('create-campaign'), 403);
+
         $this->validate();
 
         $ad = Advertisement::create([
@@ -132,6 +137,8 @@ class AdvertisementManagement extends Component
 
     public function openEditModal($adId)
     {
+        abort_unless(Auth::user()->can('edit-advertisement') || Auth::user()->can('edit-campaign'), 403);
+
         $ad = Advertisement::findOrFail($adId);
         if (($ad->is_expired || !$ad->is_active) && !Auth::user()->hasRole('super-admin')) {
             session()->flash('error', 'Security Restriction: Expired or inactive advertisements are locked for editing. Modifications require Super Admin authorization.');
@@ -161,6 +168,8 @@ class AdvertisementManagement extends Component
 
     public function updateAdvertisement()
     {
+        abort_unless(Auth::user()->can('edit-advertisement') || Auth::user()->can('edit-campaign'), 403);
+
         $this->validate();
 
         $ad = Advertisement::findOrFail($this->editingAdvertisementId);
@@ -185,6 +194,8 @@ class AdvertisementManagement extends Component
 
     public function toggleAdvertisementStatus($adId)
     {
+        abort_unless(Auth::user()->can('edit-advertisement') || Auth::user()->can('edit-campaign'), 403);
+
         $ad = Advertisement::findOrFail($adId);
 
         if ($ad->is_expired && !$ad->is_active && !Auth::user()->hasRole('super-admin')) {
@@ -200,6 +211,8 @@ class AdvertisementManagement extends Component
 
     public function openExtendModal($adId)
     {
+        abort_unless(Auth::user()->can('extend-advertisement') || Auth::user()->can('edit-advertisement') || Auth::user()->can('edit-campaign'), 403);
+
         $this->selectedAdvertisementForExtend = Advertisement::with('campaigns')->findOrFail($adId);
         $currentValidTo = $this->selectedAdvertisementForExtend->valid_to ?: now();
         $this->extend_new_valid_to = $currentValidTo->copy()->addDays(15)->format('Y-m-d\TH:i');
@@ -219,6 +232,8 @@ class AdvertisementManagement extends Component
 
     public function extendAdvertisementValidity()
     {
+        abort_unless(Auth::user()->can('extend-advertisement') || Auth::user()->can('edit-advertisement') || Auth::user()->can('edit-campaign'), 403);
+
         $this->validate([
             'extend_new_valid_to' => 'required|date|after:' . ($this->selectedAdvertisementForExtend->valid_to ? $this->selectedAdvertisementForExtend->valid_to->toDateTimeString() : now()->toDateTimeString()),
             'extend_reason' => 'required|string|min:5|max:1000',
@@ -242,6 +257,8 @@ class AdvertisementManagement extends Component
 
     public function openHistoryModal($adId)
     {
+        abort_unless(Auth::user()->can('view-advertisement') || Auth::user()->can('view-campaign'), 403);
+
         $this->selectedAdvertisementForHistory = Advertisement::with(['dateTracks.extendedBy', 'creator'])->findOrFail($adId);
         $this->dateTracks = $this->selectedAdvertisementForHistory->dateTracks;
         $this->showHistoryModal = true;
@@ -256,6 +273,8 @@ class AdvertisementManagement extends Component
 
     public function openJobsModal($adId)
     {
+        abort_unless(Auth::user()->can('view-advertisement') || Auth::user()->can('view-campaign'), 403);
+
         $this->selectedAdvertisementForJobs = Advertisement::with(['campaigns.applications'])->findOrFail($adId);
         $this->advertisedJobs = $this->selectedAdvertisementForJobs->campaigns;
         $this->showJobsModal = true;
@@ -270,6 +289,7 @@ class AdvertisementManagement extends Component
 
     public function exportCsv()
     {
+        abort_unless(Auth::user()->can('view-advertisement') || Auth::user()->can('view-campaign'), 403);
         $headers = ['Advertisement No', 'Title', 'Year', 'Valid From', 'Valid To', 'Status', 'Jobs Count', 'Extensions Count', 'Newspaper Reference'];
         $ads = Advertisement::withCount(['campaigns', 'dateTracks'])->orderBy('year', 'desc')->get();
         $rows = [];

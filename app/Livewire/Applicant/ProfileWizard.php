@@ -1473,6 +1473,8 @@ class ProfileWizard extends Component
     // Finalize basicInfo and Application in Step 8
     public function generateChallan()
     {
+        abort_unless(Auth::user()->can('submit-applications'), 403);
+
         $this->validate([
             'campaign_id' => 'required|exists:campaigns,id',
         ], [

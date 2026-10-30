@@ -103,7 +103,10 @@ class ApplicationManagement extends Component
 
     public function mount()
     {
-        abort_unless(Auth::check() && Auth::user()->hasAnyRole(['super-admin', 'registrar', 'admin']), 403);
+        abort_unless(Auth::check() && (
+            Auth::user()->can('view-application') ||
+            Auth::user()->hasAnyRole(['super-admin', 'registrar', 'admin'])
+        ), 403);
         $this->loadAuxiliaryData();
         $this->dispatchReviewDueDate = now()->addDays(14)->format('Y-m-d');
     }
@@ -616,7 +619,7 @@ class ApplicationManagement extends Component
 
     public function exportCsv()
     {
-        abort_unless(Auth::user()->can('view-application'), 403);
+        abort_unless(Auth::user()->can('view-application') || Auth::user()->can('export-application'), 403);
         $applications = Application::with('user.basicInfo', 'campaign', 'billingLedger', 'reviews')
             ->orderBy('created_at', 'desc')
             ->get();

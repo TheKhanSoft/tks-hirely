@@ -13,7 +13,11 @@ class Dashboard extends Component
 {
     public function mount()
     {
-        abort_unless(Auth::check() && Auth::user()->hasAnyRole(['super-admin', 'registrar', 'scrutiny-committee', 'selection-board-member']), 403);
+        abort_unless(Auth::check() && (
+            Auth::user()->can('view-campaign') ||
+            Auth::user()->can('view-application') ||
+            Auth::user()->hasAnyRole(['super-admin', 'registrar', 'scrutiny-committee', 'selection-board-member', 'admin', 'board', 'scrutiny'])
+        ), 403);
     }
 
     public function render()
@@ -41,18 +45,18 @@ class Dashboard extends Component
         // 3. Active campaigns monitor
         $campaigns = Campaign::withCount('applications')->get();
 
-        // 4. Determine list of applications to display based on roles
+        // 4. Determine list of applications to display based on roles & permissions
         $pendingScrutiny = [];
         $pendingEvaluations = [];
         
-        if ($user->hasRole('super-admin') || $user->hasRole('registrar') || $user->hasRole('scrutiny-committee')) {
+        if ($user->can('scrutinize-application') || $user->hasAnyRole(['super-admin', 'registrar', 'scrutiny-committee', 'scrutiny'])) {
             // Applications with PAID status are ready for Scrutiny
             $pendingScrutiny = Application::with('user.basicInfo', 'campaign')
                 ->where('status', 'PAID')
                 ->get();
         }
 
-        if ($user->hasRole('super-admin') || $user->hasRole('selection-board-member')) {
+        if ($user->can('evaluate-application') || $user->can('access-board-grading') || $user->hasAnyRole(['super-admin', 'selection-board-member', 'board-member', 'board'])) {
             // ELIGIBLE or UNDER_REVIEW applications are ready for Live Selection Board Evaluation
             $pendingEvaluations = Application::with('user.basicInfo', 'campaign')
                 ->whereIn('status', ['ELIGIBLE', 'UNDER_REVIEW', 'APPROVED'])

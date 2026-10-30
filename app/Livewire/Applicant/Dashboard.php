@@ -46,6 +46,8 @@ class Dashboard extends Component
 
     public function submitAppeal()
     {
+        abort_unless(Auth::user()->can('submit-appeal') || Auth::user()->can('submit-applications'), 403);
+
         $this->validate([
             'appealText' => 'required|string|min:20',
             'appealProof' => 'required|file|max:2048',
@@ -77,6 +79,8 @@ class Dashboard extends Component
 
     public function openApplyModal()
     {
+        abort_unless(Auth::user()->can('submit-applications'), 403);
+
         $user = Auth::user();
         if (!$user->basicInfo) {
             return redirect()->to('/applicant/wizard');
@@ -119,6 +123,8 @@ class Dashboard extends Component
 
     public function submitNewApplication()
     {
+        abort_unless(Auth::user()->can('submit-applications'), 403);
+
         $this->validate([
             'selectedCampaignIdForModal' => 'required|exists:campaigns,id',
         ], [

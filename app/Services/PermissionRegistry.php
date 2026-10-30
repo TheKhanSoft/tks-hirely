@@ -12,6 +12,29 @@ class PermissionRegistry
     public static function catalogue(): array
     {
         return [
+            'Advertisements & Notices' => [
+                'view-advertisement' => [
+                    'label' => 'View Advertisements',
+                    'description' => 'Browse and inspect job advertisements, dates, and newspaper references',
+                ],
+                'create-advertisement' => [
+                    'label' => 'Create Advertisement',
+                    'description' => 'Publish and draft new statutory job advertisement notices',
+                ],
+                'edit-advertisement' => [
+                    'label' => 'Edit Advertisement',
+                    'description' => 'Modify advertisement particulars and update details',
+                ],
+                'delete-advertisement' => [
+                    'label' => 'Delete Advertisement',
+                    'description' => 'Remove advertisement notices',
+                ],
+                'extend-advertisement' => [
+                    'label' => 'Extend Advertisement Validity',
+                    'description' => 'Issue official corrigendum extensions and track dates',
+                ],
+            ],
+
             'Campaigns & Governance' => [
                 'view-campaign' => [
                     'label' => 'View Campaigns',
@@ -28,6 +51,10 @@ class PermissionRegistry
                 'delete-campaign' => [
                     'label' => 'Delete Campaign',
                     'description' => 'Delete campaign records and cascade dependencies',
+                ],
+                'export-campaign' => [
+                    'label' => 'Export Campaigns Data',
+                    'description' => 'Download recruitment campaign rosters and summary statistics',
                 ],
                 'tune-constitution' => [
                     'label' => 'Tune Committee Constitution',
@@ -83,12 +110,24 @@ class PermissionRegistry
                     'label' => 'Evaluate Candidates',
                     'description' => 'Conduct selection board evaluations and assign assessment marks',
                 ],
+                'export-application' => [
+                    'label' => 'Export Applications Data',
+                    'description' => 'Download applications forensic CSV datasets',
+                ],
             ],
 
             'Document Verification' => [
                 'verify-documents' => [
                     'label' => 'Verify Qualification Documents',
                     'description' => 'Verify academic degree transcripts and certified proofs',
+                ],
+                'verify-degree' => [
+                    'label' => 'Verify Academic Degrees',
+                    'description' => 'Audit degree titles, institutes, divisions, and marks',
+                ],
+                'verify-biodata' => [
+                    'label' => 'Verify Candidate Biodata',
+                    'description' => 'Confirm candidate CNIC, demographics, and domicile proof',
                 ],
                 'verify-medal' => [
                     'label' => 'Verify Academic Medals',
@@ -113,6 +152,10 @@ class PermissionRegistry
                     'label' => 'View Candidate Appeals',
                     'description' => 'Access the appellate grievance queue and candidate statements',
                 ],
+                'submit-appeal' => [
+                    'label' => 'Submit Grievance Appeal',
+                    'description' => 'Lodge formal disqualification grievance appeal with proof',
+                ],
                 'process-appeal' => [
                     'label' => 'Process Appeals',
                     'description' => 'Approve or reject candidate grievance appeals with formal justification',
@@ -123,6 +166,10 @@ class PermissionRegistry
                 'manage-reviewers' => [
                     'label' => 'Manage Reviewer Directory',
                     'description' => 'Empanel, search, and manage external academic referees',
+                ],
+                'view-reviewer' => [
+                    'label' => 'View Reviewers Directory',
+                    'description' => 'Browse empanelled academic reviewer profiles and dossier ledgers',
                 ],
                 'create-reviewer' => [
                     'label' => 'Empanel Academic Reviewer',
@@ -232,6 +279,10 @@ class PermissionRegistry
                 'assign-user-permissions' => [
                     'label' => 'Assign Direct User Permissions',
                     'description' => 'Grant or revoke extra direct permissions for a specific user apart from their role',
+                ],
+                'impersonate-user' => [
+                    'label' => 'Impersonate User Account',
+                    'description' => 'Switch session into target user account for testing, support, and administrative verification',
                 ],
             ],
 

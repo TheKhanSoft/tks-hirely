@@ -22,11 +22,19 @@ class SpatieRoleAndPermissionSeeder extends Seeder
 
         $registrar = Role::firstOrCreate(['name' => 'registrar', 'guard_name' => 'web']);
         $registrar->syncPermissions([
+            // Advertisements & Notices
+            'view-advertisement',
+            'create-advertisement',
+            'edit-advertisement',
+            'delete-advertisement',
+            'extend-advertisement',
+
             // Campaign CRUD & Governance
             'view-campaign',
             'create-campaign',
             'edit-campaign',
             'delete-campaign',
+            'export-campaign',
             'tune-constitution',
             
             // Committee CRUD
@@ -60,6 +68,7 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'edit-application',
             'delete-application',
             'change-application-status',
+            'export-application',
 
             // Candidate Profiles & Dossiers
             'view-basic-info',
@@ -84,6 +93,7 @@ class SpatieRoleAndPermissionSeeder extends Seeder
 
             // Academic Reviewer Management
             'manage-reviewers',
+            'view-reviewer',
             'create-reviewer',
             'edit-reviewer',
             'delete-reviewer',
@@ -101,6 +111,8 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'view-application',
             'scrutinize-application',
             'verify-documents',
+            'verify-degree',
+            'verify-biodata',
             'verify-medal',
             'verify-publication',
             'verify-project',
@@ -112,6 +124,8 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'view-appeal',
             'process-appeal',
             'verify-documents',
+            'verify-degree',
+            'verify-biodata',
         ]);
 
         $selectionBoard = Role::firstOrCreate(['name' => 'selection-board-member', 'guard_name' => 'web']);
@@ -125,12 +139,13 @@ class SpatieRoleAndPermissionSeeder extends Seeder
         $applicant = Role::firstOrCreate(['name' => 'applicant', 'guard_name' => 'web']);
         $applicant->syncPermissions([
             'submit-applications',
-            'view-application',
+            'submit-appeal',
         ]);
 
         $reviewer = Role::firstOrCreate(['name' => 'academic-reviewer', 'guard_name' => 'web']);
         $reviewer->syncPermissions([
             'view-application',
+            'view-reviewer',
             'evaluate-academic-dossier',
         ]);
 

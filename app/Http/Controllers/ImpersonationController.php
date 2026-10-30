@@ -14,10 +14,10 @@ class ImpersonationController extends Controller
      */
     public function start(Request $request, $id)
     {
-        // 1. Strict Authorization: Only actual Super Admin can initiate impersonation
+        // 1. Strict Authorization: Only actual Super Admin or users with impersonate-user permission can initiate impersonation
         $currentUser = Auth::user();
-        if (!$currentUser || !$currentUser->hasRole('super-admin')) {
-            abort(403, 'Impersonation is strictly restricted to Super Administrators.');
+        if (!$currentUser || (!$currentUser->hasRole('super-admin') && !$currentUser->can('impersonate-user'))) {
+            abort(403, 'Impersonation is strictly restricted to Super Administrators or authorized personnel.');
         }
 
         // 2. Locate target user

@@ -622,6 +622,8 @@ class CampaignCrud extends Component
 
     public function addConstitutionRule()
     {
+        abort_unless(Auth::user()->can('tune-constitution'), 403);
+
         $this->constitution_rules[] = [
             'id' => 'rule_' . uniqid(),
             'name' => '',
@@ -637,6 +639,8 @@ class CampaignCrud extends Component
 
     public function removeConstitutionRule($index)
     {
+        abort_unless(Auth::user()->can('tune-constitution'), 403);
+
         if (isset($this->constitution_rules[$index])) {
             unset($this->constitution_rules[$index]);
             $this->constitution_rules = array_values($this->constitution_rules);
@@ -646,6 +650,8 @@ class CampaignCrud extends Component
 
     public function updateConstitutionRuleCount($index, $delta)
     {
+        abort_unless(Auth::user()->can('tune-constitution'), 403);
+
         if (isset($this->constitution_rules[$index])) {
             $cur = (int)($this->constitution_rules[$index]['count'] ?? 1);
             $this->constitution_rules[$index]['count'] = max(1, min(50, $cur + $delta));
@@ -711,6 +717,7 @@ class CampaignCrud extends Component
 
     public function applyConstitutionPreset($preset)
     {
+        abort_unless(Auth::user()->can('tune-constitution'), 403);
         if ($preset === 'asst_prof') {
             $this->constitution_required_total = 6;
             $this->constitution_required_internal = 5;
@@ -979,7 +986,7 @@ class CampaignCrud extends Component
 
     public function exportCsv()
     {
-        abort_unless(Auth::user()->can('view-campaign'), 403);
+        abort_unless(Auth::user()->can('view-campaign') || Auth::user()->can('export-campaign'), 403);
         $camps = Campaign::orderBy('created_at', 'desc')->get();
         $headers = ['Job Code', 'Title', 'Department', 'Track Type', 'Fee (PKR)', 'Opening Date', 'Closing Date'];
         $rows = [];
@@ -999,6 +1006,8 @@ class CampaignCrud extends Component
 
     public function openLinkModal($campaignId)
     {
+        abort_unless(Auth::user()->can('edit-campaign') || Auth::user()->can('tune-constitution'), 403);
+
         $camp = Campaign::findOrFail($campaignId);
         if (($camp->is_completed || $camp->is_closed) && !Auth::user()->hasRole('super-admin')) {
             session()->flash('error', 'Security Policy: Statutory Board & Process Flow cannot be altered for a completed or closed campaign.');
@@ -1021,6 +1030,8 @@ class CampaignCrud extends Component
 
     public function saveLinkedBoardAndFlow()
     {
+        abort_unless(Auth::user()->can('edit-campaign') || Auth::user()->can('tune-constitution'), 403);
+
         if (!$this->linkCampaignId) return;
         $camp = Campaign::findOrFail($this->linkCampaignId);
         if (($camp->is_completed || $camp->is_closed) && !Auth::user()->hasRole('super-admin')) {

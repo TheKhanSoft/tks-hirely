@@ -74,7 +74,7 @@
                             </a>
                         @endif
 
-                        @can('view-campaign')
+                        @if($isSuperAdmin || $isRegistrar || $user->can('view-advertisement') || $user->can('view-campaign'))
                             <a href="{{ $baseRoute }}/advertisements" class="sidebar-link {{ request()->is('admin/advertisements*') || request()->is('registrar/advertisements*') ? 'active' : '' }}">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect width="18" height="18" x="3" y="3" rx="2"/>
@@ -83,7 +83,9 @@
                                 </svg>
                                 <span>Advertisements</span>
                             </a>
+                        @endif
 
+                        @can('view-campaign')
                             <a href="{{ $baseRoute }}/campaigns" class="sidebar-link {{ request()->is('admin/campaigns*') || request()->is('registrar/campaigns*') ? 'active' : '' }}">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="m3 11 18-5v12L3 14v-3z"/>
@@ -156,7 +158,7 @@
                             </a>
                         @endcan
 
-                        @can('manage-reviewers')
+                        @if($user->can('manage-reviewers') || $user->can('view-reviewer'))
                             <a href="{{ $baseRoute }}/reviewers" class="sidebar-link {{ request()->is('admin/reviewers*') || request()->is('registrar/reviewers*') ? 'active' : '' }}">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
@@ -166,7 +168,7 @@
                                 </svg>
                                 <span>Academic Reviewers</span>
                             </a>
-                        @endcan
+                        @endif
                     @endif
 
                     {{-- Administration Menu --}}
@@ -205,13 +207,15 @@
                             </a>
                         @endcan
 
-                        <a href="{{ $baseRoute }}/settings" class="sidebar-link {{ request()->is('admin/settings*') || request()->is('registrar/settings*') ? 'active' : '' }}">
-                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="3"/>
-                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                            </svg>
-                            <span>Settings & Workflows</span>
-                        </a>
+                        @if($isSuperAdmin || $user->can('manage-settings'))
+                            <a href="{{ $baseRoute }}/settings" class="sidebar-link {{ request()->is('admin/settings*') || request()->is('registrar/settings*') ? 'active' : '' }}">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="3"/>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                                </svg>
+                                <span>Settings & Workflows</span>
+                            </a>
+                        @endif
                     @endif
 
                     {{-- 2. Scrutiny Committee Desk --}}

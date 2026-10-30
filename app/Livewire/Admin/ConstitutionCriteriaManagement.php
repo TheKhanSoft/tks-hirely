@@ -422,6 +422,7 @@ class ConstitutionCriteriaManagement extends Component
      */
     public function applyBoardConstitutionToCampaign($boardId)
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions'), 403);
         $board = CommitteeConstitution::findOrFail($boardId);
         $this->constitution_title = $board->name;
         $this->constitution_description = $board->description;
@@ -527,6 +528,8 @@ class ConstitutionCriteriaManagement extends Component
     // ==========================================
     public function openCreateBoardModal()
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions'), 403);
+
         $this->resetBoardForm();
         $this->isEditBoard = false;
         $this->selectedBoardId = null;
@@ -557,6 +560,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function openEditBoardModal($id)
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions'), 403);
+
         $board = CommitteeConstitution::findOrFail($id);
         $this->isEditBoard = true;
         $this->selectedBoardId = $board->id;
@@ -577,6 +582,7 @@ class ConstitutionCriteriaManagement extends Component
 
     public function viewBoardQuorum($id)
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions'), 403);
         $this->viewingBoard = CommitteeConstitution::find($id);
         $this->showQuorumModal = true;
     }
@@ -740,6 +746,8 @@ class ConstitutionCriteriaManagement extends Component
     // ==========================================
     public function openEditStageModal($index)
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->can('manage-settings'), 403);
+
         if (!isset($this->flow_stages[$index])) {
             return;
         }
@@ -782,6 +790,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function addNewStage()
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->can('manage-settings'), 403);
+
         $nextStep = count($this->flow_stages) + 1;
         $this->editingStageIndex = count($this->flow_stages);
         $this->isNewStage = true;
@@ -821,6 +831,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function saveStage()
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->can('manage-settings'), 403);
+
         $this->validate([
             'stage_name' => 'required|string|min:3|max:150',
             'stage_governing_role' => 'required|string|min:2|max:100',
@@ -877,6 +889,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function removeStage($index)
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->can('manage-settings'), 403);
+
         if (isset($this->flow_stages[$index])) {
             $name = $this->flow_stages[$index]['name'] ?? 'Stage';
             unset($this->flow_stages[$index]);
@@ -891,6 +905,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function moveStageUp($index)
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->can('manage-settings'), 403);
+
         if ($index > 0 && isset($this->flow_stages[$index])) {
             $prev = $this->flow_stages[$index - 1];
             $this->flow_stages[$index - 1] = $this->flow_stages[$index];
@@ -905,6 +921,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function moveStageDown($index)
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->can('manage-settings'), 403);
+
         if ($index < count($this->flow_stages) - 1 && isset($this->flow_stages[$index])) {
             $next = $this->flow_stages[$index + 1];
             $this->flow_stages[$index + 1] = $this->flow_stages[$index];
@@ -919,6 +937,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function toggleStageEnabled($index)
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->can('manage-settings'), 403);
+
         if (isset($this->flow_stages[$index])) {
             $this->flow_stages[$index]['is_enabled'] = empty($this->flow_stages[$index]['is_enabled']);
             $this->persistCurrentFlow();
@@ -928,6 +948,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function persistCurrentFlow()
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->can('manage-settings'), 403);
+
         if ($this->selected_flow_id) {
             $flow = RecruitmentProcessFlow::find($this->selected_flow_id);
             if ($flow) {
@@ -943,6 +965,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function saveProcessFlow()
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->can('manage-settings'), 403);
+
         $this->validate([
             'flow_name' => 'required|string|min:3|max:200',
             'flow_sector' => 'required|string|in:ACADEMIC,CORPORATE,HEALTHCARE,PUBLIC_SECTOR,JUDICIAL,DEFENSE,GENERAL',
@@ -954,6 +978,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function createNewFlowPipeline()
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->can('manage-settings'), 403);
+
         $flow = RecruitmentProcessFlow::create([
             'public_id' => 'pipe_' . strtolower(\Illuminate\Support\Str::random(10)),
             'name' => 'Custom Recruitment Pipeline ' . rand(100, 999),
@@ -986,6 +1012,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function openEditPipelineModal($flowId = null)
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->can('manage-settings'), 403);
+
         $id = $flowId ?: $this->selected_flow_id;
         $flow = RecruitmentProcessFlow::findOrFail($id);
 
@@ -1007,6 +1035,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function savePipelineInfo()
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->can('manage-settings'), 403);
+
         $this->validate([
             'edit_flow_name' => 'required|string|min:3|max:200',
             'edit_flow_sector' => 'required|string|in:ACADEMIC,CORPORATE,HEALTHCARE,PUBLIC_SECTOR,JUDICIAL,DEFENSE,GENERAL',
@@ -1039,6 +1069,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function toggleFlowActive($id)
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->can('manage-settings'), 403);
+
         $flow = RecruitmentProcessFlow::findOrFail($id);
         $flow->update(['is_active' => !$flow->is_active]);
         session()->flash('message', "Pipeline '{$flow->name}' status updated to " . ($flow->is_active ? 'Active' : 'Inactive') . ".");
@@ -1046,6 +1078,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function cloneProcessFlow($id)
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->can('manage-settings'), 403);
+
         $source = RecruitmentProcessFlow::findOrFail($id);
         $clone = $source->replicate(['slug', 'created_at', 'updated_at']);
         $clone->name = $source->name . ' (Copy)';
@@ -1060,6 +1094,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function requestDeleteProcessFlow($id)
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->can('manage-settings'), 403);
+
         $flow = RecruitmentProcessFlow::findOrFail($id);
         if ($flow->is_default) {
             session()->flash('error', 'Cannot delete default system pipeline. Please mark another pipeline as default first.');
@@ -1080,6 +1116,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function confirmDeleteProcessFlow()
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->can('manage-settings'), 403);
+
         if (!$this->confirmingDeleteFlowId) {
             return;
         }
@@ -1105,6 +1143,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function deleteProcessFlow($id)
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->can('manage-settings'), 403);
+
         $flow = RecruitmentProcessFlow::findOrFail($id);
         if ($flow->is_default) {
             session()->flash('error', 'Cannot delete default system pipeline.');
@@ -1127,6 +1167,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function setFlowAsDefault($id)
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->can('manage-settings'), 403);
+
         RecruitmentProcessFlow::where('is_default', true)->update(['is_default' => false]);
         $flow = RecruitmentProcessFlow::findOrFail($id);
         $flow->update(['is_default' => true]);

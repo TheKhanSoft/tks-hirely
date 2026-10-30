@@ -55,6 +55,8 @@ class WorkflowStatusManagement extends Component
 
     public function openCreateModal()
     {
+        abort_unless(Auth::user()->can('manage-statuses') || Auth::user()->can('manage-settings'), 403);
+
         $this->resetForm();
         $this->isEdit = false;
         $this->scope = $this->activeScope;
@@ -64,6 +66,8 @@ class WorkflowStatusManagement extends Component
 
     public function openEditModal($id)
     {
+        abort_unless(Auth::user()->can('manage-statuses') || Auth::user()->can('manage-settings'), 403);
+
         $status = WorkflowStatus::findOrFail($id);
         $this->isEdit = true;
         $this->selectedStatusId = $status->id;

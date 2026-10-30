@@ -72,6 +72,8 @@ class EvaluationDesk extends Component
 
     public function submitEvaluation()
     {
+        abort_unless(Auth::user()->can('evaluate-academic-dossier') || Auth::user()->hasAnyRole(['academic-reviewer', 'reviewer', 'super-admin']), 403);
+
         $this->validate();
 
         $review = ApplicationReview::where('reviewer_id', Auth::id())->findOrFail($this->activeReviewId);

@@ -27,7 +27,11 @@ class LiveGradingPanel extends Component
 
     public function mount($id)
     {
-        abort_unless(Auth::check() && Auth::user()->hasAnyRole(['super-admin', 'selection-board-member']), 403);
+        abort_unless(Auth::check() && (
+            Auth::user()->can('access-board-grading') ||
+            Auth::user()->can('evaluate-application') ||
+            Auth::user()->hasAnyRole(['super-admin', 'selection-board-member', 'board-member', 'board'])
+        ), 403);
 
         $this->applicationId = $id;
         $this->application = Application::with([
@@ -122,6 +126,8 @@ class LiveGradingPanel extends Component
 
     public function saveEvaluation()
     {
+        abort_unless(Auth::user()->can('submit-board-score') || Auth::user()->can('evaluate-application'), 403);
+
         $this->validate([
             'academic_score' => 'required|numeric|min:0|max:100',
             'interview_score' => 'required|numeric|min:0|max:50',

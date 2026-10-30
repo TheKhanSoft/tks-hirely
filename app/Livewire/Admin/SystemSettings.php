@@ -117,6 +117,7 @@ class SystemSettings extends Component
 
     public function toggleSetting($key)
     {
+        abort_unless(Auth::user()->can('manage-settings'), 403);
         $current = (bool) SystemSetting::get($key, false);
         $new = !$current;
         SystemSetting::set($key, $new, type: 'boolean');
@@ -126,6 +127,7 @@ class SystemSettings extends Component
 
     public function savePipelineSettings()
     {
+        abort_unless(Auth::user()->can('manage-settings'), 403);
         SystemSetting::set('enable_peer_review_step', $this->enable_peer_review_step, 'pipeline', 'boolean');
         SystemSetting::set('enable_scrutiny_step', $this->enable_scrutiny_step, 'pipeline', 'boolean');
         SystemSetting::set('enable_appellate_step', $this->enable_appellate_step, 'pipeline', 'boolean');
@@ -138,6 +140,7 @@ class SystemSettings extends Component
 
     public function saveDocumentSettings()
     {
+        abort_unless(Auth::user()->can('manage-settings'), 403);
         SystemSetting::set('require_transcript_proof', $this->require_transcript_proof, 'documents', 'boolean');
         SystemSetting::set('require_experience_proof', $this->require_experience_proof, 'documents', 'boolean');
         SystemSetting::set('require_cnic_upload', $this->require_cnic_upload, 'documents', 'boolean');
@@ -150,6 +153,7 @@ class SystemSettings extends Component
 
     public function saveCandidateRules()
     {
+        abort_unless(Auth::user()->can('manage-settings'), 403);
         $this->validate([
             'challan_grace_days' => 'required|integer|min:1|max:90',
         ]);
@@ -164,6 +168,7 @@ class SystemSettings extends Component
 
     public function saveOrganizationProfile()
     {
+        abort_unless(Auth::user()->can('manage-settings'), 403);
         $this->validate([
             'org_name' => 'required|string|max:190',
             'org_type' => 'required|string',
@@ -183,6 +188,7 @@ class SystemSettings extends Component
 
     public function saveConstitutions()
     {
+        abort_unless(Auth::user()->can('manage-settings'), 403);
         $this->validate([
             'asst_prof_required_peer_reviewers' => 'required|integer|min:1|max:10',
             'prof_required_peer_reviewers' => 'required|integer|min:1|max:10',
@@ -198,6 +204,7 @@ class SystemSettings extends Component
 
     public function saveAcademicCriteriaSettings()
     {
+        abort_unless(Auth::user()->can('manage-settings'), 403);
         \App\Services\AcademicEligibilityEvaluator::setGlobalCriteria([
             'disallow_third_division' => (bool)$this->global_disallow_third_division,
             'max_allowed_third_divisions' => $this->global_max_allowed_third_divisions !== '' ? (int)$this->global_max_allowed_third_divisions : null,

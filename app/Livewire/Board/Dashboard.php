@@ -19,7 +19,11 @@ class Dashboard extends Component
 
     public function mount()
     {
-        abort_unless(Auth::check() && Auth::user()->hasAnyRole(['super-admin', 'selection-board-member']), 403);
+        abort_unless(Auth::check() && (
+            Auth::user()->can('access-board-grading') ||
+            Auth::user()->can('evaluate-application') ||
+            Auth::user()->hasAnyRole(['super-admin', 'selection-board-member', 'board-member', 'board'])
+        ), 403);
     }
 
     public function updatingSearch()

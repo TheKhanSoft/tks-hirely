@@ -200,6 +200,8 @@ class ReviewerManagement extends Component
 
     public function openEmpanelAndAssignModal($prefilledSubject = null)
     {
+        abort_unless(Auth::user()->can('create-reviewer') || Auth::user()->can('manage-reviewers'), 403);
+
         $this->reset(['name', 'email', 'university', 'phone', 'specialization']);
         $rawSubject = $prefilledSubject ?: ($this->targetApplication?->campaign?->department ?? '');
         $this->subject = AcademicDisciplineMatcher::normalizeDepartment($rawSubject);
@@ -217,6 +219,7 @@ class ReviewerManagement extends Component
 
     public function toggleInlineEmpanel($prefilledSubject = null)
     {
+        abort_unless(Auth::user()->can('create-reviewer') || Auth::user()->can('manage-reviewers'), 403);
         $this->openEmpanelAndAssignModal($prefilledSubject);
     }
 
@@ -479,7 +482,7 @@ class ReviewerManagement extends Component
 
     public function exportCsv()
     {
-        abort_unless(Auth::user()->can('view-reviewer'), 403);
+        abort_unless(Auth::user()->can('view-reviewer') || Auth::user()->can('manage-reviewers'), 403);
         $reviewers = ReviewerProfile::with('user')
             ->whereDoesntHave('user.roles', fn($rq) => $rq->where('name', 'super-admin'))
             ->withCount('reviews')

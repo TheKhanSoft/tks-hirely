@@ -18,7 +18,11 @@ class AppellateReview extends Component
 
     public function mount()
     {
-        abort_unless(Auth::check() && Auth::user()->hasAnyRole(['super-admin', 'appellate-committee']), 403);
+        abort_unless(Auth::check() && (
+            Auth::user()->can('view-appeal') ||
+            Auth::user()->can('process-appeal') ||
+            Auth::user()->hasAnyRole(['super-admin', 'appellate-committee', 'appellate', 'registrar'])
+        ), 403);
         $this->loadAppeals();
     }
 
@@ -39,6 +43,13 @@ class AppellateReview extends Component
 
     public function selectAppeal($id)
     {
+        abort_unless(
+            Auth::user()->can('view-appeal') ||
+            Auth::user()->can('process-appeal') ||
+            Auth::user()->hasAnyRole(['super-admin', 'appellate-committee', 'appellate', 'registrar']),
+            403
+        );
+
         $this->selectedAppealId = $id;
         $this->selectedAppeal = Application::with('user.basicInfo', 'campaign')->findOrFail($id);
         
@@ -53,6 +64,8 @@ class AppellateReview extends Component
 
     public function approveAppealToPaid()
     {
+        abort_unless(Auth::user()->can('process-appeal'), 403);
+
         if (!$this->selectedAppeal) {
             return;
         }
@@ -70,6 +83,8 @@ class AppellateReview extends Component
 
     public function approveAppealToEligible()
     {
+        abort_unless(Auth::user()->can('process-appeal'), 403);
+
         if (!$this->selectedAppeal) {
             return;
         }
@@ -87,6 +102,8 @@ class AppellateReview extends Component
 
     public function rejectAppeal()
     {
+        abort_unless(Auth::user()->can('process-appeal'), 403);
+
         if (!$this->selectedAppeal) {
             return;
         }

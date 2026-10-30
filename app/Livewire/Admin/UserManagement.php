@@ -220,6 +220,8 @@ class UserManagement extends Component
 
     public function toggleDirectPermission($permName)
     {
+        abort_unless(Auth::user()->can('assign-user-permissions') || Auth::user()->can('edit-user'), 403);
+
         if (in_array($permName, $this->targetUserDirectPermissions)) {
             $this->targetUserDirectPermissions = array_values(array_diff($this->targetUserDirectPermissions, [$permName]));
         } else {
