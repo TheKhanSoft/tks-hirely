@@ -1,0 +1,82 @@
+
+name: Build and deploy Laravel app to Azure - tks-hirely
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tks-hirely-production
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      # 1. Get the application source code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Install PHP and required extensions
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: mbstring, bcmath, ctype, curl, dom, fileinfo, intl, openssl, pdo, pdo_mysql, tokenizer, xml, zip
+          coverage: none
+
+      # 3. Install production PHP dependencies
+      - name: Install Composer dependencies
+        run: composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
+
+      # 4. Install Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      # 5. Install frontend dependencies
+      - name: Install Node dependencies
+        run: npm ci
+
+      # 6. Compile Vite CSS and JavaScript assets
+      - name: Build frontend assets
+        run: npm run build
+
+      # 7. Create the deployment package
+      - name: Prepare deployment package
+        run: |
+          zip -r "$RUNNER_TEMP/release.zip" . \
+            -x ".git/*" \
+               ".github/*" \
+               "node_modules/*" \
+               "tests/*" \
+               ".env" \
+               ".env.*"
+
+      # 8. Authenticate with Azure using GitHub OIDC
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # 9. Deploy the Laravel application
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: tks-hirely
+          slot-name: Production
+          package: ${{ runner.temp }}/release.zip
