@@ -289,7 +289,7 @@ class AdvertisementManagement extends Component
 
     public function exportCsv()
     {
-        abort_unless(Auth::user()->can('view-advertisement') || Auth::user()->can('view-campaign'), 403);
+        abort_unless(Auth::user()->can('export-advertisement') || Auth::user()->can('view-advertisement') || Auth::user()->can('view-campaign'), 403);
         $headers = ['Advertisement No', 'Title', 'Year', 'Valid From', 'Valid To', 'Status', 'Jobs Count', 'Extensions Count', 'Newspaper Reference'];
         $ads = Advertisement::withCount(['campaigns', 'dateTracks'])->orderBy('year', 'desc')->get();
         $rows = [];

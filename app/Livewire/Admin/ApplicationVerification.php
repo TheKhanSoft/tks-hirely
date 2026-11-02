@@ -4,10 +4,14 @@ namespace App\Livewire\Admin;
 
 use Livewire\Component;
 use App\Models\Application;
+use App\Models\AcademicDegree;
 use App\Models\AcademicMedal;
 use App\Models\Publication;
 use App\Models\ProfessionalEvent;
 use App\Models\ResearchProject;
+use App\Models\WorkExperience;
+use App\Models\Training;
+use App\Models\Patent;
 use Illuminate\Support\Facades\Auth;
 
 class ApplicationVerification extends Component
@@ -148,6 +152,74 @@ class ApplicationVerification extends Component
             'verified_by' => auth()->id(),
         ]);
         $this->application->load('user.basicInfo.events');
+    }
+
+    public function toggleVerifyDegree($degreeId)
+    {
+        abort_unless(
+            Auth::user()->can('verify-degree') ||
+            Auth::user()->can('verify-documents') ||
+            Auth::user()->can('scrutinize-application'),
+            403
+        );
+
+        $degree = AcademicDegree::findOrFail($degreeId);
+        $degree->update([
+            'is_verified' => !$degree->is_verified,
+            'verified_by' => auth()->id(),
+        ]);
+        $this->application->load('user.basicInfo.degrees');
+    }
+
+    public function toggleVerifyExperience($expId)
+    {
+        abort_unless(
+            Auth::user()->can('verify-experience') ||
+            Auth::user()->can('verify-documents') ||
+            Auth::user()->can('scrutinize-application'),
+            403
+        );
+
+        $exp = WorkExperience::findOrFail($expId);
+        $exp->update([
+            'is_verified' => !$exp->is_verified,
+            'verified_by' => auth()->id(),
+        ]);
+        $this->application->load('user.basicInfo.experiences');
+    }
+
+    public function toggleVerifyTraining($trainingId)
+    {
+        abort_unless(
+            Auth::user()->can('verify-training') ||
+            Auth::user()->can('verify-documents') ||
+            Auth::user()->can('scrutinize-application'),
+            403
+        );
+
+        $training = Training::findOrFail($trainingId);
+        $training->update([
+            'is_verified' => !$training->is_verified,
+            'verified_by' => auth()->id(),
+        ]);
+        $this->application->load('user.basicInfo.trainings');
+    }
+
+    public function toggleVerifyPatent($patentId)
+    {
+        abort_unless(
+            Auth::user()->can('verify-patent') ||
+            Auth::user()->can('verify-documents') ||
+            Auth::user()->can('scrutinize-application'),
+            403
+        );
+
+        $patent = Patent::findOrFail($patentId);
+        $patent->update([
+            'is_verified' => !$patent->is_verified,
+            'verified_by' => auth()->id(),
+        ]);
+        $this->application->load('user.basicInfo.patents');
     }
 
     // Main eligibility transitions

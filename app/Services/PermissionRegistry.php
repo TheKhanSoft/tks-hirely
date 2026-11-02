@@ -33,6 +33,10 @@ class PermissionRegistry
                     'label' => 'Extend Advertisement Validity',
                     'description' => 'Issue official corrigendum extensions and track dates',
                 ],
+                'export-advertisement' => [
+                    'label' => 'Export Advertisements Data',
+                    'description' => 'Download official advertisement cycles and date history datasets to CSV',
+                ],
             ],
 
             'Campaigns & Governance' => [
@@ -114,6 +118,10 @@ class PermissionRegistry
                     'label' => 'Export Applications Data',
                     'description' => 'Download applications forensic CSV datasets',
                 ],
+                'generate-scrutiny-certificate' => [
+                    'label' => 'Generate Scrutiny Certificates',
+                    'description' => 'Print and generate official statutory scrutiny clearance and deficiency certificates',
+                ],
             ],
 
             'Document Verification' => [
@@ -129,6 +137,10 @@ class PermissionRegistry
                     'label' => 'Verify Candidate Biodata',
                     'description' => 'Confirm candidate CNIC, demographics, and domicile proof',
                 ],
+                'verify-experience' => [
+                    'label' => 'Verify Work Experiences',
+                    'description' => 'Audit and verify candidate employment tenure, designation, and service letters',
+                ],
                 'verify-medal' => [
                     'label' => 'Verify Academic Medals',
                     'description' => 'Inspect and verify gold, silver, and bronze distinction medals',
@@ -140,6 +152,14 @@ class PermissionRegistry
                 'verify-project' => [
                     'label' => 'Verify Research Projects',
                     'description' => 'Audit external research grants and industrial grant values',
+                ],
+                'verify-patent' => [
+                    'label' => 'Verify Patents & Inventions',
+                    'description' => 'Audit national and international patent registrations and intellectual property',
+                ],
+                'verify-training' => [
+                    'label' => 'Verify Professional Trainings',
+                    'description' => 'Audit specialized workshops, professional training and certifications',
                 ],
                 'verify-event' => [
                     'label' => 'Verify Events & Conferences',
@@ -195,6 +215,10 @@ class PermissionRegistry
                     'label' => 'Perform Peer Evaluation',
                     'description' => 'Score applicant academic dossiers on external evaluation desk',
                 ],
+                'export-reviewer' => [
+                    'label' => 'Export Reviewers Directory',
+                    'description' => 'Download academic referee rosters and dispatch metrics to CSV',
+                ],
             ],
 
             'Candidate Profiles' => [
@@ -222,6 +246,10 @@ class PermissionRegistry
                     'label' => 'View Full Candidate Dossier',
                     'description' => 'Open complete qualification modal (degrees, publications, projects)',
                 ],
+                'export-candidate' => [
+                    'label' => 'Export Candidate Profiles Data',
+                    'description' => 'Download applicant demographic and qualification rosters to CSV',
+                ],
             ],
 
             'Payments & Vouchers' => [
@@ -248,6 +276,10 @@ class PermissionRegistry
                 'simulate-payment' => [
                     'label' => 'Use Payment Simulator',
                     'description' => 'Test 1Bill / Kuickpay consumer number resolution and payment webhook',
+                ],
+                'export-payment' => [
+                    'label' => 'Export Payments & Billing Data',
+                    'description' => 'Download reconciliation and billing transaction datasets to CSV',
                 ],
             ],
 
@@ -283,6 +315,10 @@ class PermissionRegistry
                 'impersonate-user' => [
                     'label' => 'Impersonate User Account',
                     'description' => 'Switch session into target user account for testing, support, and administrative verification',
+                ],
+                'export-user' => [
+                    'label' => 'Export Personnel Directory',
+                    'description' => 'Download user directory and institutional employee rosters to CSV',
                 ],
             ],
 
@@ -323,6 +359,10 @@ class PermissionRegistry
                     'label' => 'Assign Role Permissions Matrix',
                     'description' => 'Toggle capability matrix mapping permissions to security roles',
                 ],
+                'export-role' => [
+                    'label' => 'Export Roles & Permissions Matrix',
+                    'description' => 'Download system security roles and granular permission matrix to CSV',
+                ],
             ],
 
             'Security & Auditing' => [
@@ -338,6 +378,21 @@ class PermissionRegistry
                     'label' => 'Purge Audit Logs',
                     'description' => 'Execute bulk historical purge of audit entries',
                 ],
+                'export-audit-log' => [
+                    'label' => 'Export Security Audit Logs',
+                    'description' => 'Download forensic security audit logs to CSV',
+                ],
+            ],
+
+            'Operations & Executive Command Desk' => [
+                'view-dashboard' => [
+                    'label' => 'View Operations Command Desk',
+                    'description' => 'Access executive operations command desk and active recruitment monitors',
+                ],
+                'view-analytics' => [
+                    'label' => 'View Executive Analytics & Metrics',
+                    'description' => 'Access recruitment funnel, quota distribution, and revenue analytics',
+                ],
             ],
 
             'Selection Board Live Grading' => [
@@ -348,6 +403,10 @@ class PermissionRegistry
                 'submit-board-score' => [
                     'label' => 'Submit Board Scores',
                     'description' => 'Submit live rubric scores and candidate grading evaluations',
+                ],
+                'view-board-roster' => [
+                    'label' => 'View Selection Board Merit Roster',
+                    'description' => 'Inspect official ranked selection merit list and composite interview scores',
                 ],
             ],
 
@@ -363,6 +422,14 @@ class PermissionRegistry
                 'manage-constitutions' => [
                     'label' => 'Manage Board & Committee Constitutions',
                     'description' => 'Create, edit, and configure statutory boards, routing pipelines, eligibility criteria, and quotas across sectors',
+                ],
+                'export-constitution' => [
+                    'label' => 'Export Constitutions & Pipelines',
+                    'description' => 'Download statutory committee configurations and workflow pipelines to CSV',
+                ],
+                'export-status' => [
+                    'label' => 'Export Status Lifecycles',
+                    'description' => 'Download dynamic status transitions and lifecycle policies to CSV',
                 ],
             ],
         ];

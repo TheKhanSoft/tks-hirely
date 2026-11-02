@@ -30,6 +30,13 @@ class Dashboard extends Component
 
     public function openRosterModal($campaignId = null)
     {
+        abort_unless(Auth::check() && (
+            Auth::user()->can('view-board-roster') ||
+            Auth::user()->can('access-board-grading') ||
+            Auth::user()->can('evaluate-application') ||
+            Auth::user()->hasAnyRole(['super-admin', 'selection-board-member', 'board-member', 'board'])
+        ), 403);
+
         $cid = $campaignId ?: $this->campaignFilter ?: Campaign::first()?->id;
         if (!$cid) return;
 

@@ -1230,7 +1230,7 @@ class ConstitutionCriteriaManagement extends Component
 
     public function exportCsv()
     {
-        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('export-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->can('tune-constitution') || Auth::user()->can('manage-settings') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
         $constitutionsQuery = CommitteeConstitution::orderBy('name');
         if ($this->sectorFilter !== 'ALL') {
             $constitutionsQuery->where('organization_sector', $this->sectorFilter);

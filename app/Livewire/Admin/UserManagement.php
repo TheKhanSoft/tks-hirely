@@ -251,7 +251,7 @@ class UserManagement extends Component
 
     public function exportCsv()
     {
-        abort_unless(Auth::user()->can('view-user'), 403);
+        abort_unless(Auth::user()->can('export-user') || Auth::user()->can('view-user'), 403);
         $isSuperAdmin = Auth::user()->hasRole('super-admin');
         $query = User::with(['roles', 'basicInfo', 'reviewerProfile', 'permissions']);
         if (!$isSuperAdmin) {

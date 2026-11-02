@@ -28,6 +28,7 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'edit-advertisement',
             'delete-advertisement',
             'extend-advertisement',
+            'export-advertisement',
 
             // Campaign CRUD & Governance
             'view-campaign',
@@ -50,6 +51,7 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'toggle-user-status',
             'view-user-dossier',
             'assign-user-permissions',
+            'export-user',
             
             // Roles & Permissions CRUD
             'view-role',
@@ -61,6 +63,7 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'edit-permission',
             'delete-permission',
             'assign-role-permissions',
+            'export-role',
             
             // Applications CRUD & Status
             'view-application',
@@ -69,6 +72,7 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'delete-application',
             'change-application-status',
             'export-application',
+            'generate-scrutiny-certificate',
 
             // Candidate Profiles & Dossiers
             'view-basic-info',
@@ -77,6 +81,7 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'delete-basic-info',
             'lock-candidate-profile',
             'view-candidate-dossier',
+            'export-candidate',
 
             // Payments & Vouchers
             'view-payment',
@@ -85,11 +90,13 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'delete-payment',
             'reconcile-payment',
             'simulate-payment',
+            'export-payment',
 
             // Audit Logs
             'view-audit-log',
             'delete-audit-log',
             'purge-audit-logs',
+            'export-audit-log',
 
             // Academic Reviewer Management
             'manage-reviewers',
@@ -99,23 +106,33 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'delete-reviewer',
             'assign-reviewer',
             'view-review-reports',
+            'export-reviewer',
 
-            // System Settings & Workflows
+            // System Settings, Workflows & Analytics
             'manage-settings',
             'manage-statuses',
             'manage-constitutions',
+            'export-constitution',
+            'export-status',
+            'view-dashboard',
+            'view-analytics',
+            'view-board-roster',
         ]);
 
         $scrutinyPanel = Role::firstOrCreate(['name' => 'scrutiny-committee', 'guard_name' => 'web']);
         $scrutinyPanel->syncPermissions([
             'view-application',
             'scrutinize-application',
+            'generate-scrutiny-certificate',
             'verify-documents',
             'verify-degree',
             'verify-biodata',
+            'verify-experience',
             'verify-medal',
             'verify-publication',
             'verify-project',
+            'verify-patent',
+            'verify-training',
             'verify-event',
         ]);
 
@@ -126,6 +143,9 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'verify-documents',
             'verify-degree',
             'verify-biodata',
+            'verify-experience',
+            'verify-patent',
+            'verify-training',
         ]);
 
         $selectionBoard = Role::firstOrCreate(['name' => 'selection-board-member', 'guard_name' => 'web']);
@@ -134,6 +154,7 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'evaluate-application',
             'access-board-grading',
             'submit-board-score',
+            'view-board-roster',
         ]);
 
         $applicant = Role::firstOrCreate(['name' => 'applicant', 'guard_name' => 'web']);

@@ -229,7 +229,7 @@ class WorkflowStatusManagement extends Component
 
     public function exportCsv()
     {
-        abort_unless(Auth::user()->can('manage-statuses') || Auth::user()->can('manage-settings') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+        abort_unless(Auth::user()->can('export-status') || Auth::user()->can('manage-statuses') || Auth::user()->can('manage-settings') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
         $query = WorkflowStatus::forScope($this->activeScope)->orderBy('order')->orderBy('code');
 
         if (!empty($this->search)) {

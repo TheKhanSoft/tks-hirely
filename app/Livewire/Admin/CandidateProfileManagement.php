@@ -195,7 +195,7 @@ class CandidateProfileManagement extends Component
 
     public function exportCsv()
     {
-        abort_unless(Auth::user()->can('view-basic-info'), 403);
+        abort_unless(Auth::user()->can('export-candidate') || Auth::user()->can('view-basic-info'), 403);
         $applicantScope = function ($uq) {
             $uq->where(function ($sub) {
                 $sub->whereHas('roles', fn($rq) => $rq->where('name', 'applicant'))

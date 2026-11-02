@@ -77,7 +77,7 @@ class RolePermissionManagement extends Component
     public function exportCsv()
     {
         if ($this->activeSubTab === 'roles') {
-            abort_unless(Auth::user()->can('view-role'), 403);
+            abort_unless(Auth::user()->can('export-role') || Auth::user()->can('view-role'), 403);
             $rolesQuery = Role::with('permissions', 'users');
             if (!Auth::user()->hasRole('super-admin')) {
                 $rolesQuery->where('name', '!=', 'super-admin');

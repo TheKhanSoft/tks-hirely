@@ -16,6 +16,8 @@ class Dashboard extends Component
     public function mount()
     {
         abort_unless(Auth::check() && (
+            Auth::user()->can('view-dashboard') ||
+            Auth::user()->can('view-analytics') ||
             Auth::user()->can('view-campaign') ||
             Auth::user()->can('view-application') ||
             Auth::user()->hasAnyRole(['super-admin', 'registrar', 'scrutiny-committee', 'selection-board-member', 'admin', 'board', 'scrutiny'])

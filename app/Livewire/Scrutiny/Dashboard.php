@@ -30,17 +30,18 @@ class Dashboard extends Component
     public function openCertificateModal($appId)
     {
         abort_unless(Auth::check() && (
+            Auth::user()->can('generate-scrutiny-certificate') ||
             Auth::user()->can('scrutinize-application') ||
             Auth::user()->can('view-application') ||
             Auth::user()->hasAnyRole(['super-admin', 'registrar', 'scrutiny-committee', 'scrutiny'])
         ), 403);
 
         $this->selectedAppForCertificate = Application::with([
-            'user.basicInfo.academicDegrees',
+            'user.basicInfo.degrees',
             'user.basicInfo.experiences',
-            'user.basicInfo.researchPublications',
+            'user.basicInfo.publications',
             'campaign.advertisement',
-            'verificationReviews'
+            'reviews'
         ])->findOrFail($appId);
         $this->isCertificateModalOpen = true;
     }

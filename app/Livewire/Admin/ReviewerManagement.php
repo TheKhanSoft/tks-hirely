@@ -482,7 +482,7 @@ class ReviewerManagement extends Component
 
     public function exportCsv()
     {
-        abort_unless(Auth::user()->can('view-reviewer') || Auth::user()->can('manage-reviewers'), 403);
+        abort_unless(Auth::user()->can('export-reviewer') || Auth::user()->can('view-reviewer') || Auth::user()->can('manage-reviewers'), 403);
         $reviewers = ReviewerProfile::with('user')
             ->whereDoesntHave('user.roles', fn($rq) => $rq->where('name', 'super-admin'))
             ->withCount('reviews')

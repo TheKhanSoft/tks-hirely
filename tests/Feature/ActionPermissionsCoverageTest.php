@@ -271,4 +271,86 @@ class ActionPermissionsCoverageTest extends TestCase
         Livewire::test(LiveGradingPanel::class, ['id' => $app->id])
             ->assertOk();
     }
+
+    public function test_scrutiny_open_certificate_modal_requires_permission()
+    {
+        $applicant = User::factory()->create();
+        $campaign = Campaign::create([
+            'job_code' => 'TEST-CERT-01',
+            'title' => 'Associate Professor Chemistry',
+            'track_type' => 'ACADEMIC',
+            'department' => 'Chemistry',
+            'opening_date' => now()->subDays(5),
+            'closing_date' => now()->addDays(20),
+            'application_fee' => 1000,
+            'is_active' => true,
+        ]);
+
+        $app = Application::create([
+            'user_id' => $applicant->id,
+            'campaign_id' => $campaign->id,
+            'tracking_number' => 'APP-CERT-TEST-001',
+            'status' => 'PAID',
+            'submitted_at' => now(),
+        ]);
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        // Mounting Scrutiny dashboard is forbidden
+        Livewire::test(\App\Livewire\Scrutiny\Dashboard::class)
+            ->assertForbidden();
+
+        // Grant scrutinize-application permission
+        $user->givePermissionTo('scrutinize-application');
+
+        Livewire::test(\App\Livewire\Scrutiny\Dashboard::class)
+            ->assertOk()
+            ->call('openCertificateModal', $app->id)
+            ->assertSet('isCertificateModalOpen', true);
+    }
+
+    public function test_board_roster_modal_requires_permission()
+    {
+        $campaign = Campaign::create([
+            'job_code' => 'TEST-ROSTER-01',
+            'title' => 'Professor Physics',
+            'track_type' => 'ACADEMIC',
+            'department' => 'Physics',
+            'opening_date' => now()->subDays(5),
+            'closing_date' => now()->addDays(20),
+            'application_fee' => 1000,
+            'is_active' => true,
+        ]);
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        // Mounting Board dashboard is forbidden
+        Livewire::test(\App\Livewire\Board\Dashboard::class)
+            ->assertForbidden();
+
+        // Grant access-board-grading
+        $user->givePermissionTo('access-board-grading');
+
+        Livewire::test(\App\Livewire\Board\Dashboard::class)
+            ->assertOk()
+            ->call('openRosterModal', $campaign->id)
+            ->assertSet('isRosterModalOpen', true);
+    }
+
+    public function test_export_permissions_and_forensic_csv_generation()
+    {
+        $user = User::factory()->create();
+        $user->givePermissionTo('view-advertisement');
+        $user->givePermissionTo('export-advertisement');
+
+        $this->actingAs($user);
+
+        Livewire::test(AdvertisementManagement::class)
+            ->call('exportCsv')
+            ->assertFileDownloaded();
+    }
 }

@@ -46,7 +46,7 @@ class AuditLogManagement extends Component
 
     public function exportCsv()
     {
-        abort_unless(Auth::user()->can('view-audit-log'), 403);
+        abort_unless(Auth::user()->can('export-audit-log') || Auth::user()->can('view-audit-log'), 403);
         $query = SecurityAuditLog::with('user');
 
         if (!empty($this->actionFilter)) {

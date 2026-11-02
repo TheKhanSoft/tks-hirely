@@ -190,7 +190,7 @@ class PaymentManagement extends Component
 
     public function exportCsv()
     {
-        abort_unless(Auth::user()->can('view-payment'), 403);
+        abort_unless(Auth::user()->can('export-payment') || Auth::user()->can('view-payment'), 403);
         $payments = BillingLedger::with('application.user.basicInfo', 'application.campaign')
             ->orderBy('created_at', 'desc')
             ->get();
