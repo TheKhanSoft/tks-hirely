@@ -512,7 +512,7 @@
                     <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                         <button type="button" class="btn btn-primary" wire:click="createNewFlowPipeline" style="font-size: 0.82rem; font-weight: 700; padding: 0.55rem 1.15rem; display: inline-flex; align-items: center; gap: 0.4rem;">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                            <span>+ New Pipeline Flow</span>
+                            <span>New Pipeline Flow</span>
                         </button>
                     </div>
                 </div>
@@ -543,18 +543,21 @@
                     >
                         <x-slot:titleSlot>
                             <div style="display: flex; flex-direction: column; min-width: 0;">
-                                <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.2rem;">
-                                    <span class="badge" style="background: {{ $sectorBadge['bg'] }}; color: {{ $sectorBadge['color'] }}; font-weight: 800; font-size: 0.7rem;">
+                                <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
+                                    <span class="badge" style="background: {{ $sectorBadge['bg'] }}; color: {{ $sectorBadge['color'] }}; font-weight: 800; font-size: 0.68rem; border: 1px solid {{ $sectorBadge['bg'] }}; border-radius: 6px; padding: 0.2rem 0.55rem;">
                                         {{ $sectorBadge['icon'] }} {{ $pFlow->sector }}
                                     </span>
                                     @if($pFlow->is_default)
-                                        <span class="badge badge-amber" style="font-weight: 800; font-size: 0.68rem;">
+                                        <span class="badge" style="background: rgba(245, 158, 11, 0.1); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.25); font-weight: 800; font-size: 0.66rem; border-radius: 6px; padding: 0.2rem 0.5rem;">
                                             ★ SYSTEM DEFAULT
                                         </span>
                                     @endif
                                 </div>
-                                <div style="font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); line-height: 1.3; word-break: break-word;">
+                                <div style="font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); line-height: 1.35; word-break: break-word;">
                                     {{ $pFlow->name }}
+                                </div>
+                                <div style="font-size: 0.7rem; color: var(--color-text-muted); font-family: 'JetBrains Mono', monospace; margin-top: 0.2rem;">
+                                    ID: {{ $pFlow->public_id ?? $pFlow->slug }}
                                 </div>
                             </div>
                         </x-slot:titleSlot>
@@ -564,52 +567,84 @@
                             <button type="button" 
                                     class="entity-card-status-toggle-btn"
                                     wire:click="toggleFlowActive({{ $pFlow->id }})"
-                                    style="font-size: 0.74rem; font-weight: 800; cursor: pointer; color: {{ $pFlow->is_active ? '#10b981' : '#ef4444' }};"
+                                    style="font-size: 0.72rem; font-weight: 800; cursor: pointer; color: {{ $pFlow->is_active ? 'var(--success)' : 'var(--danger)' }}; display: flex; align-items: center; justify-content: space-between; width: 100%;"
                                     title="Click to toggle pipeline status">
-                                <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
-                                    <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: {{ $pFlow->is_active ? '#10b981' : '#ef4444' }}; box-shadow: 0 0 8px {{ $pFlow->is_active ? 'rgba(16, 185, 129, 0.9)' : 'rgba(239, 68, 68, 0.9)' }};"></span>
+                                <span style="display: inline-flex; align-items: center; gap: 0.45rem;">
+                                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: {{ $pFlow->is_active ? 'var(--success)' : 'var(--danger)' }}; box-shadow: 0 0 8px {{ $pFlow->is_active ? 'rgba(16, 185, 129, 0.7)' : 'rgba(239, 68, 68, 0.7)' }};"></span>
                                     <span>{{ $pFlow->is_active ? 'ACTIVE PIPELINE' : 'INACTIVE PIPELINE' }}</span>
                                 </span>
-                                <span style="font-size: 0.68rem; opacity: 0.75; font-weight: 700; text-transform: uppercase;">Click to toggle ↻</span>
+                                <span style="font-size: 0.65rem; opacity: 0.85; font-weight: 700; text-transform: uppercase; background: rgba(0, 0, 0, 0.05); padding: 0.15rem 0.45rem; border-radius: 4px;">Click to toggle ↻</span>
                             </button>
                         </x-slot:badge>
 
                         <x-slot:body>
-                            <div class="entity-card-metric-row">
-                                <span class="entity-card-metric-label">Pipeline Depth</span>
-                                <span class="badge badge-cyan" style="font-weight: 800; font-size: 0.72rem;">
+                            <!-- Pipeline Depth & Connected Stepper -->
+                            <div class="entity-card-metric-row" style="margin-bottom: 0.4rem;">
+                                <span class="entity-card-metric-label" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                                    Pipeline Depth
+                                </span>
+                                <span class="pipeline-depth-pill">
                                     {{ $stagesCount }} Sequential Stages
                                 </span>
                             </div>
 
-                            <!-- Visual Stage Progression Strip -->
-                            <div style="margin: 0.4rem 0;">
-                                <div style="display: flex; flex-wrap: wrap; gap: 0.28rem;">
-                                    @foreach($pFlow->stages ?? [] as $s)
-                                        <span class="badge" style="background: rgba(99, 102, 241, 0.12); color: var(--primary); font-size: 0.68rem; font-weight: 700; line-height: 1.2;">
-                                            {{ $loop->iteration }}. {{ $s['name'] ?? 'Stage' }}
-                                        </span>
-                                    @endforeach
-                                </div>
+                            <!-- Connected Progress Node Track -->
+                            <div class="pipeline-stepper-track" title="{{ $stagesCount }} sequential recruitment stages configured">
+                                @foreach($pFlow->stages ?? [] as $s)
+                                    <div class="pipeline-stepper-node" title="Stage {{ $loop->iteration }}: {{ $s['name'] ?? 'Stage' }} ({{ $s['sla_days'] ?? 7 }}d SLA)">
+                                        <span class="pipeline-node-dot">{{ $loop->iteration }}</span>
+                                        @if(!$loop->last)
+                                            <span class="pipeline-node-connector"></span>
+                                        @endif
+                                    </div>
+                                @endforeach
                             </div>
 
-                            <div class="entity-card-metric-row">
-                                <span class="entity-card-metric-label">Linked Job Positions</span>
+                            <!-- Stage Breakdown Container (Zero Overflow) -->
+                            <div class="pipeline-stages-container">
+                                @foreach(array_slice($pFlow->stages ?? [], 0, 3) as $s)
+                                    <div class="pipeline-stage-item" title="{{ $s['name'] ?? 'Stage' }} • {{ $s['governing_role'] ?? 'Actor' }}">
+                                        <span class="pipeline-stage-num">{{ $loop->iteration }}</span>
+                                        <span class="pipeline-stage-text">{{ $s['name'] ?? 'Stage' }}</span>
+                                        @if(!empty($s['sla_days']))
+                                            <span class="pipeline-stage-sla">{{ $s['sla_days'] }}d SLA</span>
+                                        @endif
+                                    </div>
+                                @endforeach
+
+                                @if($stagesCount > 3)
+                                    @php
+                                        $remainingStages = array_slice($pFlow->stages ?? [], 3);
+                                        $remainingTitles = implode(', ', array_map(fn($st, $i) => ($i + 4) . '. ' . ($st['name'] ?? 'Stage'), $remainingStages, array_keys($remainingStages)));
+                                    @endphp
+                                    <div class="pipeline-stages-more" title="{{ $remainingTitles }}">
+                                        <span>+{{ $stagesCount - 3 }} more sequential stages</span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="entity-card-metric-row" style="margin-top: 0.5rem; padding-top: 0.4rem; border-top: 1px solid var(--border-color);">
+                                <span class="entity-card-metric-label" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                                    Linked Positions
+                                </span>
                                 @if($campaignsCount > 0)
-                                    <span class="badge badge-indigo" style="font-weight: 800; font-size: 0.72rem;">
+                                    <span class="badge badge-indigo" style="font-weight: 800; font-size: 0.7rem;">
                                         💼 {{ $campaignsCount }} Campaign{{ $campaignsCount === 1 ? '' : 's' }}
                                     </span>
                                 @else
-                                    <span style="font-size: 0.72rem; color: var(--color-text-muted);">
+                                    <span style="font-size: 0.72rem; color: var(--color-text-muted); font-weight: 600;">
                                         Unassigned
                                     </span>
                                 @endif
                             </div>
 
                             @if($pFlow->description)
-                                <div class="entity-card-metric-row" style="margin-top: 0.2rem;">
+                                <div class="entity-card-metric-row" style="margin-top: 0.25rem;">
                                     <span class="entity-card-metric-label">Blueprint</span>
-                                    <span class="entity-card-metric-value" style="font-size: 0.72rem; color: var(--color-text-secondary); max-width: 155px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $pFlow->description }}">
+                                    <span class="entity-card-metric-value" style="font-size: 0.72rem; color: var(--color-text-secondary); max-width: 175px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $pFlow->description }}">
                                         {{ $pFlow->description }}
                                     </span>
                                 </div>

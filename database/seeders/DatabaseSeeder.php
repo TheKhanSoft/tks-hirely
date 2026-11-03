@@ -21,8 +21,6 @@ class DatabaseSeeder extends Seeder
         // 1. Run Spatie role seeder
         $this->call(SpatieRoleAndPermissionSeeder::class);
 
-        $this->call(StatutoryConstitutionsAndStatusesSeeder::class);
-
         // 2. Seed Default Accounts
         $users = [
             'superadmin@university.edu' => 'super-admin',
@@ -243,7 +241,10 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 4. Run Comprehensive Pakistan Recruitment Demo Seeder
+        // 4. Run Statutory Constitutions & Workflows Seeder
+        $this->call(StatutoryConstitutionsAndStatusesSeeder::class);
+
+        // 5. Run Comprehensive Pakistan Recruitment Demo Seeder
         $this->call(PakistanRecruitmentDemoSeeder::class);
     }
 }
