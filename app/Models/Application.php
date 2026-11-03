@@ -22,6 +22,14 @@ class Application extends Model
         'appeal_proof_path',
     ];
 
+    /**
+     * Standard formatted tracking identifier.
+     */
+    public function getTrackingNumberAttribute(): string
+    {
+        return 'APP-' . str_pad($this->id, 5, '0', STR_PAD_LEFT);
+    }
+
     protected $casts = [
         'submission_timestamp' => 'datetime',
     ];

@@ -50,6 +50,11 @@ class AdvertisementManagement extends Component
     public $selectedAdvertisementForJobs = null;
     public $advertisedJobs = [];
 
+    // Candidates under Advertisement Modal
+    public $showCandidatesModal = false;
+    public $selectedAdvertisementForCandidates = null;
+    public $advertisementCandidates = [];
+
     protected function rules()
     {
         return [
@@ -287,6 +292,48 @@ class AdvertisementManagement extends Component
         $this->advertisedJobs = [];
     }
 
+    public function openCandidatesModal($adId)
+    {
+        abort_unless(Auth::user()->can('view-advertisement') || Auth::user()->can('view-basic-info'), 403);
+
+        $this->selectedAdvertisementForCandidates = Advertisement::with([
+            'campaigns.applications.user.basicInfo.degrees',
+        ])->findOrFail($adId);
+
+        $candidates = collect();
+        foreach ($this->selectedAdvertisementForCandidates->campaigns as $camp) {
+            foreach ($camp->applications as $app) {
+                if ($app->user && $app->user->basicInfo) {
+                    $uid = $app->user_id;
+                    if (!$candidates->has($uid)) {
+                        $candidates->put($uid, [
+                            'user' => $app->user,
+                            'basicInfo' => $app->user->basicInfo,
+                            'appliedJobs' => collect([$camp->title]),
+                            'applicationsCount' => 1,
+                            'latestStatus' => $app->status_label ?? $app->status,
+                        ]);
+                    } else {
+                        $item = $candidates->get($uid);
+                        $item['appliedJobs']->push($camp->title);
+                        $item['applicationsCount']++;
+                        $candidates->put($uid, $item);
+                    }
+                }
+            }
+        }
+
+        $this->advertisementCandidates = $candidates->values()->all();
+        $this->showCandidatesModal = true;
+    }
+
+    public function closeCandidatesModal()
+    {
+        $this->showCandidatesModal = false;
+        $this->selectedAdvertisementForCandidates = null;
+        $this->advertisementCandidates = [];
+    }
+
     public function exportCsv()
     {
         abort_unless(Auth::user()->can('export-advertisement') || Auth::user()->can('view-advertisement') || Auth::user()->can('view-campaign'), 403);
@@ -313,7 +360,7 @@ class AdvertisementManagement extends Component
 
     public function render()
     {
-        $query = Advertisement::withCount(['campaigns', 'dateTracks'])->with('creator');
+        $query = Advertisement::withCount(['campaigns', 'dateTracks', 'applications'])->with('creator');
 
         if (!empty($this->search)) {
             $s = '%' . trim($this->search) . '%';

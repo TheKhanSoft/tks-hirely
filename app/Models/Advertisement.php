@@ -51,6 +51,14 @@ class Advertisement extends Model
     }
 
     /**
+     * Applications submitted for jobs under this advertisement.
+     */
+    public function applications(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    {
+        return $this->hasManyThrough(Application::class, Campaign::class, 'advertisement_id', 'campaign_id');
+    }
+
+    /**
      * Chronological date extension history & corrigenda audit ledger.
      */
     public function dateTracks(): HasMany

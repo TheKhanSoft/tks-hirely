@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use Livewire\Component;
+use Livewire\Attributes\Url;
 use App\Models\Application;
 use App\Models\ApplicationReview;
 use App\Models\User;
@@ -36,6 +37,8 @@ class ApplicationManagement extends Component
     public $search = '';
     public $statusFilter = '';
     public $campaignFilter = '';
+
+    #[Url(as: 'ad')]
     public $advertisementFilter = '';
     public $voucherFilter = '';
 
@@ -129,14 +132,34 @@ class ApplicationManagement extends Component
             Auth::user()->can('view-application') ||
             Auth::user()->hasAnyRole(['super-admin', 'registrar', 'admin'])
         ), 403);
+
+        // Default to the latest advertisement if none was explicitly provided
+        if (empty($this->advertisementFilter)) {
+            $lastAd = Advertisement::orderBy('year', 'desc')->orderBy('id', 'desc')->first();
+            if ($lastAd) {
+                $this->advertisementFilter = (string)$lastAd->id;
+            }
+        }
+
         $this->loadAuxiliaryData();
         $this->dispatchReviewDueDate = now()->addDays(14)->format('Y-m-d');
+    }
+
+    public function updatedAdvertisementFilter()
+    {
+        $this->resetPage();
+        $this->campaignFilter = '';
+        $this->loadAuxiliaryData();
     }
 
     public function loadAuxiliaryData()
     {
         $this->users = User::role('applicant')->get();
-        $this->campaigns = Campaign::where('is_active', true)->get();
+        if (!empty($this->advertisementFilter) && $this->advertisementFilter !== 'ALL') {
+            $this->campaigns = Campaign::where('advertisement_id', $this->advertisementFilter)->get();
+        } else {
+            $this->campaigns = Campaign::where('is_active', true)->get();
+        }
     }
 
     public function resetForm()
@@ -642,9 +665,14 @@ class ApplicationManagement extends Component
     public function exportCsv()
     {
         abort_unless(Auth::user()->can('view-application') || Auth::user()->can('export-application'), 403);
-        $applications = Application::with('user.basicInfo', 'campaign', 'billingLedger', 'reviews')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $applicationsQuery = Application::with('user.basicInfo', 'campaign', 'billingLedger', 'reviews')
+            ->orderBy('created_at', 'desc');
+
+        if (!empty($this->advertisementFilter) && $this->advertisementFilter !== 'ALL') {
+            $applicationsQuery->whereHas('campaign', fn($c) => $c->where('advertisement_id', $this->advertisementFilter));
+        }
+
+        $applications = $applicationsQuery->get();
 
         $headers = ['Tracking #', 'Applicant Name', 'Email', 'CNIC', 'Campaign Title', 'Job Code', 'Career Track', 'Challan Status', 'Processing Stage', 'Submission Date'];
         $rows = [];
@@ -682,7 +710,7 @@ class ApplicationManagement extends Component
             $query->where('campaign_id', $this->campaignFilter);
         }
 
-        if (!empty($this->advertisementFilter)) {
+        if (!empty($this->advertisementFilter) && $this->advertisementFilter !== 'ALL') {
             $query->whereHas('campaign', fn($c) => $c->where('advertisement_id', $this->advertisementFilter));
         }
 

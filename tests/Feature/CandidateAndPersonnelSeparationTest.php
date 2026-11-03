@@ -31,7 +31,7 @@ class CandidateAndPersonnelSeparationTest extends TestCase
         $this->scrutinyMember = User::where('email', 'scrutiny1@university.edu')->first();
         $this->boardMember = User::where('email', 'board1@university.edu')->first();
 
-        // Ensure applicant has basicInfo
+        // Ensure applicant has basicInfo and an application under latest campaign
         if (!$this->applicant->basicInfo) {
             BasicInfo::create([
                 'user_id' => $this->applicant->id,
@@ -48,6 +48,15 @@ class CandidateAndPersonnelSeparationTest extends TestCase
                 'mailing_address' => 'Karachi',
                 'same_address' => true,
                 'is_locked' => false,
+            ]);
+        }
+
+        $latestCampaign = Campaign::latest('id')->first();
+        if ($latestCampaign && !$this->applicant->applications()->exists()) {
+            Application::create([
+                'user_id' => $this->applicant->id,
+                'campaign_id' => $latestCampaign->id,
+                'status' => 'SUBMITTED',
             ]);
         }
     }

@@ -227,7 +227,18 @@
             
             <!-- Filters Slot -->
             <x-slot:filters>
-                <div style="flex: 1; min-width: 180px;">
+                <div style="flex: 1.5; min-width: 240px;">
+                    <select class="form-control form-select" wire:model.live="advertisementFilter">
+                        <option value="ALL">All Advertisements (All Candidates)</option>
+                        @foreach($availableAdvertisements as $ad)
+                            <option value="{{ $ad->id }}">
+                                📢 {{ $ad->advertisement_no }} — {{ $ad->title }} ({{ $ad->year }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div style="flex: 1; min-width: 170px;">
                     <select class="form-control form-select" wire:model.live="trackFilter">
                         <option value="">All Career Tracks</option>
                         <option value="ACADEMIC">Academic / Faculty</option>
@@ -236,7 +247,7 @@
                     </select>
                 </div>
 
-                <div style="flex: 1; min-width: 170px;">
+                <div style="flex: 1; min-width: 160px;">
                     <select class="form-control form-select" wire:model.live="lockFilter">
                         <option value="">All Lock States</option>
                         <option value="1">🔒 Locked Dossiers</option>
@@ -244,8 +255,8 @@
                     </select>
                 </div>
 
-                @if(!empty($search) || !empty($trackFilter) || $lockFilter !== '')
-                    <button type="button" class="btn btn-secondary btn-sm" wire:click="$set('search', ''); $set('trackFilter', ''); $set('lockFilter', '');" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                @if(!empty($search) || !empty($trackFilter) || $lockFilter !== '' || (!empty($advertisementFilter) && $advertisementFilter !== 'ALL'))
+                    <button type="button" class="btn btn-secondary btn-sm" wire:click="$set('search', ''); $set('trackFilter', ''); $set('lockFilter', ''); $set('advertisementFilter', 'ALL');" style="display: inline-flex; align-items: center; gap: 0.35rem;">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         <span>Reset Filters</span>
                     </button>
@@ -254,6 +265,22 @@
 
             <!-- Cards Slot (3 to 5 Cards Per Row) -->
             <x-slot:cards>
+                @if(!empty($selectedAdModel))
+                    <div style="grid-column: 1 / -1; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); border-radius: 10px; padding: 0.75rem 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.5rem;">
+                        <div style="display: flex; align-items: center; gap: 0.65rem;">
+                            <span class="badge badge-purple" style="font-size: 0.75rem; padding: 0.25rem 0.6rem; font-weight: 800;">Selected Advertisement</span>
+                            <span style="font-weight: 700; color: var(--color-text-primary);">
+                                {{ $selectedAdModel->advertisement_no }}: {{ $selectedAdModel->title }} (Cycle {{ $selectedAdModel->year }})
+                            </span>
+                            <span style="font-size: 0.8rem; color: var(--color-text-muted);">
+                                • Showing {{ $profiles->total() }} candidate{{ $profiles->total() === 1 ? '' : 's' }} applied
+                            </span>
+                        </div>
+                        <button type="button" wire:click="$set('advertisementFilter', 'ALL')" class="btn btn-secondary btn-sm" style="font-size: 0.72rem; padding: 0.25rem 0.65rem;">
+                            Clear Filter (View All Candidates)
+                        </button>
+                    </div>
+                @endif
                 @foreach($profiles as $basicInfo)
                     @php
                         $apps = $basicInfo->user->applications ?? collect();
@@ -323,8 +350,22 @@
                         <div class="entity-card-metric-row">
                             <span class="entity-card-metric-label">Applications:</span>
                             <span class="entity-card-metric-value">
-                                @if($apps->isNotEmpty())
-                                    <span style="color: var(--primary); font-weight: 800;">{{ $apps->count() }} Position{{ $apps->count() === 1 ? '' : 's' }}</span>
+                                @php
+                                    $adApps = (!empty($advertisementFilter) && $advertisementFilter !== 'ALL')
+                                        ? $apps->filter(fn($a) => $a->campaign?->advertisement_id == $advertisementFilter)
+                                        : $apps;
+                                @endphp
+                                @if($adApps->isNotEmpty())
+                                    <span style="color: var(--primary); font-weight: 800;">
+                                        {{ $adApps->count() }} Position{{ $adApps->count() === 1 ? '' : 's' }}
+                                    </span>
+                                    @if(!empty($advertisementFilter) && $advertisementFilter !== 'ALL' && $apps->count() > $adApps->count())
+                                        <span style="color: var(--color-text-muted); font-size: 0.72rem; margin-left: 0.25rem;">
+                                            ({{ $apps->count() }} total)
+                                        </span>
+                                    @endif
+                                @elseif($apps->isNotEmpty())
+                                    <span style="color: var(--color-text-muted); font-size: 0.76rem;">{{ $apps->count() }} (other cycles)</span>
                                 @else
                                     <span style="color: var(--color-text-muted); font-style: italic;">None yet</span>
                                 @endif

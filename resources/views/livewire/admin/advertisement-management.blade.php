@@ -240,6 +240,17 @@
                     </div>
 
                     <div class="entity-card-metric-row">
+                        <span class="entity-card-metric-label">Candidates</span>
+                        <button type="button" 
+                                wire:click="openCandidatesModal({{ $ad->id }})" 
+                                class="badge badge-purple" 
+                                style="font-weight: 800; font-size: 0.72rem; cursor: pointer; border: none;"
+                                title="Click to view candidate roster for this advertisement">
+                            👥 {{ $ad->applications_count }} Candidate{{ $ad->applications_count === 1 ? '' : 's' }}
+                        </button>
+                    </div>
+
+                    <div class="entity-card-metric-row">
                         <span class="entity-card-metric-label">Date Extensions</span>
                         @if($ad->date_tracks_count > 0)
                             <button type="button" 
@@ -286,6 +297,14 @@
                             data-tooltip="View Advertised Jobs ({{ $ad->campaigns_count }})" 
                             aria-label="View Jobs">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                    </button>
+
+                    <button type="button" 
+                            class="action-btn action-btn-info" 
+                            wire:click="openCandidatesModal({{ $ad->id }})" 
+                            data-tooltip="View Candidates ({{ $ad->applications_count }})" 
+                            aria-label="View Candidates">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     </button>
 
                     @if(auth()->user()->can('edit-advertisement') || auth()->user()->can('edit-campaign'))
@@ -390,6 +409,7 @@
                             <th>Validity Period</th>
                             <th>Days Left</th>
                             <th>Jobs Count</th>
+                            <th>Candidates</th>
                             <th>Extensions</th>
                             <th>Status (Click to Toggle)</th>
                             <th style="text-align: right;">Actions</th>
@@ -437,6 +457,11 @@
                                 <td>
                                     <button type="button" wire:click="openJobsModal({{ $ad->id }})" class="badge badge-cyan" style="font-weight: 800; font-size: 0.76rem; cursor: pointer; border: none;">
                                         💼 {{ $ad->campaigns_count }} Jobs
+                                    </button>
+                                </td>
+                                <td>
+                                    <button type="button" wire:click="openCandidatesModal({{ $ad->id }})" class="badge badge-purple" style="font-weight: 800; font-size: 0.76rem; cursor: pointer; border: none;">
+                                        👥 {{ $ad->applications_count }} Candidates
                                     </button>
                                 </td>
                                 <td>
@@ -928,8 +953,108 @@
     @endif
 
     <!-- ============================================================== -->
-    <!-- MODAL 5: EDIT ADVERTISEMENT                                   -->
+    <!-- MODAL 4B: CANDIDATES UNDER ADVERTISEMENT                       -->
     <!-- ============================================================== -->
+    @if($showCandidatesModal && $selectedAdvertisementForCandidates)
+        @php
+            $candidatesBaseUrl = (auth()->user()->hasRole('registrar') && !auth()->user()->hasRole('super-admin')) ? '/registrar/candidates' : '/admin/candidates';
+        @endphp
+        <div class="modal-overlay-premium" style="z-index: 1700;">
+            <div class="modal-dialog-premium" style="width: 100%; max-width: 860px; max-height: 90vh; overflow-y: auto; padding: 2rem; border-color: rgba(139,92,246,0.3); box-shadow: 0 30px 80px rgba(0,0,0,0.9);">
+                <div class="flex justify-between align-center mb-4" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="brand-icon-box" style="width: 44px; height: 44px; border-radius: 12px; background: rgba(139,92,246,0.15); color: #8b5cf6; display: flex; align-items: center; justify-content: center;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="card-title" style="margin: 0; font-size: 1.25rem; font-weight: 800;">
+                                Candidates Under Advertisement
+                            </h3>
+                            <p class="card-subtitle" style="margin: 0.2rem 0 0; font-size: 0.82rem;">
+                                Advertisement: <strong style="color: #8b5cf6;">{{ $selectedAdvertisementForCandidates->advertisement_no }}</strong> — {{ $selectedAdvertisementForCandidates->title }} ({{ count($advertisementCandidates) }} candidates applied)
+                            </p>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <a href="{{ url($candidatesBaseUrl . '?ad=' . $selectedAdvertisementForCandidates->id) }}" 
+                           class="btn btn-primary btn-sm" 
+                           style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.78rem; font-weight: 700; text-decoration: none;">
+                            <span>Open Candidates Desk →</span>
+                        </a>
+                        <button type="button" class="btn btn-secondary btn-sm" wire:click="closeCandidatesModal" style="padding: 0.35rem 0.65rem;">✕</button>
+                    </div>
+                </div>
+
+                @if(!empty($advertisementCandidates) && count($advertisementCandidates) > 0)
+                    <div class="table-container" style="max-height: 420px; overflow-y: auto;">
+                        <table class="table" style="font-size: 0.84rem;">
+                            <thead>
+                                <tr>
+                                    <th>Candidate Name</th>
+                                    <th>CNIC Number</th>
+                                    <th>Applied Position(s)</th>
+                                    <th>Latest Status</th>
+                                    <th style="text-align: right;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($advertisementCandidates as $cand)
+                                    <tr>
+                                        <td>
+                                            <strong style="color: var(--color-text-primary); font-size: 0.92rem;">
+                                                {{ $cand['basicInfo']->first_name }} {{ $cand['basicInfo']->last_name }}
+                                            </strong>
+                                            <div style="font-size: 0.76rem; color: var(--color-text-secondary);">
+                                                {{ $cand['user']->email }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <code style="font-family: monospace; font-size: 0.8rem; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px;">
+                                                {{ $cand['basicInfo']->cnic_number }}
+                                            </code>
+                                        </td>
+                                        <td>
+                                            @foreach($cand['appliedJobs'] as $jobTitle)
+                                                <span class="badge" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); font-size: 0.74rem; margin-right: 0.25rem;">
+                                                    {{ $jobTitle }}
+                                                </span>
+                                            @endforeach
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-indigo" style="font-size: 0.72rem; font-weight: 700;">
+                                                {{ $cand['latestStatus'] }}
+                                            </span>
+                                        </td>
+                                        <td style="text-align: right;">
+                                            <a href="{{ url($candidatesBaseUrl . '?ad=' . $selectedAdvertisementForCandidates->id . '&search=' . urlencode($cand['basicInfo']->cnic_number)) }}" 
+                                               class="btn btn-secondary btn-sm" 
+                                               style="font-size: 0.72rem; padding: 0.2rem 0.55rem; text-decoration: none;">
+                                                View Dossier →
+                                            </a>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <div style="text-align: center; padding: 2.5rem 1rem; color: var(--color-text-muted);">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="opacity: 0.4; margin-bottom: 0.5rem;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <p style="margin: 0 0 0.85rem 0; font-size: 0.88rem;">No candidates have submitted applications under this advertisement cycle yet.</p>
+                    </div>
+                @endif
+
+                <div class="flex justify-between align-center mt-4" style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                    <a href="{{ url($candidatesBaseUrl . '?ad=' . $selectedAdvertisementForCandidates->id) }}" class="btn btn-primary btn-sm" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+                        <span>Open & Manage {{ count($advertisementCandidates) }} Candidate{{ count($advertisementCandidates) === 1 ? '' : 's' }} in Candidate Desk →</span>
+                    </a>
+                    <button type="button" class="btn btn-secondary" wire:click="closeCandidatesModal">Close</button>
+                </div>
+            </div>
+        </div>
+    @endif
     @if($showEditModal)
         <div class="modal-overlay-premium" style="z-index: 1600;">
             <div class="modal-dialog-premium" style="width: 100%; max-width: 720px; max-height: 92vh; overflow-y: auto; padding: 1.75rem; border-color: var(--secondary-glow); box-shadow: 0 30px 80px rgba(0,0,0,0.9);">

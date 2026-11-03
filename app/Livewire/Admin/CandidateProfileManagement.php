@@ -4,8 +4,10 @@ namespace App\Livewire\Admin;
 
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\Attributes\Url;
 use App\Models\BasicInfo;
 use App\Models\User;
+use App\Models\Advertisement;
 use Illuminate\Support\Facades\Auth;
 use App\Livewire\Traits\WithDynamicListing;
 
@@ -25,8 +27,12 @@ class CandidateProfileManagement extends Component
     public $trackFilter = '';
     public $lockFilter = '';
 
+    #[Url(as: 'ad')]
+    public $advertisementFilter = '';
+
     // Collections
     public $availableUsers = [];
+    public $availableAdvertisements = [];
 
     // Form fields
     public $bi_id;
@@ -44,6 +50,19 @@ class CandidateProfileManagement extends Component
     {
         abort_unless(Auth::check() && Auth::user()->can('view-basic-info'), 403);
         $this->loadAuxiliaryData();
+
+        // By default, select the last (latest) advertisement if any exists and none was explicitly passed via URL
+        if (empty($this->advertisementFilter)) {
+            $lastAd = Advertisement::orderBy('year', 'desc')->orderBy('id', 'desc')->first();
+            if ($lastAd) {
+                $this->advertisementFilter = (string)$lastAd->id;
+            }
+        }
+    }
+
+    public function updatingAdvertisementFilter()
+    {
+        $this->resetPage();
     }
 
     public function loadAuxiliaryData()
@@ -54,6 +73,8 @@ class CandidateProfileManagement extends Component
             ->whereHas('roles', fn($q) => $q->where('name', 'applicant'))
             ->whereDoesntHave('roles', fn($q) => $q->where('name', '!=', 'applicant'))
             ->get();
+
+        $this->availableAdvertisements = Advertisement::orderBy('year', 'desc')->orderBy('id', 'desc')->get();
     }
 
     public function resetForm()
@@ -203,10 +224,16 @@ class CandidateProfileManagement extends Component
             })->whereDoesntHave('roles', fn($rq) => $rq->where('name', '!=', 'applicant'));
         };
 
-        $profiles = BasicInfo::whereHas('user', $applicantScope)
-            ->with(['user', 'user.applications', 'degrees'])
-            ->orderBy('first_name')
-            ->get();
+        $query = BasicInfo::whereHas('user', $applicantScope)
+            ->with(['user', 'user.applications.campaign', 'degrees']);
+
+        if (!empty($this->advertisementFilter) && $this->advertisementFilter !== 'ALL') {
+            $query->whereHas('user.applications.campaign', function ($cq) {
+                $cq->where('advertisement_id', $this->advertisementFilter);
+            });
+        }
+
+        $profiles = $query->orderBy('first_name')->get();
 
         $headers = ['ID', 'Full Name', 'Email', 'CNIC', 'Track Type', 'Locked Status', 'Applications Count', 'Degrees Count'];
         $rows = [];
@@ -240,7 +267,13 @@ class CandidateProfileManagement extends Component
         };
 
         $query = BasicInfo::whereHas('user', $applicantScope)
-            ->with(['user.roles', 'user.applications.campaign', 'degrees']);
+            ->with(['user.roles', 'user.applications.campaign.advertisement', 'degrees']);
+
+        if (!empty($this->advertisementFilter) && $this->advertisementFilter !== 'ALL') {
+            $query->whereHas('user.applications.campaign', function ($cq) {
+                $cq->where('advertisement_id', $this->advertisementFilter);
+            });
+        }
 
         if (!empty($this->trackFilter)) {
             $query->where('track_type', $this->trackFilter);
@@ -266,17 +299,31 @@ class CandidateProfileManagement extends Component
 
         // Dynamic Candidate Metrics strictly scoped to genuine applicant pool
         $baseCandidateQuery = BasicInfo::whereHas('user', $applicantScope);
+        $scopedCandidateQuery = clone $baseCandidateQuery;
+
+        if (!empty($this->advertisementFilter) && $this->advertisementFilter !== 'ALL') {
+            $scopedCandidateQuery->whereHas('user.applications.campaign', function ($cq) {
+                $cq->where('advertisement_id', $this->advertisementFilter);
+            });
+        }
+
+        $selectedAdModel = (!empty($this->advertisementFilter) && $this->advertisementFilter !== 'ALL')
+            ? Advertisement::find($this->advertisementFilter)
+            : null;
 
         $stats = [
-            'total' => (clone $baseCandidateQuery)->count(),
-            'with_applications' => (clone $baseCandidateQuery)->whereHas('user.applications')->count(),
-            'academic' => (clone $baseCandidateQuery)->where('track_type', 'ACADEMIC')->count(),
-            'locked' => (clone $baseCandidateQuery)->where('is_locked', true)->count(),
+            'total' => (clone $scopedCandidateQuery)->count(),
+            'overall_pool' => (clone $baseCandidateQuery)->count(),
+            'with_applications' => (clone $scopedCandidateQuery)->whereHas('user.applications')->count(),
+            'academic' => (clone $scopedCandidateQuery)->where('track_type', 'ACADEMIC')->count(),
+            'locked' => (clone $scopedCandidateQuery)->where('is_locked', true)->count(),
         ];
 
         return view('livewire.admin.candidate-profile-management', [
             'profiles' => $profiles,
             'stats' => $stats,
+            'selectedAdModel' => $selectedAdModel,
+            'availableAdvertisements' => $this->availableAdvertisements,
         ])->layout('layouts.app', ['title' => 'Candidate Profiles - Hirely']);
     }
 }
