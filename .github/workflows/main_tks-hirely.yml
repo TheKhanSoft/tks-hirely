@@ -1,4 +1,3 @@
-
 name: Build and deploy Laravel app to Azure - tks-hirely
 
 on:
@@ -31,7 +30,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.5'
+          php-version: '8.4'
           extensions: mbstring, bcmath, ctype, curl, dom, fileinfo, intl, openssl, pdo, pdo_mysql, tokenizer, xml, zip
           coverage: none
 
@@ -54,18 +53,26 @@ jobs:
       - name: Build frontend assets
         run: npm run build
 
-      # 7. Create the deployment package
+      # 7. Clear pre-compiled caches before packaging
+      - name: Clear cached views and bootstrap config
+        run: php artisan optimize:clear || true
+
+      # 8. Create the deployment package
       - name: Prepare deployment package
         run: |
+          chmod +x startup.sh || true
           zip -r "$RUNNER_TEMP/release.zip" . \
             -x ".git/*" \
                ".github/*" \
                "node_modules/*" \
                "tests/*" \
                ".env" \
-               ".env.*"
+               ".env.*" \
+               "storage/framework/views/*" \
+               "storage/framework/cache/*" \
+               "storage/framework/sessions/*"
 
-      # 8. Authenticate with Azure using GitHub OIDC
+      # 9. Authenticate with Azure using GitHub OIDC
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -73,7 +80,7 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # 9. Deploy the Laravel application
+      # 10. Deploy the Laravel application
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
