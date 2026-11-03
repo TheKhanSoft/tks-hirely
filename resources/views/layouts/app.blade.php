@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? 'Hirely - University Recruitment OS' }}</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     
     <!-- Modern Favicons & Brand Assets -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
