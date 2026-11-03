@@ -75,6 +75,7 @@ class UserManagement extends Component
         $this->search = '';
         $this->roleFilter = '';
         $this->statusFilter = '';
+        $this->categorySection = 'ALL';
         $this->resetPage();
     }
 

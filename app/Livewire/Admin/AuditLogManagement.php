@@ -29,6 +29,18 @@ class AuditLogManagement extends Component
         $this->resetPage();
     }
 
+    public function updatedActionFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function resetFilters()
+    {
+        $this->search = '';
+        $this->actionFilter = '';
+        $this->resetPage();
+    }
+
     public function viewLogDetails($id)
     {
         abort_unless(Auth::user()->can('view-audit-log'), 403);

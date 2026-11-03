@@ -38,6 +38,21 @@ trait WithDynamicListing
         $this->resetPage();
     }
 
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
+    /**
+     * Default universal filter reset action.
+     * Can be overridden by components with specialized filter states.
+     */
+    public function resetFilters()
+    {
+        $this->search = '';
+        $this->resetPage();
+    }
+
     /**
      * Reset pagination when items-per-page selector changes.
      */

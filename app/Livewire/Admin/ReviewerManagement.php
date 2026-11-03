@@ -109,6 +109,48 @@ class ReviewerManagement extends Component
         $this->resetPage();
     }
 
+    public function updatedSubjectFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedRankFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedCountryFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedCandidacySearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedCandidacyCampaignFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedCandidacyStatusFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function resetFilters()
+    {
+        $this->search = '';
+        $this->subjectFilter = '';
+        $this->rankFilter = '';
+        $this->countryFilter = '';
+        $this->candidacySearch = '';
+        $this->candidacyCampaignFilter = '';
+        $this->candidacyStatusFilter = 'ALL';
+        $this->resetPage();
+    }
+
     public function openCreateModal($prefilledSubject = null)
     {
         abort_unless(Auth::user()->can('create-reviewer') || Auth::user()->can('manage-reviewers'), 403);

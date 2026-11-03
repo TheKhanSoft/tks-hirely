@@ -38,7 +38,7 @@
                     <circle cx="11" cy="11" r="8"/>
                     <path d="m21 21-4.3-4.3"/>
                 </svg>
-                @if(!empty($search))
+                @if(!empty($this->search ?? $search))
                     <button type="button" 
                             wire:click="$set('search', '')" 
                             style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--color-text-muted); cursor: pointer; padding: 0;"
@@ -188,9 +188,10 @@
             <div>
                 <button type="button" 
                         class="btn btn-secondary" 
-                        wire:click="$set('search', '')" 
-                        style="padding: 0.45rem 1.15rem; font-size: 0.82rem; font-weight: 700;">
-                    Reset Search & Filters
+                        wire:click="resetFilters" 
+                        style="padding: 0.45rem 1.15rem; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    <span>Reset Search & Filters</span>
                 </button>
             </div>
         </div>
