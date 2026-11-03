@@ -50,6 +50,34 @@ class UserManagement extends Component
         $this->loadAuxiliaryData();
     }
 
+    public function updatingRoleFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedRoleFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingStatusFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatusFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function resetFilters()
+    {
+        $this->search = '';
+        $this->roleFilter = '';
+        $this->statusFilter = '';
+        $this->resetPage();
+    }
+
     public function loadAuxiliaryData()
     {
         // 🔒 Super Admin role is strictly hidden from non-super-admins during role assignment

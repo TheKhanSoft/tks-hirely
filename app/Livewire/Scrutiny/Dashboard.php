@@ -81,6 +81,15 @@ class Dashboard extends Component
         $this->resetPage();
     }
 
+    public function resetFilters()
+    {
+        $this->search = '';
+        $this->campaignFilter = '';
+        $this->trackFilter = '';
+        $this->statusFilter = 'PAID';
+        $this->resetPage();
+    }
+
     public function render()
     {
         // 1. Compute summary stats

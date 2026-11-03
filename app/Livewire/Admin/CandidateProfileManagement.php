@@ -65,6 +65,53 @@ class CandidateProfileManagement extends Component
         $this->resetPage();
     }
 
+    public function updatedAdvertisementFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingTrackFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedTrackFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingLockFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedLockFilter()
+    {
+        $this->resetPage();
+    }
+
+    /**
+     * Clear all active filters and return to full candidate pool.
+     */
+    public function resetFilters()
+    {
+        $this->search = '';
+        $this->trackFilter = '';
+        $this->lockFilter = '';
+        $this->advertisementFilter = 'ALL';
+        $this->resetPage();
+    }
+
     public function loadAuxiliaryData()
     {
         // 🔒 DYNAMIC CANDIDATE POOL: Only pure applicant accounts who do not hold any internal/institutional roles.
@@ -233,6 +280,26 @@ class CandidateProfileManagement extends Component
             });
         }
 
+        if (!empty($this->trackFilter)) {
+            $query->where('track_type', $this->trackFilter);
+        }
+
+        if ($this->lockFilter !== '') {
+            $query->where('is_locked', (bool)$this->lockFilter);
+        }
+
+        if (!empty($this->search)) {
+            $searchTerm = '%' . $this->search . '%';
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('first_name', 'like', $searchTerm)
+                  ->orWhere('last_name', 'like', $searchTerm)
+                  ->orWhere('cnic_number', 'like', $searchTerm)
+                  ->orWhereHas('user', function ($uq) use ($searchTerm) {
+                      $uq->where('email', 'like', $searchTerm);
+                  });
+            });
+        }
+
         $profiles = $query->orderBy('first_name')->get();
 
         $headers = ['ID', 'Full Name', 'Email', 'CNIC', 'Track Type', 'Locked Status', 'Applications Count', 'Degrees Count'];
@@ -272,6 +339,26 @@ class CandidateProfileManagement extends Component
         if (!empty($this->advertisementFilter) && $this->advertisementFilter !== 'ALL') {
             $query->whereHas('user.applications.campaign', function ($cq) {
                 $cq->where('advertisement_id', $this->advertisementFilter);
+            });
+        }
+
+        if (!empty($this->trackFilter)) {
+            $query->where('track_type', $this->trackFilter);
+        }
+
+        if ($this->lockFilter !== '') {
+            $query->where('is_locked', (bool)$this->lockFilter);
+        }
+
+        if (!empty($this->search)) {
+            $searchTerm = '%' . $this->search . '%';
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('first_name', 'like', $searchTerm)
+                  ->orWhere('last_name', 'like', $searchTerm)
+                  ->orWhere('cnic_number', 'like', $searchTerm)
+                  ->orWhereHas('user', function ($uq) use ($searchTerm) {
+                      $uq->where('email', 'like', $searchTerm);
+                  });
             });
         }
 

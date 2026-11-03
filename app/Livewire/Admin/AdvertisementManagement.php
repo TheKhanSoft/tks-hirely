@@ -87,8 +87,26 @@ class AdvertisementManagement extends Component
         $this->resetPage();
     }
 
+    public function updatedYearFilter()
+    {
+        $this->resetPage();
+    }
+
     public function updatingStatusFilter()
     {
+        $this->resetPage();
+    }
+
+    public function updatedStatusFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function resetFilters()
+    {
+        $this->search = '';
+        $this->yearFilter = '';
+        $this->statusFilter = 'ALL';
         $this->resetPage();
     }
 

@@ -41,6 +41,23 @@ class PaymentManagement extends Component
         $this->loadAuxiliaryData();
     }
 
+    public function updatingStatusFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatusFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function resetFilters()
+    {
+        $this->search = '';
+        $this->statusFilter = '';
+        $this->resetPage();
+    }
+
     public function loadAuxiliaryData()
     {
         $this->availableApplications = Application::doesntHave('billingLedger')->with('user', 'campaign')->get();

@@ -318,4 +318,60 @@ class CandidatesFilteredByAdvertisementTest extends TestCase
             ->assertSee('Old Job Position')
             ->assertSee('New Job Position');
     }
+
+    public function test_candidate_profile_management_reset_filters_resets_all_criteria()
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('super-admin');
+        $this->actingAs($admin);
+
+        $ad = Advertisement::create([
+            'advertisement_no' => 'ADV-2026/09',
+            'title' => 'Recruitment Cycle',
+            'year' => 2026,
+            'valid_from' => now()->subDays(5),
+            'valid_to' => now()->addDays(25),
+            'is_active' => true,
+        ]);
+
+        Livewire::test(CandidateProfileManagement::class)
+            ->set('search', 'John')
+            ->set('trackFilter', 'ACADEMIC')
+            ->set('lockFilter', '1')
+            ->set('advertisementFilter', (string)$ad->id)
+            ->call('resetFilters')
+            ->assertSet('search', '')
+            ->assertSet('trackFilter', '')
+            ->assertSet('lockFilter', '')
+            ->assertSet('advertisementFilter', 'ALL');
+    }
+
+    public function test_application_management_reset_filters_resets_all_criteria()
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('super-admin');
+        $this->actingAs($admin);
+
+        $ad = Advertisement::create([
+            'advertisement_no' => 'ADV-2026/10',
+            'title' => 'Recruitment Cycle 10',
+            'year' => 2026,
+            'valid_from' => now()->subDays(5),
+            'valid_to' => now()->addDays(25),
+            'is_active' => true,
+        ]);
+
+        Livewire::test(ApplicationManagement::class)
+            ->set('search', 'Dr. Smith')
+            ->set('campaignFilter', '5')
+            ->set('statusFilter', 'APPROVED')
+            ->set('voucherFilter', 'SETTLED')
+            ->set('advertisementFilter', (string)$ad->id)
+            ->call('resetFilters')
+            ->assertSet('search', '')
+            ->assertSet('campaignFilter', '')
+            ->assertSet('statusFilter', '')
+            ->assertSet('voucherFilter', '')
+            ->assertSet('advertisementFilter', 'ALL');
+    }
 }

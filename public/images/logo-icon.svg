@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <linearGradient id="iconBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="50%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="iconGlyphGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </linearGradient>
+    <linearGradient id="iconAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Squircle Base -->
+  <rect width="128" height="128" rx="32" fill="url(#iconBgGrad)"/>
+  <rect x="3" y="3" width="122" height="122" rx="29" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-opacity="0.25"/>
+
+  <!-- Brand Glyph -->
+  <g transform="translate(0, 1)">
+    <!-- Left Pillar -->
+    <rect x="30" y="33" width="14" height="62" rx="7" fill="url(#iconGlyphGrad)"/>
+    <!-- Right Pillar -->
+    <rect x="84" y="33" width="14" height="62" rx="7" fill="url(#iconGlyphGrad)"/>
+    <!-- Dynamic Chevron Crossbar -->
+    <path d="M 37 64 L 64 51.5 L 91 64 L 91 74 L 64 61.5 L 37 74 Z" fill="url(#iconGlyphGrad)"/>
+    <!-- Mortarboard Diamond Peak -->
+    <polygon points="64,27 76,35 64,43 52,35" fill="url(#iconAccent)"/>
+    <circle cx="64" cy="35" r="2.5" fill="#ffffff"/>
+    <path d="M 76 35 C 79 38, 80 43, 79.5 48" stroke="url(#iconAccent)" stroke-width="2" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>

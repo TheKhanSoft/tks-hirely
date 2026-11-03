@@ -186,6 +186,21 @@ class CampaignCrud extends Component
         $this->resetPage();
     }
 
+    public function filterByAdvertisement($advertisementId, $year = null)
+    {
+        $this->advertisementFilter = (string)$advertisementId;
+        if ($year) {
+            $this->yearFilter = (string)$year;
+        }
+        $this->resetPage();
+    }
+
+    public function openCommitteesTab($campaignId)
+    {
+        $this->selected_campaign_id = $campaignId;
+        $this->activeTab = 'committees';
+    }
+
     public function loadCampaigns()
     {
         $this->campaigns = Campaign::with(['advertisement', 'constitution', 'processFlow'])->get();

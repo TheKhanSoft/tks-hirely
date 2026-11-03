@@ -673,7 +673,7 @@
                                 <div class="entity-card-metric-row">
                                     <span class="entity-card-metric-label">Advertisement:</span>
                                     <button type="button" 
-                                            wire:click="$set('advertisementFilter', '{{ $camp->advertisement_id }}'); $set('yearFilter', '{{ $camp->advertisement->year }}')"
+                                            wire:click="filterByAdvertisement({{ $camp->advertisement_id }}, '{{ $camp->advertisement->year }}')"
                                             class="badge" 
                                             style="background: rgba(6, 182, 212, 0.12); color: var(--secondary); font-weight: 800; font-size: 0.72rem; border: 1px solid rgba(6, 182, 212, 0.25); cursor: pointer;"
                                             title="Filter by {{ $camp->advertisement->advertisement_no }}">
@@ -872,7 +872,7 @@
 
                                 <x-entity-card-menu-item 
                                     label="Committee Allocation Ledger" 
-                                    click="$set('selected_campaign_id', {{ $camp->id }}); $set('activeTab', 'committees')">
+                                    click="openCommitteesTab({{ $camp->id }})">
                                     <x-slot:icon>
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                     </x-slot:icon>
@@ -1012,7 +1012,7 @@
                                             </span>
                                             @if($camp->advertisement)
                                                 <button type="button" 
-                                                        wire:click="$set('advertisementFilter', '{{ $camp->advertisement_id }}'); $set('yearFilter', '{{ $camp->advertisement->year }}')"
+                                                        wire:click="filterByAdvertisement({{ $camp->advertisement_id }}, '{{ $camp->advertisement->year }}')"
                                                         class="badge" 
                                                         style="background: rgba(6, 182, 212, 0.12); color: var(--secondary); font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(6, 182, 212, 0.25); cursor: pointer;"
                                                         title="Filter by {{ $camp->advertisement->advertisement_no }}">

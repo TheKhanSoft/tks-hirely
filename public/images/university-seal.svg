@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
+  <defs>
+    <linearGradient id="sealGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="50%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <linearGradient id="sealBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Starburst / Notched Edge -->
+  <circle cx="150" cy="150" r="142" fill="url(#sealGoldGrad)"/>
+  <circle cx="150" cy="150" r="134" fill="#ffffff"/>
+  <circle cx="150" cy="150" r="130" fill="url(#sealBlueGrad)"/>
+
+  <!-- Beaded Inner Border -->
+  <circle cx="150" cy="150" r="124" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="3, 5"/>
+  <circle cx="150" cy="150" r="92" fill="none" stroke="#fbbf24" stroke-width="2"/>
+
+  <!-- Curved Text Path -->
+  <path id="textCircle" d="M 150, 150 m -108, 0 a 108,108 0 1,1 216,0 a 108,108 0 1,1 -216,0" fill="none"/>
+
+  <text font-family="'Plus Jakarta Sans', sans-serif" font-size="11.5" font-weight="800" fill="#fbbf24" letter-spacing="3.2">
+    <textPath href="#textCircle" startOffset="50%" text-anchor="middle">
+      UNIVERSITY SELECTION BOARD &bull; STATUTORY PORTAL &bull;
+    </textPath>
+  </text>
+
+  <!-- Center Core -->
+  <circle cx="150" cy="150" r="88" fill="url(#sealBlueGrad)"/>
+
+  <!-- Academic Book Motif -->
+  <g transform="translate(150, 142)">
+    <!-- Open Book -->
+    <path d="M 0,-6 C -16,-16 -38,-14 -46,-8 L -46,26 C -38,20 -16,18 0,28 C 16,18 38,20 46,26 L 46,-8 C 38,-14 16,-16 0,-6 Z" fill="#fbbf24"/>
+    <path d="M 0,-3 C -15,-12 -36,-10 -42,-5 L -42,22 C -36,17 -15,15 0,24 C 15,15 36,17 42,22 L 42,-5 C 36,-10 15,-12 0,-3 Z" fill="#0f172a"/>
+    <line x1="0" y1="-5" x2="0" y2="26" stroke="#fbbf24" stroke-width="2.5"/>
+
+    <!-- Quill / Torch of Knowledge -->
+    <polygon points="0,-36 6,-24 0,-16 -6,-24" fill="#fbbf24"/>
+    <circle cx="0" cy="-38" r="3" fill="#ffffff"/>
+
+    <!-- Three Academic Excellence Stars -->
+    <polygon points="-28,-26 -25,-20 -18,-20 -23,-16 -21,-10 -28,-14 -35,-10 -33,-16 -38,-20 -31,-20" fill="#fbbf24"/>
+    <polygon points="28,-26 31,-20 38,-20 33,-16 35,-10 28,-14 21,-10 23,-16 18,-20 25,-20" fill="#fbbf24"/>
+    <polygon points="0,38 3,44 10,44 5,48 7,54 0,50 -7,54 -5,48 -10,44 -3,44" fill="#fbbf24"/>
+  </g>
+
+  <!-- Ribbon Banner at Bottom -->
+  <path d="M 85,232 L 150,224 L 215,232 L 202,248 L 150,242 L 98,248 Z" fill="#f59e0b"/>
+  <text x="150" y="239" font-family="'Plus Jakarta Sans', sans-serif" font-size="8" font-weight="900" fill="#0f172a" text-anchor="middle" letter-spacing="1.5">
+    EXCELLENCE &bull; MERIT &bull; INTEGRITY
+  </text>
+</svg>

@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? 'Hirely - University Recruitment OS' }}</title>
     
+    <!-- Modern Favicons & Brand Assets -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta name="theme-color" content="#4f46e5">
+
     <!-- Modern Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,13 +39,8 @@
         <aside class="sidebar" id="appSidebar">
             <!-- Brand Logo -->
             <a href="/" class="sidebar-brand-wrapper">
-                <div class="brand-icon-box">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
-                        <path d="M6 6h10"/>
-                        <path d="M6 10h10"/>
-                        <path d="M6 14h6"/>
-                    </svg>
+                <div class="brand-icon-box" style="padding: 0; background: transparent; box-shadow: none; overflow: hidden;">
+                    <img src="/images/logo-icon.svg" alt="Hirely" width="34" height="34" style="border-radius: 9px; display: block; box-shadow: 0 4px 14px var(--primary-glow);">
                 </div>
                 <div>
                     <div class="brand-title">HIRELY</div>

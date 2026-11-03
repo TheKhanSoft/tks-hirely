@@ -152,13 +152,47 @@ class ApplicationManagement extends Component
         $this->loadAuxiliaryData();
     }
 
+    public function updatedCampaignFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatusFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedVoucherFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
+    /**
+     * Clear all active application filters and reload datasets.
+     */
+    public function resetFilters()
+    {
+        $this->search = '';
+        $this->campaignFilter = '';
+        $this->statusFilter = '';
+        $this->voucherFilter = '';
+        $this->advertisementFilter = 'ALL';
+        $this->loadAuxiliaryData();
+        $this->resetPage();
+    }
+
     public function loadAuxiliaryData()
     {
         $this->users = User::role('applicant')->get();
         if (!empty($this->advertisementFilter) && $this->advertisementFilter !== 'ALL') {
-            $this->campaigns = Campaign::where('advertisement_id', $this->advertisementFilter)->get();
+            $this->campaigns = Campaign::where('advertisement_id', $this->advertisementFilter)->orderBy('id', 'desc')->get();
         } else {
-            $this->campaigns = Campaign::where('is_active', true)->get();
+            $this->campaigns = Campaign::orderBy('id', 'desc')->get();
         }
     }
 
@@ -668,8 +702,44 @@ class ApplicationManagement extends Component
         $applicationsQuery = Application::with('user.basicInfo', 'campaign', 'billingLedger', 'reviews')
             ->orderBy('created_at', 'desc');
 
+        if (!empty($this->statusFilter)) {
+            $applicationsQuery->where('status', $this->statusFilter);
+        }
+
+        if (!empty($this->campaignFilter)) {
+            $applicationsQuery->where('campaign_id', $this->campaignFilter);
+        }
+
         if (!empty($this->advertisementFilter) && $this->advertisementFilter !== 'ALL') {
             $applicationsQuery->whereHas('campaign', fn($c) => $c->where('advertisement_id', $this->advertisementFilter));
+        }
+
+        if (!empty($this->voucherFilter)) {
+            if ($this->voucherFilter === 'SETTLED') {
+                $applicationsQuery->whereHas('billingLedger', fn($b) => $b->where('status', 'SETTLED'));
+            } elseif ($this->voucherFilter === 'PENDING') {
+                $applicationsQuery->where(function ($q) {
+                    $q->whereHas('billingLedger', fn($b) => $b->where('status', '!=', 'SETTLED'))
+                      ->orWhereDoesntHave('billingLedger');
+                });
+            }
+        }
+
+        if (!empty($this->search)) {
+            $searchTerm = '%' . $this->search . '%';
+            $applicationsQuery->where(function ($q) use ($searchTerm) {
+                $q->whereHas('user', function ($uq) use ($searchTerm) {
+                    $uq->where('email', 'like', $searchTerm)
+                       ->orWhereHas('basicInfo', function ($bq) use ($searchTerm) {
+                           $bq->where('first_name', 'like', $searchTerm)
+                              ->orWhere('last_name', 'like', $searchTerm)
+                              ->orWhere('cnic_number', 'like', $searchTerm);
+                       });
+                })->orWhereHas('campaign', function ($cq) use ($searchTerm) {
+                    $cq->where('title', 'like', $searchTerm)
+                       ->orWhere('job_code', 'like', $searchTerm);
+                });
+            });
         }
 
         $applications = $applicationsQuery->get();

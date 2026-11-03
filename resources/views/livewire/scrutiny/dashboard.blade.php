@@ -424,7 +424,7 @@
             <p style="font-size: 0.85rem; color: var(--color-text-secondary); max-width: 420px; margin: 0 auto 1.25rem;">
                 No candidates in the scrutiny queue match your current search query or filter criteria.
             </p>
-            <button type="button" class="btn btn-secondary btn-sm" wire:click="$set('search', ''); $set('campaignFilter', ''); $set('trackFilter', ''); $set('statusFilter', '');">
+            <button type="button" class="btn btn-secondary btn-sm" wire:click="resetFilters">
                 Reset Filters
             </button>
         </div>

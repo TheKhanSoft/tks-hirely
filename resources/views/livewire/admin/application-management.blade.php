@@ -285,8 +285,8 @@
                     </select>
                 </div>
 
-                @if(!empty($search) || !empty($campaignFilter) || !empty($statusFilter) || (!empty($advertisementFilter) && $advertisementFilter !== 'ALL'))
-                    <button type="button" class="btn btn-secondary btn-sm" wire:click="$set('search', ''); $set('campaignFilter', ''); $set('statusFilter', ''); $set('advertisementFilter', 'ALL');" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                @if(!empty($search) || !empty($campaignFilter) || !empty($statusFilter) || !empty($voucherFilter) || (!empty($advertisementFilter) && $advertisementFilter !== 'ALL'))
+                    <button type="button" class="btn btn-secondary btn-sm" wire:click="resetFilters" style="display: inline-flex; align-items: center; gap: 0.35rem;">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         <span>Reset Filters</span>
                     </button>
