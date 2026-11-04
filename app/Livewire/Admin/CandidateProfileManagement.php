@@ -10,10 +10,11 @@ use App\Models\User;
 use App\Models\Advertisement;
 use Illuminate\Support\Facades\Auth;
 use App\Livewire\Traits\WithDynamicListing;
+use App\Livewire\Traits\WithPasswordReset;
 
 class CandidateProfileManagement extends Component
 {
-    use WithDynamicListing, WithFileUploads;
+    use WithDynamicListing, WithFileUploads, WithPasswordReset;
 
     // View state
     public $isFormOpen = false;

@@ -334,6 +334,20 @@
                                 @endif
                             </button>
                         @endif
+
+                        @if($rev->user_id && (auth()->user()->hasAnyRole(['super-admin', 'registrar']) || auth()->user()->can('reset-user-password')) && auth()->id() !== $rev->user_id && (!$rev->user?->hasRole('super-admin') || auth()->user()->hasRole('super-admin')))
+                            <button type="button" 
+                                    class="action-btn" 
+                                    style="color: var(--secondary);"
+                                    wire:click="openPasswordResetModal({{ $rev->user_id }})" 
+                                    data-tooltip="Reset Password & Credentials" 
+                                    aria-label="Reset Password">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                            </button>
+                        @endif
                     </x-slot:quickActions>
 
                     <!-- Dropdown Options Menu [ICON + Text] -->
@@ -362,6 +376,15 @@
                                 @else
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                                 @endif
+                            </x-entity-card-menu-item>
+                        @endif
+
+                        @if($rev->user_id && (auth()->user()->hasAnyRole(['super-admin', 'registrar']) || auth()->user()->can('reset-user-password')) && auth()->id() !== $rev->user_id && (!$rev->user?->hasRole('super-admin') || auth()->user()->hasRole('super-admin')))
+                            <x-entity-card-menu-item 
+                                wire-click="openPasswordResetModal({{ $rev->user_id }})"
+                                label="Reset Password & Credentials"
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                             </x-entity-card-menu-item>
                         @endif
 
@@ -494,6 +517,20 @@
                                                 </button>
                                             @endif
 
+                                            @if($rev->user_id && (auth()->user()->hasAnyRole(['super-admin', 'registrar']) || auth()->user()->can('reset-user-password')) && auth()->id() !== $rev->user_id && (!$rev->user?->hasRole('super-admin') || auth()->user()->hasRole('super-admin')))
+                                                <button type="button" 
+                                                        class="action-btn" 
+                                                        style="color: var(--secondary);"
+                                                        wire:click="openPasswordResetModal({{ $rev->user_id }})" 
+                                                        data-tooltip="Reset Password & Credentials" 
+                                                        aria-label="Reset Password">
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                                    </svg>
+                                                </button>
+                                            @endif
+
                                             <!-- 3-Dot More Actions Dropdown -->
                                             <div class="table-action-dropdown-wrap" @click.outside="openMenu = false">
                                                 <button type="button" 
@@ -521,6 +558,15 @@
                                                             @endif
                                                         </button>
                                                     @endif
+                                                    @if($rev->user_id && (auth()->user()->hasAnyRole(['super-admin', 'registrar']) || auth()->user()->can('reset-user-password')) && auth()->id() !== $rev->user_id && (!$rev->user?->hasRole('super-admin') || auth()->user()->hasRole('super-admin')))
+                                                        <button type="button" 
+                                                                class="table-action-menu-item" 
+                                                                wire:click="openPasswordResetModal({{ $rev->user_id }})">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                                            <span>Reset Password & Credentials</span>
+                                                        </button>
+                                                    @endif
+
                                                     @if(auth()->user()->hasRole('super-admin') && $rev->user && auth()->id() !== $rev->user->id && !$rev->user->hasRole('super-admin'))
                                                         <a href="{{ route('impersonate.start', $rev->user->id) }}" class="table-action-menu-item impersonate">
                                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -1639,4 +1685,7 @@
         entity-name="Empanelled Reviewers"
         sample-columns="Full Name, Email, University / Institution, Academic Rank, Academic Discipline / Subject, Country, Specialization, Phone"
     />
+
+    <!-- Administrative Password Reset Modal -->
+    <x-password-reset-modal />
 </div>

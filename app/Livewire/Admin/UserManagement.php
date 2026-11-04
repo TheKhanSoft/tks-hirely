@@ -8,10 +8,11 @@ use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Livewire\Traits\WithDynamicListing;
+use App\Livewire\Traits\WithPasswordReset;
 
 class UserManagement extends Component
 {
-    use WithDynamicListing;
+    use WithDynamicListing, WithPasswordReset;
 
     // View state
     public $isFormOpen = false;

@@ -122,4 +122,31 @@ class User extends Authenticatable
     {
         return $this->basicInfo?->profile_picture_url;
     }
+
+    /**
+     * Get candidate/expert/user display name.
+     */
+    public function getDisplayNameAttribute(): string
+    {
+        if ($this->basicInfo) {
+            $name = trim(($this->basicInfo->first_name ?? '') . ' ' . ($this->basicInfo->last_name ?? ''));
+            if (!empty($name)) {
+                return $name;
+            }
+        }
+        if ($this->reviewerProfile && !empty($this->reviewerProfile->name)) {
+            return $this->reviewerProfile->name;
+        }
+        return $this->email;
+    }
+
+    /**
+     * Get contact or verified WhatsApp phone number across candidate/reviewer profiles.
+     */
+    public function getContactPhoneAttribute(): ?string
+    {
+        return $this->reviewerProfile?->phone 
+            ?? $this->basicInfo?->phone_number 
+            ?? $this->basicInfo?->secondary_phone;
+    }
 }

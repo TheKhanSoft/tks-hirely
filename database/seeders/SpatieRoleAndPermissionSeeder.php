@@ -51,6 +51,7 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'toggle-user-status',
             'view-user-dossier',
             'assign-user-permissions',
+            'reset-user-password',
             'export-user',
             
             // Roles & Permissions CRUD

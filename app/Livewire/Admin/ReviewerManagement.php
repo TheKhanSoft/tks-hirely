@@ -19,10 +19,11 @@ use App\Services\CountryService;
 use App\Services\AcademicDisciplineMatcher;
 use App\Models\Campaign;
 use App\Livewire\Traits\WithDynamicListing;
+use App\Livewire\Traits\WithPasswordReset;
 
 class ReviewerManagement extends Component
 {
-    use WithDynamicListing;
+    use WithDynamicListing, WithPasswordReset;
 
     // Active Navigation Tab: 'reviewers' or 'dispatch'
     public $activeTab = 'reviewers';

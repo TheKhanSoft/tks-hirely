@@ -312,6 +312,10 @@ class PermissionRegistry
                     'label' => 'Assign Direct User Permissions',
                     'description' => 'Grant or revoke extra direct permissions for a specific user apart from their role',
                 ],
+                'reset-user-password' => [
+                    'label' => 'Reset User Password',
+                    'description' => 'Reset credentials for candidates, reviewers, and staff via email, WhatsApp, or screen reveal',
+                ],
                 'impersonate-user' => [
                     'label' => 'Impersonate User Account',
                     'description' => 'Switch session into target user account for testing, support, and administrative verification',

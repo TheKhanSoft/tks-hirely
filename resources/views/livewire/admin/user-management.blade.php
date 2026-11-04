@@ -412,6 +412,20 @@
                                     </svg>
                                 </button>
                             @endcan
+
+                            {{-- Administrative Password Reset Quick Action --}}
+                            @if((auth()->user()->hasAnyRole(['super-admin', 'registrar']) || auth()->user()->can('reset-user-password')) && auth()->id() !== $u->id && (!$u->hasRole('super-admin') || auth()->user()->hasRole('super-admin')))
+                                <button type="button" 
+                                        class="action-btn" 
+                                        style="color: var(--secondary);"
+                                        wire:click="openPasswordResetModal({{ $u->id }})" 
+                                        data-tooltip="Reset Password & Credentials">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                    </svg>
+                                </button>
+                            @endif
                         </x-slot:quickActions>
 
                         <!-- Kebab Dropdown Options Menu [ICON + TEXT] -->
@@ -435,6 +449,19 @@
                                     </x-slot:icon>
                                 </x-entity-card-menu-item>
                             @endcan
+
+                            @if((auth()->user()->hasAnyRole(['super-admin', 'registrar']) || auth()->user()->can('reset-user-password')) && auth()->id() !== $u->id && (!$u->hasRole('super-admin') || auth()->user()->hasRole('super-admin')))
+                                <x-entity-card-menu-item 
+                                    label="Reset Password & Credentials" 
+                                    click="openPasswordResetModal({{ $u->id }})">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                        </svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                            @endif
 
                             @can('assign-user-permissions')
                                 <x-entity-card-menu-item 
@@ -611,6 +638,11 @@
                                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                             </button>
                                         @endcan
+                                        @if((auth()->user()->hasAnyRole(['super-admin', 'registrar']) || auth()->user()->can('reset-user-password')) && auth()->id() !== $u->id && (!$u->hasRole('super-admin') || auth()->user()->hasRole('super-admin')))
+                                            <button type="button" class="action-btn" style="color: var(--secondary);" wire:click="openPasswordResetModal({{ $u->id }})" data-tooltip="Reset Password & Credentials">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                            </button>
+                                        @endif
                                         
                                         <!-- 3-Dot More Actions Dropdown -->
                                         <div class="table-action-dropdown-wrap" @click.outside="openMenu = false">
@@ -626,6 +658,12 @@
                                                 </svg>
                                             </button>
                                             <div class="table-action-dropdown" x-show="openMenu" x-cloak style="display: none;" @click="openMenu = false">
+                                                @if((auth()->user()->hasAnyRole(['super-admin', 'registrar']) || auth()->user()->can('reset-user-password')) && auth()->id() !== $u->id && (!$u->hasRole('super-admin') || auth()->user()->hasRole('super-admin')))
+                                                    <button type="button" class="table-action-menu-item" wire:click="openPasswordResetModal({{ $u->id }})">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                                        <span>Reset Password & Credentials</span>
+                                                    </button>
+                                                @endif
                                                 @if(auth()->user()->hasRole('super-admin') && auth()->id() !== $u->id && !$u->hasRole('super-admin'))
                                                     <a href="{{ route('impersonate.start', $u->id) }}" class="table-action-menu-item impersonate">
                                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -879,4 +917,7 @@
             </div>
         @endif
     </x-modal>
+
+    <!-- Administrative Password & Credentials Reset Modal (Email, WhatsApp, Screen) -->
+    <x-password-reset-modal />
 </div>
