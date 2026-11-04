@@ -1260,7 +1260,7 @@
                     <button type="button" wire:click="closeTransitionModal" style="background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 1.2rem;">✕</button>
                 </div>
 
-                <div style="background: rgba(15, 23, 42, 0.6); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+                <div style="background: var(--bg-surface); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
                     <div>
                         <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--color-text-muted);">CURRENT STATUS</div>
                         <strong style="color: var(--color-text-primary); font-size: 0.95rem;">{{ $transitionApplication->status_label }}</strong>

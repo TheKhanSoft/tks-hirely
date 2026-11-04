@@ -1417,7 +1417,7 @@
                 @php
                     $selectedCand = collect($committee_users)->firstWhere('id', $selected_user_id);
                 @endphp
-                <div class="card mb-6" style="border-color: var(--primary); background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.95)); box-shadow: 0 12px 32px -6px var(--primary-glow);">
+                <div class="card mb-6" style="border-color: var(--primary); background: var(--bg-card); box-shadow: var(--shadow-md);">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                     <div style="display: flex; align-items: center; gap: 0.75rem;">
                         <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(99, 102, 241, 0.2); display: flex; align-items: center; justify-content: center; color: var(--primary);">

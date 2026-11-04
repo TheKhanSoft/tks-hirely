@@ -185,4 +185,37 @@ class SystemSettingsAndDynamicConstitutionTest extends TestCase
         $this->assertEquals('PUBLIC_SECTOR_GOVT', SystemSetting::get('org_type'));
         $this->assertEquals('Directorate / Division', SystemSetting::get('sector_label'));
     }
+
+    public function test_dedicated_modular_settings_routes_and_slug_mapping(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('super-admin');
+        $this->actingAs($admin);
+
+        // Subpages by dedicated semantic URLs
+        $this->get('/admin/settings/workflows')->assertStatus(200)->assertSee('Workflow Pipeline Stages');
+        $this->get('/admin/settings/documents')->assertStatus(200)->assertSee('Mandatory Candidate Document Proofs');
+        $this->get('/admin/settings/candidate-rules')->assertStatus(200)->assertSee('Candidate Eligibility, Submission');
+        $this->get('/admin/settings/organization')->assertStatus(200)->assertSee('Organization Profile, Institutional Sector');
+        $this->get('/admin/settings/academic-criteria')->assertStatus(200)->assertSee('Academic Division Criteria');
+
+        // Aliases and slug variants
+        $this->get('/admin/settings/workflow')->assertStatus(200);
+        $this->get('/admin/settings/document-proofs')->assertStatus(200);
+        $this->get('/admin/settings/candidates')->assertStatus(200);
+
+        // Registrar dedicated URLs
+        $registrar = User::factory()->create();
+        $registrar->assignRole('registrar');
+        $this->actingAs($registrar);
+        $this->get('/registrar/settings/workflows')->assertStatus(200);
+        $this->get('/registrar/settings/documents')->assertStatus(200);
+
+        // Livewire component slug resolution & tab switching event
+        Livewire::test(SystemSettings::class, ['tab' => 'candidate-rules'])
+            ->assertSet('activeTab', 'candidate_rules')
+            ->call('setTab', 'documents')
+            ->assertSet('activeTab', 'documents')
+            ->assertDispatched('url-changed');
+    }
 }

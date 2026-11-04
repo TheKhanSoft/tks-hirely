@@ -55,15 +55,43 @@ class SystemSettings extends Component
     public $global_min_terminal_percentage = '';
     public $global_min_terminal_cgpa = '';
 
-    public function mount()
+    public function mount($tab = null)
     {
         abort_unless(Auth::check() && (Auth::user()->hasRole('super-admin') || Auth::user()->can('manage-settings')), 403);
         $this->loadSettings();
+
+        if ($tab) {
+            $this->activeTab = $this->resolveTabSlug((string) $tab);
+        } elseif (request()->has('tab')) {
+            $this->activeTab = $this->resolveTabSlug((string) request()->query('tab'));
+        }
+    }
+
+    public function resolveTabSlug(string $slug): string
+    {
+        $normalized = strtolower(trim($slug));
+        return match ($normalized) {
+            'workflows', 'workflow', 'workflow-pipeline', 'pipeline' => 'pipeline',
+            'documents', 'document-proofs', 'proofs' => 'documents',
+            'candidate-rules', 'candidates', 'candidate-policies', 'candidate_rules' => 'candidate_rules',
+            'organization', 'institution', 'org' => 'organization',
+            'academic-criteria', 'criteria', 'benchmarks', 'academic_criteria' => 'academic_criteria',
+            default => 'pipeline',
+        };
     }
 
     public function setTab($tab)
     {
-        $this->activeTab = $tab;
+        $this->activeTab = $this->resolveTabSlug((string) $tab);
+        $slug = match ($this->activeTab) {
+            'documents' => 'documents',
+            'candidate_rules' => 'candidate-rules',
+            'organization' => 'organization',
+            'academic_criteria' => 'academic-criteria',
+            default => 'workflows',
+        };
+        $prefix = request()->is('registrar*') ? '/registrar' : '/admin';
+        $this->dispatch('url-changed', url: "{$prefix}/settings/{$slug}");
     }
 
     public function loadSettings()

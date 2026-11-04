@@ -48,11 +48,10 @@
 
         <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
             <!-- Segmented Top Tabs -->
-            <div style="display: flex; gap: 0.35rem; background: rgba(15, 23, 42, 0.6); padding: 0.3rem; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.08); flex-wrap: wrap;">
+            <div class="segmented-tabs-bar">
                 <button type="button" 
                     wire:click="setTab('board_registry')" 
-                    class="btn {{ $activeTab === 'board_registry' ? 'btn-primary' : 'btn-secondary' }}"
-                    style="padding: 0.5rem 0.85rem; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem; border-radius: 8px;">
+                    class="segmented-tab-item {{ $activeTab === 'board_registry' ? 'active' : '' }}">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 21h18"/>
                         <path d="M5 21V7l8-4v18"/>
@@ -62,8 +61,7 @@
                 </button>
                 <button type="button" 
                     wire:click="setTab('process_flow')" 
-                    class="btn {{ $activeTab === 'process_flow' ? 'btn-primary' : 'btn-secondary' }}"
-                    style="padding: 0.5rem 0.85rem; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem; border-radius: 8px;">
+                    class="segmented-tab-item {{ $activeTab === 'process_flow' ? 'active' : '' }}">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
                     </svg>
@@ -71,8 +69,7 @@
                 </button>
                 <button type="button" 
                     wire:click="setTab('campaign_constitution')" 
-                    class="btn {{ $activeTab === 'campaign_constitution' ? 'btn-primary' : 'btn-secondary' }}"
-                    style="padding: 0.5rem 0.85rem; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem; border-radius: 8px;">
+                    class="segmented-tab-item {{ $activeTab === 'campaign_constitution' ? 'active' : '' }}">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"/>
                         <circle cx="12" cy="12" r="6"/>
@@ -214,7 +211,17 @@
                         </div>
                         <div class="entity-card-metric-row">
                             <span class="entity-card-metric-label">Responsible Stage</span>
-                            <span class="badge" style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--color-text-secondary); font-size: 0.7rem;">
+                            @php
+                                $sBadgeClass = match($board->responsible_stage) {
+                                    'stage_scrutiny' => 'stage-badge-scrutiny',
+                                    'stage_peer_review' => 'stage-badge-peer',
+                                    'stage_selection_board' => 'stage-badge-board',
+                                    'stage_syndicate' => 'stage-badge-syndicate',
+                                    'stage_appellate' => 'stage-badge-appellate',
+                                    default => 'badge-slate',
+                                };
+                            @endphp
+                            <span class="stage-badge {{ $sBadgeClass }}">
                                 @if($board->responsible_stage === 'stage_scrutiny')
                                     📑 Step 2: Scrutiny Vetting
                                 @elseif($board->responsible_stage === 'stage_peer_review')
@@ -222,9 +229,9 @@
                                 @elseif($board->responsible_stage === 'stage_selection_board')
                                     👥 Step 4: Selection Board
                                 @elseif($board->responsible_stage === 'stage_syndicate')
-                                    🏛️ Step 5: Syndicate Council
+                                    🏛️ Step 5: Syndicate
                                 @elseif($board->responsible_stage === 'stage_appellate')
-                                    ⚖️ Appellate Tribunal
+                                    ⚖️ Appellate
                                 @else
                                     ⚙️ General Board
                                 @endif
@@ -329,7 +336,7 @@
             <x-slot:table>
                 <div class="table-responsive">
                     <table class="table" style="margin: 0; font-size: 0.85rem; vertical-align: middle;">
-                        <thead style="background: rgba(15, 23, 42, 0.3); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted);">
+                        <thead style="background: var(--bg-surface); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); border-bottom: 1px solid var(--border-color);">
                             <tr>
                                 <th style="padding: 0.85rem 1.25rem;">Committee / Board Name</th>
                                 <th style="padding: 0.85rem 1rem;">Type</th>
@@ -340,7 +347,7 @@
                                 <th style="padding: 0.85rem 1.25rem; text-align: right;">Actions</th>
                             </tr>
                         </thead>
-                        <tbody style="divide-y: 1px solid rgba(255, 255, 255, 0.05);">
+                        <tbody style="divide-y: 1px solid var(--border-color);">
                             @forelse($registeredBoards as $board)
                                 @php 
                                     $typeBadge = $board->type_badge;
@@ -387,7 +394,17 @@
                                         @endif
                                     </td>
                                     <td style="padding: 0.9rem 1rem; white-space: nowrap;">
-                                        <span class="badge" style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--color-text-secondary); font-size: 0.73rem; font-weight: 600;">
+                                        @php
+                                            $tBadgeClass = match($board->responsible_stage) {
+                                                'stage_scrutiny' => 'stage-badge-scrutiny',
+                                                'stage_peer_review' => 'stage-badge-peer',
+                                                'stage_selection_board' => 'stage-badge-board',
+                                                'stage_syndicate' => 'stage-badge-syndicate',
+                                                'stage_appellate' => 'stage-badge-appellate',
+                                                default => 'badge-slate',
+                                            };
+                                        @endphp
+                                        <span class="stage-badge {{ $tBadgeClass }}">
                                             @if($board->responsible_stage === 'stage_scrutiny')
                                                 📑 Step 2: Scrutiny Vetting
                                             @elseif($board->responsible_stage === 'stage_peer_review')
@@ -395,9 +412,9 @@
                                             @elseif($board->responsible_stage === 'stage_selection_board')
                                                 👥 Step 4: Selection Board
                                             @elseif($board->responsible_stage === 'stage_syndicate')
-                                                🏛️ Step 5: Syndicate Council
+                                                🏛️ Step 5: Syndicate
                                             @elseif($board->responsible_stage === 'stage_appellate')
-                                                ⚖️ Appellate Tribunal
+                                                ⚖️ Appellate
                                             @else
                                                 ⚙️ General Board
                                             @endif
@@ -787,7 +804,7 @@
             <!-- Sequential Visual Flow Canvas -->
             <div style="display: flex; flex-direction: column; gap: 1.25rem; margin-bottom: 2.5rem;">
                 @forelse($flow_stages as $sIdx => $stage)
-                <div class="card" style="border-left: 4px solid {{ !empty($stage['is_enabled']) ? 'var(--primary)' : 'rgba(255, 255, 255, 0.2)' }}; padding: 1.35rem; background: {{ !empty($stage['is_enabled']) ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%)' : 'rgba(15, 23, 42, 0.4)' }}; position: relative; transition: border-color 0.2s ease;">
+                <div class="card" style="border-left: 4px solid {{ !empty($stage['is_enabled']) ? 'var(--primary)' : 'var(--border-color)' }}; padding: 1.35rem; background: var(--bg-card); position: relative; transition: border-color 0.2s ease; box-shadow: var(--shadow-sm);">
                     
                     <!-- Top Stage Header Row -->
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
@@ -893,7 +910,7 @@
 
                     <!-- Rule / Criterion Description -->
                     @if(!empty($stage['rule_description']))
-                        <div style="font-size: 0.84rem; color: var(--color-text-secondary); margin-bottom: 1rem; line-height: 1.5; background: rgba(15, 23, 42, 0.4); padding: 0.65rem 0.95rem; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.04);">
+                        <div style="font-size: 0.84rem; color: var(--color-text-secondary); margin-bottom: 1rem; line-height: 1.5; background: var(--bg-surface); padding: 0.65rem 0.95rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
                             <span style="font-weight: 700; color: var(--color-text-primary);">Operational Rule:</span> {{ $stage['rule_description'] }}
                         </div>
                     @endif
@@ -1224,7 +1241,7 @@
     <!-- ========================================================================= -->
     @if($showBoardModal)
         <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1.5rem;">
-            <div class="card" style="width: 100%; max-width: 900px; max-height: 90vh; overflow-y: auto; background: #0f172a; border-color: rgba(99, 102, 241, 0.35); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); padding: 1.75rem;">
+            <div class="card" style="width: 100%; max-width: 900px; max-height: 90vh; overflow-y: auto; background: var(--bg-card-solid); border-color: var(--primary); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); padding: 1.75rem;">
                 
                 <!-- Modal Header -->
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
@@ -1312,7 +1329,7 @@
                     </div>
 
                     <!-- Quorum Roles Breakdown Repeater -->
-                    <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); padding: 1.25rem; margin-bottom: 1.5rem;">
+                    <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1.25rem; margin-bottom: 1.5rem;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
                             <div>
                                 <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--color-text-primary); margin: 0;">
@@ -1390,7 +1407,7 @@
     <!-- ========================================================================= -->
     @if($showStageModal)
         <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1.5rem;">
-            <div class="card" style="width: 100%; max-width: 850px; max-height: 90vh; overflow-y: auto; background: #0f172a; border-color: rgba(99, 102, 241, 0.35); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); padding: 1.75rem;">
+            <div class="card" style="width: 100%; max-width: 850px; max-height: 90vh; overflow-y: auto; background: var(--bg-card-solid); border-color: var(--primary); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); padding: 1.75rem;">
                 
                 <!-- Modal Header -->
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
@@ -1454,7 +1471,7 @@
                     </div>
 
                     <!-- Decision Logic Sections -->
-                    <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); padding: 1.25rem; margin-bottom: 1.5rem;">
+                    <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1.25rem; margin-bottom: 1.5rem;">
                         <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 1rem 0;">
                             Dynamic Decision Logic & Transition Outcomes
                         </h4>
@@ -1577,7 +1594,7 @@
     <!-- ========================================================================= -->
     @if($showQuorumModal && $viewingBoard)
         <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1.5rem;">
-            <div class="card" style="width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto; background: #0f172a; border-color: rgba(99, 102, 241, 0.35); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); padding: 1.75rem;">
+            <div class="card" style="width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto; background: var(--bg-card-solid); border-color: var(--primary); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); padding: 1.75rem;">
                 
                 <!-- Modal Header -->
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
@@ -1598,7 +1615,7 @@
                 </div>
 
                 <!-- Total Quorum Banner -->
-                <div style="display: flex; justify-content: space-around; background: rgba(15, 23, 42, 0.6); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 1.25rem; text-align: center;">
+                <div style="display: flex; justify-content: space-around; background: var(--bg-surface); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 1.25rem; text-align: center;">
                     <div>
                         <div style="font-size: 1.4rem; font-weight: 900; color: var(--primary);">{{ $viewingBoard->required_total }}</div>
                         <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 700;">Total Quorum</div>
@@ -1771,7 +1788,7 @@
     @if($showDeleteWarningModal)
         <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1.5rem;"
              wire:keydown.escape="cancelDeleteProcessFlow">
-            <div class="card" style="width: 100%; max-width: 520px; padding: 1.75rem; border: 1px solid rgba(239, 68, 68, 0.35); box-shadow: 0 20px 40px rgba(0,0,0,0.7); background: #0f172a;"
+            <div class="card" style="width: 100%; max-width: 520px; padding: 1.75rem; border: 1px solid rgba(239, 68, 68, 0.35); box-shadow: 0 20px 40px rgba(0,0,0,0.7); background: var(--bg-card-solid);"
                  @click.outside="$wire.cancelDeleteProcessFlow()">
                 
                 <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem;">

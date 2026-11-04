@@ -126,6 +126,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/registrar/permissions', function() { return redirect('/registrar/roles?tab=permissions'); });
     Route::get('/registrar/audit-logs', AuditLogManagement::class);
     Route::get('/registrar/settings', SystemSettings::class);
+    Route::get('/registrar/settings/{tab}', SystemSettings::class)->where('tab', '[a-zA-Z0-9_\-]+');
 
     // -------------------------------------------------------------
     // Super-Admin & Central Administrative Control (Legacy / Direct)
@@ -157,6 +158,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/permissions', function() { return redirect('/admin/roles?tab=permissions'); });
     Route::get('/admin/audit-logs', AuditLogManagement::class);
     Route::get('/admin/settings', SystemSettings::class);
+    Route::get('/admin/settings/{tab}', SystemSettings::class)->where('tab', '[a-zA-Z0-9_\-]+');
 
     // Direct / admin compatibility aliases
     Route::get('/admin/verification/{id}', ApplicationVerification::class);

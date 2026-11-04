@@ -31,23 +31,20 @@
 
         <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
             <!-- Scope Navigation Segmented Tabs -->
-            <div style="display: flex; gap: 0.35rem; background: rgba(15, 23, 42, 0.6); padding: 0.3rem; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.08);">
+            <div class="segmented-tabs-bar">
                 <button type="button" 
                     wire:click="setScope('APPLICATION')" 
-                    class="btn {{ $activeScope === 'APPLICATION' ? 'btn-primary' : 'btn-secondary' }}"
-                    style="padding: 0.5rem 0.9rem; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem; border-radius: 8px;">
+                    class="segmented-tab-item {{ $activeScope === 'APPLICATION' ? 'active' : '' }}">
                     <span>📑 Application Flow</span>
                 </button>
                 <button type="button" 
                     wire:click="setScope('APPLICANT')" 
-                    class="btn {{ $activeScope === 'APPLICANT' ? 'btn-primary' : 'btn-secondary' }}"
-                    style="padding: 0.5rem 0.9rem; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem; border-radius: 8px;">
+                    class="segmented-tab-item {{ $activeScope === 'APPLICANT' ? 'active' : '' }}">
                     <span>👤 Applicant Dossier</span>
                 </button>
                 <button type="button" 
                     wire:click="setScope('SYSTEM')" 
-                    class="btn {{ $activeScope === 'SYSTEM' ? 'btn-primary' : 'btn-secondary' }}"
-                    style="padding: 0.5rem 0.9rem; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem; border-radius: 8px;">
+                    class="segmented-tab-item {{ $activeScope === 'SYSTEM' ? 'active' : '' }}">
                     <span>⚙️ System & Quorum</span>
                 </button>
             </div>
@@ -291,7 +288,7 @@
         <x-slot:table>
             <div class="table-responsive">
                 <table class="table" style="margin: 0;">
-                    <thead style="background: rgba(15, 23, 42, 0.8); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    <thead style="background: var(--bg-surface); font-size: 0.72rem; text-transform: uppercase; color: var(--color-text-muted); border-bottom: 1px solid var(--border-color); letter-spacing: 0.05em;">
                         <tr>
                             <th style="width: 6%; text-align: center;">ORD</th>
                             <th style="width: 22%;">STATUS IDENTIFIER & PREVIEW</th>
@@ -471,7 +468,7 @@
     <!-- ========================================================================= -->
     @if($showModal)
         <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1.5rem;">
-            <div class="card" style="width: 100%; max-width: 820px; max-height: 90vh; overflow-y: auto; background: #0f172a; border-color: rgba(99, 102, 241, 0.35); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); padding: 1.75rem;">
+            <div class="card" style="width: 100%; max-width: 820px; max-height: 90vh; overflow-y: auto; background: var(--bg-card-solid); border-color: rgba(99, 102, 241, 0.35); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); padding: 1.75rem;">
                 
                 <!-- Modal Header -->
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
@@ -544,7 +541,7 @@
                     </div>
 
                     <!-- Transition Gate Criteria & Requirements -->
-                    <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); padding: 1.15rem; margin-bottom: 1.5rem;">
+                    <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1.15rem; margin-bottom: 1.5rem;">
                         <h4 style="font-size: 0.88rem; font-weight: 700; color: var(--color-text-primary); margin: 0 0 0.25rem 0;">
                             Gate Requirements & Transition Constraints
                         </h4>
@@ -581,7 +578,7 @@
                     </div>
 
                     <!-- Allowed Next Transitions Matrix -->
-                    <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); padding: 1.15rem; margin-bottom: 1.5rem;">
+                    <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1.15rem; margin-bottom: 1.5rem;">
                         <h4 style="font-size: 0.88rem; font-weight: 700; color: var(--color-text-primary); margin: 0 0 0.25rem 0;">
                             Permitted Next Progression Transitions
                         </h4>
