@@ -3,8 +3,10 @@
 namespace App\Livewire\Admin;
 
 use Livewire\Component;
+use Livewire\Attributes\Url;
 use App\Models\BillingLedger;
 use App\Models\Application;
+use App\Models\Advertisement;
 use Illuminate\Support\Facades\Auth;
 use App\Livewire\Traits\WithDynamicListing;
 
@@ -20,8 +22,14 @@ class PaymentManagement extends Component
     public $selectedPayment = null;
 
     // Filters & Search
+    #[Url(as: 'q', except: '')]
     public $search = '';
+
+    #[Url(as: 'status', except: '')]
     public $statusFilter = '';
+
+    #[Url(as: 'ad', except: 'ALL')]
+    public $advertisementFilter = 'ALL';
 
     // Collections
     public $availableApplications = [];
@@ -41,13 +49,19 @@ class PaymentManagement extends Component
         $this->loadAuxiliaryData();
     }
 
-    public function updatingStatusFilter()
+    public function updatedStatusFilter()
     {
         $this->resetPage();
     }
 
-    public function updatedStatusFilter()
+    public function updatedAdvertisementFilter()
     {
+        $this->resetPage();
+    }
+
+    public function toggleStatusFilter($status)
+    {
+        $this->statusFilter = ($this->statusFilter === $status) ? '' : $status;
         $this->resetPage();
     }
 
@@ -55,6 +69,7 @@ class PaymentManagement extends Component
     {
         $this->search = '';
         $this->statusFilter = '';
+        $this->advertisementFilter = 'ALL';
         $this->resetPage();
     }
 
@@ -236,10 +251,14 @@ class PaymentManagement extends Component
 
     public function render()
     {
-        $query = BillingLedger::with('application.user.basicInfo', 'application.campaign');
+        $query = BillingLedger::with('application.user.basicInfo', 'application.campaign.advertisement');
 
         if (!empty($this->statusFilter)) {
             $query->where('status', $this->statusFilter);
+        }
+
+        if (!empty($this->advertisementFilter) && $this->advertisementFilter !== 'ALL') {
+            $query->whereHas('application.campaign', fn($c) => $c->where('advertisement_id', $this->advertisementFilter));
         }
 
         if (!empty($this->search)) {
@@ -264,16 +283,29 @@ class PaymentManagement extends Component
 
         $payments = $query->orderBy('created_at', 'desc')->paginate($this->perPage);
 
+        // Context-Aware Financial Base Query
+        $baseStatsQuery = BillingLedger::query();
+        if (!empty($this->advertisementFilter) && $this->advertisementFilter !== 'ALL') {
+            $baseStatsQuery->whereHas('application.campaign', fn($c) => $c->where('advertisement_id', $this->advertisementFilter));
+        }
+
+        $selectedAdModel = (!empty($this->advertisementFilter) && $this->advertisementFilter !== 'ALL')
+            ? Advertisement::find($this->advertisementFilter)
+            : null;
+
         $stats = [
-            'total' => BillingLedger::count(),
-            'settled' => BillingLedger::where('status', 'SETTLED')->count(),
-            'pending' => BillingLedger::where('status', 'PENDING')->count(),
-            'total_revenue' => BillingLedger::where('status', 'SETTLED')->sum('amount'),
+            'total' => (clone $baseStatsQuery)->count(),
+            'settled' => (clone $baseStatsQuery)->where('status', 'SETTLED')->count(),
+            'pending' => (clone $baseStatsQuery)->where('status', 'PENDING')->count(),
+            'total_revenue' => (clone $baseStatsQuery)->where('status', 'SETTLED')->sum('amount'),
+            'overall_system_total' => BillingLedger::count(),
         ];
 
         return view('livewire.admin.payment-management', [
             'payments' => $payments,
             'stats' => $stats,
+            'selectedAdModel' => $selectedAdModel,
+            'advertisements' => Advertisement::where('is_active', true)->orderBy('year', 'desc')->get(),
         ])->layout('layouts.app', ['title' => 'Vouchers & Payments - Hirely']);
     }
 }

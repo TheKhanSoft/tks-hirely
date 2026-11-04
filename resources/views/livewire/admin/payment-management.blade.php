@@ -37,8 +37,16 @@
 
     <!-- Live Executive Financial KPI Cards -->
     @if(!$isFormOpen)
+        @php
+            $payContext = !empty($selectedAdModel) ? ('Scoped to Adv ' . $selectedAdModel->advertisement_no) : 'Across all advertisements';
+        @endphp
         <div class="stat-kpi-grid">
-            <div class="metric-card" style="--card-accent: var(--primary); --metric-icon-bg: var(--primary-light); --metric-icon-color: var(--primary);">
+            <div class="metric-card {{ empty($statusFilter) ? 'metric-card-active' : '' }}" 
+                 wire:click="toggleStatusFilter('')" 
+                 role="button" 
+                 tabindex="0"
+                 data-tooltip="Click to view all billing vouchers in this scope"
+                 style="--card-accent: var(--primary); --metric-icon-bg: var(--primary-light); --metric-icon-color: var(--primary); cursor: pointer; transition: all 0.2s ease; {{ empty($statusFilter) ? 'box-shadow: 0 0 0 2px var(--primary), 0 8px 24px -4px rgba(99,102,241,0.25);' : '' }}">
                 <div class="metric-header">
                     <span class="metric-label">Total Billed Vouchers</span>
                     <div class="metric-icon-wrap">
@@ -48,10 +56,15 @@
                     </div>
                 </div>
                 <div class="metric-value" style="color: var(--primary);">{{ $stats['total'] }}</div>
-                <div class="metric-subtext">Consumer bills generated</div>
+                <div class="metric-subtext">{{ $payContext }}</div>
             </div>
 
-            <div class="metric-card" style="--card-accent: var(--success); --metric-icon-bg: var(--success-light); --metric-icon-color: var(--success);">
+            <div class="metric-card {{ $statusFilter === 'SETTLED' ? 'metric-card-active' : '' }}" 
+                 wire:click="toggleStatusFilter('SETTLED')" 
+                 role="button" 
+                 tabindex="0"
+                 data-tooltip="Click to toggle Settled / Paid filter"
+                 style="--card-accent: var(--success); --metric-icon-bg: var(--success-light); --metric-icon-color: var(--success); cursor: pointer; transition: all 0.2s ease; {{ $statusFilter === 'SETTLED' ? 'box-shadow: 0 0 0 2px var(--success), 0 8px 24px -4px rgba(16,185,129,0.25);' : '' }}">
                 <div class="metric-header">
                     <span class="metric-label">Settled / Paid</span>
                     <div class="metric-icon-wrap">
@@ -61,10 +74,15 @@
                     </div>
                 </div>
                 <div class="metric-value" style="color: var(--success);">{{ $stats['settled'] }}</div>
-                <div class="metric-subtext">Confirmed bank payments</div>
+                <div class="metric-subtext">{{ $payContext }}</div>
             </div>
 
-            <div class="metric-card" style="--card-accent: var(--warning); --metric-icon-bg: var(--warning-light); --metric-icon-color: var(--warning);">
+            <div class="metric-card {{ $statusFilter === 'PENDING' ? 'metric-card-active' : '' }}" 
+                 wire:click="toggleStatusFilter('PENDING')" 
+                 role="button" 
+                 tabindex="0"
+                 data-tooltip="Click to toggle Pending Payment filter"
+                 style="--card-accent: var(--warning); --metric-icon-bg: var(--warning-light); --metric-icon-color: var(--warning); cursor: pointer; transition: all 0.2s ease; {{ $statusFilter === 'PENDING' ? 'box-shadow: 0 0 0 2px var(--warning), 0 8px 24px -4px rgba(245,158,11,0.25);' : '' }}">
                 <div class="metric-header">
                     <span class="metric-label">Pending Payment</span>
                     <div class="metric-icon-wrap">
@@ -74,7 +92,7 @@
                     </div>
                 </div>
                 <div class="metric-value" style="color: var(--warning);">{{ $stats['pending'] }}</div>
-                <div class="metric-subtext">Awaiting candidate deposit</div>
+                <div class="metric-subtext">{{ $payContext }}</div>
             </div>
 
             <div class="metric-card" style="--card-accent: var(--secondary); --metric-icon-bg: var(--secondary-light); --metric-icon-color: var(--secondary);">
@@ -87,7 +105,7 @@
                     </div>
                 </div>
                 <div class="metric-value" style="color: var(--secondary); font-size: 1.35rem;">PKR {{ number_format($stats['total_revenue'], 0) }}</div>
-                <div class="metric-subtext">Reconciled to institutional account</div>
+                <div class="metric-subtext">{{ $payContext }}</div>
             </div>
         </div>
     @endif
@@ -180,7 +198,7 @@
         <div style="display: flex; gap: 0.5rem; background: var(--bg-tertiary); padding: 0.35rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); width: fit-content; margin-bottom: 1.25rem; flex-wrap: wrap;">
             <button type="button" 
                     class="btn" 
-                    wire:click="$set('statusFilter', '')"
+                    wire:click="toggleStatusFilter('')"
                     style="padding: 0.45rem 1.15rem; font-size: 0.85rem; border-radius: var(--radius-md); font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem; transition: var(--transition-base); {{ empty($statusFilter) ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
                 <span>All Vouchers</span>
                 <span style="font-size: 0.72rem; padding: 0.1rem 0.45rem; border-radius: 999px; background: rgba(99,102,241,0.15); color: var(--primary); font-weight: 800;">{{ $stats['total'] }}</span>
@@ -188,7 +206,7 @@
 
             <button type="button" 
                     class="btn" 
-                    wire:click="$set('statusFilter', 'SETTLED')"
+                    wire:click="toggleStatusFilter('SETTLED')"
                     style="padding: 0.45rem 1.15rem; font-size: 0.85rem; border-radius: var(--radius-md); font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem; transition: var(--transition-base); {{ $statusFilter === 'SETTLED' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
                 <span>Settled / Paid</span>
                 <span style="font-size: 0.72rem; padding: 0.1rem 0.45rem; border-radius: 999px; background: rgba(16,185,129,0.15); color: var(--success); font-weight: 800;">{{ $stats['settled'] }}</span>
@@ -196,7 +214,7 @@
 
             <button type="button" 
                     class="btn" 
-                    wire:click="$set('statusFilter', 'PENDING')"
+                    wire:click="toggleStatusFilter('PENDING')"
                     style="padding: 0.45rem 1.15rem; font-size: 0.85rem; border-radius: var(--radius-md); font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem; transition: var(--transition-base); {{ $statusFilter === 'PENDING' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
                 <span>Pending Payment</span>
                 <span style="font-size: 0.72rem; padding: 0.1rem 0.45rem; border-radius: 999px; background: rgba(245,158,11,0.15); color: var(--warning); font-weight: 800;">{{ $stats['pending'] }}</span>
@@ -215,8 +233,19 @@
             
             <!-- Filters Slot -->
             <x-slot:filters>
-                <div style="flex: 1; min-width: 180px;">
-                    <select class="form-control form-select" wire:model.live="statusFilter">
+                <div style="flex: 1.5; min-width: 220px;" wire:key="wrap-pay-ad-filter">
+                    <select class="form-control form-select" wire:model.live="advertisementFilter" wire:key="filter-pay-ad-select">
+                        <option value="ALL">All Advertisements</option>
+                        @foreach($advertisements as $ad)
+                            <option value="{{ $ad->id }}" wire:key="opt-pay-ad-{{ $ad->id }}">
+                                📢 {{ $ad->advertisement_no }} — {{ $ad->title }} ({{ $ad->year }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div style="flex: 1; min-width: 180px;" wire:key="wrap-pay-status-filter">
+                    <select class="form-control form-select" wire:model.live="statusFilter" wire:key="filter-pay-status-select">
                         <option value="">All Settlement Statuses</option>
                         <option value="SETTLED">Settled / Paid</option>
                         <option value="PENDING">Pending Payment</option>
@@ -225,7 +254,7 @@
                     </select>
                 </div>
 
-                @if(!empty($search) || !empty($statusFilter))
+                @if(!empty($search) || !empty($statusFilter) || (!empty($advertisementFilter) && $advertisementFilter !== 'ALL'))
                     <button type="button" class="btn btn-secondary btn-sm" wire:click="resetFilters" style="display: inline-flex; align-items: center; gap: 0.35rem;">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         <span>Reset Filters</span>

@@ -33,8 +33,16 @@
 
     <!-- Live Executive KPI Summary Cards -->
     @if(!$isFormOpen && !$isDetailsOpen)
+        @php
+            $adContextText = !empty($selectedAdModel) ? ('Scoped to Adv ' . $selectedAdModel->advertisement_no) : 'Across overall candidate pool';
+        @endphp
         <div class="stat-kpi-grid">
-            <div class="metric-card" style="--card-accent: var(--primary); --metric-icon-bg: var(--primary-light); --metric-icon-color: var(--primary);">
+            <div class="metric-card {{ (empty($trackFilter) && $lockFilter === '') ? 'metric-card-active' : '' }}" 
+                 wire:click="resetFilters" 
+                 role="button" 
+                 tabindex="0"
+                 data-tooltip="Click to view all candidates in this scope"
+                 style="--card-accent: var(--primary); --metric-icon-bg: var(--primary-light); --metric-icon-color: var(--primary); cursor: pointer; transition: all 0.2s ease; {{ (empty($trackFilter) && $lockFilter === '') ? 'box-shadow: 0 0 0 2px var(--primary), 0 8px 24px -4px rgba(99,102,241,0.25);' : '' }}">
                 <div class="metric-header">
                     <span class="metric-label">Total Candidate Pool</span>
                     <div class="metric-icon-wrap">
@@ -44,7 +52,7 @@
                     </div>
                 </div>
                 <div class="metric-value" style="color: var(--primary);">{{ $stats['total'] }}</div>
-                <div class="metric-subtext">Registered applicant profiles</div>
+                <div class="metric-subtext">{{ $adContextText }}</div>
             </div>
 
             <div class="metric-card" style="--card-accent: var(--secondary); --metric-icon-bg: var(--secondary-light); --metric-icon-color: var(--secondary);">
@@ -57,10 +65,15 @@
                     </div>
                 </div>
                 <div class="metric-value" style="color: var(--secondary);">{{ $stats['with_applications'] }}</div>
-                <div class="metric-subtext">With submitted candidacies</div>
+                <div class="metric-subtext">{{ $adContextText }}</div>
             </div>
 
-            <div class="metric-card" style="--card-accent: #8b5cf6; --metric-icon-bg: rgba(139,92,246,0.12); --metric-icon-color: #8b5cf6;">
+            <div class="metric-card {{ $trackFilter === 'ACADEMIC' ? 'metric-card-active' : '' }}" 
+                 wire:click="toggleTrackFilter('ACADEMIC')" 
+                 role="button" 
+                 tabindex="0"
+                 data-tooltip="Click to toggle Academic / Faculty Track filter"
+                 style="--card-accent: #8b5cf6; --metric-icon-bg: rgba(139,92,246,0.12); --metric-icon-color: #8b5cf6; cursor: pointer; transition: all 0.2s ease; {{ $trackFilter === 'ACADEMIC' ? 'box-shadow: 0 0 0 2px #8b5cf6, 0 8px 24px -4px rgba(139,92,246,0.25);' : '' }}">
                 <div class="metric-header">
                     <span class="metric-label">Academic Track</span>
                     <div class="metric-icon-wrap">
@@ -70,10 +83,15 @@
                     </div>
                 </div>
                 <div class="metric-value" style="color: #8b5cf6;">{{ $stats['academic'] }}</div>
-                <div class="metric-subtext">Faculty & research candidates</div>
+                <div class="metric-subtext">{{ $adContextText }}</div>
             </div>
 
-            <div class="metric-card" style="--card-accent: var(--danger); --metric-icon-bg: var(--danger-light); --metric-icon-color: var(--danger);">
+            <div class="metric-card {{ $lockFilter === '1' ? 'metric-card-active' : '' }}" 
+                 wire:click="toggleLockFilter(1)" 
+                 role="button" 
+                 tabindex="0"
+                 data-tooltip="Click to toggle Locked Dossiers filter"
+                 style="--card-accent: var(--danger); --metric-icon-bg: var(--danger-light); --metric-icon-color: var(--danger); cursor: pointer; transition: all 0.2s ease; {{ $lockFilter === '1' ? 'box-shadow: 0 0 0 2px var(--danger), 0 8px 24px -4px rgba(239,68,68,0.25);' : '' }}">
                 <div class="metric-header">
                     <span class="metric-label">Locked Dossiers</span>
                     <div class="metric-icon-wrap">
@@ -83,7 +101,7 @@
                     </div>
                 </div>
                 <div class="metric-value" style="color: var(--danger);">{{ $stats['locked'] }}</div>
-                <div class="metric-subtext">Immutable submitted dossiers</div>
+                <div class="metric-subtext">{{ $adContextText }}</div>
             </div>
         </div>
     @endif
@@ -227,19 +245,19 @@
             
             <!-- Filters Slot -->
             <x-slot:filters>
-                <div style="flex: 1.5; min-width: 240px;">
-                    <select class="form-control form-select" wire:model.live="advertisementFilter">
+                <div style="flex: 1.5; min-width: 240px;" wire:key="wrap-ad-filter">
+                    <select class="form-control form-select" wire:model.live="advertisementFilter" wire:key="filter-ad-select">
                         <option value="ALL">All Advertisements (All Candidates)</option>
                         @foreach($availableAdvertisements as $ad)
-                            <option value="{{ $ad->id }}">
+                            <option value="{{ $ad->id }}" wire:key="opt-cand-ad-{{ $ad->id }}">
                                 📢 {{ $ad->advertisement_no }} — {{ $ad->title }} ({{ $ad->year }})
                             </option>
                         @endforeach
                     </select>
                 </div>
 
-                <div style="flex: 1; min-width: 170px;">
-                    <select class="form-control form-select" wire:model.live="trackFilter">
+                <div style="flex: 1; min-width: 170px;" wire:key="wrap-track-filter">
+                    <select class="form-control form-select" wire:model.live="trackFilter" wire:key="filter-track-select">
                         <option value="">All Career Tracks</option>
                         <option value="ACADEMIC">Academic / Faculty</option>
                         <option value="ADMINISTRATIVE">Administrative / Executive</option>
@@ -247,8 +265,8 @@
                     </select>
                 </div>
 
-                <div style="flex: 1; min-width: 160px;">
-                    <select class="form-control form-select" wire:model.live="lockFilter">
+                <div style="flex: 1; min-width: 160px;" wire:key="wrap-lock-filter">
+                    <select class="form-control form-select" wire:model.live="lockFilter" wire:key="filter-lock-select">
                         <option value="">All Lock States</option>
                         <option value="1">🔒 Locked Dossiers</option>
                         <option value="0">🔓 Editable (Open)</option>

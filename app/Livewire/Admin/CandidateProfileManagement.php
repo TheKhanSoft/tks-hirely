@@ -23,11 +23,16 @@ class CandidateProfileManagement extends Component
     public $selectedRecordDetails = null;
 
     // Search & Filters
+    #[Url(as: 'q', except: '')]
     public $search = '';
+
+    #[Url(as: 'track', except: '')]
     public $trackFilter = '';
+
+    #[Url(as: 'lock', except: '')]
     public $lockFilter = '';
 
-    #[Url(as: 'ad')]
+    #[Url(as: 'ad', except: 'ALL')]
     public $advertisementFilter = '';
 
     // Collections
@@ -90,13 +95,21 @@ class CandidateProfileManagement extends Component
         $this->resetPage();
     }
 
-    public function updatingLockFilter()
+    public function toggleTrackFilter($track)
     {
+        $this->trackFilter = ($this->trackFilter === $track) ? '' : $track;
         $this->resetPage();
     }
 
     public function updatedLockFilter()
     {
+        $this->resetPage();
+    }
+
+    public function toggleLockFilter($lock)
+    {
+        $val = (string)$lock;
+        $this->lockFilter = ($this->lockFilter === $val) ? '' : $val;
         $this->resetPage();
     }
 
@@ -339,26 +352,6 @@ class CandidateProfileManagement extends Component
         if (!empty($this->advertisementFilter) && $this->advertisementFilter !== 'ALL') {
             $query->whereHas('user.applications.campaign', function ($cq) {
                 $cq->where('advertisement_id', $this->advertisementFilter);
-            });
-        }
-
-        if (!empty($this->trackFilter)) {
-            $query->where('track_type', $this->trackFilter);
-        }
-
-        if ($this->lockFilter !== '') {
-            $query->where('is_locked', (bool)$this->lockFilter);
-        }
-
-        if (!empty($this->search)) {
-            $searchTerm = '%' . $this->search . '%';
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('first_name', 'like', $searchTerm)
-                  ->orWhere('last_name', 'like', $searchTerm)
-                  ->orWhere('cnic_number', 'like', $searchTerm)
-                  ->orWhereHas('user', function ($uq) use ($searchTerm) {
-                      $uq->where('email', 'like', $searchTerm);
-                  });
             });
         }
 

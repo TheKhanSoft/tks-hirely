@@ -34,12 +34,19 @@ class ApplicationManagement extends Component
     public $selectedRecordDetails = null;
 
     // Filters & Search
+    #[Url(as: 'q', except: '')]
     public $search = '';
+
+    #[Url(as: 'status', except: '')]
     public $statusFilter = '';
+
+    #[Url(as: 'camp', except: '')]
     public $campaignFilter = '';
 
-    #[Url(as: 'ad')]
+    #[Url(as: 'ad', except: 'ALL')]
     public $advertisementFilter = '';
+
+    #[Url(as: 'voucher', except: '')]
     public $voucherFilter = '';
 
     // Collections
@@ -148,13 +155,34 @@ class ApplicationManagement extends Component
     public function updatedAdvertisementFilter()
     {
         $this->resetPage();
-        $this->campaignFilter = '';
+
+        // Only reset campaignFilter if the currently selected campaign does not belong to the newly selected ad.
+        // If switching to 'ALL', keep the active campaignFilter so user doesn't lose their context.
+        if (!empty($this->campaignFilter) && !empty($this->advertisementFilter) && $this->advertisementFilter !== 'ALL') {
+            $camp = Campaign::find($this->campaignFilter);
+            if ($camp && (string)$camp->advertisement_id !== (string)$this->advertisementFilter) {
+                $this->campaignFilter = '';
+            }
+        }
+
         $this->loadAuxiliaryData();
     }
 
     public function updatedCampaignFilter()
     {
         $this->resetPage();
+
+        // If a campaign is selected and its parent advertisement is known, sync the advertisementFilter to match
+        if (!empty($this->campaignFilter)) {
+            $camp = Campaign::find($this->campaignFilter);
+            if ($camp && $camp->advertisement_id) {
+                if ((string)$this->advertisementFilter !== (string)$camp->advertisement_id) {
+                    $this->advertisementFilter = (string)$camp->advertisement_id;
+                }
+            }
+        }
+
+        $this->loadAuxiliaryData();
     }
 
     public function updatedStatusFilter()
@@ -169,6 +197,15 @@ class ApplicationManagement extends Component
 
     public function updatedSearch()
     {
+        $this->resetPage();
+    }
+
+    /**
+     * Toggle a specific status filter or reset to empty if clicked again.
+     */
+    public function toggleStatusFilter($status)
+    {
+        $this->statusFilter = ($this->statusFilter === $status) ? '' : $status;
         $this->resetPage();
     }
 
@@ -189,11 +226,19 @@ class ApplicationManagement extends Component
     public function loadAuxiliaryData()
     {
         $this->users = User::role('applicant')->get();
+        $campaignQuery = Campaign::query();
+
         if (!empty($this->advertisementFilter) && $this->advertisementFilter !== 'ALL') {
-            $this->campaigns = Campaign::where('advertisement_id', $this->advertisementFilter)->orderBy('id', 'desc')->get();
-        } else {
-            $this->campaigns = Campaign::orderBy('id', 'desc')->get();
+            $campaignQuery->where(function ($q) {
+                $q->where('advertisement_id', $this->advertisementFilter);
+                // Retain currently selected campaign in options so browser <select> doesn't lose selection on DOM patch
+                if (!empty($this->campaignFilter)) {
+                    $q->orWhere('id', $this->campaignFilter);
+                }
+            });
         }
+
+        $this->campaigns = $campaignQuery->orderBy('id', 'desc')->get();
     }
 
     public function resetForm()
@@ -832,13 +877,30 @@ class ApplicationManagement extends Component
         // Distinct disciplines for dispatch filter
         $availableDisciplines = ReviewerProfile::distinct()->pluck('subject')->filter()->values();
 
-        // Dynamic System KPI Metrics
+        // Dynamic Context-Scoped System KPI Metrics (Scoped strictly to active contextual scope: Advertisement and Campaign)
+        $baseStatsQuery = Application::query();
+        if (!empty($this->advertisementFilter) && $this->advertisementFilter !== 'ALL') {
+            $baseStatsQuery->whereHas('campaign', fn($c) => $c->where('advertisement_id', $this->advertisementFilter));
+        }
+        if (!empty($this->campaignFilter)) {
+            $baseStatsQuery->where('campaign_id', $this->campaignFilter);
+        }
+
+        $selectedAdModel = (!empty($this->advertisementFilter) && $this->advertisementFilter !== 'ALL')
+            ? Advertisement::find($this->advertisementFilter)
+            : null;
+
+        $selectedCampaignModel = (!empty($this->campaignFilter))
+            ? Campaign::find($this->campaignFilter)
+            : null;
+
         $stats = [
-            'total' => Application::count(),
-            'paid' => Application::whereHas('billingLedger', fn($b) => $b->where('status', 'SETTLED'))->count(),
-            'eligible' => Application::where('status', 'ELIGIBLE')->count(),
-            'under_review' => Application::whereIn('status', ['UNDER_REVIEW', 'APPEALED'])->count(),
-            'approved' => Application::where('status', 'APPROVED')->count(),
+            'total' => (clone $baseStatsQuery)->count(),
+            'paid' => (clone $baseStatsQuery)->whereHas('billingLedger', fn($b) => $b->where('status', 'SETTLED'))->count(),
+            'eligible' => (clone $baseStatsQuery)->where('status', 'ELIGIBLE')->count(),
+            'under_review' => (clone $baseStatsQuery)->whereIn('status', ['UNDER_REVIEW', 'APPEALED'])->count(),
+            'approved' => (clone $baseStatsQuery)->where('status', 'APPROVED')->count(),
+            'overall_system_total' => Application::count(),
         ];
 
         // All active workflow statuses for filter dropdown
@@ -847,6 +909,8 @@ class ApplicationManagement extends Component
         return view('livewire.admin.application-management', [
             'applications' => $applications,
             'stats' => $stats,
+            'selectedAdModel' => $selectedAdModel,
+            'selectedCampaignModel' => $selectedCampaignModel,
             'fieldMatchedReviewers' => $fieldMatchedReviewers,
             'availableDisciplines' => $availableDisciplines,
             'workflowStatuses' => $workflowStatuses,

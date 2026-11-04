@@ -35,8 +35,21 @@
 
     <!-- Live Executive KPI Summary Cards -->
     @if(!$isFormOpen && !$isDetailsOpen)
+        @php
+            $contextText = 'Across all advertisements';
+            if ($selectedCampaignModel) {
+                $contextText = 'Scoped to ' . $selectedCampaignModel->job_code;
+            } elseif ($selectedAdModel) {
+                $contextText = 'Scoped to Adv ' . $selectedAdModel->advertisement_no;
+            }
+        @endphp
         <div class="stat-kpi-grid">
-            <div class="metric-card" style="--card-accent: var(--primary); --metric-icon-bg: var(--primary-light); --metric-icon-color: var(--primary);">
+            <div class="metric-card {{ empty($statusFilter) ? 'metric-card-active' : '' }}" 
+                 wire:click="toggleStatusFilter('')" 
+                 role="button" 
+                 tabindex="0"
+                 data-tooltip="Click to view all applications in this cohort"
+                 style="--card-accent: var(--primary); --metric-icon-bg: var(--primary-light); --metric-icon-color: var(--primary); cursor: pointer; transition: all 0.2s ease; {{ empty($statusFilter) ? 'box-shadow: 0 0 0 2px var(--primary), 0 8px 24px -4px rgba(99,102,241,0.25);' : '' }}">
                 <div class="metric-header">
                     <span class="metric-label">Total Applications</span>
                     <div class="metric-icon-wrap">
@@ -46,10 +59,15 @@
                     </div>
                 </div>
                 <div class="metric-value" style="color: var(--primary);">{{ $stats['total'] }}</div>
-                <div class="metric-subtext">Across all open campaigns</div>
+                <div class="metric-subtext">{{ $contextText }}</div>
             </div>
 
-            <div class="metric-card" style="--card-accent: var(--success); --metric-icon-bg: var(--success-light); --metric-icon-color: var(--success);">
+            <div class="metric-card {{ $statusFilter === 'PAID' ? 'metric-card-active' : '' }}" 
+                 wire:click="toggleStatusFilter('PAID')" 
+                 role="button" 
+                 tabindex="0"
+                 data-tooltip="Click to filter Paid & Settled"
+                 style="--card-accent: var(--success); --metric-icon-bg: var(--success-light); --metric-icon-color: var(--success); cursor: pointer; transition: all 0.2s ease; {{ $statusFilter === 'PAID' ? 'box-shadow: 0 0 0 2px var(--success), 0 8px 24px -4px rgba(16,185,129,0.25);' : '' }}">
                 <div class="metric-header">
                     <span class="metric-label">Paid & Settled</span>
                     <div class="metric-icon-wrap">
@@ -59,10 +77,15 @@
                     </div>
                 </div>
                 <div class="metric-value" style="color: var(--success);">{{ $stats['paid'] }}</div>
-                <div class="metric-subtext">Kuickpay / 1Link settled</div>
+                <div class="metric-subtext">{{ $contextText }}</div>
             </div>
 
-            <div class="metric-card" style="--card-accent: #3b82f6; --metric-icon-bg: rgba(59,130,246,0.12); --metric-icon-color: #3b82f6;">
+            <div class="metric-card {{ $statusFilter === 'ELIGIBLE' ? 'metric-card-active' : '' }}" 
+                 wire:click="toggleStatusFilter('ELIGIBLE')" 
+                 role="button" 
+                 tabindex="0"
+                 data-tooltip="Click to filter Eligible Candidates"
+                 style="--card-accent: #3b82f6; --metric-icon-bg: rgba(59,130,246,0.12); --metric-icon-color: #3b82f6; cursor: pointer; transition: all 0.2s ease; {{ $statusFilter === 'ELIGIBLE' ? 'box-shadow: 0 0 0 2px #3b82f6, 0 8px 24px -4px rgba(59,130,246,0.25);' : '' }}">
                 <div class="metric-header">
                     <span class="metric-label">Eligible Candidates</span>
                     <div class="metric-icon-wrap">
@@ -72,10 +95,15 @@
                     </div>
                 </div>
                 <div class="metric-value" style="color: #3b82f6;">{{ $stats['eligible'] }}</div>
-                <div class="metric-subtext">Passed scrutiny verification</div>
+                <div class="metric-subtext">{{ $contextText }}</div>
             </div>
 
-            <div class="metric-card" style="--card-accent: var(--secondary); --metric-icon-bg: var(--secondary-light); --metric-icon-color: var(--secondary);">
+            <div class="metric-card {{ $statusFilter === 'UNDER_REVIEW' ? 'metric-card-active' : '' }}" 
+                 wire:click="toggleStatusFilter('UNDER_REVIEW')" 
+                 role="button" 
+                 tabindex="0"
+                 data-tooltip="Click to filter In Peer Review / Appeal"
+                 style="--card-accent: var(--secondary); --metric-icon-bg: var(--secondary-light); --metric-icon-color: var(--secondary); cursor: pointer; transition: all 0.2s ease; {{ $statusFilter === 'UNDER_REVIEW' ? 'box-shadow: 0 0 0 2px var(--secondary), 0 8px 24px -4px rgba(6,182,212,0.25);' : '' }}">
                 <div class="metric-header">
                     <span class="metric-label">In Peer / Appeal</span>
                     <div class="metric-icon-wrap">
@@ -85,10 +113,15 @@
                     </div>
                 </div>
                 <div class="metric-value" style="color: var(--secondary);">{{ $stats['under_review'] }}</div>
-                <div class="metric-subtext">Referee evaluation in progress</div>
+                <div class="metric-subtext">{{ $contextText }}</div>
             </div>
 
-            <div class="metric-card" style="--card-accent: #8b5cf6; --metric-icon-bg: rgba(139,92,246,0.12); --metric-icon-color: #8b5cf6;">
+            <div class="metric-card {{ $statusFilter === 'APPROVED' ? 'metric-card-active' : '' }}" 
+                 wire:click="toggleStatusFilter('APPROVED')" 
+                 role="button" 
+                 tabindex="0"
+                 data-tooltip="Click to filter Approved Selected"
+                 style="--card-accent: #8b5cf6; --metric-icon-bg: rgba(139,92,246,0.12); --metric-icon-color: #8b5cf6; cursor: pointer; transition: all 0.2s ease; {{ $statusFilter === 'APPROVED' ? 'box-shadow: 0 0 0 2px #8b5cf6, 0 8px 24px -4px rgba(139,92,246,0.25);' : '' }}">
                 <div class="metric-header">
                     <span class="metric-label">Approved Selected</span>
                     <div class="metric-icon-wrap">
@@ -98,7 +131,7 @@
                     </div>
                 </div>
                 <div class="metric-value" style="color: #8b5cf6;">{{ $stats['approved'] }}</div>
-                <div class="metric-subtext">Final selection board confirmed</div>
+                <div class="metric-subtext">{{ $contextText }}</div>
             </div>
         </div>
     @endif
@@ -197,7 +230,7 @@
         <div style="display: flex; gap: 0.5rem; background: var(--bg-tertiary); padding: 0.35rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); width: fit-content; margin-bottom: 1.25rem; flex-wrap: wrap;">
             <button type="button" 
                     class="btn" 
-                    wire:click="$set('statusFilter', '')"
+                    wire:click="toggleStatusFilter('')"
                     style="padding: 0.45rem 1.15rem; font-size: 0.85rem; border-radius: var(--radius-md); font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem; transition: var(--transition-base); {{ empty($statusFilter) ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
                 <span>All Applications</span>
                 <span style="font-size: 0.72rem; padding: 0.1rem 0.45rem; border-radius: 999px; background: rgba(99,102,241,0.15); color: var(--primary); font-weight: 800;">{{ $stats['total'] }}</span>
@@ -205,7 +238,7 @@
 
             <button type="button" 
                     class="btn" 
-                    wire:click="$set('statusFilter', 'PAID')"
+                    wire:click="toggleStatusFilter('PAID')"
                     style="padding: 0.45rem 1.15rem; font-size: 0.85rem; border-radius: var(--radius-md); font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem; transition: var(--transition-base); {{ $statusFilter === 'PAID' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
                 <span>Paid / Scrutiny</span>
                 <span style="font-size: 0.72rem; padding: 0.1rem 0.45rem; border-radius: 999px; background: rgba(16,185,129,0.15); color: var(--success); font-weight: 800;">{{ $stats['paid'] }}</span>
@@ -213,7 +246,7 @@
 
             <button type="button" 
                     class="btn" 
-                    wire:click="$set('statusFilter', 'ELIGIBLE')"
+                    wire:click="toggleStatusFilter('ELIGIBLE')"
                     style="padding: 0.45rem 1.15rem; font-size: 0.85rem; border-radius: var(--radius-md); font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem; transition: var(--transition-base); {{ $statusFilter === 'ELIGIBLE' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
                 <span>Eligible</span>
                 <span style="font-size: 0.72rem; padding: 0.1rem 0.45rem; border-radius: 999px; background: rgba(59,130,246,0.15); color: #3b82f6; font-weight: 800;">{{ $stats['eligible'] }}</span>
@@ -221,7 +254,7 @@
 
             <button type="button" 
                     class="btn" 
-                    wire:click="$set('statusFilter', 'UNDER_REVIEW')"
+                    wire:click="toggleStatusFilter('UNDER_REVIEW')"
                     style="padding: 0.45rem 1.15rem; font-size: 0.85rem; border-radius: var(--radius-md); font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem; transition: var(--transition-base); {{ $statusFilter === 'UNDER_REVIEW' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
                 <span>In Peer Review</span>
                 <span style="font-size: 0.72rem; padding: 0.1rem 0.45rem; border-radius: 999px; background: rgba(6,182,212,0.15); color: var(--secondary); font-weight: 800;">{{ $stats['under_review'] }}</span>
@@ -229,7 +262,7 @@
 
             <button type="button" 
                     class="btn" 
-                    wire:click="$set('statusFilter', 'APPROVED')"
+                    wire:click="toggleStatusFilter('APPROVED')"
                     style="padding: 0.45rem 1.15rem; font-size: 0.85rem; border-radius: var(--radius-md); font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem; transition: var(--transition-base); {{ $statusFilter === 'APPROVED' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
                 <span>Approved Board</span>
                 <span style="font-size: 0.72rem; padding: 0.1rem 0.45rem; border-radius: 999px; background: rgba(139,92,246,0.15); color: #8b5cf6; font-weight: 800;">{{ $stats['approved'] }}</span>
@@ -248,26 +281,26 @@
             
             <!-- Filters Slot -->
             <x-slot:filters>
-                <div style="flex: 1.5; min-width: 220px;">
-                    <select class="form-control form-select" wire:model.live="advertisementFilter">
+                <div style="flex: 1.5; min-width: 220px;" wire:key="wrap-ad-filter">
+                    <select class="form-control form-select" wire:model.live="advertisementFilter" wire:key="filter-ad-select">
                         <option value="ALL">All Advertisements</option>
                         @foreach($advertisements as $ad)
-                            <option value="{{ $ad->id }}">📢 {{ $ad->advertisement_no }} — {{ $ad->title }} ({{ $ad->year }})</option>
+                            <option value="{{ $ad->id }}" wire:key="opt-ad-{{ $ad->id }}">📢 {{ $ad->advertisement_no }} — {{ $ad->title }} ({{ $ad->year }})</option>
                         @endforeach
                     </select>
                 </div>
 
-                <div style="flex: 1; min-width: 200px;">
-                    <select class="form-control form-select" wire:model.live="campaignFilter">
+                <div style="flex: 1; min-width: 200px;" wire:key="wrap-camp-filter">
+                    <select class="form-control form-select" wire:model.live="campaignFilter" wire:key="filter-campaign-select">
                         <option value="">All Job Campaigns</option>
                         @foreach($campaigns as $camp)
-                            <option value="{{ $camp->id }}">{{ $camp->job_code }} - {{ $camp->title }}</option>
+                            <option value="{{ $camp->id }}" wire:key="opt-camp-{{ $camp->id }}">{{ $camp->job_code }} - {{ $camp->title }}</option>
                         @endforeach
                     </select>
                 </div>
 
-                <div style="flex: 1; min-width: 170px;">
-                    <select class="form-control form-select" wire:model.live="statusFilter">
+                <div style="flex: 1; min-width: 170px;" wire:key="wrap-status-filter">
+                    <select class="form-control form-select" wire:model.live="statusFilter" wire:key="filter-status-select">
                         <option value="">All Statuses</option>
                         @foreach($workflowStatuses as $ws)
                             <option value="{{ $ws->code }}">{{ $ws->label }}</option>
