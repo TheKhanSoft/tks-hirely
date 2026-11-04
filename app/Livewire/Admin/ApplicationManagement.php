@@ -142,7 +142,7 @@ class ApplicationManagement extends Component
 
         // Default to the latest advertisement if none was explicitly provided
         if (empty($this->advertisementFilter)) {
-            $lastAd = Advertisement::orderBy('year', 'desc')->orderBy('id', 'desc')->first();
+            $lastAd = Advertisement::chronologicalDesc()->first();
             if ($lastAd) {
                 $this->advertisementFilter = (string)$lastAd->id;
             }
@@ -915,7 +915,7 @@ class ApplicationManagement extends Component
             'availableDisciplines' => $availableDisciplines,
             'workflowStatuses' => $workflowStatuses,
             'countries' => CountryService::all(),
-            'advertisements' => Advertisement::where('is_active', true)->orderBy('year', 'desc')->get(),
+            'advertisements' => Advertisement::where('is_active', true)->chronologicalDesc()->get(),
         ])->layout('layouts.app', ['title' => 'Applications Desk - Hirely']);
     }
 }

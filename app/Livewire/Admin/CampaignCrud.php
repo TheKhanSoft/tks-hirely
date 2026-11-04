@@ -1138,7 +1138,7 @@ class CampaignCrud extends Component
         $availableYears = collect(array_unique(array_merge($adYears, $campYears, [(int)date('Y')])))->sortDesc()->values();
 
         // Filter advertisements dropdown (filtered by year if yearFilter is active)
-        $filterAdQuery = Advertisement::withCount('campaigns')->orderBy('year', 'desc')->orderBy('advertisement_no');
+        $filterAdQuery = Advertisement::withCount('campaigns')->chronologicalDesc();
         if (!empty($this->yearFilter)) {
             $filterAdQuery->where('year', (int)$this->yearFilter);
         }
@@ -1152,7 +1152,7 @@ class CampaignCrud extends Component
             'paginatedCampaigns' => $paginatedCampaigns,
             'statutoryBoards' => CommitteeConstitution::orderBy('name')->get(),
             'processFlows' => RecruitmentProcessFlow::orderBy('name')->get(),
-            'advertisements' => Advertisement::orderBy('year', 'desc')->orderBy('title')->get(),
+            'advertisements' => Advertisement::chronologicalDesc()->get(),
             'filterAdvertisements' => $filterAdvertisements,
             'availableYears' => $availableYears,
             'selectedAdModel' => $selectedAdModel,

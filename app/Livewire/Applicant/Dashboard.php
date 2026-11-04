@@ -257,7 +257,7 @@ class Dashboard extends Component
         if (!empty($this->campaignYearFilter)) {
             $adQuery->where('year', (int)$this->campaignYearFilter);
         }
-        $applicantAdvertisements = $adQuery->orderBy('year', 'desc')->orderBy('advertisement_no')->get();
+        $applicantAdvertisements = $adQuery->chronologicalDesc()->get();
 
         // Calculate dossier completeness percentage
         $completion = 0;

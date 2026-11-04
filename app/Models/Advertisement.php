@@ -43,6 +43,18 @@ class Advertisement extends Model
     }
 
     /**
+     * Scope query to order advertisements in reverse chronological / numerical order.
+     * Higher year first, then higher advertisement number first, then higher primary key first.
+     */
+    public function scopeChronologicalDesc($query)
+    {
+        return $query->orderBy('year', 'desc')
+                     ->orderByRaw('LENGTH(advertisement_no) DESC')
+                     ->orderBy('advertisement_no', 'desc')
+                     ->orderBy('id', 'desc');
+    }
+
+    /**
      * Recruitment job campaigns published under this advertisement.
      */
     public function campaigns(): HasMany

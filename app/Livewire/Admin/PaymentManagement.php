@@ -305,7 +305,7 @@ class PaymentManagement extends Component
             'payments' => $payments,
             'stats' => $stats,
             'selectedAdModel' => $selectedAdModel,
-            'advertisements' => Advertisement::where('is_active', true)->orderBy('year', 'desc')->get(),
+            'advertisements' => Advertisement::where('is_active', true)->chronologicalDesc()->get(),
         ])->layout('layouts.app', ['title' => 'Vouchers & Payments - Hirely']);
     }
 }

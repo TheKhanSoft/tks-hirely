@@ -527,7 +527,7 @@ class UniversalSearchPalette extends Component
         // 3. Official Advertisements
         if ($this->activeCategory === 'all' || $this->activeCategory === 'advertisements') {
             if ($isSuperAdmin || $isRegistrar || $user->can('view-advertisement') || $user->can('view-campaign')) {
-                $aQuery = Advertisement::orderBy('year', 'desc')->orderBy('created_at', 'desc');
+                $aQuery = Advertisement::chronologicalDesc();
                 if ($hasSearch) {
                     $aQuery->where(function ($q) use ($likeTerm) {
                         $q->where('advertisement_no', 'like', $likeTerm)

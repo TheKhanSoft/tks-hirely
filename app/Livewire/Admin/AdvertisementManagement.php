@@ -356,7 +356,7 @@ class AdvertisementManagement extends Component
     {
         abort_unless(Auth::user()->can('export-advertisement') || Auth::user()->can('view-advertisement') || Auth::user()->can('view-campaign'), 403);
         $headers = ['Advertisement No', 'Title', 'Year', 'Valid From', 'Valid To', 'Status', 'Jobs Count', 'Extensions Count', 'Newspaper Reference'];
-        $ads = Advertisement::withCount(['campaigns', 'dateTracks'])->orderBy('year', 'desc')->get();
+        $ads = Advertisement::withCount(['campaigns', 'dateTracks'])->chronologicalDesc()->get();
         $rows = [];
 
         foreach ($ads as $ad) {
@@ -404,7 +404,7 @@ class AdvertisementManagement extends Component
             $query->where('is_active', false);
         }
 
-        $advertisements = $query->latest('valid_to')->paginate($this->perPage);
+        $advertisements = $query->chronologicalDesc()->paginate($this->perPage);
 
         $availableYears = Advertisement::distinct()->orderBy('year', 'desc')->pluck('year')->filter()->values();
         if ($availableYears->isEmpty()) {

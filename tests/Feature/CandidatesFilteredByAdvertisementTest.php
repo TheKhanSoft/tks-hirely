@@ -374,4 +374,26 @@ class CandidatesFilteredByAdvertisementTest extends TestCase
             ->assertSet('voucherFilter', '')
             ->assertSet('advertisementFilter', 'ALL');
     }
+
+    public function test_advertisement_dropdown_and_listing_ordering_is_strictly_chronological_descending()
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('super-admin');
+        $this->actingAs($admin);
+
+        Advertisement::create(['advertisement_no' => '52/2019', 'title' => 'Ad 52', 'year' => 2019, 'is_active' => true, 'valid_from' => now()->subYears(5), 'valid_to' => now()->subYears(4)]);
+        Advertisement::create(['advertisement_no' => '53/2021', 'title' => 'Ad 53', 'year' => 2021, 'is_active' => true, 'valid_from' => now()->subYears(3), 'valid_to' => now()->subYears(2)]);
+        Advertisement::create(['advertisement_no' => '54/2021', 'title' => 'Ad 54', 'year' => 2021, 'is_active' => true, 'valid_from' => now()->subYears(3), 'valid_to' => now()->subYears(2)]);
+        Advertisement::create(['advertisement_no' => '55/2023', 'title' => 'Ad 55', 'year' => 2023, 'is_active' => true, 'valid_from' => now()->subYears(2), 'valid_to' => now()->subYear()]);
+        Advertisement::create(['advertisement_no' => '56/2025', 'title' => 'Ad 56', 'year' => 2025, 'is_active' => true, 'valid_from' => now()->subMonths(6), 'valid_to' => now()->subMonths(3)]);
+        Advertisement::create(['advertisement_no' => '57/2025', 'title' => 'Ad 57', 'year' => 2025, 'is_active' => true, 'valid_from' => now()->subMonths(4), 'valid_to' => now()->subMonth()]);
+        Advertisement::create(['advertisement_no' => '58/2026', 'title' => 'Ad 58', 'year' => 2026, 'is_active' => true, 'valid_from' => now()->subDays(10), 'valid_to' => now()->addDays(20)]);
+
+        $component = Livewire::test(ApplicationManagement::class);
+        $ads = $component->viewData('advertisements');
+        $adNumbers = $ads->pluck('advertisement_no')->values()->all();
+
+        $expected = ['58/2026', '57/2025', '56/2025', '55/2023', '54/2021', '53/2021', '52/2019'];
+        $this->assertEquals($expected, $adNumbers);
+    }
 }

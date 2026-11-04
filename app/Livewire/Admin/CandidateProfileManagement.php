@@ -58,7 +58,7 @@ class CandidateProfileManagement extends Component
 
         // By default, select the last (latest) advertisement if any exists and none was explicitly passed via URL
         if (empty($this->advertisementFilter)) {
-            $lastAd = Advertisement::orderBy('year', 'desc')->orderBy('id', 'desc')->first();
+            $lastAd = Advertisement::chronologicalDesc()->first();
             if ($lastAd) {
                 $this->advertisementFilter = (string)$lastAd->id;
             }
@@ -134,7 +134,7 @@ class CandidateProfileManagement extends Component
             ->whereDoesntHave('roles', fn($q) => $q->where('name', '!=', 'applicant'))
             ->get();
 
-        $this->availableAdvertisements = Advertisement::orderBy('year', 'desc')->orderBy('id', 'desc')->get();
+        $this->availableAdvertisements = Advertisement::chronologicalDesc()->get();
     }
 
     public function resetForm()
