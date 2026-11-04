@@ -4,19 +4,34 @@
         <!-- Header Card -->
         <div class="card mb-4" style="border-color: rgba(6,182,212,0.3); background: linear-gradient(135deg, rgba(6,182,212,0.06) 0%, rgba(15,23,42,0.85) 100%); backdrop-filter: blur(16px); position: relative; overflow: hidden; padding: 1.35rem 1.5rem; border-radius: var(--radius-lg);">
             <div style="position: absolute; right: -2rem; top: -2rem; width: 140px; height: 140px; background: radial-gradient(circle, var(--secondary-glow) 0%, transparent 70%); pointer-events: none;"></div>
-            <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.65rem;">
-                <div class="brand-icon-box" style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, rgba(6,182,212,0.25), rgba(14,165,233,0.4)); box-shadow: 0 4px 14px rgba(6,182,212,0.25); display: flex; align-items: center; justify-content: center;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <path d="m9 15 2 2 4-4"></path>
-                    </svg>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.85rem; margin-bottom: 0.65rem; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 0.85rem;">
+                    <div class="brand-icon-box" style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, rgba(6,182,212,0.25), rgba(14,165,233,0.4)); box-shadow: 0 4px 14px rgba(6,182,212,0.25); display: flex; align-items: center; justify-content: center;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <path d="m9 15 2 2 4-4"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="card-title" style="margin: 0; font-size: 1.35rem; font-weight: 800; letter-spacing: -0.02em;">Candidate Scrutiny Checklist</h2>
+                        <p class="card-subtitle" style="margin: 0.15rem 0 0;">
+                            Verification dossier for <strong style="color: var(--color-text-primary);">{{ trim(($application->user->basicInfo?->first_name ?? '') . ' ' . ($application->user->basicInfo?->last_name ?? '')) }}</strong>
+                        </p>
+                    </div>
                 </div>
                 <div>
-                    <h2 class="card-title" style="margin: 0; font-size: 1.35rem; font-weight: 800; letter-spacing: -0.02em;">Candidate Scrutiny Checklist</h2>
-                    <p class="card-subtitle" style="margin: 0.15rem 0 0;">
-                        Verification dossier for <strong style="color: var(--color-text-primary);">{{ trim(($application->user->basicInfo?->first_name ?? '') . ' ' . ($application->user->basicInfo?->last_name ?? '')) }}</strong>
-                    </p>
+                    <a href="{{ route('application.print', ['id' => $application->id, 'view' => 'admin']) }}" 
+                       target="_blank" 
+                       class="btn btn-secondary btn-sm" 
+                       style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; font-weight: 700;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                            <rect x="6" y="14" width="12" height="8"></rect>
+                        </svg>
+                        <span>Print Official Dossier</span>
+                    </a>
                 </div>
             </div>
             <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; color: var(--color-text-secondary); padding-top: 0.65rem; border-top: 1px solid rgba(255, 255, 255, 0.08); flex-wrap: wrap;">

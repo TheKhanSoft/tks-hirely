@@ -22,6 +22,9 @@ use App\Livewire\Admin\SystemSettings;
 use App\Livewire\Admin\ConstitutionCriteriaManagement;
 use App\Livewire\Admin\WorkflowStatusManagement;
 use App\Livewire\Admin\AdvertisementManagement;
+use App\Livewire\Admin\MeritListManagement;
+use App\Http\Controllers\ApplicationPrintController;
+use App\Http\Controllers\MeritListPrintController;
 use App\Livewire\Reviewer\EvaluationDesk;
 use App\Livewire\Board\LiveGradingPanel;
 use App\Livewire\Board\Dashboard as BoardDashboard;
@@ -125,6 +128,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/registrar/roles', RolePermissionManagement::class);
     Route::get('/registrar/permissions', function() { return redirect('/registrar/roles?tab=permissions'); });
     Route::get('/registrar/audit-logs', AuditLogManagement::class);
+    Route::get('/registrar/merit-lists', MeritListManagement::class);
     Route::get('/registrar/settings', SystemSettings::class);
     Route::get('/registrar/settings/{tab}', SystemSettings::class)->where('tab', '[a-zA-Z0-9_\-]+');
 
@@ -157,8 +161,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/roles', RolePermissionManagement::class);
     Route::get('/admin/permissions', function() { return redirect('/admin/roles?tab=permissions'); });
     Route::get('/admin/audit-logs', AuditLogManagement::class);
+    Route::get('/admin/merit-lists', MeritListManagement::class);
+    Route::get('/board/merit-lists', MeritListManagement::class);
     Route::get('/admin/settings', SystemSettings::class);
     Route::get('/admin/settings/{tab}', SystemSettings::class)->where('tab', '[a-zA-Z0-9_\-]+');
+
+    // Official Printable Documents & Gazettes
+    Route::get('/application/{id}/print', [ApplicationPrintController::class, 'show'])->name('application.print');
+    Route::get('/admin/applications/{id}/print', [ApplicationPrintController::class, 'show']);
+    Route::get('/registrar/applications/{id}/print', [ApplicationPrintController::class, 'show']);
+    Route::get('/applicant/applications/{id}/print', [ApplicationPrintController::class, 'show']);
+    Route::get('/admin/merit-lists/{campaignId}/print', [MeritListPrintController::class, 'show'])->name('merit-list.print');
+    Route::get('/registrar/merit-lists/{campaignId}/print', [MeritListPrintController::class, 'show']);
 
     // Direct / admin compatibility aliases
     Route::get('/admin/verification/{id}', ApplicationVerification::class);

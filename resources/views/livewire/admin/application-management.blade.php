@@ -20,6 +20,17 @@
 
         <div style="display: flex; align-items: center; gap: 0.75rem;">
             @if(!$isFormOpen && !$isDetailsOpen)
+                <a href="{{ request()->is('registrar*') ? '/registrar/merit-lists' : '/admin/merit-lists' }}" 
+                   class="btn btn-secondary" 
+                   style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.65rem 1.25rem; font-weight: 700; border-radius: 10px; text-decoration: none;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <polyline points="14 11 16 13 22 7"/>
+                    </svg>
+                    <span>Statutory Merit Lists</span>
+                </a>
+
                 @can('create-application')
                     <button type="button" class="btn btn-primary" wire:click="openCreateApplicationForm" style="display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 18px -2px rgba(99,102,241,0.5); padding: 0.65rem 1.35rem; font-weight: 700; border-radius: 10px;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -540,6 +551,24 @@
                                 click="viewApplicationDetails({{ $app->id }})">
                                 <x-slot:icon>
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </x-slot:icon>
+                            </x-entity-card-menu-item>
+
+                            <x-entity-card-menu-item 
+                                label="Print Master Dossier (Admin)" 
+                                href="{{ route('application.print', ['id' => $app->id, 'view' => 'admin']) }}"
+                                target="_blank">
+                                <x-slot:icon>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                                </x-slot:icon>
+                            </x-entity-card-menu-item>
+
+                            <x-entity-card-menu-item 
+                                label="Print Candidate Form" 
+                                href="{{ route('application.print', ['id' => $app->id, 'view' => 'candidate']) }}"
+                                target="_blank">
+                                <x-slot:icon>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
                                 </x-slot:icon>
                             </x-entity-card-menu-item>
 
@@ -1455,6 +1484,29 @@
                                 <span>Open Scrutiny Verification Desk</span>
                             </a>
                         @endif
+
+                        <a href="{{ route('application.print', ['id' => $selectedRecordDetails->id, 'view' => 'admin']) }}" 
+                           target="_blank" 
+                           class="btn btn-primary" 
+                           style="display: inline-flex; align-items: center; gap: 0.45rem; text-decoration: none; font-weight: 700; box-shadow: 0 4px 14px var(--primary-glow);">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                                <rect x="6" y="14" width="12" height="8"></rect>
+                            </svg>
+                            <span>Print Master Dossier (Admin)</span>
+                        </a>
+
+                        <a href="{{ route('application.print', ['id' => $selectedRecordDetails->id, 'view' => 'candidate']) }}" 
+                           target="_blank" 
+                           class="btn btn-secondary" 
+                           style="display: inline-flex; align-items: center; gap: 0.45rem; text-decoration: none; font-weight: 700;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                            </svg>
+                            <span>Print Candidate Form</span>
+                        </a>
                     </div>
                     <button type="button" class="btn btn-secondary" wire:click="$set('isDetailsOpen', false)" style="padding: 0.45rem 1.25rem;">Close Dossier</button>
                 </div>

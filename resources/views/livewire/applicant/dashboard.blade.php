@@ -514,6 +514,19 @@
                                 </td>
                                 <td>
                                     <div class="flex gap-2 align-center">
+                                        <!-- Print Official Application Form Button -->
+                                        <a href="{{ route('application.print', ['id' => $app->id, 'view' => 'candidate']) }}" 
+                                           target="_blank" 
+                                           class="btn btn-secondary btn-sm" 
+                                           title="Print Official Application Form & Submission Dossier">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                                <polyline points="14 2 14 8 20 8"/>
+                                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                            </svg>
+                                            <span>Print Form</span>
+                                        </a>
+
                                         <!-- View Official Slip Button -->
                                         <button type="button" class="btn btn-secondary btn-sm" wire:click="openSlipModal({{ $app->id }})" title="View / Print Official 3-Part Bank Slip">
                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -521,8 +534,19 @@
                                                 <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
                                                 <path d="M6 14h12v8H6z"/>
                                             </svg>
-                                            <span>Official Slip</span>
+                                            <span>Slip</span>
                                         </button>
+
+                                        <!-- View Campaign Merit List Link -->
+                                        <a href="{{ route('merit-list.print', ['campaignId' => $app->campaign_id, 'stage' => 'consolidated']) }}" 
+                                           target="_blank" 
+                                           class="btn btn-secondary btn-sm" 
+                                           title="View Official Campaign Merit Gazette">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                                            </svg>
+                                            <span>Merit List</span>
+                                        </a>
 
                                         @if($app->status === 'SUBMITTED' && $app->billingLedger)
                                             <a href="/bank/simulator?consumer_id={{ $app->billingLedger->consumer_id }}" class="btn btn-primary btn-sm" style="font-size: 0.78rem;">

@@ -841,6 +841,14 @@
                                     </x-slot:icon>
                                 </x-entity-card-menu-item>
 
+                                <x-entity-card-menu-item 
+                                    label="View Statutory Merit Lists" 
+                                    href="{{ (request()->is('registrar*') ? '/registrar/merit-lists' : '/admin/merit-lists') . '?camp=' . $camp->id }}">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="14 11 16 13 22 7"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+
                                 @if($canModify)
                                     <x-entity-card-menu-item 
                                         label="{{ $isClosed ? 'Link Board & Flow (Super Admin Override)' : 'Link Board & Process Flow' }}" 

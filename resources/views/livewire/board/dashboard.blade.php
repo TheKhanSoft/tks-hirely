@@ -16,6 +16,17 @@
         </div>
 
         <div class="flex align-center gap-3">
+            <a href="/board/merit-lists" 
+               class="btn btn-primary" 
+               style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.6rem 1rem; font-weight: 700; font-size: 0.84rem; text-decoration: none; box-shadow: 0 4px 14px var(--primary-glow);">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <polyline points="14 11 16 13 22 7"/>
+                </svg>
+                <span>All Stage Merit Lists</span>
+            </a>
+
             <button type="button" 
                     class="btn btn-secondary" 
                     wire:click="openRosterModal"
