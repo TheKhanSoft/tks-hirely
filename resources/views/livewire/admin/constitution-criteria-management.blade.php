@@ -193,8 +193,8 @@
                     :title="$board->name"
                     :subtitle="'#' . ($board->slug ?: 'board-'.$board->id)"
                     :tag="$board->required_total . ' Members'"
-                    :status-badge="$board->enforce_strict_quota ? 'Strict Quota' : 'Flexible Quota'"
-                    :status-class="$board->enforce_strict_quota ? 'badge-primary' : 'badge-paid'"
+                    :status-badge="$board->enforce_strict_quota ? '⚖️ Strict Quota Enforced' : '🕊️ Flexible Quota'"
+                    :status-class="$board->enforce_strict_quota ? 'badge-indigo' : 'badge-slate'"
                 >
                     <x-slot:body>
                         <div class="entity-card-metric-row">

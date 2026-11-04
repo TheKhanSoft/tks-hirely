@@ -108,8 +108,8 @@
             {!! $badge !!}
         </div>
     @elseif($statusBadge)
-        <div class="entity-card-status-strip {{ ($isActive === false || $status === 'inactive') ? 'is-inactive' : 'is-active' }}">
-            <span class="badge {{ $statusClass }}" style="font-size: 0.74rem; font-weight: 800; width: 100%; text-align: center;">
+        <div style="margin-bottom: 0.75rem;">
+            <span class="badge {{ $statusClass }}" style="font-size: 0.74rem; font-weight: 800; width: 100%; text-align: center; display: block; padding: 0.35rem 0.6rem; border-radius: 9999px;">
                 {{ $statusBadge }}
             </span>
         </div>
