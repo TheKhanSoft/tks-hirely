@@ -14,6 +14,7 @@
             </p>
         </div>
 
+        @can('manage-settings')
         <button type="button" 
                 wire:click="saveContactSettings" 
                 class="btn btn-primary" 
@@ -26,6 +27,7 @@
             <span wire:loading.remove wire:target="saveContactSettings">Save Contact Settings</span>
             <span wire:loading wire:target="saveContactSettings">Saving...</span>
         </button>
+        @endcan
     </div>
 
     @if(session()->has('message'))

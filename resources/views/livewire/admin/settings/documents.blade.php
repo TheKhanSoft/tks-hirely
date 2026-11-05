@@ -14,6 +14,7 @@
             </p>
         </div>
 
+        @can('manage-settings')
         <button type="button" 
                 wire:click="saveDocumentSettings" 
                 class="btn btn-primary" 
@@ -26,6 +27,7 @@
             <span wire:loading.remove wire:target="saveDocumentSettings">Save Document Rules</span>
             <span wire:loading wire:target="saveDocumentSettings">Saving...</span>
         </button>
+        @endcan
     </div>
 
     {{-- System Help Callout --}}

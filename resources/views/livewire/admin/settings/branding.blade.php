@@ -14,6 +14,7 @@
             </p>
         </div>
 
+        @can('manage-settings')
         <button type="button" 
                 wire:click="saveBrandingSettings" 
                 class="btn btn-primary" 
@@ -26,6 +27,7 @@
             <span wire:loading.remove wire:target="saveBrandingSettings">Save Branding Settings</span>
             <span wire:loading wire:target="saveBrandingSettings">Saving...</span>
         </button>
+        @endcan
     </div>
 
     @if(session()->has('message'))
@@ -119,6 +121,7 @@
                     <h3 style="font-size: 1rem; font-weight: 800; color: var(--color-text-primary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
                         <span>🖼️ Brand Logo &amp; Favicon Assets</span>
                     </h3>
+                    @can('manage-settings')
                     <div style="display: flex; gap: 0.5rem;">
                         <button type="button" wire:click="resetLogoToDefault" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 0.35rem 0.75rem;">
                             Reset Logos to Default SVG
@@ -127,6 +130,7 @@
                             Reset Favicon
                         </button>
                     </div>
+                    @endcan
                 </div>
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">

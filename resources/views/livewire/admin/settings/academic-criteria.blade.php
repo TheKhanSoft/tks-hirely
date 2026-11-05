@@ -14,6 +14,7 @@
             </p>
         </div>
 
+        @can('manage-settings')
         <button type="button" 
                 wire:click="saveAcademicCriteriaSettings" 
                 class="btn btn-primary" 
@@ -26,6 +27,7 @@
             <span wire:loading.remove wire:target="saveAcademicCriteriaSettings">Save Academic Benchmarks</span>
             <span wire:loading wire:target="saveAcademicCriteriaSettings">Saving...</span>
         </button>
+        @endcan
     </div>
 
     {{-- Statutory Callout --}}

@@ -14,6 +14,7 @@
             </p>
         </div>
 
+        @can('manage-settings')
         <button type="button" 
                 wire:click="savePipelineSettings" 
                 class="btn btn-primary" 
@@ -26,6 +27,7 @@
             <span wire:loading.remove wire:target="savePipelineSettings">Save Pipeline Settings</span>
             <span wire:loading wire:target="savePipelineSettings">Saving...</span>
         </button>
+        @endcan
     </div>
 
     {{-- System Help Callout Banner --}}

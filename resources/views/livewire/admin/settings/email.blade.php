@@ -14,6 +14,7 @@
             </p>
         </div>
 
+        @can('manage-settings')
         <button type="button" 
                 wire:click="saveEmailSettings" 
                 class="btn btn-primary" 
@@ -26,6 +27,7 @@
             <span wire:loading.remove wire:target="saveEmailSettings">Save Email Settings</span>
             <span wire:loading wire:target="saveEmailSettings">Saving...</span>
         </button>
+        @endcan
     </div>
 
     @if(session()->has('message'))
@@ -218,6 +220,7 @@
                            placeholder="Enter test recipient email (e.g. your email)" 
                            style="flex: 1; min-width: 260px; font-size: 0.90rem;">
                     
+                    @can('manage-settings')
                     <button type="button" 
                             wire:click="sendTestEmail" 
                             class="btn btn-secondary" 
@@ -226,6 +229,7 @@
                         <span wire:loading.remove wire:target="sendTestEmail">Send Test Email</span>
                         <span wire:loading wire:target="sendTestEmail">Dispatching...</span>
                     </button>
+                    @endcan
                 </div>
                 @error('test_email_recipient') <div style="color: var(--danger); font-size: 0.78rem; font-weight: 700; margin-top: 0.35rem;">{{ $message }}</div> @enderror
 

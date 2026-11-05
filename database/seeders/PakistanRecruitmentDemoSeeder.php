@@ -20,6 +20,7 @@ use App\Models\WorkExperience;
 use App\Models\AcademicMedal;
 use App\Models\ResearchProject;
 use App\Models\Patent;
+use App\Models\ProfessionalEvent;
 use App\Models\BasicInfo;
 use App\Models\ReviewerProfile;
 use App\Models\CommitteeConstitution;
@@ -1206,22 +1207,97 @@ class PakistanRecruitmentDemoSeeder extends Seeder
                 );
             }
 
-            // Seed Publications
+            // Seed Publications (3-4 publications per candidate)
+            $seedPubs = [
+                ['title' => "Scalable Architectural Paradigms for Fault-Tolerant Distributed Microservices (Candidate #{$i})", 'journal' => 'IEEE Transactions on Parallel and Distributed Systems', 'issn' => '1045-9219', 'cat' => 'W', 'if' => 5.300, 'year' => 2024],
+                ['title' => "Deep Transfer Learning for Autonomous Cyber Threat Detection (Candidate #{$i})", 'journal' => 'IEEE Transactions on Information Forensics and Security', 'issn' => '1556-6013', 'cat' => 'W', 'if' => 6.800, 'year' => 2023],
+                ['title' => "Survey of Microservice Topologies in Multi-Cloud Environments (Candidate #{$i})", 'journal' => 'ACM Computing Surveys', 'issn' => '0360-0300', 'cat' => 'W', 'if' => 16.600, 'year' => 2022],
+                ['title' => "Predictive Failure Analytics in Cloud-Native Deployment (Candidate #{$i})", 'journal' => 'IEEE Access', 'issn' => '2169-3536', 'cat' => 'X', 'if' => 3.400, 'year' => 2021],
+            ];
             if ($trackType === 'ACADEMIC') {
-                Publication::updateOrCreate(
-                    ['basic_info_id' => $bInfo->id, 'title' => "Scalable Architectural Paradigms for Fault-Tolerant Distributed Microservices (Candidate #{$i})"],
+                foreach ($seedPubs as $spIdx => $sp) {
+                    Publication::updateOrCreate(
+                        ['basic_info_id' => $bInfo->id, 'title' => $sp['title']],
+                        [
+                            'journal_name' => $sp['journal'],
+                            'issn_print' => $sp['issn'],
+                            'author_order' => $spIdx === 0 ? 1 : 2,
+                            'is_corresponding_author' => $spIdx === 0,
+                            'authors' => $fullName . ', Prof. Dr. Sarah Connor, Dr. Elena Rostova',
+                            'publication_year' => $sp['year'],
+                            'hjrs_category' => $sp['cat'],
+                            'impact_factor' => $sp['if'],
+                            'doi' => '10.1109/TPDS.' . (2020 + $spIdx) . '.' . (100000 + $i),
+                            'volume_issue' => 'Vol. ' . (30 + $spIdx) . ', Issue 4',
+                            'proof_path' => 'proofs/publications/paper_sample.pdf',
+                            'is_verified' => true,
+                        ]
+                    );
+                }
+
+                // Research Projects
+                ResearchProject::updateOrCreate(
+                    ['basic_info_id' => $bInfo->id, 'project_title' => "Federated Edge IoT Intelligence Framework (Candidate #{$i})"],
                     [
-                        'journal_name' => 'IEEE Transactions on Parallel and Distributed Systems',
-                        'issn_print' => '1045-9219',
-                        'author_order' => 1,
-                        'is_corresponding_author' => true,
-                        'publication_year' => 2018 + ($i % 6),
-                        'hjrs_category' => ($i % 5 === 0) ? 'X' : 'W',
-                        'impact_factor' => 4.350,
+                        'funding_agency' => 'HEC National Research Program for Universities (NRPU)',
+                        'grant_amount' => 12500000.00,
+                        'role_in_project' => 'Principal Investigator (PI)',
+                        'turnitin_similarity_percentage' => 4.20,
+                        'status' => 'COMPLETED',
+                        'co_pis' => 'Dr. Elena Rostova, Dr. Kenji Sato',
+                        'start_date' => '2021-03-01',
+                        'award_letter_proof_path' => 'proofs/projects/hec_award.pdf',
+                        'is_verified' => true,
+                    ]
+                );
+
+                // Patents
+                if ($i % 2 === 0) {
+                    Patent::updateOrCreate(
+                        ['basic_info_id' => $bInfo->id, 'registry_id' => "PK-PAT-HIST-{$i}"],
+                        [
+                            'title' => "Distributed Consensus Protocol for Asynchronous Nodes (Candidate #{$i})",
+                            'country' => 'Pakistan',
+                            'date_registered' => '2022-08-15',
+                            'is_licensed' => true,
+                            'proof_path' => 'proofs/patents/patent_hist.pdf',
+                            'is_verified' => true,
+                        ]
+                    );
+                }
+
+                // Events
+                ProfessionalEvent::updateOrCreate(
+                    ['basic_info_id' => $bInfo->id, 'event_name' => "2023 IEEE INFOCOM International Conference (Candidate #{$i})"],
+                    [
+                        'event_type' => 'CONFERENCE',
+                        'event_role' => 'PRESENTER_INTERNATIONAL',
+                        'paper_title' => "Near-Optimal Scheduling in Heterogeneous Fog Topologies",
+                        'start_date' => '2023-05-10',
+                        'end_date' => '2023-05-14',
+                        'location' => 'Vancouver, Canada',
+                        'organizer' => 'IEEE Communications Society',
+                        'certificate_proof_path' => 'proofs/events/infocom_cert.pdf',
                         'is_verified' => true,
                     ]
                 );
             }
+
+            // Work Experiences
+            WorkExperience::updateOrCreate(
+                ['basic_info_id' => $bInfo->id, 'job_title' => ($trackType === 'ACADEMIC' ? 'Associate Professor' : 'Senior Systems Specialist')],
+                [
+                    'organization' => $reg['uni'],
+                    'start_date' => '2019-09-01',
+                    'end_date' => null,
+                    'experience_type' => ($trackType === 'ACADEMIC' ? 'Teaching & Research' : 'IT Administration'),
+                    'sector' => 'Public Sector',
+                    'salary' => 'PKR 280,000 / month',
+                    'description' => 'Full-time faculty member and researcher in Computer Science & Engineering.',
+                    'proof_path' => 'proofs/experience/service_cert.pdf',
+                    'is_verified' => true,
+                ]
+            );
 
             // Apply to 1-2 historical campaigns
             $assignedJobs = [$historicalJobs[$i % count($historicalJobs)]];
@@ -2019,6 +2095,109 @@ class PakistanRecruitmentDemoSeeder extends Seeder
                     ]
                 );
             }
+
+            // Publications for Adv 58 Candidates
+            $adv58Pubs = [
+                ['title' => "Adaptive Distributed Consensus Mechanisms for Federated Edge Intelligence — {$cand['name']}", 'journal' => 'IEEE Transactions on Parallel and Distributed Systems', 'issn' => '1045-9219', 'cat' => 'W', 'if' => 5.300, 'year' => 2024],
+                ['title' => "Deep Transfer Learning and Feature Fusion for Autonomous Cyber Defense — {$cand['name']}", 'journal' => 'IEEE Transactions on Information Forensics and Security', 'issn' => '1556-6013', 'cat' => 'W', 'if' => 6.800, 'year' => 2023],
+                ['title' => "Scalable Microservice Architectures in Multi-Cloud Environments — {$cand['name']}", 'journal' => 'ACM Computing Surveys', 'issn' => '0360-0300', 'cat' => 'W', 'if' => 16.600, 'year' => 2023],
+                ['title' => "Automated Continuous Vulnerability Remediation in Cloud Pipelines — {$cand['name']}", 'journal' => 'IEEE Transactions on Software Engineering', 'issn' => '0098-5589', 'cat' => 'W', 'if' => 6.500, 'year' => 2022],
+                ['title' => "Predictive Failure Analytics in Distributed Systems — {$cand['name']}", 'journal' => 'IEEE Access', 'issn' => '2169-3536', 'cat' => 'X', 'if' => 3.400, 'year' => 2021],
+            ];
+            foreach ($adv58Pubs as $apIdx => $ap) {
+                Publication::updateOrCreate(
+                    ['basic_info_id' => $bInfo->id, 'title' => $ap['title']],
+                    [
+                        'journal_name' => $ap['journal'],
+                        'issn_print' => $ap['issn'],
+                        'author_order' => $apIdx === 0 ? 1 : 2,
+                        'is_corresponding_author' => $apIdx === 0,
+                        'authors' => $cand['name'] . ', Dr. Elena Rostova, Prof. Dr. Sarah Connor',
+                        'doi' => '10.1109/TPAMI.' . (2020 + $apIdx) . '.' . (200000 + $cIdx),
+                        'volume_issue' => 'Vol. ' . (40 + $apIdx) . ', Issue ' . ($apIdx + 1),
+                        'publication_year' => $ap['year'],
+                        'hjrs_category' => $ap['cat'],
+                        'impact_factor' => $ap['if'],
+                        'proof_path' => 'proofs/publications/adv58_pub_' . ($apIdx + 1) . '.pdf',
+                        'is_verified' => true,
+                    ]
+                );
+            }
+
+            // Research Projects for Adv 58 Candidates
+            ResearchProject::updateOrCreate(
+                ['basic_info_id' => $bInfo->id, 'project_title' => "National Autonomous Cyber Threat Detection Grid (PI: {$cand['name']})"],
+                [
+                    'funding_agency' => 'IGNITE National Technology R&D Fund',
+                    'grant_amount' => 28000000.00,
+                    'role_in_project' => 'Principal Investigator (PI)',
+                    'turnitin_similarity_percentage' => 4.80,
+                    'status' => 'ONGOING',
+                    'co_pis' => 'Dr. Kenji Sato (Tokyo), Engr. Tariq Aziz',
+                    'start_date' => '2023-01-15',
+                    'award_letter_proof_path' => 'proofs/projects/ignite_award.pdf',
+                    'is_verified' => true,
+                ]
+            );
+            ResearchProject::updateOrCreate(
+                ['basic_info_id' => $bInfo->id, 'project_title' => "Federated Transfer Learning Frameworks (PI: {$cand['name']})"],
+                [
+                    'funding_agency' => 'HEC National Research Program for Universities (NRPU)',
+                    'grant_amount' => 14500000.00,
+                    'role_in_project' => 'Principal Investigator (PI)',
+                    'turnitin_similarity_percentage' => 3.90,
+                    'status' => 'COMPLETED',
+                    'co_pis' => 'Prof. Dr. Sarah Connor (MIT)',
+                    'start_date' => '2021-07-01',
+                    'award_letter_proof_path' => 'proofs/projects/nrpu_award.pdf',
+                    'is_verified' => true,
+                ]
+            );
+
+            // Patents for Adv 58 Candidates
+            Patent::updateOrCreate(
+                ['basic_info_id' => $bInfo->id, 'registry_id' => "PK-PAT-58-{$cIdx}"],
+                [
+                    'title' => "Fault-Tolerant Distributed Consensus Protocol — {$cand['name']}",
+                    'country' => 'Pakistan',
+                    'date_registered' => '2023-04-18',
+                    'is_licensed' => true,
+                    'proof_path' => 'proofs/patents/patent_58.pdf',
+                    'is_verified' => true,
+                ]
+            );
+
+            // Conferences / Events for Adv 58 Candidates
+            ProfessionalEvent::updateOrCreate(
+                ['basic_info_id' => $bInfo->id, 'event_name' => "2024 IEEE INFOCOM Conference — {$cand['name']}"],
+                [
+                    'event_type' => 'CONFERENCE',
+                    'event_role' => 'PRESENTER_INTERNATIONAL',
+                    'paper_title' => "Near-Optimal Task Scheduling in Heterogeneous Fog Computing",
+                    'start_date' => '2024-05-20',
+                    'end_date' => '2024-05-23',
+                    'location' => 'Vancouver, Canada',
+                    'organizer' => 'IEEE Communications Society',
+                    'certificate_proof_path' => 'proofs/events/infocom24.pdf',
+                    'is_verified' => true,
+                ]
+            );
+
+            // Work Experience for Adv 58 Candidates
+            WorkExperience::updateOrCreate(
+                ['basic_info_id' => $bInfo->id, 'job_title' => ($cand['track'] === 'ACADEMIC' ? 'Tenured Associate Professor' : 'Director Technology Operations')],
+                [
+                    'organization' => 'National University of Sciences & Technology (NUST)',
+                    'start_date' => '2019-09-01',
+                    'end_date' => null,
+                    'experience_type' => ($cand['track'] === 'ACADEMIC' ? 'Teaching & Academic Research' : 'Executive Management'),
+                    'sector' => 'Public Sector University (BPS-20)',
+                    'salary' => 'PKR 350,000 / month',
+                    'description' => 'Supervising PhD research, teaching advanced Distributed Systems & AI, leading departmental statutory committees.',
+                    'proof_path' => 'proofs/experience/service_cert.pdf',
+                    'is_verified' => true,
+                ]
+            );
 
             $camp = $campaigns[$cand['job_code']] ?? null;
             if (!$camp) continue;

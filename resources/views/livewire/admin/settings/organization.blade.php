@@ -14,6 +14,7 @@
             </p>
         </div>
 
+        @can('manage-settings')
         <button type="button" 
                 wire:click="saveOrganizationProfile" 
                 class="btn btn-primary" 
@@ -26,6 +27,7 @@
             <span wire:loading.remove wire:target="saveOrganizationProfile">Save Organization Profile</span>
             <span wire:loading wire:target="saveOrganizationProfile">Saving...</span>
         </button>
+        @endcan
     </div>
 
     {{-- System Help Callout --}}
