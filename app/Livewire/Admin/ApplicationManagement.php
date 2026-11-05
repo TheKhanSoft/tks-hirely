@@ -49,6 +49,20 @@ class ApplicationManagement extends Component
     #[Url(as: 'voucher', except: '')]
     public $voucherFilter = '';
 
+    public $sortBy = 'created_at';
+    public $sortDir = 'desc';
+
+    public function sort($column)
+    {
+        if ($this->sortBy === $column) {
+            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDir = 'asc';
+        }
+        $this->resetPage();
+    }
+
     // Collections
     public $users;
     public $campaigns;
@@ -120,7 +134,7 @@ class ApplicationManagement extends Component
     public function openAppointmentLetterModal($appId)
     {
         $this->appointmentApplication = Application::with([
-            'user.basicInfo.academicDegrees',
+            'user.basicInfo.degrees',
             'campaign.advertisement',
             'evaluations',
         ])->findOrFail($appId);
@@ -219,6 +233,8 @@ class ApplicationManagement extends Component
         $this->statusFilter = '';
         $this->voucherFilter = '';
         $this->advertisementFilter = 'ALL';
+        $this->sortBy = 'created_at';
+        $this->sortDir = 'desc';
         $this->loadAuxiliaryData();
         $this->resetPage();
     }
@@ -857,7 +873,27 @@ class ApplicationManagement extends Component
             });
         }
 
-        $applications = $query->orderBy('created_at', 'desc')->paginate($this->perPage);
+        // Dynamic Column Sorting
+        if ($this->sortBy === 'candidate_name') {
+            $query->join('users', 'applications.user_id', '=', 'users.id')
+                ->leftJoin('basic_infos', 'users.id', '=', 'basic_infos.user_id')
+                ->orderBy('basic_infos.first_name', $this->sortDir)
+                ->select('applications.*');
+        } elseif ($this->sortBy === 'tracking_number') {
+            $query->orderBy('applications.id', $this->sortDir);
+        } elseif ($this->sortBy === 'campaign_title') {
+            $query->join('campaigns', 'applications.campaign_id', '=', 'campaigns.id')
+                ->orderBy('campaigns.title', $this->sortDir)
+                ->select('applications.*');
+        } elseif ($this->sortBy === 'status') {
+            $query->orderBy('applications.status', $this->sortDir);
+        } elseif ($this->sortBy === 'submission_timestamp') {
+            $query->orderBy('applications.submission_timestamp', $this->sortDir);
+        } else {
+            $query->orderBy('applications.created_at', $this->sortDir);
+        }
+
+        $applications = $query->paginate($this->perPage);
 
         // Field-matched reviewers for dispatch modal if open
         $fieldMatchedReviewers = collect();

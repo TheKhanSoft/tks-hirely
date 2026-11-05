@@ -95,6 +95,14 @@ class BasicInfo extends Model
     }
 
     /**
+     * Academic degrees alias.
+     */
+    public function academicDegrees(): HasMany
+    {
+        return $this->degrees();
+    }
+
+    /**
      * Work experiences.
      */
     public function experiences(): HasMany

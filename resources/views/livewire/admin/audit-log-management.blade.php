@@ -186,40 +186,65 @@
 
         <!-- Preserved Table View Alternative -->
         <x-slot:table>
-            <x-table :headers="['Action User', 'Access IP', 'Action Mode', 'Target Database Table', 'Record reference ID', 'Timestamp Logged', 'Action']">
-                @forelse($logs as $log)
-                    <tr>
-                        <td><strong>{{ $log->user?->email ?: 'Anonymous / Guest' }}</strong></td>
-                        <td><code>{{ $log->ip_address }}</code></td>
-                        <td>
-                            <span class="badge" style="background: {{ $log->action_type === 'DELETED' ? 'rgba(239,68,68,0.15)' : ($log->action_type === 'CREATED' ? 'rgba(16,185,129,0.15)' : 'rgba(99,102,241,0.15)') }}; color: {{ $log->action_type === 'DELETED' ? 'var(--danger)' : ($log->action_type === 'CREATED' ? 'var(--success)' : 'var(--primary)') }};">
-                                {{ $log->action_type }}
-                            </span>
-                        </td>
-                        <td><code>{{ $log->table_name }}</code></td>
-                        <td><code>ID #{{ $log->record_id }}</code></td>
-                        <td><small style="color: var(--color-text-secondary); font-family: monospace;">{{ $log->logged_at }}</small></td>
-                        <td>
-                            @can('view-audit-log')
-                                <div class="action-btn-group justify-end">
-                                    <button type="button" 
-                                            class="action-btn action-btn-view" 
-                                            wire:click="viewLogDetails({{ $log->id }})"
-                                            data-tooltip="View Audit State Diff"
-                                            aria-label="View Audit State Diff">
-                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-                                            <circle cx="12" cy="12" r="3"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                            @endcan
-                        </td>
-                    </tr>
-                @empty
-                    <tr><td colspan="7" class="text-center" style="padding: 2.5rem; color: var(--color-text-secondary);">No security audit records logged.</td></tr>
-                @endforelse
-            </x-table>
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr style="user-select: none;">
+                            <th>Action User</th>
+                            <th style="cursor: pointer;" wire:click="sortBy('ip_address')">
+                                Access IP @if($sortBy === 'ip_address') <span style="color: var(--secondary);">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
+                            <th style="cursor: pointer;" wire:click="sortBy('action_type')">
+                                Action Mode @if($sortBy === 'action_type') <span style="color: var(--secondary);">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
+                            <th style="cursor: pointer;" wire:click="sortBy('table_name')">
+                                Target Database Table @if($sortBy === 'table_name') <span style="color: var(--secondary);">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
+                            <th style="cursor: pointer;" wire:click="sortBy('record_id')">
+                                Record reference ID @if($sortBy === 'record_id') <span style="color: var(--secondary);">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
+                            <th style="cursor: pointer;" wire:click="sortBy('logged_at')">
+                                Timestamp Logged @if($sortBy === 'logged_at') <span style="color: var(--secondary);">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
+                            <th style="text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($logs as $log)
+                            <tr>
+                                <td><strong>{{ $log->user?->email ?: 'Anonymous / Guest' }}</strong></td>
+                                <td><code>{{ $log->ip_address }}</code></td>
+                                <td>
+                                    <span class="badge" style="background: {{ $log->action_type === 'DELETED' ? 'rgba(239,68,68,0.15)' : ($log->action_type === 'CREATED' ? 'rgba(16,185,129,0.15)' : 'rgba(99,102,241,0.15)') }}; color: {{ $log->action_type === 'DELETED' ? 'var(--danger)' : ($log->action_type === 'CREATED' ? 'var(--success)' : 'var(--primary)') }};">
+                                        {{ $log->action_type }}
+                                    </span>
+                                </td>
+                                <td><code>{{ $log->table_name }}</code></td>
+                                <td><code>ID #{{ $log->record_id }}</code></td>
+                                <td><small style="color: var(--color-text-secondary); font-family: monospace;">{{ $log->logged_at }}</small></td>
+                                <td>
+                                    @can('view-audit-log')
+                                        <div class="action-btn-group justify-end">
+                                            <button type="button" 
+                                                    class="action-btn action-btn-view" 
+                                                    wire:click="viewLogDetails({{ $log->id }})"
+                                                    data-tooltip="View Audit State Diff"
+                                                    aria-label="View Audit State Diff">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                                    <circle cx="12" cy="12" r="3"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    @endcan
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="7" class="text-center" style="padding: 2.5rem; color: var(--color-text-secondary);">No security audit records logged.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </x-slot:table>
     </x-entity-card-grid>
 

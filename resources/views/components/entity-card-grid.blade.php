@@ -105,6 +105,20 @@
                     </button>
                 @endif
 
+                <!-- Print Listing Option -->
+                <button type="button" 
+                        class="btn btn-secondary" 
+                        onclick="window.print()" 
+                        style="padding: 0.45rem 0.85rem; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem;"
+                        data-tooltip="Print Listing (A4 Landscape)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                        <rect x="6" y="14" width="12" height="8"></rect>
+                    </svg>
+                    <span>Print</span>
+                </button>
+
                 <!-- Import Option -->
                 @if($canImport)
                     <button type="button" 

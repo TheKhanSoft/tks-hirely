@@ -18,7 +18,33 @@
             </div>
         </div>
 
-        <div class="flex align-center gap-3">
+        <div class="flex align-center gap-2" style="flex-wrap: wrap;">
+            <button type="button" 
+                    wire:click="exportCsv" 
+                    class="btn btn-secondary" 
+                    style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.6rem 1.15rem; font-weight: 700; box-shadow: var(--shadow-sm);"
+                    title="Export currently filtered scrutiny roster to CSV">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>Export Scrutiny CSV</span>
+            </button>
+
+            <button type="button" 
+                    onclick="window.print()" 
+                    class="btn btn-secondary" 
+                    style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.6rem 1.15rem; font-weight: 700; box-shadow: var(--shadow-sm);"
+                    title="Print current scrutiny queue roster (A4 Landscape)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                    <rect x="6" y="14" width="12" height="8"></rect>
+                </svg>
+                <span>Print Scrutiny Roster</span>
+            </button>
+
             <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); padding: 0.5rem 1rem; border-radius: 9999px;" class="flex align-center gap-2">
                 <span class="badge-dot" style="background: var(--primary); box-shadow: 0 0 8px var(--primary);"></span>
                 <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-primary); text-transform: uppercase; letter-spacing: 0.05em;">
@@ -102,24 +128,34 @@
 
     <!-- Smart Filter & Search Bar with View Mode Switcher -->
     <div class="card mb-6" style="padding: 1.15rem 1.35rem;">
-        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <div style="display: flex; gap: 0.85rem; align-items: center; flex-wrap: wrap;">
             <!-- Search -->
-            <div style="position: relative; flex: 2; min-width: 260px;">
+            <div style="position: relative; flex: 2; min-width: 220px;">
                 <input type="text" 
                        class="form-control" 
                        wire:model.live.debounce.300ms="search" 
                        placeholder="Search candidate name, CNIC, tracking ID, or email..." 
-                       style="padding-left: 2.5rem; background: var(--bg-card); color: var(--color-text-primary);">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); pointer-events: none;">
+                       style="padding-left: 2.5rem; background: var(--bg-card); color: var(--color-text-primary); font-size: 0.85rem;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); pointer-events: none;">
                     <circle cx="11" cy="11" r="8"/>
                     <path d="m21 21-4.3-4.3"/>
                 </svg>
             </div>
 
+            <!-- Advertisement Filter -->
+            <div style="flex: 1; min-width: 170px;">
+                <select class="form-control form-select" wire:model.live="advertisementFilter" style="background: var(--bg-card); color: var(--color-text-primary); font-size: 0.85rem;">
+                    <option value="ALL">📢 All Advertisements</option>
+                    @foreach($advertisements as $adv)
+                        <option value="{{ $adv->id }}">📢 {{ $adv->advertisement_no }} ({{ $adv->year }})</option>
+                    @endforeach
+                </select>
+            </div>
+
             <!-- Campaign Filter -->
-            <div style="flex: 1; min-width: 180px;">
-                <select class="form-control form-select" wire:model.live="campaignFilter" style="background: var(--bg-card); color: var(--color-text-primary);">
-                    <option value="">All Campaigns</option>
+            <div style="flex: 1.5; min-width: 190px;">
+                <select class="form-control form-select" wire:model.live="campaignFilter" style="background: var(--bg-card); color: var(--color-text-primary); font-size: 0.85rem;">
+                    <option value="">All Campaigns / Posts</option>
                     @foreach($campaigns as $c)
                         <option value="{{ $c->id }}">{{ $c->title }} ({{ $c->job_code }})</option>
                     @endforeach
@@ -127,18 +163,29 @@
             </div>
 
             <!-- Track Filter -->
-            <div style="width: 160px;">
-                <select class="form-control form-select" wire:model.live="trackFilter" style="background: var(--bg-card); color: var(--color-text-primary);">
+            <div style="width: 140px;">
+                <select class="form-control form-select" wire:model.live="trackFilter" style="background: var(--bg-card); color: var(--color-text-primary); font-size: 0.85rem;">
                     <option value="">All Tracks</option>
-                    <option value="ACADEMIC">Academic Faculty</option>
+                    <option value="ACADEMIC">Academic</option>
                     <option value="ADMINISTRATIVE">Administrative</option>
                     <option value="SUPPORT">Support Staff</option>
                 </select>
             </div>
 
+            <!-- Quota Filter -->
+            <div style="width: 130px;">
+                <select class="form-control form-select" wire:model.live="quotaFilter" style="background: var(--bg-card); color: var(--color-text-primary); font-size: 0.85rem;">
+                    <option value="">All Quotas</option>
+                    <option value="Open Merit">Open Merit</option>
+                    <option value="Women">Women</option>
+                    <option value="Minority">Minority</option>
+                    <option value="Disabled">Disabled</option>
+                </select>
+            </div>
+
             <!-- Status Filter -->
-            <div style="width: 160px;">
-                <select class="form-control form-select" wire:model.live="statusFilter" style="background: var(--bg-card); color: var(--color-text-primary);">
+            <div style="width: 150px;">
+                <select class="form-control form-select" wire:model.live="statusFilter" style="background: var(--bg-card); color: var(--color-text-primary); font-size: 0.85rem;">
                     <option value="">All Statuses</option>
                     <option value="PAID">Awaiting Scrutiny</option>
                     <option value="ELIGIBLE">Eligible</option>
@@ -146,6 +193,21 @@
                     <option value="APPEALED">Appealed</option>
                 </select>
             </div>
+
+            <!-- Reset Filters Button -->
+            @if(!empty($search) || $advertisementFilter !== 'ALL' || !empty($campaignFilter) || !empty($trackFilter) || !empty($quotaFilter) || $statusFilter !== 'PAID')
+                <button type="button" 
+                        wire:click="resetFilters" 
+                        class="btn btn-secondary btn-sm" 
+                        title="Reset all filters to default"
+                        style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.55rem 0.85rem; font-size: 0.8rem; font-weight: 700;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                    <span>Reset</span>
+                </button>
+            @endif
 
             <!-- View Mode Switcher -->
             <div class="view-mode-toggle" style="margin-left: auto;">
@@ -276,13 +338,19 @@
                 <div class="table-container">
                     <table class="table">
                         <thead>
-                            <tr>
-                                <th>Candidate Dossier</th>
-                                <th>Position Applied</th>
+                            <tr style="user-select: none;">
+                                <th style="cursor: pointer;" wire:click="sort('candidate_name')" title="Sort by candidate name">
+                                    Candidate Dossier @if($sortBy === 'candidate_name') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                                </th>
+                                <th style="cursor: pointer;" wire:click="sort('campaign_title')" title="Sort by position">
+                                    Position Applied @if($sortBy === 'campaign_title') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                                </th>
                                 <th>Cadre Track</th>
                                 <th>Statutory Quota</th>
-                                <th>Current State</th>
-                                <th style="text-align: right;">Action</th>
+                                <th style="cursor: pointer;" wire:click="sort('status')" title="Sort by status">
+                                    Current State @if($sortBy === 'status') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                                </th>
+                                <th style="text-align: right;" class="table-actions">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -436,7 +504,7 @@
             @php
                 $certBi = $selectedAppForCertificate->user->basicInfo;
                 $certName = $certBi ? trim($certBi->first_name . ' ' . $certBi->last_name) : $selectedAppForCertificate->user->email;
-                $degrees = $certBi?->academicDegrees ?? collect();
+                $degrees = $certBi?->degrees ?? collect();
                 $exps = $certBi?->experiences ?? collect();
             @endphp
             <div style="max-height: 75vh; overflow-y: auto; padding-right: 0.5rem;" id="printable-scrutiny-certificate">

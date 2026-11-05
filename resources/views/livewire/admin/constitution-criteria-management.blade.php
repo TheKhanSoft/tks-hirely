@@ -337,12 +337,22 @@
                 <div class="table-responsive">
                     <table class="table" style="margin: 0; font-size: 0.85rem; vertical-align: middle;">
                         <thead style="background: var(--bg-surface); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); border-bottom: 1px solid var(--border-color);">
-                            <tr>
-                                <th style="padding: 0.85rem 1.25rem;">Committee / Board Name</th>
-                                <th style="padding: 0.85rem 1rem;">Type</th>
-                                <th style="padding: 0.85rem 1rem;">Sector</th>
-                                <th style="padding: 0.85rem 1rem;">Quorum Summary</th>
-                                <th style="padding: 0.85rem 1rem;">Responsible Stage</th>
+                            <tr style="user-select: none;">
+                                <th style="padding: 0.85rem 1.25rem; cursor: pointer;" wire:click="sortBy('name')">
+                                    Committee / Board Name @if($sortBy === 'name') <span style="color: var(--secondary);">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span> @endif
+                                </th>
+                                <th style="padding: 0.85rem 1rem; cursor: pointer;" wire:click="sortBy('committee_type')">
+                                    Type @if($sortBy === 'committee_type') <span style="color: var(--secondary);">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span> @endif
+                                </th>
+                                <th style="padding: 0.85rem 1rem; cursor: pointer;" wire:click="sortBy('organization_sector')">
+                                    Sector @if($sortBy === 'organization_sector') <span style="color: var(--secondary);">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span> @endif
+                                </th>
+                                <th style="padding: 0.85rem 1rem; cursor: pointer;" wire:click="sortBy('required_total')">
+                                    Quorum Summary @if($sortBy === 'required_total') <span style="color: var(--secondary);">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span> @endif
+                                </th>
+                                <th style="padding: 0.85rem 1rem; cursor: pointer;" wire:click="sortBy('responsible_stage')">
+                                    Responsible Stage @if($sortBy === 'responsible_stage') <span style="color: var(--secondary);">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span> @endif
+                                </th>
                                 <th style="padding: 0.85rem 1rem; text-align: center;">Status</th>
                                 <th style="padding: 0.85rem 1.25rem; text-align: right;">Actions</th>
                             </tr>

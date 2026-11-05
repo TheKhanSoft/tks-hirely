@@ -31,6 +31,20 @@ class PaymentManagement extends Component
     #[Url(as: 'ad', except: 'ALL')]
     public $advertisementFilter = 'ALL';
 
+    public $sortBy = 'created_at';
+    public $sortDir = 'desc';
+
+    public function sort($column)
+    {
+        if ($this->sortBy === $column) {
+            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDir = 'asc';
+        }
+        $this->resetPage();
+    }
+
     // Collections
     public $availableApplications = [];
 
@@ -70,6 +84,8 @@ class PaymentManagement extends Component
         $this->search = '';
         $this->statusFilter = '';
         $this->advertisementFilter = 'ALL';
+        $this->sortBy = 'created_at';
+        $this->sortDir = 'desc';
         $this->resetPage();
     }
 
@@ -281,7 +297,20 @@ class PaymentManagement extends Component
             });
         }
 
-        $payments = $query->orderBy('created_at', 'desc')->paginate($this->perPage);
+        // Dynamic Column Sorting
+        if ($this->sortBy === 'consumer_id') {
+            $query->orderBy('consumer_id', $this->sortDir);
+        } elseif ($this->sortBy === 'amount') {
+            $query->orderBy('amount', $this->sortDir);
+        } elseif ($this->sortBy === 'status') {
+            $query->orderBy('status', $this->sortDir);
+        } elseif ($this->sortBy === 'transaction_id') {
+            $query->orderBy('transaction_id', $this->sortDir);
+        } else {
+            $query->orderBy('created_at', $this->sortDir);
+        }
+
+        $payments = $query->paginate($this->perPage);
 
         // Context-Aware Financial Base Query
         $baseStatsQuery = BillingLedger::query();

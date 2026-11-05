@@ -1,20 +1,39 @@
+@php
+    $sysAppName = \App\Models\SystemSetting::getAppName();
+    $sysAppLogo = \App\Models\SystemSetting::getAppLogo();
+    $sysAppFavicon = \App\Models\SystemSetting::getAppFavicon();
+    $sysAppVersion = \App\Models\SystemSetting::get('app_version', 'v2.4 Enterprise OS');
+    $sysAccentColor = \App\Models\SystemSetting::get('theme_accent_color', '#4f46e5');
+    $announcementActive = (bool) \App\Models\SystemSetting::get('portal_announcement_enabled', false);
+    $announcementType = \App\Models\SystemSetting::get('portal_announcement_type', 'info');
+    $announcementMsg = \App\Models\SystemSetting::get('portal_announcement_message', '');
+    $footerCopyright = \App\Models\SystemSetting::get('footer_copyright_text', '© ' . date('Y') . ' ' . $sysAppName . '. All rights reserved.');
+    $supportEmail = \App\Models\SystemSetting::get('support_email');
+    $supportPhone = \App\Models\SystemSetting::get('support_phone');
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $title ?? 'Hirely - University Recruitment OS' }}</title>
+    <title>{{ $title ?? ($sysAppName . ' - University Recruitment OS') }}</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     
     <!-- Modern Favicons & Brand Assets -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="icon" href="{{ $sysAppFavicon }}">
+    <link rel="shortcut icon" href="{{ $sysAppFavicon }}">
     <link rel="manifest" href="/site.webmanifest">
-    <meta name="theme-color" content="#4f46e5">
+    <meta name="theme-color" content="{{ $sysAccentColor }}">
+    @if($sysAccentColor && $sysAccentColor !== '#4f46e5')
+    <style>
+        :root {
+            --primary: {{ $sysAccentColor }};
+            --primary-hover: {{ $sysAccentColor }}dd;
+            --primary-glow: {{ $sysAccentColor }}33;
+        }
+    </style>
+    @endif
 
     <!-- Modern Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -41,12 +60,12 @@
         <aside class="sidebar" id="appSidebar">
             <!-- Brand Logo -->
             <a href="/" class="sidebar-brand-wrapper">
-                <div class="brand-icon-box" style="padding: 0; background: transparent; box-shadow: none; overflow: hidden;">
-                    <img src="/images/logo-icon.svg" alt="Hirely" width="34" height="34" style="border-radius: 9px; display: block; box-shadow: 0 4px 14px var(--primary-glow);">
+                <div class="brand-icon-box" style="padding: 0; background: transparent; box-shadow: none; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                    <img src="{{ $sysAppLogo }}" alt="{{ $sysAppName }}" width="34" height="34" style="border-radius: 9px; display: block; box-shadow: 0 4px 14px var(--primary-glow); object-fit: contain;">
                 </div>
                 <div>
-                    <div class="brand-title">HIRELY</div>
-                    <div class="brand-badge"><span class="badge-dot" style="background: currentColor;"></span> v2.4 Enterprise OS</div>
+                    <div class="brand-title">{{ strtoupper($sysAppName) }}</div>
+                    <div class="brand-badge"><span class="badge-dot" style="background: currentColor;"></span> {{ $sysAppVersion }}</div>
                 </div>
             </a>
             
@@ -510,6 +529,29 @@
 
             <!-- Main Container -->
             <main class="container">
+                @if($announcementActive && !empty($announcementMsg))
+                    @php
+                        $bannerMeta = match($announcementType) {
+                            'warning' => ['bg' => 'rgba(245, 158, 11, 0.12)', 'border' => 'rgba(245, 158, 11, 0.4)', 'text' => '#fbbf24', 'badge' => 'Attention', 'icon' => '⚠️'],
+                            'danger' => ['bg' => 'rgba(239, 68, 68, 0.12)', 'border' => 'rgba(239, 68, 68, 0.4)', 'text' => '#f87171', 'badge' => 'Urgent Notice', 'icon' => '🚨'],
+                            'success' => ['bg' => 'rgba(16, 185, 129, 0.12)', 'border' => 'rgba(16, 185, 129, 0.4)', 'text' => '#34d399', 'badge' => 'Update', 'icon' => '✅'],
+                            default => ['bg' => 'rgba(79, 70, 229, 0.12)', 'border' => 'rgba(79, 70, 229, 0.4)', 'text' => '#a5b4fc', 'badge' => 'Announcement', 'icon' => '📢'],
+                        };
+                    @endphp
+                    <div class="card" style="border-color: {{ $bannerMeta['border'] }}; background: {{ $bannerMeta['bg'] }}; margin-bottom: 1.5rem; padding: 0.85rem 1.15rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-radius: var(--radius-sm);">
+                        <div style="display: flex; align-items: center; gap: 0.85rem; flex-wrap: wrap;">
+                            <span style="font-size: 1.25rem; line-height: 1;">{{ $bannerMeta['icon'] }}</span>
+                            <span style="background: {{ $bannerMeta['border'] }}; color: {{ $bannerMeta['text'] }}; padding: 0.15rem 0.55rem; border-radius: 4px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;">
+                                {{ $bannerMeta['badge'] }}
+                            </span>
+                            <span style="color: {{ $bannerMeta['text'] }}; font-weight: 600; font-size: 0.92rem; line-height: 1.4;">
+                                {{ $announcementMsg }}
+                            </span>
+                        </div>
+                        <button type="button" style="background: none; border: none; color: {{ $bannerMeta['text'] }}; font-size: 1.35rem; cursor: pointer; line-height: 1; padding: 0 0.25rem; opacity: 0.8;" onclick="this.closest('.card').remove()" title="Dismiss announcement">×</button>
+                    </div>
+                @endif
+
                 @if (session()->has('message'))
                     <div class="card" style="border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.08); margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
                         <div style="display: flex; align-items: center; gap: 0.75rem;">
@@ -538,6 +580,24 @@
                 @endif
 
                 {{ $slot }}
+
+                <footer style="margin-top: 3.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; font-size: 0.82rem; color: var(--color-text-muted);">
+                    <div>
+                        {{ $footerCopyright }}
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1.25rem;">
+                        @if(!empty($supportEmail))
+                            <a href="mailto:{{ $supportEmail }}" style="color: var(--color-text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                <span>📧</span> {{ $supportEmail }}
+                            </a>
+                        @endif
+                        @if(!empty($supportPhone))
+                            <a href="tel:{{ $supportPhone }}" style="color: var(--color-text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                <span>📞</span> {{ $supportPhone }}
+                            </a>
+                        @endif
+                    </div>
+                </footer>
             </main>
         </div>
     </div>

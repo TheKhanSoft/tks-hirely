@@ -10,6 +10,12 @@ use App\Models\BasicInfo;
 use App\Models\AcademicDegree;
 use App\Models\WorkExperience;
 use App\Models\Publication;
+use App\Models\ResearchProject;
+use App\Models\Patent;
+use App\Models\AcademicMedal;
+use App\Models\Training;
+use App\Models\ProfessionalEvent;
+use App\Models\Referee;
 use App\Models\BillingLedger;
 use App\Models\LiveEvaluation;
 use App\Models\ApplicationReview;
@@ -219,6 +225,112 @@ class ApplicationPrintAndMeritListTest extends TestCase
         $regResponse->assertStatus(200);
         $regResponse->assertSee('Candidate does not possess mandatory Terminal Ph.D. Degree');
         $regResponse->assertSee('INELIGIBLE / DISQUALIFIED');
+    }
+
+    public function test_dossier_prints_user_audit_details_and_full_academic_research_portfolio(): void
+    {
+        $bi = $this->candidate1->basicInfo;
+
+        // Add Research Project
+        ResearchProject::create([
+            'basic_info_id' => $bi->id,
+            'project_title' => 'Quantum Neural Synthesis Framework',
+            'funding_agency' => 'Higher Education Commission NRPU',
+            'grant_amount' => 4500000.00,
+            'role_in_project' => 'Principal Investigator',
+            'status' => 'COMPLETED',
+            'start_date' => '2023-01-01',
+        ]);
+
+        // Add Patent
+        Patent::create([
+            'basic_info_id' => $bi->id,
+            'title' => 'Adaptive Neuromorphic Turing Engine',
+            'registry_id' => 'PK-PAT-2026-9901',
+            'country' => 'Pakistan',
+            'date_registered' => '2024-03-15',
+            'is_licensed' => true,
+            'proof_path' => 'proofs/patent.pdf',
+        ]);
+
+        // Add Medal
+        AcademicMedal::create([
+            'basic_info_id' => $bi->id,
+            'degree_title' => 'Ph.D. in Computer Science',
+            'medal_type' => 'GOLD',
+            'year_awarded' => 2012,
+            'transcription_proof_path' => 'proofs/gold_medal.pdf',
+        ]);
+
+        // Add Training
+        Training::create([
+            'basic_info_id' => $bi->id,
+            'title' => 'Executive Higher Education Academic Leadership',
+            'body' => 'National Academy of Higher Education (NAHE)',
+            'proof_path' => 'proofs/nahe_training.pdf',
+        ]);
+
+        // Add Event
+        ProfessionalEvent::create([
+            'basic_info_id' => $bi->id,
+            'event_name' => 'International Conference on Frontier AI',
+            'event_type' => 'CONFERENCE',
+            'event_role' => 'PRESENTER_INTERNATIONAL',
+            'paper_title' => 'Universal Computability Limits',
+            'organizer' => 'IEEE Computer Society',
+            'location' => 'Geneva, Switzerland',
+            'start_date' => '2024-05-10',
+            'end_date' => '2024-05-12',
+            'certificate_proof_path' => 'proofs/conf_cert.pdf',
+        ]);
+
+        // Add Referee
+        Referee::create([
+            'basic_info_id' => $bi->id,
+            'name' => 'Prof. Dr. Alonzo Church',
+            'designation' => 'Chair of Mathematics',
+            'organization' => 'Princeton University',
+            'relation' => 'Doctoral Advisor',
+            'email' => 'church@princeton.edu',
+            'phone' => '+1-609-555-0199',
+        ]);
+
+        // 1. Candidate prints own dossier
+        $this->actingAs($this->candidate1);
+        $candidatePrint = $this->get("/application/{$this->application1->id}/print");
+        $candidatePrint->assertStatus(200);
+
+        // Check Requirement 1: User details (Full Name (Username) - Role & Printed/Downloaded on Date Time)
+        $candidatePrint->assertSee('Printed / Downloaded By');
+        $candidatePrint->assertSee('Turing Alan (candidate1@test.com)');
+        $candidatePrint->assertSee('Applicant');
+        $candidatePrint->assertSee('Printed / Downloaded on Date Time');
+
+        // Check Requirement 2: Publications, Research Projects, Patents, Medals, Events, Referees
+        $candidatePrint->assertSee('Research Publications & Scholarly Output');
+        $candidatePrint->assertSee('On Computable Numbers with an Application to the Entscheidungsproblem');
+        $candidatePrint->assertSee('Quantum Neural Synthesis Framework');
+        $candidatePrint->assertSee('Higher Education Commission NRPU');
+        $candidatePrint->assertSee('4,500,000.00');
+        $candidatePrint->assertSee('Adaptive Neuromorphic Turing Engine');
+        $candidatePrint->assertSee('PK-PAT-2026-9901');
+        $candidatePrint->assertSee('GOLD Medal');
+        $candidatePrint->assertSee('Executive Higher Education Academic Leadership');
+        $candidatePrint->assertSee('International Conference on Frontier AI');
+        $candidatePrint->assertSee('Prof. Dr. Alonzo Church');
+        $candidatePrint->assertSee('church@princeton.edu');
+
+        // 2. Admin prints candidate dossier
+        $this->actingAs($this->admin);
+        $adminPrint = $this->get("/application/{$this->application1->id}/print?view=admin");
+        $adminPrint->assertStatus(200);
+
+        // Check Admin details
+        $adminPrint->assertSee('admin@hirely.test');
+        $adminPrint->assertSee('Super Admin');
+        $adminPrint->assertSee('Printed / Downloaded on Date Time');
+        $adminPrint->assertSee('Quantum Neural Synthesis Framework');
+        $adminPrint->assertSee('Adaptive Neuromorphic Turing Engine');
     }
 
     public function test_merit_list_management_desk_loads_and_switches_stages(): void

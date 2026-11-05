@@ -1,19 +1,32 @@
+@php
+    $sysAppName = \App\Models\SystemSetting::getAppName();
+    $sysAppLogo = \App\Models\SystemSetting::getAppLogo();
+    $sysAppFavicon = \App\Models\SystemSetting::getAppFavicon();
+    $sysTagline = \App\Models\SystemSetting::get('app_tagline', 'Unified University Faculty & Officer Recruitment Portal');
+    $sysAccentColor = \App\Models\SystemSetting::get('theme_accent_color', '#4f46e5');
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-    <title>Sign In - Hirely University Recruitment OS</title>
+    <title>Sign In - {{ $sysAppName }} University Recruitment OS</title>
     
     <!-- Modern Favicons & Brand Assets -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="icon" href="{{ $sysAppFavicon }}">
+    <link rel="shortcut icon" href="{{ $sysAppFavicon }}">
     <link rel="manifest" href="/site.webmanifest">
-    <meta name="theme-color" content="#4f46e5">
+    <meta name="theme-color" content="{{ $sysAccentColor }}">
+    @if($sysAccentColor && $sysAccentColor !== '#4f46e5')
+    <style>
+        :root {
+            --primary: {{ $sysAccentColor }};
+            --primary-hover: {{ $sysAccentColor }}dd;
+            --primary-glow: {{ $sysAccentColor }}33;
+        }
+    </style>
+    @endif
 
     <!-- Modern Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -43,14 +56,14 @@
             <!-- Brand Logo Header -->
             <div class="text-center mb-6">
                 <div class="auth-header-brand">
-                    <div class="brand-icon-box" style="width: 52px; height: 52px; padding: 0; background: transparent; box-shadow: none;">
-                        <img src="/images/logo-icon.svg" alt="Hirely" width="52" height="52" style="border-radius: 14px; box-shadow: 0 8px 24px var(--primary-glow); display: block;">
+                    <div class="brand-icon-box" style="width: 52px; height: 52px; padding: 0; background: transparent; box-shadow: none; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                        <img src="{{ $sysAppLogo }}" alt="{{ $sysAppName }}" width="52" height="52" style="border-radius: 14px; box-shadow: 0 8px 24px var(--primary-glow); display: block; object-fit: contain;">
                     </div>
                 </div>
                 <h1 style="font-family: 'Outfit', sans-serif; font-size: 1.85rem; font-weight: 800; letter-spacing: -0.5px; color: var(--color-text-primary); margin-bottom: 0.35rem;">
-                    Sign in to <span style="background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">HIRELY</span>
+                    Sign in to <span style="background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{{ strtoupper($sysAppName) }}</span>
                 </h1>
-                <p class="card-subtitle" style="font-size: 0.9rem;">Unified University Faculty & Officer Recruitment Portal</p>
+                <p class="card-subtitle" style="font-size: 0.9rem;">{{ $sysTagline }}</p>
             </div>
 
             <!-- Login Form -->
@@ -142,7 +155,7 @@
             <!-- Footer note -->
             <div style="margin-top: 1.5rem; text-align: center;">
                 <p style="font-size: 0.75rem; color: var(--color-text-muted);">
-                    Hirely Enterprise Recruitment Platform &bull; Pakistan Higher Education Standards
+                    {{ $sysAppName }} Enterprise Recruitment Platform &bull; Pakistan Higher Education Standards
                 </p>
             </div>
         </div>

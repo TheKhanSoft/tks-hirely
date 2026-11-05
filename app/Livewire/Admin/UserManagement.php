@@ -24,6 +24,20 @@ class UserManagement extends Component
     public $statusFilter = '';
     public $categorySection = 'ALL'; // 'ALL', 'STAFF', 'COMMITTEES', 'REVIEWERS', 'APPLICANTS'
 
+    public $sortBy = 'created_at';
+    public $sortDir = 'desc';
+
+    public function sort($column)
+    {
+        if ($this->sortBy === $column) {
+            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDir = 'asc';
+        }
+        $this->resetPage();
+    }
+
     // Personnel Details Modal
     public $isPersonnelModalOpen = false;
     public $selectedPersonnel = null;
@@ -77,6 +91,8 @@ class UserManagement extends Component
         $this->roleFilter = '';
         $this->statusFilter = '';
         $this->categorySection = 'ALL';
+        $this->sortBy = 'created_at';
+        $this->sortDir = 'desc';
         $this->resetPage();
     }
 
@@ -376,7 +392,16 @@ class UserManagement extends Component
             });
         }
 
-        $users = $query->orderBy('created_at', 'desc')->paginate($this->perPage);
+        // Dynamic Column Sorting
+        if ($this->sortBy === 'email') {
+            $query->orderBy('email', $this->sortDir);
+        } elseif ($this->sortBy === 'is_active') {
+            $query->orderBy('is_active', $this->sortDir);
+        } else {
+            $query->orderBy('created_at', $this->sortDir);
+        }
+
+        $users = $query->paginate($this->perPage);
 
         // Categorized Counts for directory pills (Dynamic, supports any new roles)
         $staffCount = User::whereHas('roles', function($q) use ($isSuperAdmin) {

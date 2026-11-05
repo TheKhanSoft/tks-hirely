@@ -42,6 +42,29 @@ class ConstitutionCriteriaManagement extends Component
     public $isEditBoard = false;
     public $selectedBoardId = null;
     public $sectorFilter = 'ALL';
+    public $sortBy = 'name';
+    public $sortDirection = 'asc';
+
+    public function sortBy($column)
+    {
+        if ($this->sortBy === $column) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDirection = 'asc';
+        }
+        $this->resetPage();
+    }
+
+    public function resetFilters()
+    {
+        $this->search = '';
+        $this->sectorFilter = 'ALL';
+        $this->sortBy = 'name';
+        $this->sortDirection = 'asc';
+        $this->resetPage();
+    }
+
     public $showQuorumModal = false;
     public $viewingBoard = null;
 
@@ -1272,7 +1295,7 @@ class ConstitutionCriteriaManagement extends Component
     {
         $campaigns = Campaign::orderBy('created_at', 'desc')->get();
 
-        $constitutionsQuery = CommitteeConstitution::orderBy('name');
+        $constitutionsQuery = CommitteeConstitution::query();
         if ($this->sectorFilter !== 'ALL') {
             $constitutionsQuery->where('organization_sector', $this->sectorFilter);
         }
@@ -1284,6 +1307,21 @@ class ConstitutionCriteriaManagement extends Component
                   ->orWhere('description', 'like', $searchTerm);
             });
         }
+
+        if ($this->sortBy === 'name') {
+            $constitutionsQuery->orderBy('name', $this->sortDirection);
+        } elseif ($this->sortBy === 'committee_type') {
+            $constitutionsQuery->orderBy('committee_type', $this->sortDirection);
+        } elseif ($this->sortBy === 'organization_sector') {
+            $constitutionsQuery->orderBy('organization_sector', $this->sortDirection);
+        } elseif ($this->sortBy === 'required_total') {
+            $constitutionsQuery->orderBy('required_total', $this->sortDirection);
+        } elseif ($this->sortBy === 'responsible_stage') {
+            $constitutionsQuery->orderBy('responsible_stage', $this->sortDirection);
+        } else {
+            $constitutionsQuery->orderBy('name', $this->sortDirection);
+        }
+
         $registeredBoards = $constitutionsQuery->paginate($this->perPage);
 
         $processFlows = RecruitmentProcessFlow::orderBy('is_default', 'desc')->orderBy('name')->get();

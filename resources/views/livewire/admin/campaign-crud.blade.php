@@ -987,14 +987,22 @@
 
                     <table class="table">
                         <thead>
-                            <tr>
-                                <th>Job Code</th>
-                                <th>Title & Department</th>
-                                <th>Recruitment Track</th>
+                            <tr style="user-select: none;">
+                                <th style="cursor: pointer;" wire:click="sort('job_code')" title="Sort by Job Code">
+                                    Job Code @if($sortBy === 'job_code') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                                </th>
+                                <th style="cursor: pointer;" wire:click="sort('title')" title="Sort by Title">
+                                    Title & Department @if($sortBy === 'title') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                                </th>
+                                <th style="cursor: pointer;" wire:click="sort('track_type')" title="Sort by Track">
+                                    Recruitment Track @if($sortBy === 'track_type') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                                </th>
                                 <th>Statutory Board & Process Flow</th>
-                                <th>Closing Date</th>
+                                <th style="cursor: pointer;" wire:click="sort('closing_date')" title="Sort by Closing Date">
+                                    Closing Date @if($sortBy === 'closing_date') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                                </th>
                                 <th>Application Fee</th>
-                                <th style="text-align: right;">Actions</th>
+                                <th style="text-align: right;" class="table-actions">Actions</th>
                             </tr>
                         </thead>
                         <tbody>

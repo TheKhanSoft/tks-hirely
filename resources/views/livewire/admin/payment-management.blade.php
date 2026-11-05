@@ -461,15 +461,23 @@
             <x-slot:table>
                 <table class="table">
                     <thead>
-                        <tr>
-                            <th>1Link Consumer ID</th>
+                        <tr style="user-select: none;">
+                            <th style="cursor: pointer;" wire:click="sort('consumer_id')" title="Sort by Consumer ID">
+                                1Link Consumer ID @if($sortBy === 'consumer_id') <span style="color: var(--secondary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
                             <th>Applicant Candidate</th>
                             <th>Target Vacancy</th>
-                            <th>Amount (PKR)</th>
-                            <th>Voucher Status</th>
-                            <th>Bank Transaction ID</th>
+                            <th style="cursor: pointer;" wire:click="sort('amount')" title="Sort by Amount">
+                                Amount (PKR) @if($sortBy === 'amount') <span style="color: var(--secondary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
+                            <th style="cursor: pointer;" wire:click="sort('status')" title="Sort by Voucher Status">
+                                Voucher Status @if($sortBy === 'status') <span style="color: var(--secondary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
+                            <th style="cursor: pointer;" wire:click="sort('transaction_id')" title="Sort by Transaction ID">
+                                Bank Transaction ID @if($sortBy === 'transaction_id') <span style="color: var(--secondary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
                             <th>Settlement Timestamp</th>
-                            <th style="text-align: right;">Actions</th>
+                            <th style="text-align: right;" class="table-actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody>

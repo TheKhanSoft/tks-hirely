@@ -403,16 +403,24 @@
             <div class="table-container">
                 <table class="table">
                     <thead>
-                        <tr>
-                            <th>Advertisement No & Title</th>
-                            <th>Year</th>
-                            <th>Validity Period</th>
+                        <tr style="user-select: none;">
+                            <th style="cursor: pointer;" wire:click="sort('advertisement_no')" title="Sort by Advertisement No">
+                                Advertisement No & Title @if($sortBy === 'advertisement_no') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
+                            <th style="cursor: pointer;" wire:click="sort('year')" title="Sort by Year">
+                                Year @if($sortBy === 'year') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
+                            <th style="cursor: pointer;" wire:click="sort('valid_to')" title="Sort by Closing Date">
+                                Validity Period @if($sortBy === 'valid_to') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
                             <th>Days Left</th>
-                            <th>Jobs Count</th>
+                            <th style="cursor: pointer;" wire:click="sort('campaigns_count')" title="Sort by Positions Count">
+                                Jobs Count @if($sortBy === 'campaigns_count') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
                             <th>Candidates</th>
                             <th>Extensions</th>
                             <th>Status (Click to Toggle)</th>
-                            <th style="text-align: right;">Actions</th>
+                            <th style="text-align: right;" class="table-actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody>

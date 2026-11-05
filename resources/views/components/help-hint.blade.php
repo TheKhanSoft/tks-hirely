@@ -92,7 +92,7 @@
             ?
         </button>
 
-        {{-- Floating Popover (CRITICAL: Never use .card here to prevent max-width: 100% squashing) --}}
+        {{-- Floating Popover (CRITICAL: Styled via .help-hint-popover CSS to ensure fixed 320px width and prevent Alpine style override) --}}
         <div x-show="show" 
              x-cloak 
              x-transition:enter="transition ease-out duration-150"
@@ -102,10 +102,7 @@
              x-transition:leave-start="opacity-100 transform scale-100"
              x-transition:leave-end="opacity-0 transform scale-95"
              class="help-hint-popover"
-             :style="placeBottom 
-                 ? 'top: calc(100% + 8px); bottom: auto;' 
-                 : 'bottom: calc(100% + 8px); top: auto;'"
-             style="position: absolute; left: 50%; transform: translateX(-50%); width: 310px; min-width: 270px; max-width: min(90vw, 340px); z-index: 9999; padding: 0.85rem 1rem; background: var(--bg-card-solid); border: 1px solid var(--border-color); box-shadow: 0 12px 30px -4px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.15); border-radius: 10px; font-size: 0.8rem; pointer-events: none; text-align: left; white-space: normal; word-break: normal; overflow-wrap: break-word; box-sizing: border-box;">
+             :class="{ 'place-bottom': placeBottom }">
             
             @if($statute)
                 <div style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; color: {{ $themeStyles['badge_color'] }}; letter-spacing: 0.05em; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.3rem;">
@@ -132,10 +129,7 @@
             @endif
 
             {{-- Pointer arrow --}}
-            <div :style="placeBottom
-                    ? 'bottom: 100%; top: auto; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 6px solid var(--border-color);'
-                    : 'top: 100%; bottom: auto; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid var(--border-color);'"
-                 style="position: absolute; left: 50%; transform: translateX(-50%); width: 0; height: 0;"></div>
+            <div class="help-hint-arrow"></div>
         </div>
     </span>
 

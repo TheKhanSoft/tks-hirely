@@ -18,6 +18,12 @@
         @include('livewire.admin.settings.organization')
     @elseif($activeTab === 'academic_criteria')
         @include('livewire.admin.settings.academic-criteria')
+    @elseif($activeTab === 'branding')
+        @include('livewire.admin.settings.branding')
+    @elseif($activeTab === 'contact')
+        @include('livewire.admin.settings.contact')
+    @elseif($activeTab === 'email')
+        @include('livewire.admin.settings.email')
     @else
         @include('livewire.admin.settings.workflows')
     @endif

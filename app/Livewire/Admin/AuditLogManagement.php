@@ -18,6 +18,19 @@ class AuditLogManagement extends Component
 
     // Filter
     public $actionFilter = '';
+    public $sortBy = 'logged_at';
+    public $sortDirection = 'desc';
+
+    public function sortBy($column)
+    {
+        if ($this->sortBy === $column) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDirection = 'asc';
+        }
+        $this->resetPage();
+    }
 
     public function mount()
     {
@@ -38,6 +51,8 @@ class AuditLogManagement extends Component
     {
         $this->search = '';
         $this->actionFilter = '';
+        $this->sortBy = 'logged_at';
+        $this->sortDirection = 'desc';
         $this->resetPage();
     }
 
@@ -117,7 +132,19 @@ class AuditLogManagement extends Component
             });
         }
 
-        $logs = $query->orderBy('logged_at', 'desc')->paginate($this->perPage);
+        if ($this->sortBy === 'action_type') {
+            $query->orderBy('action_type', $this->sortDirection);
+        } elseif ($this->sortBy === 'table_name') {
+            $query->orderBy('table_name', $this->sortDirection);
+        } elseif ($this->sortBy === 'record_id') {
+            $query->orderBy('record_id', $this->sortDirection);
+        } elseif ($this->sortBy === 'ip_address') {
+            $query->orderBy('ip_address', $this->sortDirection);
+        } else {
+            $query->orderBy('logged_at', $this->sortDirection);
+        }
+
+        $logs = $query->paginate($this->perPage);
 
         return view('livewire.admin.audit-log-management', [
             'logs' => $logs,

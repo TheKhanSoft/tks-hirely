@@ -46,6 +46,20 @@ class CampaignCrud extends Component
     #[Url(as: 'status')]
     public $statusFilter = 'ALL';
 
+    public $sortBy = 'created_at';
+    public $sortDir = 'desc';
+
+    public function sort($column)
+    {
+        if ($this->sortBy === $column) {
+            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDir = 'asc';
+        }
+        $this->resetPage();
+    }
+
     // Flexible Academic Division & Marks Criteria Properties
     public $use_custom_academic_criteria = false;
     public $disallow_third_division = false;
@@ -183,6 +197,8 @@ class CampaignCrud extends Component
         $this->yearFilter = '';
         $this->trackFilter = 'ALL';
         $this->statusFilter = 'ALL';
+        $this->sortBy = 'created_at';
+        $this->sortDir = 'desc';
         $this->resetPage();
     }
 
@@ -1130,7 +1146,24 @@ class CampaignCrud extends Component
             });
         }
 
-        $paginatedCampaigns = $campQuery->orderBy('created_at', 'desc')->paginate($this->perPage);
+        // Dynamic Column Sorting
+        if ($this->sortBy === 'job_code') {
+            $campQuery->orderBy('job_code', $this->sortDir);
+        } elseif ($this->sortBy === 'title') {
+            $campQuery->orderBy('title', $this->sortDir);
+        } elseif ($this->sortBy === 'department') {
+            $campQuery->orderBy('department', $this->sortDir);
+        } elseif ($this->sortBy === 'track_type') {
+            $campQuery->orderBy('track_type', $this->sortDir);
+        } elseif ($this->sortBy === 'positions_count') {
+            $campQuery->orderBy('positions_count', $this->sortDir);
+        } elseif ($this->sortBy === 'closing_date') {
+            $campQuery->orderBy('closing_date', $this->sortDir);
+        } else {
+            $campQuery->orderBy('created_at', $this->sortDir);
+        }
+
+        $paginatedCampaigns = $campQuery->paginate($this->perPage);
 
         // Distinct years from advertisements and campaigns
         $adYears = Advertisement::distinct()->whereNotNull('year')->pluck('year')->map(fn($y) => (int)$y)->all();

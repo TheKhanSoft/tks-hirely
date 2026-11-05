@@ -19,9 +19,13 @@ class ApplicationPrintController extends Controller
             'user.basicInfo.experiences',
             'user.basicInfo.publications',
             'user.basicInfo.researchProjects',
+            'user.basicInfo.patents',
             'user.basicInfo.medals',
             'user.basicInfo.trainings',
-            'user.basicInfo.patents',
+            'user.basicInfo.events',
+            'user.basicInfo.milestones',
+            'user.basicInfo.tools',
+            'user.basicInfo.portfolioItems',
             'user.basicInfo.referees',
             'campaign.advertisement',
             'campaign.constitution',
@@ -56,6 +60,32 @@ class ApplicationPrintController extends Controller
         $orgName = SystemSetting::get('org_name', 'Hirely Higher Education & Recruitment Commission');
         $currency = SystemSetting::get('currency_symbol', 'PKR');
 
+        // Detailed Printing / Downloading User Metadata
+        $printedByName = null;
+        if ($currentUser->basicInfo) {
+            $name = trim(($currentUser->basicInfo->first_name ?? '') . ' ' . ($currentUser->basicInfo->last_name ?? ''));
+            if (!empty($name)) {
+                $printedByName = $name;
+            }
+        }
+        if (!$printedByName && $currentUser->reviewerProfile && !empty($currentUser->reviewerProfile->name)) {
+            $printedByName = $currentUser->reviewerProfile->name;
+        }
+        if (!$printedByName) {
+            $printedByName = $currentUser->name ?? $currentUser->display_name ?? $currentUser->email;
+        }
+
+        $printedByUsername = $currentUser->email;
+
+        $rolesCollection = $currentUser->getRoleNames()->map(function ($r) {
+            return ucwords(str_replace(['-', '_'], ' ', $r));
+        });
+        $printedByRole = $rolesCollection->isNotEmpty() 
+            ? $rolesCollection->implode(', ') 
+            : ($currentUser->isApplicant() ? 'Applicant / Candidate' : 'Authorized User');
+
+        $printedAt = now();
+
         return view('print.application-dossier', [
             'application' => $application,
             'basicInfo' => $application->user?->basicInfo,
@@ -65,7 +95,14 @@ class ApplicationPrintController extends Controller
             'viewMode' => $viewMode,
             'isStaff' => $isStaff,
             'orgName' => $orgName,
+            'appName' => SystemSetting::getAppName(),
+            'appLogo' => SystemSetting::getAppLogo(),
             'currency' => $currency,
+            'currentUser' => $currentUser,
+            'printedByName' => $printedByName,
+            'printedByUsername' => $printedByUsername,
+            'printedByRole' => $printedByRole,
+            'printedAt' => $printedAt,
         ]);
     }
 }

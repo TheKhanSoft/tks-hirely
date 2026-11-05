@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $application->tracking_number }} — {{ $basicInfo ? trim($basicInfo->first_name . ' ' . $basicInfo->last_name) : $application->user->email }} — {{ $viewMode === 'admin' ? 'Master Dossier' : 'Application Form' }}</title>
+    <title>{{ $application->tracking_number }} — {{ $basicInfo ? trim(($basicInfo->first_name ?? '') . ' ' . ($basicInfo->last_name ?? '')) : $application->user->email }} — {{ $viewMode === 'admin' ? 'Master Dossier' : 'Application Form' }}</title>
     
     <!-- Modern Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,7 +33,7 @@
             color: #0f172a;
             background: #f8fafc;
             line-height: 1.45;
-            font-size: 10.5pt;
+            font-size: 10pt;
         }
 
         /* Screen Floating Action Bar */
@@ -54,7 +54,8 @@
         .no-print-toolbar .toolbar-left {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 0.85rem;
+            flex-wrap: wrap;
         }
 
         .no-print-toolbar .toolbar-actions {
@@ -96,7 +97,7 @@
 
         /* Printable Document Container */
         .document-wrapper {
-            max-width: 900px;
+            max-width: 920px;
             margin: 1.5rem auto 3rem;
             background: #ffffff;
             padding: 2.25rem 2.5rem;
@@ -175,6 +176,7 @@
             overflow: hidden;
             text-align: center;
             padding: 2px;
+            flex-shrink: 0;
         }
 
         .candidate-photo-box img {
@@ -191,7 +193,7 @@
             background: #f1f5f9;
             border: 1px solid #cbd5e1;
             padding: 0.65rem 0.85rem;
-            margin-bottom: 1.25rem;
+            margin-bottom: 0.75rem;
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 0.82rem;
         }
@@ -209,16 +211,44 @@
             color: #0f172a;
         }
 
+        /* User Details & Document Audit Strip */
+        .audit-strip {
+            display: grid;
+            grid-template-columns: 2.2fr 1.3fr 1.5fr;
+            gap: 0.65rem;
+            background: #eff6ff;
+            border: 1.5px solid #bfdbfe;
+            border-left: 4px solid #2563eb;
+            padding: 0.6rem 0.85rem;
+            margin-bottom: 1.25rem;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.82rem;
+        }
+
+        .audit-strip div strong {
+            display: block;
+            font-size: 0.70rem;
+            color: #1e40af;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.15rem;
+        }
+
+        .audit-strip div span {
+            font-weight: 700;
+            color: #1e3a8a;
+        }
+
         /* Section Headings */
         .section-heading {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             font-weight: 800;
             text-transform: uppercase;
             color: #0f172a;
             background: #e2e8f0;
-            padding: 0.4rem 0.75rem;
-            margin: 1.25rem 0 0.65rem 0;
+            padding: 0.35rem 0.75rem;
+            margin: 1.25rem 0 0.55rem 0;
             border-left: 4px solid #0f172a;
             display: flex;
             justify-content: space-between;
@@ -232,6 +262,7 @@
             border-radius: 3px;
             background: #ffffff;
             border: 1px solid #cbd5e1;
+            font-weight: 700;
         }
 
         /* Bio Data Grid */
@@ -239,7 +270,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 0.75rem;
-            font-size: 9.8pt;
+            font-size: 9.5pt;
         }
 
         .bio-table td {
@@ -254,7 +285,7 @@
             background: #f8fafc;
             color: #334155;
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 8.5pt;
+            font-size: 8.2pt;
             text-transform: uppercase;
         }
 
@@ -263,17 +294,17 @@
             color: #0f172a;
         }
 
-        /* Standard Data Tables (Degrees, Experience, Publications) */
+        /* Standard Data Tables */
         .data-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 0.75rem;
-            font-size: 9.2pt;
+            font-size: 9pt;
         }
 
         .data-table th, .data-table td {
             border: 1px solid #cbd5e1;
-            padding: 0.4rem 0.5rem;
+            padding: 0.38rem 0.5rem;
             text-align: left;
             vertical-align: middle;
         }
@@ -281,7 +312,7 @@
         .data-table th {
             background: #f1f5f9;
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 8.2pt;
+            font-size: 8pt;
             text-transform: uppercase;
             font-weight: 800;
             color: #334155;
@@ -295,9 +326,9 @@
         .badge-pill {
             display: inline-block;
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 7.5pt;
+            font-size: 7.2pt;
             font-weight: 700;
-            padding: 0.15rem 0.5rem;
+            padding: 0.12rem 0.45rem;
             border-radius: 9999px;
             border: 1px solid #cbd5e1;
             text-transform: uppercase;
@@ -337,7 +368,7 @@
             padding: 0.85rem 1rem;
             background: #fcfcfc;
             margin-top: 1.25rem;
-            font-size: 9.2pt;
+            font-size: 9pt;
             line-height: 1.5;
             page-break-inside: avoid;
         }
@@ -378,12 +409,17 @@
             text-transform: uppercase;
         }
 
+        /* Running print footer (hidden on screen, active on print) */
+        .document-print-footer {
+            display: none;
+        }
+
         /* Print Media Styles */
         @media print {
             body {
                 background: #ffffff !important;
                 color: #000000 !important;
-                font-size: 10pt;
+                font-size: 9.5pt;
             }
 
             .no-print, .no-print-toolbar {
@@ -401,15 +437,32 @@
 
             @page {
                 size: A4 portrait;
-                margin: 12mm 15mm 15mm 15mm;
+                margin: 12mm 14mm 14mm 14mm;
             }
 
             .page-break-before {
                 page-break-before: always;
             }
 
-            .data-table, .bio-table, .declaration-box, .signatures-grid, .admin-box {
+            .data-table, .bio-table, .declaration-box, .signatures-grid, .admin-box, .audit-strip {
                 page-break-inside: avoid;
+            }
+
+            .document-print-footer {
+                display: flex !important;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 18px;
+                border-top: 1px solid #94a3b8;
+                padding-top: 2px;
+                font-size: 7.2pt;
+                font-family: 'Plus Jakarta Sans', sans-serif;
+                color: #475569;
+                justify-content: space-between;
+                align-items: center;
+                background: #ffffff;
             }
         }
     </style>
@@ -420,13 +473,16 @@
     <div class="no-print-toolbar">
         <div class="toolbar-left">
             <span style="font-weight: 800; font-size: 1rem; letter-spacing: -0.02em;">
-                HIRELY RECRUITMENT OS
+                {{ strtoupper($appName ?? 'Hirely') }} RECRUITMENT OS
             </span>
             <span style="background: rgba(255,255,255,0.15); padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">
                 {{ $viewMode === 'admin' ? 'Master Admin Dossier' : 'Candidate Application Form' }}
             </span>
             <span style="font-size: 0.82rem; opacity: 0.75;">
                 Tracking ID: <strong>{{ $application->tracking_number }}</strong>
+            </span>
+            <span style="background: rgba(99,102,241,0.25); border: 1px solid rgba(165,180,252,0.3); padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.78rem;">
+                👤 <strong>{{ $printedByName }} ({{ $printedByUsername }})</strong> - {{ $printedByRole }} &bull; {{ $printedAt->format('d M, Y h:i A') }}
             </span>
         </div>
 
@@ -465,7 +521,12 @@
         <div class="official-header">
             <div class="header-left">
                 <div class="emblem-box">
-                    <span>{{ substr($orgName, 0, 1) }}</span>
+                    @if(!empty($appLogo))
+                        <img src="{{ $appLogo }}" alt="{{ $orgName }}" style="max-height: 48px; max-width: 48px; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                        <span style="display: none;">{{ substr($orgName, 0, 1) }}</span>
+                    @else
+                        <span>{{ substr($orgName, 0, 1) }}</span>
+                    @endif
                 </div>
                 <div class="header-title-box">
                     <h1>{{ $orgName }}</h1>
@@ -506,6 +567,22 @@
             <div>
                 <strong>Submission Timestamp</strong>
                 <span>{{ $application->submission_timestamp ? $application->submission_timestamp->format('d M, Y h:i A') : $application->created_at->format('d M, Y') }}</span>
+            </div>
+        </div>
+
+        <!-- User Details & Print Audit Trail Strip -->
+        <div class="audit-strip">
+            <div>
+                <strong>Printed / Downloaded By (User)</strong>
+                <span>{{ $printedByName }} ({{ $printedByUsername }})</span>
+            </div>
+            <div>
+                <strong>Designated Role / Authorization</strong>
+                <span class="badge-pill status-ok" style="font-size: 7.5pt;">{{ $printedByRole }}</span>
+            </div>
+            <div>
+                <strong>Printed / Downloaded on Date Time</strong>
+                <span style="font-family: 'JetBrains Mono', monospace;">{{ $printedAt->format('d M, Y h:i:s A') }}</span>
             </div>
         </div>
 
@@ -550,6 +627,22 @@
                 <td class="label-col">Official Email Address</td>
                 <td class="val-col" style="font-family: 'JetBrains Mono', monospace;">{{ $application->user->email }}</td>
             </tr>
+            @if($basicInfo?->secondary_phone || $basicInfo?->secondary_email)
+            <tr>
+                <td class="label-col">Secondary Mobile</td>
+                <td class="val-col" style="font-family: 'JetBrains Mono', monospace;">{{ $basicInfo?->secondary_phone ?? '—' }}</td>
+                <td class="label-col">Secondary Email</td>
+                <td class="val-col" style="font-family: 'JetBrains Mono', monospace;">{{ $basicInfo?->secondary_email ?? '—' }}</td>
+            </tr>
+            @endif
+            @if($basicInfo?->place_of_birth || $basicInfo?->track_type)
+            <tr>
+                <td class="label-col">Place of Birth</td>
+                <td class="val-col">{{ $basicInfo?->place_of_birth ?? '—' }}</td>
+                <td class="label-col">Recruitment Cadre Track</td>
+                <td class="val-col"><strong>{{ $basicInfo?->track_type ?? 'ACADEMIC' }} TRACK</strong></td>
+            </tr>
+            @endif
             <tr>
                 <td class="label-col">Permanent Address</td>
                 <td class="val-col" colspan="3">{{ $basicInfo?->permanent_address ?? '—' }}</td>
@@ -600,13 +693,13 @@
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th style="width: 5%;">#</th>
-                        <th style="width: 18%;">Level / Degree</th>
+                        <th style="width: 4%;">#</th>
+                        <th style="width: 17%;">Level / Degree</th>
                         <th style="width: 25%;">Degree Title & Major</th>
                         <th style="width: 25%;">Board / University & Country</th>
                         <th style="width: 8%; text-align: center;">Year</th>
-                        <th style="width: 10%; text-align: center;">Marks / CGPA</th>
-                        <th style="width: 9%; text-align: center;">Division</th>
+                        <th style="width: 11%; text-align: center;">Marks / CGPA</th>
+                        <th style="width: 10%; text-align: center;">Division</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -643,20 +736,30 @@
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th style="width: 5%;">#</th>
-                        <th style="width: 25%;">Designation / Post</th>
-                        <th style="width: 30%;">Employer / Organization</th>
-                        <th style="width: 14%;">Sector / Cadre</th>
-                        <th style="width: 16%; text-align: center;">Duration</th>
-                        <th style="width: 10%; text-align: center;">Verified</th>
+                        <th style="width: 4%;">#</th>
+                        <th style="width: 24%;">Designation / Post</th>
+                        <th style="width: 28%;">Employer / Organization</th>
+                        <th style="width: 15%;">Sector / Cadre</th>
+                        <th style="width: 17%; text-align: center;">Duration</th>
+                        <th style="width: 12%; text-align: center;">Verified</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($basicInfo->experiences as $idx => $exp)
                         <tr>
                             <td style="text-align: center;">{{ $idx + 1 }}</td>
-                            <td><strong>{{ $exp->job_title }}</strong></td>
-                            <td>{{ $exp->organization }}</td>
+                            <td>
+                                <strong>{{ $exp->job_title }}</strong>
+                                @if($exp->experience_type)
+                                    <br><small style="color: #64748b;">Type: {{ $exp->experience_type }}</small>
+                                @endif
+                            </td>
+                            <td>
+                                {{ $exp->organization }}
+                                @if($exp->description)
+                                    <br><small style="color: #475569; font-style: italic;">{{ Str::limit($exp->description, 75) }}</small>
+                                @endif
+                            </td>
                             <td>{{ $exp->sector ?? 'Public Sector' }}</td>
                             <td style="text-align: center; font-size: 8.5pt;">
                                 {{ $exp->start_date ? \Carbon\Carbon::parse($exp->start_date)->format('M Y') : '—' }} - 
@@ -664,7 +767,7 @@
                             </td>
                             <td style="text-align: center;">
                                 <span class="badge-pill {{ $exp->is_verified ? 'status-ok' : 'status-warn' }}">
-                                    {{ $exp->is_verified ? 'Yes' : 'Declared' }}
+                                    {{ $exp->is_verified ? 'Verified' : 'Declared' }}
                                 </span>
                             </td>
                         </tr>
@@ -677,27 +780,36 @@
             </div>
         @endif
 
-        <!-- Section 5: Research Publications -->
+        <!-- Section 5: Research Publications & Scholarly Output -->
         @if($basicInfo && $basicInfo->publications->isNotEmpty())
             <div class="section-heading">
-                <span>5. Research Publications & Scholarly Output</span>
+                <span>5. Research Publications &amp; Scholarly Output</span>
                 <span class="badge">{{ $basicInfo->publications->count() }} Publications</span>
             </div>
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th style="width: 5%;">#</th>
-                        <th style="width: 45%;">Paper Title</th>
-                        <th style="width: 25%;">Journal & ISSN</th>
-                        <th style="width: 12%; text-align: center;">Category</th>
-                        <th style="width: 13%; text-align: center;">Year</th>
+                        <th style="width: 4%;">#</th>
+                        <th style="width: 40%;">Paper Title & Authors</th>
+                        <th style="width: 24%;">Journal & ISSN</th>
+                        <th style="width: 10%; text-align: center;">HJRS / IF</th>
+                        <th style="width: 11%; text-align: center;">Authorship</th>
+                        <th style="width: 11%; text-align: center;">Year / Issue</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($basicInfo->publications as $idx => $pub)
                         <tr>
                             <td style="text-align: center;">{{ $idx + 1 }}</td>
-                            <td><strong>{{ $pub->title }}</strong></td>
+                            <td>
+                                <strong>{{ $pub->title }}</strong>
+                                @if($pub->authors)
+                                    <br><small style="color: #475569;">Authors: {{ $pub->authors }}</small>
+                                @endif
+                                @if($pub->doi)
+                                    <br><small style="color: #64748b; font-family: 'JetBrains Mono', monospace; font-size: 7.5pt;">DOI: {{ $pub->doi }}</small>
+                                @endif
+                            </td>
                             <td>
                                 {{ $pub->journal_name }}
                                 @if($pub->issn_print)
@@ -706,50 +818,371 @@
                             </td>
                             <td style="text-align: center;">
                                 <span class="badge-pill status-ok">{{ $pub->hjrs_category ?? 'Indexed' }}</span>
+                                @if($pub->impact_factor)
+                                    <br><small style="color: #0f172a; font-weight: 700;">IF: {{ $pub->impact_factor }}</small>
+                                @endif
                             </td>
-                            <td style="text-align: center;">{{ $pub->publication_year }}</td>
+                            <td style="text-align: center; font-size: 8.5pt;">
+                                @if($pub->author_order)
+                                    <span>{{ $pub->author_order }}{{ in_array($pub->author_order, [1, '1']) ? 'st' : (in_array($pub->author_order, [2, '2']) ? 'nd' : (in_array($pub->author_order, [3, '3']) ? 'rd' : 'th')) }} Author</span>
+                                @endif
+                                @if($pub->is_corresponding_author)
+                                    <br><span class="badge-pill status-ok" style="font-size: 6.8pt;">Corresponding</span>
+                                @endif
+                            </td>
+                            <td style="text-align: center; font-size: 8.5pt;">
+                                <strong>{{ $pub->publication_year }}</strong>
+                                @if($pub->volume_issue)
+                                    <br><small style="color: #64748b;">{{ $pub->volume_issue }}</small>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @elseif($viewMode === 'admin')
+            <div class="section-heading">
+                <span>5. Research Publications & Scholarly Output</span>
+                <span class="badge">0 Records</span>
+            </div>
+            <div style="padding: 0.65rem 0.85rem; border: 1px dashed #cbd5e1; font-size: 8.8pt; color: #64748b; font-style: italic; margin-bottom: 0.75rem;">
+                No scholarly research publications declared or recorded on file.
+            </div>
+        @endif
+
+        <!-- Section 6: Research Projects, Sponsored Grants & Scientific Investigations -->
+        @if($basicInfo && $basicInfo->researchProjects->isNotEmpty())
+            <div class="section-heading">
+                <span>6. Research Projects, Sponsored Grants & Scientific Investigations</span>
+                <span class="badge">{{ $basicInfo->researchProjects->count() }} Projects</span>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 4%;">#</th>
+                        <th style="width: 35%;">Project Title & Scope</th>
+                        <th style="width: 22%;">Funding Agency / Sponsor</th>
+                        <th style="width: 14%; text-align: right;">Grant Outlay</th>
+                        <th style="width: 12%; text-align: center;">Role in Project</th>
+                        <th style="width: 13%; text-align: center;">Status & Period</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($basicInfo->researchProjects as $idx => $proj)
+                        <tr>
+                            <td style="text-align: center;">{{ $idx + 1 }}</td>
+                            <td>
+                                <strong>{{ $proj->project_title }}</strong>
+                                @if($proj->co_pis)
+                                    <br><small style="color: #475569;">Co-PI(s): {{ $proj->co_pis }}</small>
+                                @endif
+                                @if($proj->turnitin_similarity_percentage)
+                                    <br><small style="color: #64748b;">Similarity Index: {{ $proj->turnitin_similarity_percentage }}%</small>
+                                @endif
+                            </td>
+                            <td>{{ $proj->funding_agency ?? 'National / International Sponsor' }}</td>
+                            <td style="text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 700;">
+                                {{ $currency }} {{ number_format($proj->grant_amount ?? 0, 2) }}
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="badge-pill status-ok">{{ $proj->role_in_project ?? 'PI' }}</span>
+                            </td>
+                            <td style="text-align: center; font-size: 8.5pt;">
+                                <strong>{{ $proj->status ?? 'Completed' }}</strong>
+                                @if($proj->start_date)
+                                    <br><small style="color: #64748b;">Started {{ $proj->start_date->format('M Y') }}</small>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @elseif($viewMode === 'admin')
+            <div class="section-heading">
+                <span>6. Research Projects, Sponsored Grants & Investigations</span>
+                <span class="badge">0 Records</span>
+            </div>
+            <div style="padding: 0.65rem 0.85rem; border: 1px dashed #cbd5e1; font-size: 8.8pt; color: #64748b; font-style: italic; margin-bottom: 0.75rem;">
+                No funded research grants or sponsored investigations declared on file.
+            </div>
+        @endif
+
+        <!-- Section 7: Patents, Inventions & Intellectual Property Rights -->
+        @if($basicInfo && $basicInfo->patents->isNotEmpty())
+            <div class="section-heading">
+                <span>7. Patents, Inventions & Intellectual Property Rights</span>
+                <span class="badge">{{ $basicInfo->patents->count() }} Patents</span>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 4%;">#</th>
+                        <th style="width: 42%;">Patent / Invention Title</th>
+                        <th style="width: 20%;">Registry / Patent ID</th>
+                        <th style="width: 14%;">Patent Office / Country</th>
+                        <th style="width: 10%; text-align: center;">Registered</th>
+                        <th style="width: 10%; text-align: center;">Commercialized</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($basicInfo->patents as $idx => $pat)
+                        <tr>
+                            <td style="text-align: center;">{{ $idx + 1 }}</td>
+                            <td><strong>{{ $pat->title }}</strong></td>
+                            <td style="font-family: 'JetBrains Mono', monospace;">{{ $pat->registry_id }}</td>
+                            <td>{{ $pat->country }}</td>
+                            <td style="text-align: center;">{{ $pat->date_registered ? $pat->date_registered->format('d M, Y') : '—' }}</td>
+                            <td style="text-align: center;">
+                                <span class="badge-pill {{ $pat->is_licensed ? 'status-ok' : 'status-warn' }}">
+                                    {{ $pat->is_licensed ? 'Licensed' : 'Filed' }}
+                                </span>
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
         @endif
 
-        <!-- Section 6: Medals, Honors & Referees -->
-        @if(($basicInfo?->medals && $basicInfo->medals->isNotEmpty()) || ($basicInfo?->referees && $basicInfo->referees->isNotEmpty()))
+        <!-- Section 8: Academic Distinctions, Honors & Medals -->
+        @if($basicInfo && $basicInfo->medals->isNotEmpty())
             <div class="section-heading">
-                <span>6. Academic Distinctions, Honors & References</span>
+                <span>8. Academic Distinctions, Honors & Medals</span>
+                <span class="badge">{{ $basicInfo->medals->count() }} Medals / Distinctions</span>
             </div>
-            <table class="bio-table">
-                @if($basicInfo->medals && $basicInfo->medals->isNotEmpty())
+            <table class="data-table">
+                <thead>
                     <tr>
-                        <td class="label-col">Academic Medals & Distinctions</td>
-                        <td class="val-col" colspan="3">
-                            @foreach($basicInfo->medals as $m)
-                                • <strong>{{ $m->title ?? $m->medal_type }}</strong> ({{ $m->year ?? 'Awarded' }}) — {{ $m->awarding_institution ?? 'University' }}<br>
-                            @endforeach
-                        </td>
+                        <th style="width: 4%;">#</th>
+                        <th style="width: 24%;">Medal / Distinction Type</th>
+                        <th style="width: 46%;">Degree Title & Academic Distinction Particulars</th>
+                        <th style="width: 13%; text-align: center;">Year Awarded</th>
+                        <th style="width: 13%; text-align: center;">Status</th>
                     </tr>
-                @endif
-                @if($basicInfo->referees && $basicInfo->referees->isNotEmpty())
-                    <tr>
-                        <td class="label-col">Academic Referees</td>
-                        <td class="val-col" colspan="3">
-                            @foreach($basicInfo->referees as $r)
-                                • <strong>{{ $r->name }}</strong> ({{ $r->designation }}, {{ $r->organization }}) • Email: {{ $r->email }} • Phone: {{ $r->phone }}<br>
-                            @endforeach
-                        </td>
-                    </tr>
-                @endif
+                </thead>
+                <tbody>
+                    @foreach($basicInfo->medals as $idx => $medal)
+                        <tr>
+                            <td style="text-align: center;">{{ $idx + 1 }}</td>
+                            <td>
+                                <strong>{{ $medal->medal_type }} Medal</strong>
+                            </td>
+                            <td>{{ $medal->degree_title }}</td>
+                            <td style="text-align: center;">{{ $medal->year_awarded }}</td>
+                            <td style="text-align: center;">
+                                <span class="badge-pill {{ $medal->is_verified ? 'status-ok' : 'status-warn' }}">
+                                    {{ $medal->is_verified ? 'Verified' : 'Declared' }}
+                                </span>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
             </table>
         @endif
 
-        <!-- Section 7: Candidate Solemn Undertaking -->
+        <!-- Section 9: Professional Trainings, Certifications & Courses -->
+        @if($basicInfo && $basicInfo->trainings->isNotEmpty())
+            <div class="section-heading">
+                <span>9. Professional Trainings, Certifications & Specialized Courses</span>
+                <span class="badge">{{ $basicInfo->trainings->count() }} Certifications</span>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 4%;">#</th>
+                        <th style="width: 46%;">Course / Certification Title</th>
+                        <th style="width: 32%;">Certifying Authority / Institution</th>
+                        <th style="width: 18%; text-align: center;">Validity / Expiry</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($basicInfo->trainings as $idx => $train)
+                        <tr>
+                            <td style="text-align: center;">{{ $idx + 1 }}</td>
+                            <td><strong>{{ $train->title }}</strong></td>
+                            <td>{{ $train->body }}</td>
+                            <td style="text-align: center;">
+                                {{ $train->expiry_date ? $train->expiry_date->format('d M, Y') : 'Lifetime / Non-expiring' }}
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+
+        <!-- Section 10: Conferences, Seminars, Symposia & Workshops -->
+        @if($basicInfo && $basicInfo->events->isNotEmpty())
+            <div class="section-heading">
+                <span>10. Conferences, Seminars, Symposia & Professional Workshops</span>
+                <span class="badge">{{ $basicInfo->events->count() }} Events</span>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 4%;">#</th>
+                        <th style="width: 32%;">Event Name & Type</th>
+                        <th style="width: 16%;">Role</th>
+                        <th style="width: 28%;">Paper / Topic Presented</th>
+                        <th style="width: 20%;">Organizer & Location</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($basicInfo->events as $idx => $ev)
+                        <tr>
+                            <td style="text-align: center;">{{ $idx + 1 }}</td>
+                            <td>
+                                <strong>{{ $ev->event_name }}</strong>
+                                @if($ev->event_type)
+                                    <br><small style="color: #64748b;">Type: {{ $ev->event_type }}</small>
+                                @endif
+                            </td>
+                            <td><span class="badge-pill status-ok">{{ $ev->event_role ?? 'Participant' }}</span></td>
+                            <td>{{ $ev->paper_title ?? '—' }}</td>
+                            <td>
+                                {{ $ev->organizer ?? 'N/A' }}
+                                @if($ev->location)
+                                    <br><small style="color: #64748b;">{{ $ev->location }}</small>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+
+        <!-- Section 11: Administrative Milestones & Development Projects -->
+        @if($basicInfo && $basicInfo->milestones->isNotEmpty())
+            <div class="section-heading">
+                <span>11. Administrative Milestones & Institutional Development</span>
+                <span class="badge">{{ $basicInfo->milestones->count() }} Milestones</span>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 4%;">#</th>
+                        <th style="width: 35%;">Milestone / Initiative Title</th>
+                        <th style="width: 14%; text-align: center;">Year</th>
+                        <th style="width: 18%; text-align: right;">Financial Outlay</th>
+                        <th style="width: 29%;">Description / Institutional Impact</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($basicInfo->milestones as $idx => $mil)
+                        <tr>
+                            <td style="text-align: center;">{{ $idx + 1 }}</td>
+                            <td><strong>{{ $mil->title }}</strong></td>
+                            <td style="text-align: center;">{{ $mil->year }}</td>
+                            <td style="text-align: right; font-family: 'JetBrains Mono', monospace;">
+                                {{ $mil->budget ? $currency . ' ' . number_format($mil->budget, 2) : '—' }}
+                            </td>
+                            <td>{{ $mil->description ?? '—' }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+
+        <!-- Section 12: Technical Skills & Support Tools -->
+        @if($basicInfo && $basicInfo->tools->isNotEmpty())
+            <div class="section-heading">
+                <span>12. Technical Skills, Laboratory Instruments & Support Tools</span>
+                <span class="badge">{{ $basicInfo->tools->count() }} Tools / Instruments</span>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 4%;">#</th>
+                        <th style="width: 45%;">Tool / Instrument / Software Name</th>
+                        <th style="width: 26%;">Proficiency Level</th>
+                        <th style="width: 25%; text-align: center;">Hands-on Experience</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($basicInfo->tools as $idx => $t)
+                        <tr>
+                            <td style="text-align: center;">{{ $idx + 1 }}</td>
+                            <td><strong>{{ $t->tool_name }}</strong></td>
+                            <td><span class="badge-pill status-ok">{{ $t->proficiency_level }}</span></td>
+                            <td style="text-align: center;">{{ $t->experience_years ? $t->experience_years . ' Years' : '—' }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+
+        <!-- Section 13: Creative Works & Professional Portfolio -->
+        @if($basicInfo && $basicInfo->portfolioItems->isNotEmpty())
+            <div class="section-heading">
+                <span>13. Creative Works & Professional Portfolio Items</span>
+                <span class="badge">{{ $basicInfo->portfolioItems->count() }} Items</span>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 4%;">#</th>
+                        <th style="width: 32%;">Project / Work Title</th>
+                        <th style="width: 14%; text-align: center;">Completed</th>
+                        <th style="width: 32%;">Description</th>
+                        <th style="width: 18%;">Link / Repository</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($basicInfo->portfolioItems as $idx => $item)
+                        <tr>
+                            <td style="text-align: center;">{{ $idx + 1 }}</td>
+                            <td><strong>{{ $item->title }}</strong></td>
+                            <td style="text-align: center;">{{ $item->date_completed ? $item->date_completed->format('M Y') : '—' }}</td>
+                            <td>{{ $item->description ?? '—' }}</td>
+                            <td style="font-size: 8pt; word-break: break-all;">{{ $item->url ?? '—' }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+
+        <!-- Section 14: Academic & Professional Referees -->
+        @if($basicInfo && $basicInfo->referees->isNotEmpty())
+            <div class="section-heading">
+                <span>14. Academic & Professional Referees</span>
+                <span class="badge">{{ $basicInfo->referees->count() }} Referees Recorded</span>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 4%;">#</th>
+                        <th style="width: 28%;">Referee Name</th>
+                        <th style="width: 32%;">Designation & Institution</th>
+                        <th style="width: 16%;">Relationship</th>
+                        <th style="width: 20%;">Contact Info</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($basicInfo->referees as $idx => $ref)
+                        <tr>
+                            <td style="text-align: center;">{{ $idx + 1 }}</td>
+                            <td><strong>{{ $ref->name }}</strong></td>
+                            <td>{{ $ref->designation }}<br><small style="color: #64748b;">{{ $ref->organization }}</small></td>
+                            <td>{{ $ref->relation ?? 'Academic / Professional' }}</td>
+                            <td style="font-size: 8.5pt;">
+                                @if($ref->email)
+                                    <span>✉ {{ $ref->email }}</span><br>
+                                @endif
+                                @if($ref->phone)
+                                    <span>📞 {{ $ref->phone }}</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+
+        <!-- Section 15: Candidate Solemn Undertaking -->
         <div class="declaration-box">
             <h4 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 9.5pt; font-weight: 800; text-transform: uppercase; margin-bottom: 0.4rem; color: #0f172a;">
                 Solemn Statutory Undertaking & Declaration by Applicant
             </h4>
             <p>
-                I hereby solemnly declare that all information, qualifications, employment records, research papers, and documents submitted with this application are genuine, true, complete, and accurate to the best of my knowledge and belief. I have not concealed any material fact or criminal conviction. I fully understand that any misstatement, forged credential, false declaration, or omission found at any stage of the recruitment process or even after appointment shall result in summary disqualification, cancellation of candidature/appointment, forfeiture of benefits, and initiation of statutory legal proceedings under the relevant penal statutes and service regulations.
+                I hereby solemnly declare that all information, qualifications, employment records, research papers, grants, and documents submitted with this application are genuine, true, complete, and accurate to the best of my knowledge and belief. I have not concealed any material fact or criminal conviction. I fully understand that any misstatement, forged credential, false declaration, or omission found at any stage of the recruitment process or even after appointment shall result in summary disqualification, cancellation of candidature/appointment, forfeiture of benefits, and initiation of statutory legal proceedings under the relevant penal statutes and service regulations.
             </p>
             <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 1.5rem; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 8.5pt;">
                 <div>
@@ -774,9 +1207,9 @@
                 <span style="font-size: 0.75rem; background: rgba(255,255,255,0.2); padding: 0.2rem 0.5rem; border-radius: 3px;">INTERNAL INSTITUTIONAL AUDIT</span>
             </div>
 
-            <!-- Section 8: Scrutiny Committee Verification & Clearance -->
+            <!-- Section 16: Scrutiny Committee Verification & Clearance -->
             <div class="section-heading">
-                <span>8. Statutory Scrutiny Committee Verification & Clearance Certificate</span>
+                <span>16. Statutory Scrutiny Committee Verification & Clearance Certificate</span>
                 @php
                     $isEligible = in_array($application->status, ['ELIGIBLE', 'UNDER_REVIEW', 'APPROVED']);
                     $isDeficient = $application->status === 'INCOMPLETE_DOSSIER';
@@ -825,20 +1258,20 @@
                 </tr>
             </table>
 
-            <!-- Section 9: Academic Subject Expert Referee Peer Review Evaluation -->
+            <!-- Section 17: Academic Subject Expert Referee Peer Review Evaluation -->
             @if($application->reviews->isNotEmpty())
                 <div class="section-heading">
-                    <span>9. External Academic Subject Expert Referee Peer Reviews</span>
+                    <span>17. External Academic Subject Expert Referee Peer Reviews</span>
                     <span class="badge">{{ $application->reviews->count() }} Referees Assigned</span>
                 </div>
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th style="width: 5%;">#</th>
+                            <th style="width: 4%;">#</th>
                             <th style="width: 25%;">Academic Referee</th>
                             <th style="width: 25%;">University & Country</th>
                             <th style="width: 15%; text-align: center;">Score %</th>
-                            <th style="width: 15%; text-align: center;">Recommendation</th>
+                            <th style="width: 16%; text-align: center;">Recommendation</th>
                             <th style="width: 15%; text-align: center;">Status</th>
                         </tr>
                     </thead>
@@ -884,22 +1317,22 @@
                 </table>
             @endif
 
-            <!-- Section 10: Statutory Selection Board Interview & Viva Grading Sheet -->
+            <!-- Section 18: Statutory Selection Board Interview & Viva Grading Sheet -->
             @if($application->evaluations->isNotEmpty())
                 <div class="section-heading">
-                    <span>10. Statutory Selection Board Member Grading & Viva Scores</span>
+                    <span>18. Statutory Selection Board Member Grading & Viva Scores</span>
                     <span class="badge">{{ $application->evaluations->count() }} Board Members Graded</span>
                 </div>
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th style="width: 5%;">#</th>
+                            <th style="width: 4%;">#</th>
                             <th style="width: 25%;">Board Member / Evaluator</th>
                             <th style="width: 14%; text-align: center;">Academic (/40)</th>
                             <th style="width: 14%; text-align: center;">Research (/20)</th>
                             <th style="width: 14%; text-align: center;">Viva (/40)</th>
                             <th style="width: 14%; text-align: center;">Total (/100)</th>
-                            <th style="width: 14%; text-align: center;">Outlier Flag</th>
+                            <th style="width: 15%; text-align: center;">Outlier Flag</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -928,10 +1361,10 @@
                 </table>
             @endif
 
-            <!-- Section 11: Grievance & Appeal Record (If Any) -->
+            <!-- Section 19: Grievance & Appeal Record (If Any) -->
             @if($application->appeal_letter)
                 <div class="section-heading">
-                    <span>11. Statutory Appellate Representation & Grievance History</span>
+                    <span>19. Statutory Appellate Representation & Grievance History</span>
                     <span class="badge badge-pill status-warn">Grievance Lodged</span>
                 </div>
                 <div class="admin-box">
@@ -945,9 +1378,9 @@
                 </div>
             @endif
 
-            <!-- Section 12: Official Institutional Sign-Off Block -->
+            <!-- Section 20: Official Institutional Sign-Off Block -->
             <div class="section-heading">
-                <span>12. Official Institutional Statutory Sign-Off & Verification Endorsement</span>
+                <span>20. Official Institutional Statutory Sign-Off & Verification Endorsement</span>
             </div>
             <div class="signatures-grid">
                 <div>
@@ -974,6 +1407,26 @@
             </div>
         @endif
 
+        <!-- Formal Document Provenance & Verification Endorsement Footer -->
+        <div style="margin-top: 1.5rem; padding-top: 0.75rem; border-top: 1px dashed #94a3b8; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 8pt; color: #475569; display: flex; justify-content: space-between; align-items: center; page-break-inside: avoid;">
+            <div>
+                <strong>Document Audit Trail:</strong> Printed / Downloaded by <strong>{{ $printedByName }} ({{ $printedByUsername }})</strong> - <em>{{ $printedByRole }}</em>
+            </div>
+            <div>
+                <strong>Printed / Downloaded on:</strong> {{ $printedAt->format('d M, Y \a\t h:i:s A') }}
+            </div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 7.5pt; color: #64748b;">
+                VERIFY-REF: #{{ $application->tracking_number }}-{{ strtoupper(substr(hash('sha256', $application->id . $application->tracking_number . $printedAt->timestamp), 0, 10)) }}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Running Print Footer (Active on printed pages) -->
+    <div class="document-print-footer">
+        <span><strong>Official Dossier:</strong> {{ $application->tracking_number }} • Candidate: {{ $basicInfo ? trim(($basicInfo->first_name ?? '') . ' ' . ($basicInfo->last_name ?? '')) : $application->user->email }}</span>
+        <span><strong>Printed by:</strong> {{ $printedByName }} ({{ $printedByUsername }}) - {{ $printedByRole }}</span>
+        <span><strong>Printed on:</strong> {{ $printedAt->format('d/m/Y H:i:s') }}</span>
     </div>
 
 </body>

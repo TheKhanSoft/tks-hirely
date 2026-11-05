@@ -530,13 +530,21 @@
             <x-slot:table>
                 <table class="table">
                     <thead>
-                        <tr>
-                            <th>Candidate Particulars</th>
-                            <th>Track Classification</th>
+                        <tr style="user-select: none;">
+                            <th style="cursor: pointer;" wire:click="sort('first_name')" title="Sort by Candidate Name">
+                                Candidate Particulars @if($sortBy === 'first_name') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
+                            <th style="cursor: pointer;" wire:click="sort('track_type')" title="Sort by Track">
+                                Track Classification @if($sortBy === 'track_type') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
                             <th>Applied Vacancies</th>
-                            <th>CNIC Reference</th>
-                            <th>Dossier Status</th>
-                            <th style="text-align: right;">Actions</th>
+                            <th style="cursor: pointer;" wire:click="sort('cnic_number')" title="Sort by CNIC">
+                                CNIC Reference @if($sortBy === 'cnic_number') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
+                            <th style="cursor: pointer;" wire:click="sort('is_locked')" title="Sort by Lock Status">
+                                Dossier Status @if($sortBy === 'is_locked') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
+                            <th style="text-align: right;" class="table-actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody>

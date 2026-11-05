@@ -2,7 +2,7 @@
     <!-- Left Pane: Appealed Applications List & Selected Details -->
     <div class="split-left">
         <div class="card mb-4" style="border-color: var(--border-color); box-shadow: var(--shadow-sm);">
-            <div class="flex justify-between align-center">
+            <div class="flex justify-between align-center" style="flex-wrap: wrap; gap: 0.75rem;">
                 <div>
                     <h2 class="card-title" style="font-size: 1.4rem;">
                         <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; background: rgba(245, 158, 11, 0.12); color: var(--warning); margin-right: 0.5rem;">
@@ -17,7 +17,91 @@
                     </h2>
                     <p class="card-subtitle">Review candidate formal grievances, examine evidence, and issue statutory appellate decrees.</p>
                 </div>
-                <span class="badge badge-appealed">{{ count($appeals) }} In Tribunal Queue</span>
+                
+                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                    <button type="button" 
+                            wire:click="exportCsv" 
+                            class="btn btn-secondary btn-sm" 
+                            style="display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 700;"
+                            title="Export appellate docket to CSV">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        <span>Export CSV</span>
+                    </button>
+
+                    <button type="button" 
+                            onclick="window.print()" 
+                            class="btn btn-secondary btn-sm" 
+                            style="display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 700;"
+                            title="Print Appellate Tribunal Docket">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                            <rect x="6" y="14" width="12" height="8"></rect>
+                        </svg>
+                        <span>Print Docket</span>
+                    </button>
+
+                    <span class="badge badge-appealed">{{ count($appeals) }} In Tribunal Queue</span>
+                </div>
+            </div>
+
+            <!-- Docket Filter Bar -->
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; align-items: flex-end;">
+                <!-- Search -->
+                <div style="position: relative;">
+                    <label style="display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 0.25rem;">Search Appellant</label>
+                    <input type="text" 
+                           class="form-control" 
+                           wire:model.live.debounce.300ms="search" 
+                           placeholder="Name, CNIC, or #APP..." 
+                           style="background: var(--bg-surface); color: var(--color-text-primary); font-size: 0.82rem;">
+                </div>
+
+                <!-- Advertisement Filter -->
+                <div>
+                    <label style="display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 0.25rem;">Advertisement</label>
+                    <select class="form-control form-select" wire:model.live="advertisementFilter" style="background: var(--bg-surface); color: var(--color-text-primary); font-size: 0.82rem;">
+                        <option value="ALL">All Advertisements</option>
+                        @foreach($advertisements as $adv)
+                            <option value="{{ $adv->id }}">📢 {{ $adv->advertisement_no }} ({{ $adv->year }})</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Campaign Filter -->
+                <div>
+                    <label style="display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 0.25rem;">Position / Campaign</label>
+                    <select class="form-control form-select" wire:model.live="campaignFilter" style="background: var(--bg-surface); color: var(--color-text-primary); font-size: 0.82rem;">
+                        <option value="">All Positions</option>
+                        @foreach($campaigns as $c)
+                            <option value="{{ $c->id }}">{{ $c->title }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Status Filter -->
+                <div>
+                    <label style="display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 0.25rem;">Appeal Status</label>
+                    <select class="form-control form-select" wire:model.live="statusFilter" style="background: var(--bg-surface); color: var(--color-text-primary); font-size: 0.82rem;">
+                        <option value="APPEALED">⏳ Pending Hearing (APPEALED)</option>
+                        <option value="ELIGIBLE">✓ Restored to Eligible</option>
+                        <option value="PAID">↺ Remanded for Re-Scrutiny</option>
+                        <option value="REJECTED">✕ Dismissed (REJECTED)</option>
+                        <option value="ALL">All Appeal Outcomes</option>
+                    </select>
+                </div>
+
+                @if(!empty($search) || $advertisementFilter !== 'ALL' || !empty($campaignFilter) || $statusFilter !== 'APPEALED')
+                    <div>
+                        <button type="button" wire:click="resetFilters" class="btn btn-secondary btn-sm" style="width: 100%; font-size: 0.8rem; padding: 0.5rem;">
+                            Reset Filters
+                        </button>
+                    </div>
+                @endif
             </div>
         </div>
 

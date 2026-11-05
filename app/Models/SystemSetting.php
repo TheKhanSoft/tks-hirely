@@ -271,11 +271,278 @@ class SystemSetting extends Model
     }
 
     /**
+     * Get dynamic application branding name.
+     */
+    public static function getAppName(): string
+    {
+        return (string) self::get('app_name', config('app.name', 'Hirely'));
+    }
+
+    /**
+     * Get dynamic primary logo asset URL or fallback.
+     */
+    public static function getAppLogo(): string
+    {
+        $logo = self::get('app_logo');
+        if (!empty($logo)) {
+            if (str_starts_with($logo, 'http://') || str_starts_with($logo, 'https://') || str_starts_with($logo, '/')) {
+                return $logo;
+            }
+            return asset('storage/' . $logo);
+        }
+        return '/images/logo-icon.svg';
+    }
+
+    /**
+     * Get dynamic favicon asset URL or fallback.
+     */
+    public static function getAppFavicon(): string
+    {
+        $fav = self::get('app_favicon');
+        if (!empty($fav)) {
+            if (str_starts_with($fav, 'http://') || str_starts_with($fav, 'https://') || str_starts_with($fav, '/')) {
+                return $fav;
+            }
+            return asset('storage/' . $fav);
+        }
+        return '/favicon.ico';
+    }
+
+    /**
      * Populate standard system default settings.
      */
     public static function seedDefaultSettings(): void
     {
         $defaults = [
+            // 🎨 Application Identity & Branding
+            [
+                'key' => 'app_name',
+                'value' => 'Hirely',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Application Title & Brand Name',
+                'description' => 'The public and administrative platform name displayed in navigation, browser tabs, and emails.',
+            ],
+            [
+                'key' => 'app_tagline',
+                'value' => 'Statutory Recruitment & Selection Operating System',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Application Tagline / Subtitle',
+                'description' => 'Displayed beneath the logo on login, candidate portal banners, and portal headers.',
+            ],
+            [
+                'key' => 'app_description',
+                'value' => 'Enterprise recruitment, statutory scrutiny, and merit selection operating system for higher education and statutory institutions.',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Application Meta Description',
+                'description' => 'Portal summary text used for SEO meta tags, portal footers, and informational summaries.',
+            ],
+            [
+                'key' => 'app_logo',
+                'value' => '/images/logo-icon.svg',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Primary Brand Logo (Light Mode / Standard)',
+                'description' => 'Brand logo image used on the sidebar, header bar, and authentication portals.',
+            ],
+            [
+                'key' => 'app_logo_dark',
+                'value' => '/images/logo-icon.svg',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Secondary Brand Logo (Dark Mode)',
+                'description' => 'Alternative brand logo displayed when dark theme is activated.',
+            ],
+            [
+                'key' => 'app_favicon',
+                'value' => '/favicon.ico',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Browser Favicon Asset',
+                'description' => 'Favicon icon displayed in browser tabs and bookmark shortcuts (.ico, .svg, .png).',
+            ],
+            [
+                'key' => 'app_version',
+                'value' => 'v2.4 Enterprise OS',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Platform Release & Version Badge',
+                'description' => 'Version badge shown in the sidebar header beside the brand title.',
+            ],
+            [
+                'key' => 'theme_accent_color',
+                'value' => '#4f46e5',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Theme Primary Accent Color',
+                'description' => 'Hexadecimal color code used for buttons, badges, and brand highlights across the UI.',
+            ],
+            [
+                'key' => 'portal_announcement_enabled',
+                'value' => '0',
+                'group' => 'branding',
+                'type' => 'boolean',
+                'label' => 'Candidate Portal Announcement Banner',
+                'description' => 'Enables a prominent alert broadcast banner across the top of applicant and administrative workspaces.',
+            ],
+            [
+                'key' => 'portal_announcement_type',
+                'value' => 'info',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Announcement Banner Variant',
+                'description' => 'Visual style: info (blue), warning (amber), danger (red), or success (green).',
+            ],
+            [
+                'key' => 'portal_announcement_message',
+                'value' => '',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Announcement Banner Text',
+                'description' => 'The message broadcasted to candidates and institutional officers.',
+            ],
+            [
+                'key' => 'footer_copyright_text',
+                'value' => '© 2026 Hirely OS. All rights reserved.',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Portal Footer Copyright Notice',
+                'description' => 'Legal and copyright text displayed at the bottom of candidate and public pages.',
+            ],
+
+            // 📞 Contact & Helpdesk Channels
+            [
+                'key' => 'support_email',
+                'value' => 'support@hirely.edu.pk',
+                'group' => 'contact',
+                'type' => 'string',
+                'label' => 'Candidate Support & Inquiries Email',
+                'description' => 'Primary email displayed to applicants for technical support and voucher reconciliation.',
+            ],
+            [
+                'key' => 'support_phone',
+                'value' => '+92-51-9250000',
+                'group' => 'contact',
+                'type' => 'string',
+                'label' => 'Recruitment Helpdesk Phone Line',
+                'description' => 'Telephone helpline available for candidate guidance and institutional communications.',
+            ],
+            [
+                'key' => 'support_whatsapp',
+                'value' => '+92-300-1234567',
+                'group' => 'contact',
+                'type' => 'string',
+                'label' => 'WhatsApp Candidate Helpline',
+                'description' => 'WhatsApp business or support line for quick messaging and document guidance.',
+            ],
+            [
+                'key' => 'registrar_hotline',
+                'value' => '+92-51-9250001',
+                'group' => 'contact',
+                'type' => 'string',
+                'label' => 'Registrar / Emergency Secretariat Hotline',
+                'description' => 'Direct contact for statutory committee members and urgent administrative queries.',
+            ],
+            [
+                'key' => 'support_hours',
+                'value' => 'Monday to Friday: 08:30 AM – 04:30 PM PKT',
+                'group' => 'contact',
+                'type' => 'string',
+                'label' => 'Support Service Hours',
+                'description' => 'Operating schedule when helpdesk officers and live telephone lines are active.',
+            ],
+            [
+                'key' => 'helpdesk_location',
+                'value' => 'Recruitment & Facilitation Center, Academic Block B, Main Campus',
+                'group' => 'contact',
+                'type' => 'string',
+                'label' => 'Physical Helpdesk & Facilitation Center',
+                'description' => 'Physical campus location where candidates can visit for identity or physical dossier verification.',
+            ],
+            [
+                'key' => 'org_website',
+                'value' => 'https://hirely.edu.pk',
+                'group' => 'contact',
+                'type' => 'string',
+                'label' => 'Official Organization / University Website',
+                'description' => 'Primary external institutional portal URL.',
+            ],
+
+            // ✉️ Email Delivery & SMTP Configuration
+            [
+                'key' => 'mail_from_name',
+                'value' => 'Hirely Recruitment Desk',
+                'group' => 'email',
+                'type' => 'string',
+                'label' => 'Default Mailer From Name',
+                'description' => 'The sender display name attached to automated appointment letters and candidate alerts.',
+            ],
+            [
+                'key' => 'mail_from_address',
+                'value' => 'noreply@hirely.edu.pk',
+                'group' => 'email',
+                'type' => 'string',
+                'label' => 'Default Mailer From Email Address',
+                'description' => 'The sender email address attached to outgoing automated notifications.',
+            ],
+            [
+                'key' => 'mail_reply_to',
+                'value' => 'support@hirely.edu.pk',
+                'group' => 'email',
+                'type' => 'string',
+                'label' => 'Default Reply-To Email Address',
+                'description' => 'Where candidate responses will be delivered if they reply to system emails.',
+            ],
+            [
+                'key' => 'mail_mailer',
+                'value' => 'smtp',
+                'group' => 'email',
+                'type' => 'string',
+                'label' => 'Mail Transport Protocol / Driver',
+                'description' => 'Delivery driver: smtp, sendmail, mailgun, ses, or log.',
+            ],
+            [
+                'key' => 'mail_host',
+                'value' => 'smtp.mailgun.org',
+                'group' => 'email',
+                'type' => 'string',
+                'label' => 'SMTP Server Hostname',
+                'description' => 'Hostname of the outgoing mail server (e.g. smtp.gmail.com, smtp.office365.com).',
+            ],
+            [
+                'key' => 'mail_port',
+                'value' => '587',
+                'group' => 'email',
+                'type' => 'integer',
+                'label' => 'SMTP Server Port',
+                'description' => 'Port for outgoing mail connection (e.g. 587 for TLS, 465 for SSL, 25 for plain).',
+            ],
+            [
+                'key' => 'mail_encryption',
+                'value' => 'tls',
+                'group' => 'email',
+                'type' => 'string',
+                'label' => 'SMTP Encryption Protocol',
+                'description' => 'Security protocol: tls, ssl, or none.',
+            ],
+            [
+                'key' => 'mail_username',
+                'value' => '',
+                'group' => 'email',
+                'type' => 'string',
+                'label' => 'SMTP Authentication Username / API Key',
+                'description' => 'Account username or API credential for outgoing SMTP server.',
+            ],
+            [
+                'key' => 'mail_password',
+                'value' => '',
+                'group' => 'email',
+                'type' => 'string',
+                'label' => 'SMTP Authentication Password',
+                'description' => 'Account password or secret key for SMTP server.',
+            ],
             // 🏢 Organization & Sector Profile
             [
                 'key' => 'org_name',

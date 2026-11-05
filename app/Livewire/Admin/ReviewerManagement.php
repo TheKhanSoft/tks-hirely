@@ -45,6 +45,19 @@ class ReviewerManagement extends Component
     public $subjectFilter = '';
     public $rankFilter = '';
     public $countryFilter = '';
+    public $sortBy = 'created_at';
+    public $sortDirection = 'desc';
+
+    public function sortBy($column)
+    {
+        if ($this->sortBy === $column) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDirection = 'asc';
+        }
+        $this->resetPage();
+    }
 
     // Tab 2: Academic Candidacies Filter & Search Properties
     public $candidacySearch = '';
@@ -186,6 +199,8 @@ class ReviewerManagement extends Component
         $this->subjectFilter = '';
         $this->rankFilter = '';
         $this->countryFilter = '';
+        $this->sortBy = 'created_at';
+        $this->sortDirection = 'desc';
         $this->candidacySearch = '';
         $this->advertisementFilter = 'ALL';
         $this->candidacyCampaignFilter = '';
@@ -623,6 +638,70 @@ class ReviewerManagement extends Component
         }
     }
 
+    public function remindAllPendingReviewers($applicationId)
+    {
+        abort_unless(Auth::user()->can('assign-reviewer') || Auth::user()->can('manage-reviewers'), 403);
+        $app = Application::with(['reviews.reviewer.reviewerProfile', 'campaign', 'user.basicInfo'])->findOrFail($applicationId);
+        $pendingReviews = $app->reviews->where('status', '!=', 'SUBMITTED');
+
+        if ($pendingReviews->isEmpty()) {
+            session()->flash('warning', 'All assigned reviewers for this candidacy have already submitted their evaluations.');
+            return;
+        }
+
+        $remindedCount = 0;
+        foreach ($pendingReviews as $rev) {
+            $reviewerUser = $rev->reviewer;
+            if ($reviewerUser && $reviewerUser->email) {
+                try {
+                    Mail::to($reviewerUser->email)->send(new ApplicationAssignedReviewerMail(
+                        $reviewerUser->reviewerProfile?->name ?? 'Colleague',
+                        $app->user->basicInfo ? trim($app->user->basicInfo->first_name . ' ' . $app->user->basicInfo->last_name) : 'Academic Candidate',
+                        $app->campaign->title,
+                        $app->campaign->department,
+                        $rev->due_date ? $rev->due_date->format('Y-m-d') : now()->addDays(7)->format('Y-m-d'),
+                        "REMINDER: Statutory confidential peer evaluation for this dossier is awaiting your evaluation report. Kindly submit your expert score and remarks at your earliest convenience.",
+                        url('/reviewer/dashboard')
+                    ));
+                    $remindedCount++;
+                } catch (\Exception $e) {
+                    Log::warning("Failed sending reminder email: " . $e->getMessage());
+                }
+            }
+        }
+
+        session()->flash('message', "Dispatched official reminders to {$remindedCount} pending referee(s) for dossier #{$app->tracking_number}.");
+
+        if ($this->viewingApplication && $this->viewingApplication->id == $applicationId) {
+            $this->applicationReviews = ApplicationReview::with(['reviewer.reviewerProfile', 'assigner'])
+                ->where('application_id', $this->viewingApplication->id)
+                ->get();
+        }
+    }
+
+    public function reopenReviewerEvaluation($reviewId)
+    {
+        abort_unless(Auth::user()->can('assign-reviewer') || Auth::user()->can('manage-reviewers'), 403);
+        $review = ApplicationReview::findOrFail($reviewId);
+
+        $review->update([
+            'status' => 'PENDING',
+            'overall_score' => null,
+            'recommendation' => null,
+            'report_text' => null,
+            'evaluation_file_path' => null,
+            'submitted_at' => null,
+        ]);
+
+        session()->flash('message', "Evaluation report re-opened. Referee can now re-submit their score and remarks.");
+
+        if ($this->viewingApplication) {
+            $this->applicationReviews = ApplicationReview::with(['reviewer.reviewerProfile', 'assigner'])
+                ->where('application_id', $this->viewingApplication->id)
+                ->get();
+        }
+    }
+
     public function removeReviewerAssignment($reviewId)
     {
         abort_unless(Auth::user()->can('assign-reviewer') || Auth::user()->can('manage-reviewers'), 403);
@@ -842,7 +921,25 @@ class ReviewerManagement extends Component
             $reviewersQuery->where('country', $this->countryFilter);
         }
 
-        $reviewers = $reviewersQuery->latest()->paginate($this->perPage);
+        if ($this->sortBy === 'name') {
+            $reviewersQuery->orderBy('name', $this->sortDirection);
+        } elseif ($this->sortBy === 'subject') {
+            $reviewersQuery->orderBy('subject', $this->sortDirection);
+        } elseif ($this->sortBy === 'academic_rank') {
+            $reviewersQuery->orderBy('academic_rank', $this->sortDirection);
+        } elseif ($this->sortBy === 'university') {
+            $reviewersQuery->orderBy('university', $this->sortDirection);
+        } elseif ($this->sortBy === 'country') {
+            $reviewersQuery->orderBy('country', $this->sortDirection);
+        } elseif ($this->sortBy === 'reviews_count') {
+            $reviewersQuery->orderBy('reviews_count', $this->sortDirection);
+        } elseif ($this->sortBy === 'is_active') {
+            $reviewersQuery->orderBy('is_active', $this->sortDirection);
+        } else {
+            $reviewersQuery->orderBy('created_at', $this->sortDirection);
+        }
+
+        $reviewers = $reviewersQuery->paginate($this->perPage);
 
         // 2. Query Academic Applications for Review Dispatch (Tab 2)
         $candidaciesQuery = Application::with(['campaign.advertisement', 'user.basicInfo', 'reviews.reviewer.reviewerProfile'])

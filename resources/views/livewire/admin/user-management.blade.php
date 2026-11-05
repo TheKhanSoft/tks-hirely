@@ -518,13 +518,17 @@
             <x-slot:table>
                 <table class="table">
                     <thead>
-                        <tr>
-                            <th>Personnel / User Reference</th>
+                        <tr style="user-select: none;">
+                            <th style="cursor: pointer;" wire:click="sort('email')" title="Sort by Email">
+                                Personnel / User Reference @if($sortBy === 'email') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
                             <th>Classification</th>
                             <th>Department / Institution</th>
                             <th>Role & Permissions</th>
-                            <th>Status</th>
-                            <th style="text-align: right;">Actions</th>
+                            <th style="cursor: pointer;" wire:click="sort('is_active')" title="Sort by Status">
+                                Status @if($sortBy === 'is_active') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
+                            <th style="text-align: right;" class="table-actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody>

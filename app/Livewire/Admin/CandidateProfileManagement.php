@@ -36,6 +36,20 @@ class CandidateProfileManagement extends Component
     #[Url(as: 'ad', except: 'ALL')]
     public $advertisementFilter = '';
 
+    public $sortBy = 'first_name';
+    public $sortDir = 'asc';
+
+    public function sort($column)
+    {
+        if ($this->sortBy === $column) {
+            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDir = 'asc';
+        }
+        $this->resetPage();
+    }
+
     // Collections
     public $availableUsers = [];
     public $availableAdvertisements = [];
@@ -123,6 +137,8 @@ class CandidateProfileManagement extends Component
         $this->trackFilter = '';
         $this->lockFilter = '';
         $this->advertisementFilter = 'ALL';
+        $this->sortBy = 'first_name';
+        $this->sortDir = 'asc';
         $this->resetPage();
     }
 
@@ -376,7 +392,22 @@ class CandidateProfileManagement extends Component
             });
         }
 
-        $profiles = $query->orderBy('first_name')->paginate($this->perPage);
+        // Dynamic Column Sorting
+        if ($this->sortBy === 'first_name') {
+            $query->orderBy('first_name', $this->sortDir);
+        } elseif ($this->sortBy === 'cnic_number') {
+            $query->orderBy('cnic_number', $this->sortDir);
+        } elseif ($this->sortBy === 'track_type') {
+            $query->orderBy('track_type', $this->sortDir);
+        } elseif ($this->sortBy === 'quota') {
+            $query->orderBy('quota', $this->sortDir);
+        } elseif ($this->sortBy === 'is_locked') {
+            $query->orderBy('is_locked', $this->sortDir);
+        } else {
+            $query->orderBy('created_at', $this->sortDir);
+        }
+
+        $profiles = $query->paginate($this->perPage);
 
         // Dynamic Candidate Metrics strictly scoped to genuine applicant pool
         $baseCandidateQuery = BasicInfo::whereHas('user', $applicantScope);

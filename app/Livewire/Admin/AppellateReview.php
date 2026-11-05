@@ -3,11 +3,23 @@
 namespace App\Livewire\Admin;
 
 use Livewire\Component;
+use App\Livewire\Traits\WithDynamicListing;
 use App\Models\Application;
+use App\Models\Advertisement;
+use App\Models\Campaign;
 use Illuminate\Support\Facades\Auth;
 
 class AppellateReview extends Component
 {
+    use WithDynamicListing;
+
+    public $search = '';
+    public $campaignFilter = '';
+    public $advertisementFilter = 'ALL';
+    public $statusFilter = 'APPEALED';
+    public $sortBy = 'created_at';
+    public $sortDir = 'desc';
+
     public $appeals;
     public $selectedAppealId;
     public $selectedAppeal;
@@ -20,6 +32,136 @@ class AppellateReview extends Component
     public $isResolutionModalOpen = false;
     public $resolutionType = ''; // 'ELIGIBLE', 'PAID', 'REJECTED'
     public $statutoryOrderNotes = '';
+
+    public function sort($column)
+    {
+        if ($this->sortBy === $column) {
+            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDir = 'asc';
+        }
+        $this->loadAppeals();
+    }
+
+    public function updatedSearch()
+    {
+        $this->loadAppeals();
+    }
+
+    public function updatedCampaignFilter()
+    {
+        $this->loadAppeals();
+    }
+
+    public function updatedAdvertisementFilter()
+    {
+        $this->loadAppeals();
+    }
+
+    public function updatedStatusFilter()
+    {
+        $this->loadAppeals();
+    }
+
+    public function resetFilters()
+    {
+        $this->search = '';
+        $this->campaignFilter = '';
+        $this->advertisementFilter = 'ALL';
+        $this->statusFilter = 'APPEALED';
+        $this->sortBy = 'created_at';
+        $this->sortDir = 'desc';
+        $this->loadAppeals();
+    }
+
+    public function exportCsv()
+    {
+        abort_unless(Auth::check() && (
+            Auth::user()->can('export-application') ||
+            Auth::user()->can('view-appeal') ||
+            Auth::user()->can('process-appeal') ||
+            Auth::user()->hasAnyRole(['super-admin', 'appellate-committee', 'appellate', 'registrar'])
+        ), 403);
+
+        $query = Application::with(['user.basicInfo', 'campaign.advertisement']);
+
+        if (!empty($this->statusFilter) && $this->statusFilter !== 'ALL') {
+            $query->where('status', $this->statusFilter);
+        } else {
+            $query->whereIn('status', ['APPEALED', 'ELIGIBLE', 'PAID', 'REJECTED']);
+        }
+
+        if ($this->advertisementFilter !== 'ALL') {
+            $query->whereHas('campaign', fn($q) => $q->where('advertisement_id', (int)$this->advertisementFilter));
+        }
+
+        if ($this->campaignFilter) {
+            $query->where('campaign_id', $this->campaignFilter);
+        }
+
+        if (!empty($this->search)) {
+            $s = '%' . trim($this->search) . '%';
+            $rawId = preg_replace('/[^0-9]/', '', $this->search);
+            $query->where(function ($q) use ($s, $rawId) {
+                if (!empty($rawId)) {
+                    $q->where('applications.id', (int)$rawId);
+                }
+                $q->orWhereHas('user', function ($uq) use ($s) {
+                    $uq->where('email', 'like', $s)
+                       ->orWhereHas('basicInfo', function ($bq) use ($s) {
+                           $bq->where('first_name', 'like', $s)
+                              ->orWhere('last_name', 'like', $s)
+                              ->orWhere('cnic_number', 'like', $s);
+                       });
+                })->orWhereHas('campaign', function ($cq) use ($s) {
+                    $cq->where('title', 'like', $s)->orWhere('job_code', 'like', $s);
+                });
+            });
+        }
+
+        $records = $query->latest()->get();
+
+        $headers = [
+            'Dossier Ref',
+            'Appellant Name',
+            'Father Name',
+            'CNIC Number',
+            'Candidate Email',
+            'Position Applied',
+            'Job Code',
+            'Department',
+            'Current Status',
+            'Initial Disqualification Reason',
+            'Appeal Grounds / Letter',
+            'Proof Attached',
+            'Appeal Date',
+        ];
+
+        $rows = [];
+        foreach ($records as $app) {
+            $bi = $app->user?->basicInfo;
+            $name = $bi ? trim($bi->first_name . ' ' . $bi->last_name) : ($app->user?->email ?? 'N/A');
+
+            $rows[] = [
+                $app->tracking_number,
+                $name,
+                $bi?->father_name ?? 'N/A',
+                $bi?->cnic_number ?? 'N/A',
+                $app->user?->email ?? '',
+                $app->campaign?->title ?? '',
+                $app->campaign?->job_code ?? '',
+                $app->campaign?->department ?? '',
+                $app->status,
+                $app->disqualification_reason ?? 'None',
+                $app->appeal_letter ?? 'No text provided',
+                $app->appeal_proof_path ? 'Yes (Document Uploaded)' : 'No',
+                $app->updated_at ? $app->updated_at->format('d M Y, h:i A') : $app->created_at->format('d M Y, h:i A'),
+            ];
+        }
+
+        return $this->streamCsvDownload('appellate-tribunal-docket-' . date('Y-m-d') . '.csv', $headers, $rows);
+    }
 
     public function openResolutionModal($type)
     {
@@ -85,16 +227,68 @@ class AppellateReview extends Component
 
     public function loadAppeals()
     {
-        $this->appeals = Application::with('user.basicInfo', 'campaign')
-            ->where('status', 'APPEALED')
-            ->get();
+        $query = Application::with('user.basicInfo', 'campaign.advertisement');
+
+        if (!empty($this->statusFilter) && $this->statusFilter !== 'ALL') {
+            $query->where('status', $this->statusFilter);
+        } else {
+            $query->whereIn('status', ['APPEALED', 'ELIGIBLE', 'PAID', 'REJECTED']);
+        }
+
+        if ($this->advertisementFilter !== 'ALL') {
+            $query->whereHas('campaign', fn($q) => $q->where('advertisement_id', (int)$this->advertisementFilter));
+        }
+
+        if ($this->campaignFilter) {
+            $query->where('campaign_id', $this->campaignFilter);
+        }
+
+        if (!empty($this->search)) {
+            $s = '%' . trim($this->search) . '%';
+            $rawId = preg_replace('/[^0-9]/', '', $this->search);
+            $query->where(function ($q) use ($s, $rawId) {
+                if (!empty($rawId)) {
+                    $q->where('applications.id', (int)$rawId);
+                }
+                $q->orWhereHas('user', function ($uq) use ($s) {
+                    $uq->where('email', 'like', $s)
+                       ->orWhereHas('basicInfo', function ($bq) use ($s) {
+                           $bq->where('first_name', 'like', $s)
+                              ->orWhere('last_name', 'like', $s)
+                              ->orWhere('cnic_number', 'like', $s);
+                       });
+                })->orWhereHas('campaign', function ($cq) use ($s) {
+                    $cq->where('title', 'like', $s)->orWhere('job_code', 'like', $s);
+                });
+            });
+        }
+
+        // Sorting
+        if ($this->sortBy === 'candidate_name') {
+            $query->join('users', 'applications.user_id', '=', 'users.id')
+                ->leftJoin('basic_infos', 'users.id', '=', 'basic_infos.user_id')
+                ->orderBy('basic_infos.first_name', $this->sortDir)
+                ->select('applications.*');
+        } elseif ($this->sortBy === 'tracking_number') {
+            $query->orderBy('applications.id', $this->sortDir);
+        } elseif ($this->sortBy === 'campaign_title') {
+            $query->join('campaigns', 'applications.campaign_id', '=', 'campaigns.id')
+                ->orderBy('campaigns.title', $this->sortDir)
+                ->select('applications.*');
+        } else {
+            $query->orderBy('applications.updated_at', $this->sortDir);
+        }
+
+        $this->appeals = $query->get();
             
-        if ($this->selectedAppealId) {
+        if ($this->selectedAppealId && $this->appeals->contains('id', $this->selectedAppealId)) {
             $this->selectAppeal($this->selectedAppealId);
         } elseif ($this->appeals->isNotEmpty()) {
             $this->selectAppeal($this->appeals->first()->id);
         } else {
             $this->selectedAppeal = null;
+            $this->viewingDocName = 'No Document Selected';
+            $this->viewingDocPath = '';
         }
     }
 
@@ -177,7 +371,17 @@ class AppellateReview extends Component
 
     public function render()
     {
-        return view('livewire.admin.appellate-review')
-            ->layout('layouts.app');
+        $campaignsQuery = Campaign::select('id', 'title', 'job_code', 'department', 'advertisement_id')->orderBy('title');
+        if ($this->advertisementFilter !== 'ALL') {
+            $campaignsQuery->where('advertisement_id', (int)$this->advertisementFilter);
+        }
+        $campaigns = $campaignsQuery->get();
+
+        $advertisements = Advertisement::chronologicalDesc()->get();
+
+        return view('livewire.admin.appellate-review', [
+            'campaigns' => $campaigns,
+            'advertisements' => $advertisements,
+        ])->layout('layouts.app');
     }
 }

@@ -744,12 +744,18 @@
             <x-slot:table>
                 <table class="table">
                     <thead>
-                        <tr>
-                            <th style="width: 24%;">Candidate Reference</th>
-                            <th style="width: 22%;">Target Vacancy & Quotas</th>
+                        <tr style="user-select: none;">
+                            <th style="width: 24%; cursor: pointer;" wire:click="sort('candidate_name')" title="Sort by Candidate Name">
+                                Candidate Reference @if($sortBy === 'candidate_name') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
+                            <th style="width: 22%; cursor: pointer;" wire:click="sort('campaign_title')" title="Sort by Vacancy Title">
+                                Target Vacancy & Quotas @if($sortBy === 'campaign_title') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
                             <th style="width: 14%;">Fee Voucher</th>
-                            <th style="width: 15%;">Lifecycle Stage</th>
-                            <th style="width: 25%; text-align: right;">Direct Operational Actions</th>
+                            <th style="width: 15%; cursor: pointer;" wire:click="sort('status')" title="Sort by Lifecycle Stage">
+                                Lifecycle Stage @if($sortBy === 'status') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
+                            <th style="width: 25%; text-align: right;" class="table-actions">Direct Operational Actions</th>
                         </tr>
                     </thead>
                     <tbody>

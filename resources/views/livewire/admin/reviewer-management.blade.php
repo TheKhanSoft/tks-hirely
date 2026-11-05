@@ -406,14 +406,24 @@
                 <div class="table-container">
                     <table class="table">
                         <thead>
-                            <tr>
-                                <th>Expert Referee & Rank</th>
-                                <th>Academic Discipline</th>
-                                <th>Institution & Country</th>
+                            <tr style="user-select: none;">
+                                <th style="cursor: pointer;" wire:click="sortBy('name')">
+                                    Expert Referee & Rank @if($sortBy === 'name') <span style="color: var(--secondary);">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span> @endif
+                                </th>
+                                <th style="cursor: pointer;" wire:click="sortBy('subject')">
+                                    Academic Discipline @if($sortBy === 'subject') <span style="color: var(--secondary);">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span> @endif
+                                </th>
+                                <th style="cursor: pointer;" wire:click="sortBy('university')">
+                                    Institution & Country @if($sortBy === 'university') <span style="color: var(--secondary);">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span> @endif
+                                </th>
                                 <th>Contact Particulars</th>
                                 <th>Research Focus</th>
-                                <th>Assigned Dossiers</th>
-                                <th>Status (Click to Toggle)</th>
+                                <th style="cursor: pointer;" wire:click="sortBy('reviews_count')">
+                                    Assigned Dossiers @if($sortBy === 'reviews_count') <span style="color: var(--secondary);">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span> @endif
+                                </th>
+                                <th style="cursor: pointer;" wire:click="sortBy('is_active')">
+                                    Status @if($sortBy === 'is_active') <span style="color: var(--secondary);">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span> @endif
+                                </th>
                                 <th style="text-align: right;">Actions</th>
                             </tr>
                         </thead>
@@ -862,6 +872,43 @@
                                                 </button>
                                             @endif
                                         @endif
+
+                                        <!-- 3-Dot More Actions Menu -->
+                                        <div class="table-action-dropdown-wrap" x-data="{ openMenu: false }" @click.outside="openMenu = false">
+                                            <button type="button" 
+                                                    class="action-btn" 
+                                                    @click="openMenu = !openMenu" 
+                                                    data-tooltip="More Actions" 
+                                                    aria-label="More Actions">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                                                    <circle cx="12" cy="5" r="1.5"/>
+                                                    <circle cx="12" cy="12" r="1.5"/>
+                                                    <circle cx="12" cy="19" r="1.5"/>
+                                                </svg>
+                                            </button>
+                                            <div class="table-action-dropdown" x-show="openMenu" x-cloak style="display: none;" @click="openMenu = false">
+                                                @if($reviewCount > 0)
+                                                    <a href="{{ route('peer-reports.print', $app->id) }}" target="_blank" class="table-action-menu-item">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                                                        <span>Print Consensus Report</span>
+                                                    </a>
+                                                    <button type="button" class="table-action-menu-item" wire:click="exportApplicationPeerReportsCsv({{ $app->id }})">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                                        <span>Export Reports CSV</span>
+                                                    </button>
+                                                    @if($submittedReviews < $reviewCount)
+                                                        <button type="button" class="table-action-menu-item" wire:click="remindAllPendingReviewers({{ $app->id }})">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                                                            <span>Remind Pending Reviewers</span>
+                                                        </button>
+                                                    @endif
+                                                @endif
+                                                <a href="/admin/applications/{{ $app->id }}/print" target="_blank" class="table-action-menu-item">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                                    <span>Print Candidate Dossier</span>
+                                                </a>
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -1522,13 +1569,33 @@
                                     </div>
                                 </div>
 
-                                @if($ar->evaluation_file_path)
-                                    <div style="display: flex; justify-content: flex-end;">
-                                        <a href="/storage/{{ $ar->evaluation_file_path }}" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
-                                            <span>📥 Download Signed Evaluation PDF</span>
+                                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color); margin-top: 0.75rem;">
+                                    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                        <a href="{{ route('peer-reports.print', $viewingApplication->id) }}#reviewer-{{ $ar->id }}" target="_blank" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.78rem; font-weight: 700;">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                                            <span>Print Referee Report</span>
                                         </a>
+
+                                        @if($ar->evaluation_file_path)
+                                            <a href="/storage/{{ $ar->evaluation_file_path }}" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 700;">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                                <span>Download Signed PDF</span>
+                                            </a>
+                                        @endif
                                     </div>
-                                @endif
+
+                                    @if(auth()->user()->hasAnyRole(['super-admin', 'registrar']) || auth()->user()->can('manage-reviewers'))
+                                        <button type="button" 
+                                                wire:click="reopenReviewerEvaluation({{ $ar->id }})" 
+                                                wire:confirm="Re-open this peer review evaluation? This will clear the score and permit the reviewer to re-submit their evaluation."
+                                                class="btn btn-sm" 
+                                                style="background: rgba(245, 158, 11, 0.12); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.25); display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.78rem; font-weight: 700;"
+                                                title="Re-open evaluation for revisions">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                                            <span>Re-open for Revision</span>
+                                        </button>
+                                    @endif
+                                </div>
                             @else
                                 <!-- Pending Evaluation Details & Actions -->
                                 <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem 1.25rem; margin-bottom: 1rem;">

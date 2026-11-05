@@ -18,6 +18,20 @@ class AdvertisementManagement extends Component
     public $yearFilter = '';
     public $statusFilter = 'ALL'; // ALL, ACTIVE, EXTENDED, EXPIRED, INACTIVE
 
+    public $sortBy = 'chronological';
+    public $sortDir = 'desc';
+
+    public function sort($column)
+    {
+        if ($this->sortBy === $column) {
+            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDir = 'asc';
+        }
+        $this->resetPage();
+    }
+
     // Create / Edit Modal Properties
     public $showCreateModal = false;
     public $showEditModal = false;
@@ -107,6 +121,8 @@ class AdvertisementManagement extends Component
         $this->search = '';
         $this->yearFilter = '';
         $this->statusFilter = 'ALL';
+        $this->sortBy = 'chronological';
+        $this->sortDir = 'desc';
         $this->resetPage();
     }
 
@@ -404,7 +420,24 @@ class AdvertisementManagement extends Component
             $query->where('is_active', false);
         }
 
-        $advertisements = $query->chronologicalDesc()->paginate($this->perPage);
+        // Dynamic Column Sorting
+        if ($this->sortBy === 'advertisement_no') {
+            $query->orderBy('advertisement_no', $this->sortDir);
+        } elseif ($this->sortBy === 'title') {
+            $query->orderBy('title', $this->sortDir);
+        } elseif ($this->sortBy === 'year') {
+            $query->orderBy('year', $this->sortDir);
+        } elseif ($this->sortBy === 'valid_from') {
+            $query->orderBy('valid_from', $this->sortDir);
+        } elseif ($this->sortBy === 'valid_to') {
+            $query->orderBy('valid_to', $this->sortDir);
+        } elseif ($this->sortBy === 'campaigns_count') {
+            $query->orderBy('campaigns_count', $this->sortDir);
+        } else {
+            $query->chronologicalDesc();
+        }
+
+        $advertisements = $query->paginate($this->perPage);
 
         $availableYears = Advertisement::distinct()->orderBy('year', 'desc')->pluck('year')->filter()->values();
         if ($availableYears->isEmpty()) {
