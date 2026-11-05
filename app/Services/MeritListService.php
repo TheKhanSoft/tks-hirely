@@ -69,12 +69,44 @@ class MeritListService
             $query->where('status', $status);
         }
 
+        $gender = trim($filters['gender'] ?? '');
+        if (!empty($gender) && $gender !== 'ALL') {
+            $query->whereHas('user.basicInfo', function ($bq) use ($gender) {
+                $bq->where('gender', $gender);
+            });
+        }
+
+        $fee = trim($filters['fee'] ?? '');
+        if (!empty($fee) && $fee !== 'ALL') {
+            if ($fee === 'PAID') {
+                $query->where(function ($q) {
+                    $q->whereHas('billingLedger', function ($lq) {
+                        $lq->where('status', 'SETTLED');
+                    })->orWhereIn('status', ['PAID', 'ELIGIBLE', 'UNDER_REVIEW', 'APPROVED']);
+                });
+            } elseif ($fee === 'UNPAID') {
+                $query->where(function ($q) {
+                    $q->whereDoesntHave('billingLedger', function ($lq) {
+                        $lq->where('status', 'SETTLED');
+                    })->whereNotIn('status', ['PAID', 'ELIGIBLE', 'UNDER_REVIEW', 'APPROVED']);
+                });
+            }
+        }
+
         $apps = $query->get();
 
         // Calculate stage scores & metadata for each application
         $scoredApps = $apps->map(function ($app) use ($campaign) {
             return $this->calculateApplicationMetrics($app, $campaign);
         });
+
+        // Score cutoff filter
+        $minScore = (float)($filters['minScore'] ?? 0);
+        if ($minScore > 0) {
+            $scoredApps = $scoredApps->filter(function ($item) use ($minScore) {
+                return ($item['aggregate_score'] ?? 0) >= $minScore;
+            })->values();
+        }
 
         // Stage-specific sorting
         $sortedApps = match ($stage) {
@@ -134,6 +166,67 @@ class MeritListService
 
             return $item;
         });
+
+        // Recommendation filter (Step 5 Consolidated)
+        $recommendation = trim($filters['recommendation'] ?? '');
+        if (!empty($recommendation) && $recommendation !== 'ALL') {
+            $finalList = $finalList->filter(function ($item) use ($recommendation) {
+                if ($recommendation === 'SELECTED') {
+                    return str_contains($item['recommendation'] ?? '', 'SELECTED');
+                } elseif ($recommendation === 'WAITLISTED') {
+                    return str_contains($item['recommendation'] ?? '', 'WAITLISTED');
+                } elseif ($recommendation === 'NOT_RECOMMENDED') {
+                    return str_contains($item['recommendation'] ?? '', 'NOT RECOMMENDED');
+                } elseif ($recommendation === 'DISQUALIFIED') {
+                    return str_contains($item['recommendation'] ?? '', 'DISQUALIFIED');
+                }
+                return true;
+            })->values();
+        }
+
+        // Custom multi-column sorting if specified
+        $sortBy = $filters['sortBy'] ?? 'rank';
+        $sortDir = strtolower($filters['sortDir'] ?? 'asc');
+
+        if (!empty($sortBy) && $sortBy !== 'rank') {
+            $finalList = $finalList->sort(function ($a, $b) use ($sortBy, $sortDir) {
+                $valA = match($sortBy) {
+                    'name' => $a['candidate_name'] ?? '',
+                    'tracking_number' => $a['tracking_number'] ?? '',
+                    'cnic' => $a['cnic'] ?? '',
+                    'academic_score' => $a['academic_score'] ?? 0,
+                    'research_score', 'research_exp_score' => $a['research_exp_score'] ?? 0,
+                    'peer_score', 'peer_score_avg' => $a['peer_score_avg'] ?? 0,
+                    'interview_score' => $a['interview_score'] ?? 0,
+                    'aggregate_score', 'total_score' => $a['aggregate_score'] ?? 0,
+                    'status' => $a['status'] ?? '',
+                    'created_at' => $a['app']->created_at?->timestamp ?? 0,
+                    default => $a[$sortBy] ?? '',
+                };
+                $valB = match($sortBy) {
+                    'name' => $b['candidate_name'] ?? '',
+                    'tracking_number' => $b['tracking_number'] ?? '',
+                    'cnic' => $b['cnic'] ?? '',
+                    'academic_score' => $b['academic_score'] ?? 0,
+                    'research_score', 'research_exp_score' => $b['research_exp_score'] ?? 0,
+                    'peer_score', 'peer_score_avg' => $b['peer_score_avg'] ?? 0,
+                    'interview_score' => $b['interview_score'] ?? 0,
+                    'aggregate_score', 'total_score' => $b['aggregate_score'] ?? 0,
+                    'status' => $b['status'] ?? '',
+                    'created_at' => $b['app']->created_at?->timestamp ?? 0,
+                    default => $b[$sortBy] ?? '',
+                };
+
+                if ($valA === $valB) return 0;
+                $res = (is_numeric($valA) && is_numeric($valB))
+                    ? ($valA <=> $valB)
+                    : strcasecmp((string)$valA, (string)$valB);
+
+                return $sortDir === 'desc' ? -$res : $res;
+            })->values();
+        } elseif ($sortBy === 'rank' && $sortDir === 'desc') {
+            $finalList = $finalList->reverse()->values();
+        }
 
         // Compute summary metrics
         $metrics = $this->computeSummaryMetrics($finalList, $stage);

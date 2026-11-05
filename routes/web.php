@@ -25,6 +25,7 @@ use App\Livewire\Admin\AdvertisementManagement;
 use App\Livewire\Admin\MeritListManagement;
 use App\Http\Controllers\ApplicationPrintController;
 use App\Http\Controllers\MeritListPrintController;
+use App\Http\Controllers\PeerReviewPrintController;
 use App\Livewire\Reviewer\EvaluationDesk;
 use App\Livewire\Board\LiveGradingPanel;
 use App\Livewire\Board\Dashboard as BoardDashboard;
@@ -173,6 +174,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/applicant/applications/{id}/print', [ApplicationPrintController::class, 'show']);
     Route::get('/admin/merit-lists/{campaignId}/print', [MeritListPrintController::class, 'show'])->name('merit-list.print');
     Route::get('/registrar/merit-lists/{campaignId}/print', [MeritListPrintController::class, 'show']);
+    Route::get('/admin/applications/{id}/peer-reports/print', [PeerReviewPrintController::class, 'show'])->name('peer-reports.print');
+    Route::get('/registrar/applications/{id}/peer-reports/print', [PeerReviewPrintController::class, 'show']);
+    Route::get('/admin/reviewers/dispatch/print', [PeerReviewPrintController::class, 'printDispatchRegister'])->name('reviewers-dispatch.print');
+    Route::get('/admin/peer-dispatch-register/print', [PeerReviewPrintController::class, 'printDispatchRegister'])->name('peer-dispatch-register.print');
+    Route::get('/registrar/reviewers/dispatch/print', [PeerReviewPrintController::class, 'printDispatchRegister']);
 
     // Direct / admin compatibility aliases
     Route::get('/admin/verification/{id}', ApplicationVerification::class);

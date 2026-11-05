@@ -70,22 +70,29 @@
 {{-- ========================================================================= --}}
 @if($type === 'inline')
     <span class="help-hint-inline-wrapper" 
-          x-data="{ show: false }" 
+          x-data="{ 
+              show: false,
+              placeBottom: false,
+              checkPlacement() {
+                  const rect = this.$el.getBoundingClientRect();
+                  this.placeBottom = (rect.top < 240);
+              }
+          }" 
           @mouseleave="show = false" 
           style="position: relative; display: inline-flex; align-items: center; vertical-align: middle; margin-left: 0.35rem;">
         
         <button type="button" 
-                @mouseenter="show = true" 
-                @focus="show = true" 
+                @mouseenter="checkPlacement(); show = true" 
+                @focus="checkPlacement(); show = true" 
                 @blur="show = false" 
-                @click.prevent="show = !show"
+                @click.prevent="checkPlacement(); show = !show"
                 aria-label="View help information"
                 class="help-hint-trigger"
                 style="background: {{ $themeStyles['icon_bg'] }}; border: 1px solid {{ $themeStyles['icon_border'] }}; color: {{ $themeStyles['icon_color'] }}; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 800; cursor: pointer; transition: all 0.2s ease; padding: 0; outline: none; line-height: 1;">
             ?
         </button>
 
-        {{-- Floating Popover --}}
+        {{-- Floating Popover (CRITICAL: Never use .card here to prevent max-width: 100% squashing) --}}
         <div x-show="show" 
              x-cloak 
              x-transition:enter="transition ease-out duration-150"
@@ -94,8 +101,11 @@
              x-transition:leave="transition ease-in duration-100"
              x-transition:leave-start="opacity-100 transform scale-100"
              x-transition:leave-end="opacity-0 transform scale-95"
-             class="help-hint-popover card"
-             style="position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); width: 280px; z-index: 1000; padding: 0.85rem 1rem; background: var(--bg-card-solid); border: 1px solid var(--border-color); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.4), 0 0 1px 1px rgba(255,255,255,0.08); border-radius: 10px; font-size: 0.8rem; pointer-events: none; text-align: left;">
+             class="help-hint-popover"
+             :style="placeBottom 
+                 ? 'top: calc(100% + 8px); bottom: auto;' 
+                 : 'bottom: calc(100% + 8px); top: auto;'"
+             style="position: absolute; left: 50%; transform: translateX(-50%); width: 310px; min-width: 270px; max-width: min(90vw, 340px); z-index: 9999; padding: 0.85rem 1rem; background: var(--bg-card-solid); border: 1px solid var(--border-color); box-shadow: 0 12px 30px -4px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.15); border-radius: 10px; font-size: 0.8rem; pointer-events: none; text-align: left; white-space: normal; word-break: normal; overflow-wrap: break-word; box-sizing: border-box;">
             
             @if($statute)
                 <div style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; color: {{ $themeStyles['badge_color'] }}; letter-spacing: 0.05em; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.3rem;">
@@ -105,24 +115,27 @@
             @endif
 
             @if($title)
-                <div style="font-weight: 800; color: var(--color-text-primary); font-size: 0.84rem; margin-bottom: 0.25rem;">
+                <div style="font-weight: 800; color: var(--color-text-primary); font-size: 0.84rem; margin-bottom: 0.25rem; line-height: 1.3;">
                     {{ $title }}
                 </div>
             @endif
 
-            <div style="color: var(--color-text-secondary); line-height: 1.45;">
+            <div style="color: var(--color-text-secondary); line-height: 1.48; font-size: 0.79rem;">
                 {{ $text ?? $slot }}
             </div>
 
             @if($impact)
-                <div style="margin-top: 0.5rem; padding-top: 0.45rem; border-top: 1px solid var(--border-color); font-size: 0.74rem; color: var(--warning); display: flex; align-items: flex-start; gap: 0.35rem;">
-                    <span style="font-weight: 700;">Impact:</span>
-                    <span>{{ $impact }}</span>
+                <div style="margin-top: 0.5rem; padding-top: 0.45rem; border-top: 1px solid var(--border-color); font-size: 0.74rem; color: var(--warning); display: flex; align-items: flex-start; gap: 0.35rem; line-height: 1.35;">
+                    <span style="font-weight: 800; flex-shrink: 0;">Impact:</span>
+                    <span style="color: var(--color-text-primary);">{{ $impact }}</span>
                 </div>
             @endif
 
             {{-- Pointer arrow --}}
-            <div style="position: absolute; top: 100%; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid var(--border-color);"></div>
+            <div :style="placeBottom
+                    ? 'bottom: 100%; top: auto; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 6px solid var(--border-color);'
+                    : 'top: 100%; bottom: auto; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid var(--border-color);'"
+                 style="position: absolute; left: 50%; transform: translateX(-50%); width: 0; height: 0;"></div>
         </div>
     </span>
 

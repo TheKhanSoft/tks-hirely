@@ -18,6 +18,7 @@ use Illuminate\Support\Str;
 use App\Services\CountryService;
 use App\Services\AcademicDisciplineMatcher;
 use App\Models\Campaign;
+use App\Models\Advertisement;
 use App\Livewire\Traits\WithDynamicListing;
 use App\Livewire\Traits\WithPasswordReset;
 
@@ -47,8 +48,13 @@ class ReviewerManagement extends Component
 
     // Tab 2: Academic Candidacies Filter & Search Properties
     public $candidacySearch = '';
+    public $advertisementFilter = 'ALL';
     public $candidacyCampaignFilter = '';
-    public $candidacyStatusFilter = 'ALL'; // ALL, NEEDS_DISPATCH, UNDER_REVIEW, COMPLETED
+    public $candidacyStatusFilter = 'ALL'; // ALL, NEEDS_DISPATCH, UNDER_REVIEW, COMPLETED, STRONGLY_RECOMMENDED, NOT_RECOMMENDED
+    public $candidacyAppStatusFilter = 'ALL'; // ALL, SUBMITTED, UNDER_REVIEW, ELIGIBLE, REJECTED, SHORTLISTED
+    public $candidacySortBy = 'created_at';
+    public $candidacySortDir = 'desc';
+    public $candidacyPerPage = 20;
 
     // Application Review Dispatch Modal Properties
     public $showDispatchModal = false;
@@ -130,6 +136,12 @@ class ReviewerManagement extends Component
         $this->resetPage();
     }
 
+    public function updatedAdvertisementFilter()
+    {
+        $this->candidacyCampaignFilter = '';
+        $this->resetPage();
+    }
+
     public function updatedCandidacyCampaignFilter()
     {
         $this->resetPage();
@@ -140,6 +152,34 @@ class ReviewerManagement extends Component
         $this->resetPage();
     }
 
+    public function updatedCandidacyAppStatusFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function sortCandidacies($column)
+    {
+        if ($this->candidacySortBy === $column) {
+            $this->candidacySortDir = $this->candidacySortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->candidacySortBy = $column;
+            $this->candidacySortDir = 'asc';
+        }
+        $this->resetPage();
+    }
+
+    public function resetCandidacyFilters()
+    {
+        $this->candidacySearch = '';
+        $this->advertisementFilter = 'ALL';
+        $this->candidacyCampaignFilter = '';
+        $this->candidacyStatusFilter = 'ALL';
+        $this->candidacyAppStatusFilter = 'ALL';
+        $this->candidacySortBy = 'created_at';
+        $this->candidacySortDir = 'desc';
+        $this->resetPage();
+    }
+
     public function resetFilters()
     {
         $this->search = '';
@@ -147,8 +187,10 @@ class ReviewerManagement extends Component
         $this->rankFilter = '';
         $this->countryFilter = '';
         $this->candidacySearch = '';
+        $this->advertisementFilter = 'ALL';
         $this->candidacyCampaignFilter = '';
         $this->candidacyStatusFilter = 'ALL';
+        $this->candidacyAppStatusFilter = 'ALL';
         $this->resetPage();
     }
 
@@ -523,6 +565,227 @@ class ReviewerManagement extends Component
         }
     }
 
+    public function sendReviewerReminder($reviewId)
+    {
+        abort_unless(Auth::user()->can('assign-reviewer') || Auth::user()->can('manage-reviewers'), 403);
+        $review = ApplicationReview::with(['reviewer.reviewerProfile', 'application.campaign', 'application.user.basicInfo'])->findOrFail($reviewId);
+
+        if ($review->status === 'SUBMITTED') {
+            session()->flash('warning', 'Evaluation report has already been submitted by this referee.');
+            return;
+        }
+
+        $reviewerUser = $review->reviewer;
+        $application = $review->application;
+
+        if ($reviewerUser && $reviewerUser->email) {
+            $evalUrl = url('/reviewer/dashboard');
+            try {
+                Mail::to($reviewerUser->email)->send(new ApplicationAssignedReviewerMail(
+                    $reviewerUser->reviewerProfile?->name ?? 'Colleague',
+                    $application->user->basicInfo ? trim($application->user->basicInfo->first_name . ' ' . $application->user->basicInfo->last_name) : 'Academic Candidate',
+                    $application->campaign->title,
+                    $application->campaign->department,
+                    $review->due_date ? $review->due_date->format('Y-m-d') : now()->addDays(7)->format('Y-m-d'),
+                    "REMINDER: Statutory confidential peer evaluation for this dossier is awaiting your evaluation report. Kindly submit your expert score and remarks at your earliest convenience.",
+                    $evalUrl
+                ));
+                Log::info("Reviewer reminder email dispatched to {$reviewerUser->email}");
+                session()->flash('message', "Official reminder email sent to {$reviewerUser->reviewerProfile?->name} ({$reviewerUser->email}).");
+            } catch (\Exception $e) {
+                Log::warning("Could not dispatch reviewer reminder: " . $e->getMessage());
+                session()->flash('warning', "Notice logged: Referee reminder generated. (Email transport note: {$e->getMessage()})");
+            }
+        }
+
+        if ($this->viewingApplication) {
+            $this->applicationReviews = ApplicationReview::with(['reviewer.reviewerProfile', 'assigner'])
+                ->where('application_id', $this->viewingApplication->id)
+                ->get();
+        }
+    }
+
+    public function extendReviewDeadline($reviewId, $days = 7)
+    {
+        abort_unless(Auth::user()->can('assign-reviewer') || Auth::user()->can('manage-reviewers'), 403);
+        $review = ApplicationReview::findOrFail($reviewId);
+
+        $currentDue = $review->due_date ?: now();
+        $newDue = $currentDue->copy()->addDays((int)$days);
+        $review->update(['due_date' => $newDue]);
+
+        session()->flash('message', "Review deadline extended by {$days} days (New Due Date: {$newDue->format('d M Y')}).");
+
+        if ($this->viewingApplication) {
+            $this->applicationReviews = ApplicationReview::with(['reviewer.reviewerProfile', 'assigner'])
+                ->where('application_id', $this->viewingApplication->id)
+                ->get();
+        }
+    }
+
+    public function removeReviewerAssignment($reviewId)
+    {
+        abort_unless(Auth::user()->can('assign-reviewer') || Auth::user()->can('manage-reviewers'), 403);
+        $review = ApplicationReview::findOrFail($reviewId);
+
+        if ($review->status === 'SUBMITTED') {
+            session()->flash('error', 'Cannot remove an assignment that already has an evaluation report submitted.');
+            return;
+        }
+
+        $appId = $review->application_id;
+        $reviewerName = $review->reviewer?->reviewerProfile?->name ?? 'External Reviewer';
+        $review->delete();
+
+        $remainingCount = ApplicationReview::where('application_id', $appId)->count();
+        if ($remainingCount === 0) {
+            Application::where('id', $appId)->where('status', 'UNDER_REVIEW')->update(['status' => 'PAID']);
+        }
+
+        session()->flash('message', "Referee assignment for {$reviewerName} has been revoked.");
+
+        if ($this->viewingApplication) {
+            $this->applicationReviews = ApplicationReview::with(['reviewer.reviewerProfile', 'assigner'])
+                ->where('application_id', $this->viewingApplication->id)
+                ->get();
+            $this->viewingApplication->refresh();
+        }
+    }
+
+    public function exportDispatchCsv()
+    {
+        abort_unless(Auth::user()->can('export-reviewer') || Auth::user()->can('view-reviewer') || Auth::user()->can('manage-reviewers'), 403);
+
+        $candidaciesQuery = Application::with(['campaign.advertisement', 'user.basicInfo', 'reviews.reviewer.reviewerProfile'])
+            ->withCount('reviews')
+            ->whereHas('campaign', fn($q) => $q->where('track_type', 'ACADEMIC'));
+
+        if (!empty($this->candidacySearch)) {
+            $cs = '%' . trim($this->candidacySearch) . '%';
+            $rawId = preg_replace('/[^0-9]/', '', $this->candidacySearch);
+            $candidaciesQuery->where(function ($q) use ($cs, $rawId) {
+                if (!empty($rawId)) {
+                    $q->where('applications.id', (int)$rawId);
+                }
+                $q->orWhereHas('user', function ($uq) use ($cs) {
+                    $uq->where('email', 'like', $cs)
+                       ->orWhereHas('basicInfo', function ($bq) use ($cs) {
+                           $bq->where('first_name', 'like', $cs)
+                              ->orWhere('last_name', 'like', $cs)
+                              ->orWhere('cnic_number', 'like', $cs);
+                       });
+                });
+            });
+        }
+
+        if ($this->advertisementFilter !== 'ALL') {
+            $candidaciesQuery->whereHas('campaign', fn($q) => $q->where('advertisement_id', (int)$this->advertisementFilter));
+        }
+
+        if (!empty($this->candidacyCampaignFilter)) {
+            $candidaciesQuery->where('campaign_id', $this->candidacyCampaignFilter);
+        }
+
+        if ($this->candidacyAppStatusFilter !== 'ALL') {
+            $candidaciesQuery->where('status', $this->candidacyAppStatusFilter);
+        }
+
+        if ($this->candidacyStatusFilter === 'NEEDS_DISPATCH') {
+            $candidaciesQuery->doesntHave('reviews');
+        } elseif ($this->candidacyStatusFilter === 'UNDER_REVIEW') {
+            $candidaciesQuery->where('status', 'UNDER_REVIEW');
+        } elseif ($this->candidacyStatusFilter === 'COMPLETED') {
+            $candidaciesQuery->whereHas('reviews', fn($q) => $q->where('status', 'SUBMITTED'));
+        } elseif ($this->candidacyStatusFilter === 'STRONGLY_RECOMMENDED') {
+            $candidaciesQuery->whereHas('reviews', fn($q) => $q->where('recommendation', 'STRONGLY_RECOMMENDED'));
+        } elseif ($this->candidacyStatusFilter === 'NOT_RECOMMENDED') {
+            $candidaciesQuery->whereHas('reviews', fn($q) => $q->whereIn('recommendation', ['NOT_RECOMMENDED', 'DISQUALIFIED']));
+        }
+
+        $candidacies = $candidaciesQuery->latest()->get();
+
+        $headers = [
+            'Tracking ID', 'Candidate Name', 'Father Name', 'CNIC', 'Advertisement No', 
+            'Position Title', 'Department', 'Track Type', 'Application Status', 
+            'Referees Assigned', 'Reports Submitted', 'Average Peer Score (/100)', 'Referee Consensus Verdict'
+        ];
+
+        $rows = [];
+        foreach ($candidacies as $c) {
+            $submitted = $c->reviews->where('status', 'SUBMITTED');
+            $avgScore = $submitted->count() > 0 ? round($submitted->avg('overall_score'), 2) : 'N/A';
+            
+            $verdict = 'Awaiting Dispatch';
+            if ($c->reviews->count() > 0) {
+                if ($submitted->count() === 0) {
+                    $verdict = 'Under Peer Review';
+                } else {
+                    $pos = $submitted->whereIn('recommendation', ['STRONGLY_RECOMMENDED', 'RECOMMENDED'])->count();
+                    $verdict = "{$pos}/{$submitted->count()} Recommended (Avg: {$avgScore})";
+                }
+            }
+
+            $rows[] = [
+                $c->tracking_number,
+                $c->user->basicInfo ? trim($c->user->basicInfo->first_name . ' ' . $c->user->basicInfo->last_name) : $c->user->email,
+                $c->user->basicInfo?->father_name ?? 'N/A',
+                $c->user->basicInfo?->cnic_number ?? 'Pending',
+                $c->campaign->advertisement?->advertisement_no ?? 'Direct Intake',
+                $c->campaign->title,
+                $c->campaign->department,
+                $c->campaign->track_type,
+                $c->status,
+                $c->reviews->count(),
+                $submitted->count(),
+                $avgScore,
+                $verdict,
+            ];
+        }
+
+        return $this->streamCsvDownload('peer-review-dispatch-register-' . date('Y-m-d') . '.csv', $headers, $rows);
+    }
+
+    public function exportApplicationPeerReportsCsv($applicationId)
+    {
+        abort_unless(Auth::user()->can('view-review-reports') || Auth::user()->can('manage-reviewers'), 403);
+        $app = Application::with(['campaign.advertisement', 'user.basicInfo', 'reviews.reviewer.reviewerProfile'])->findOrFail($applicationId);
+
+        $headers = [
+            'Application Ref', 'Candidate Name', 'Position Title', 'Department',
+            'Referee Name', 'Referee Rank', 'University / Office', 'Country', 'Contact Email',
+            'Evaluation Status', 'Overall Score (/100)', 'Recommendation', 'Assigned Date', 'Due Date', 'Submitted Date',
+            'Evaluation Remarks'
+        ];
+
+        $rows = [];
+        $candidateName = $app->user->basicInfo ? trim($app->user->basicInfo->first_name . ' ' . $app->user->basicInfo->last_name) : $app->user->email;
+
+        foreach ($app->reviews as $r) {
+            $prof = $r->reviewer?->reviewerProfile;
+            $rows[] = [
+                $app->tracking_number,
+                $candidateName,
+                $app->campaign->title,
+                $app->campaign->department,
+                $prof?->name ?? 'External Referee',
+                $prof?->academic_rank ?? 'Professor',
+                $prof?->university ?? 'N/A',
+                $prof?->country ?? 'N/A',
+                $r->reviewer?->email ?? 'N/A',
+                $r->status,
+                $r->overall_score !== null ? $r->overall_score : 'Pending',
+                $r->recommendation ?? 'Pending',
+                $r->assigned_at?->format('Y-m-d') ?? 'N/A',
+                $r->due_date?->format('Y-m-d') ?? 'N/A',
+                $r->submitted_at?->format('Y-m-d H:i') ?? 'N/A',
+                $r->report_text ? str_replace(["\r", "\n"], ' ', $r->report_text) : 'N/A',
+            ];
+        }
+
+        $filename = 'peer-reports-' . Str::slug($app->tracking_number) . '-' . date('Y-m-d') . '.csv';
+        return $this->streamCsvDownload($filename, $headers, $rows);
+    }
+
     public function exportCsv()
     {
         abort_unless(Auth::user()->can('export-reviewer') || Auth::user()->can('view-reviewer') || Auth::user()->can('manage-reviewers'), 403);
@@ -582,27 +845,38 @@ class ReviewerManagement extends Component
         $reviewers = $reviewersQuery->latest()->paginate($this->perPage);
 
         // 2. Query Academic Applications for Review Dispatch (Tab 2)
-        $candidaciesQuery = Application::with(['campaign', 'user.basicInfo', 'reviews.reviewer.reviewerProfile'])
+        $candidaciesQuery = Application::with(['campaign.advertisement', 'user.basicInfo', 'reviews.reviewer.reviewerProfile'])
             ->withCount('reviews')
             ->whereHas('campaign', fn($q) => $q->where('track_type', 'ACADEMIC'));
 
         if (!empty($this->candidacySearch)) {
             $cs = '%' . trim($this->candidacySearch) . '%';
-            $candidaciesQuery->where(function ($q) use ($cs) {
-                $q->where('tracking_number', 'like', $cs)
-                  ->orWhereHas('user', function ($uq) use ($cs) {
-                      $uq->where('email', 'like', $cs)
-                         ->orWhereHas('basicInfo', function ($bq) use ($cs) {
-                             $bq->where('first_name', 'like', $cs)
-                                ->orWhere('last_name', 'like', $cs)
-                                ->orWhere('cnic_number', 'like', $cs);
-                         });
-                  });
+            $rawId = preg_replace('/[^0-9]/', '', $this->candidacySearch);
+            $candidaciesQuery->where(function ($q) use ($cs, $rawId) {
+                if (!empty($rawId)) {
+                    $q->where('applications.id', (int)$rawId);
+                }
+                $q->orWhereHas('user', function ($uq) use ($cs) {
+                    $uq->where('email', 'like', $cs)
+                       ->orWhereHas('basicInfo', function ($bq) use ($cs) {
+                           $bq->where('first_name', 'like', $cs)
+                              ->orWhere('last_name', 'like', $cs)
+                              ->orWhere('cnic_number', 'like', $cs);
+                       });
+                });
             });
+        }
+
+        if ($this->advertisementFilter !== 'ALL') {
+            $candidaciesQuery->whereHas('campaign', fn($q) => $q->where('advertisement_id', (int)$this->advertisementFilter));
         }
 
         if (!empty($this->candidacyCampaignFilter)) {
             $candidaciesQuery->where('campaign_id', $this->candidacyCampaignFilter);
+        }
+
+        if ($this->candidacyAppStatusFilter !== 'ALL') {
+            $candidaciesQuery->where('status', $this->candidacyAppStatusFilter);
         }
 
         if ($this->candidacyStatusFilter === 'NEEDS_DISPATCH') {
@@ -611,9 +885,29 @@ class ReviewerManagement extends Component
             $candidaciesQuery->where('status', 'UNDER_REVIEW');
         } elseif ($this->candidacyStatusFilter === 'COMPLETED') {
             $candidaciesQuery->whereHas('reviews', fn($q) => $q->where('status', 'SUBMITTED'));
+        } elseif ($this->candidacyStatusFilter === 'STRONGLY_RECOMMENDED') {
+            $candidaciesQuery->whereHas('reviews', fn($q) => $q->where('recommendation', 'STRONGLY_RECOMMENDED'));
+        } elseif ($this->candidacyStatusFilter === 'NOT_RECOMMENDED') {
+            $candidaciesQuery->whereHas('reviews', fn($q) => $q->whereIn('recommendation', ['NOT_RECOMMENDED', 'DISQUALIFIED']));
         }
 
-        $academicApplications = $candidaciesQuery->latest()->get();
+        // Dynamic Sorting for candidacies
+        if ($this->candidacySortBy === 'candidate_name') {
+            $candidaciesQuery->join('users', 'applications.user_id', '=', 'users.id')
+                ->leftJoin('basic_infos', 'users.id', '=', 'basic_infos.user_id')
+                ->orderBy('basic_infos.first_name', $this->candidacySortDir)
+                ->select('applications.*');
+        } elseif ($this->candidacySortBy === 'tracking_number') {
+            $candidaciesQuery->orderBy('applications.id', $this->candidacySortDir);
+        } elseif ($this->candidacySortBy === 'status') {
+            $candidaciesQuery->orderBy('applications.status', $this->candidacySortDir);
+        } elseif ($this->candidacySortBy === 'reviews_count') {
+            $candidaciesQuery->orderBy('reviews_count', $this->candidacySortDir);
+        } else {
+            $candidaciesQuery->orderBy('applications.created_at', $this->candidacySortDir);
+        }
+
+        $academicApplications = $candidaciesQuery->paginate($this->candidacyPerPage, ['*'], 'candidaciesPage');
 
         // 3. For the dispatch modal: retrieve matching reviewers using AcademicDisciplineMatcher
         $fieldMatchedReviewers = collect();
@@ -630,10 +924,16 @@ class ReviewerManagement extends Component
             )->get();
         }
 
-        // 4. Distinct Subjects, Ranks & Campaigns for dropdown filters
+        // 4. Distinct Subjects, Ranks, Advertisements & Campaigns for dropdown filters
+        $availableAdvertisements = Advertisement::chronologicalDesc()->get();
         $availableSubjects = ReviewerProfile::distinct()->pluck('subject')->filter()->values();
         $availableRanks = ReviewerProfile::distinct()->pluck('academic_rank')->filter()->values();
-        $availableAcademicCampaigns = Campaign::where('track_type', 'ACADEMIC')->orderBy('title')->get();
+        
+        $campaignsQuery = Campaign::where('track_type', 'ACADEMIC');
+        if ($this->advertisementFilter !== 'ALL') {
+            $campaignsQuery->where('advertisement_id', (int)$this->advertisementFilter);
+        }
+        $availableAcademicCampaigns = $campaignsQuery->orderBy('title')->get();
 
         // 5. System KPI Metrics
         $stats = [
@@ -649,6 +949,7 @@ class ReviewerManagement extends Component
             'reviewers' => $reviewers,
             'academicApplications' => $academicApplications,
             'fieldMatchedReviewers' => $fieldMatchedReviewers,
+            'availableAdvertisements' => $availableAdvertisements,
             'availableSubjects' => $availableSubjects,
             'availableRanks' => $availableRanks,
             'availableAcademicCampaigns' => $availableAcademicCampaigns,

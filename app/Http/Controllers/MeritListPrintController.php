@@ -40,11 +40,25 @@ class MeritListPrintController extends Controller
 
         $stage = $request->query('stage', 'consolidated');
         $quota = $request->query('quota', 'ALL');
+        $status = $request->query('status', 'ALL');
+        $fee = $request->query('fee', 'ALL');
+        $gender = $request->query('gender', 'ALL');
+        $minScore = $request->query('minScore', '');
+        $recommendation = $request->query('recommendation', 'ALL');
         $search = $request->query('search', '');
+        $sortBy = $request->query('sortBy', 'rank');
+        $sortDir = $request->query('sortDir', 'asc');
 
         $data = $meritService->getStageData($campaign, $stage, [
             'quota' => $quota,
+            'status' => $status,
+            'fee' => $fee,
+            'gender' => $gender,
+            'minScore' => $minScore,
+            'recommendation' => $recommendation,
             'search' => $search,
+            'sortBy' => $sortBy,
+            'sortDir' => $sortDir,
         ]);
 
         $orgName = SystemSetting::get('org_name', 'Hirely Higher Education & Recruitment Commission');

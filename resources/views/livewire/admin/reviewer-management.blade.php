@@ -598,53 +598,103 @@
     @if($activeTab === 'dispatch')
         <!-- Header & Live Filters -->
         <div class="card mb-4" style="padding: 1.25rem 1.5rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
                 <div>
                     <h3 class="card-title" style="margin: 0; font-size: 1.25rem; font-weight: 800; display: flex; align-items: center; gap: 0.6rem;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
                             <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/>
                             <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
                         </svg>
-                        <span>Academic Peer Review Dispatch & Dossiers</span>
+                        <span>Academic Peer Review Dispatch & Referees Desk</span>
                     </h3>
                     <p class="card-subtitle" style="margin: 0.2rem 0 0;">
-                        Assign external peer reviewers calibrated to candidate department, track evaluations, and view confidential referee reports.
+                        Assign external peer reviewers calibrated to candidate department, track evaluations, manage deadlines, and inspect confidential referee reports.
                     </p>
                 </div>
 
-                <!-- Review Status Filter Tabs -->
-                <div style="display: flex; gap: 0.35rem; background: var(--bg-surface); padding: 0.25rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                    <button type="button" class="btn btn-sm" wire:click="$set('candidacyStatusFilter', 'ALL')" style="{{ $candidacyStatusFilter === 'ALL' ? 'background: var(--bg-card); color: var(--color-text-primary); font-weight: 700;' : 'background: transparent; color: var(--color-text-secondary);' }}">
-                        All Dossiers
+                <!-- Export & Print Actions -->
+                <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+                    <button type="button" 
+                            wire:click="exportDispatchCsv" 
+                            class="btn btn-secondary btn-sm" 
+                            style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.85rem; font-weight: 700;"
+                            title="Export academic candidacies and referee assignments to CSV">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        <span>Export Register CSV</span>
                     </button>
-                    <button type="button" class="btn btn-sm" wire:click="$set('candidacyStatusFilter', 'NEEDS_DISPATCH')" style="{{ $candidacyStatusFilter === 'NEEDS_DISPATCH' ? 'background: var(--bg-card); color: var(--warning); font-weight: 700;' : 'background: transparent; color: var(--color-text-secondary);' }}">
-                        Needs Dispatch
-                    </button>
-                    <button type="button" class="btn btn-sm" wire:click="$set('candidacyStatusFilter', 'UNDER_REVIEW')" style="{{ $candidacyStatusFilter === 'UNDER_REVIEW' ? 'background: var(--bg-card); color: var(--secondary); font-weight: 700;' : 'background: transparent; color: var(--color-text-secondary);' }}">
-                        Under Review
-                    </button>
-                    <button type="button" class="btn btn-sm" wire:click="$set('candidacyStatusFilter', 'COMPLETED')" style="{{ $candidacyStatusFilter === 'COMPLETED' ? 'background: var(--bg-card); color: var(--success); font-weight: 700;' : 'background: transparent; color: var(--color-text-secondary);' }}">
-                        Reports In
-                    </button>
+
+                    <a href="{{ route('peer-dispatch-register.print', ['ad' => $advertisementFilter, 'camp' => $candidacyCampaignFilter, 'status' => $candidacyStatusFilter]) }}" 
+                       target="_blank" 
+                       class="btn btn-secondary btn-sm" 
+                       style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.85rem; font-weight: 700;"
+                       title="Print Official Confidential Peer Dispatch Register (A4 Landscape)">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                        <span>Print Dispatch Register</span>
+                    </a>
                 </div>
             </div>
 
-            <!-- Search and Campaign Select -->
-            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                <div style="position: relative; flex: 2; min-width: 260px;">
-                    <input type="text" 
-                           class="form-control" 
-                           wire:model.live.debounce.250ms="candidacySearch" 
-                           placeholder="Search candidate name, CNIC, or tracking reference..." 
-                           style="padding-left: 2.5rem; background: var(--bg-card); color: var(--color-text-primary);">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); pointer-events: none;">
-                        <circle cx="11" cy="11" r="8"/>
-                        <path d="m21 21-4.3-4.3"/>
-                    </svg>
+            <!-- Review Status Filter Tabs -->
+            <div style="display: flex; gap: 0.35rem; background: var(--bg-surface); padding: 0.3rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 1rem; overflow-x: auto;">
+                <button type="button" class="btn btn-sm" wire:click="$set('candidacyStatusFilter', 'ALL')" style="{{ $candidacyStatusFilter === 'ALL' ? 'background: var(--bg-card); color: var(--color-text-primary); font-weight: 700;' : 'background: transparent; color: var(--color-text-secondary);' }}">
+                    All Dossiers
+                </button>
+                <button type="button" class="btn btn-sm" wire:click="$set('candidacyStatusFilter', 'NEEDS_DISPATCH')" style="{{ $candidacyStatusFilter === 'NEEDS_DISPATCH' ? 'background: var(--bg-card); color: var(--warning); font-weight: 700;' : 'background: transparent; color: var(--color-text-secondary);' }}">
+                    Needs Dispatch
+                </button>
+                <button type="button" class="btn btn-sm" wire:click="$set('candidacyStatusFilter', 'UNDER_REVIEW')" style="{{ $candidacyStatusFilter === 'UNDER_REVIEW' ? 'background: var(--bg-card); color: var(--secondary); font-weight: 700;' : 'background: transparent; color: var(--color-text-secondary);' }}">
+                    Under Review
+                </button>
+                <button type="button" class="btn btn-sm" wire:click="$set('candidacyStatusFilter', 'COMPLETED')" style="{{ $candidacyStatusFilter === 'COMPLETED' ? 'background: var(--bg-card); color: var(--success); font-weight: 700;' : 'background: transparent; color: var(--color-text-secondary);' }}">
+                    Reports In
+                </button>
+                <button type="button" class="btn btn-sm" wire:click="$set('candidacyStatusFilter', 'STRONGLY_RECOMMENDED')" style="{{ $candidacyStatusFilter === 'STRONGLY_RECOMMENDED' ? 'background: var(--bg-card); color: #10b981; font-weight: 700;' : 'background: transparent; color: var(--color-text-secondary);' }}">
+                    Strongly Recommended
+                </button>
+                <button type="button" class="btn btn-sm" wire:click="$set('candidacyStatusFilter', 'NOT_RECOMMENDED')" style="{{ $candidacyStatusFilter === 'NOT_RECOMMENDED' ? 'background: var(--bg-card); color: #ef4444; font-weight: 700;' : 'background: transparent; color: var(--color-text-secondary);' }}">
+                    Not Recommended
+                </button>
+            </div>
+
+            <!-- Search and Dynamic Dropdown Filters -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.85rem; align-items: flex-end;">
+                <!-- Search -->
+                <div style="position: relative;">
+                    <label style="display: block; font-size: 0.74rem; font-weight: 800; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 0.3rem;">
+                        Search Dossiers
+                    </label>
+                    <div style="position: relative;">
+                        <input type="text" 
+                               class="form-control" 
+                               wire:model.live.debounce.250ms="candidacySearch" 
+                               placeholder="Candidate, CNIC, or #APP..." 
+                               style="padding-left: 2.2rem; background: var(--bg-card); color: var(--color-text-primary); font-size: 0.85rem;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); pointer-events: none;">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.3-4.3"/>
+                        </svg>
+                    </div>
                 </div>
 
-                <div style="flex: 1; min-width: 220px;">
-                    <select class="form-control form-select" wire:model.live="candidacyCampaignFilter" style="background: var(--bg-card); color: var(--color-text-primary);">
+                <!-- Advertisement Drive -->
+                <div>
+                    <label style="display: block; font-size: 0.74rem; font-weight: 800; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 0.3rem;">
+                        Advertisement Drive
+                    </label>
+                    <select class="form-control form-select" wire:model.live="advertisementFilter" style="background: var(--bg-card); color: var(--color-text-primary); font-size: 0.85rem;">
+                        <option value="ALL">All Advertisements</option>
+                        @foreach($availableAdvertisements as $adv)
+                            <option value="{{ $adv->id }}">📢 {{ $adv->advertisement_no }} ({{ $adv->year }})</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Position Select -->
+                <div>
+                    <label style="display: block; font-size: 0.74rem; font-weight: 800; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 0.3rem;">
+                        Academic Position / Post
+                    </label>
+                    <select class="form-control form-select" wire:model.live="candidacyCampaignFilter" style="background: var(--bg-card); color: var(--color-text-primary); font-size: 0.85rem;">
                         <option value="">All Academic Positions</option>
                         @foreach($availableAcademicCampaigns as $c)
                             <option value="{{ $c->id }}">{{ $c->title }} ({{ $c->job_code }})</option>
@@ -652,12 +702,30 @@
                     </select>
                 </div>
 
-                @if(!empty($candidacySearch) || !empty($candidacyCampaignFilter) || $candidacyStatusFilter !== 'ALL')
-                    <button type="button" class="btn btn-secondary btn-sm" wire:click="resetFilters" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.78rem;">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                        <span>Reset Filters</span>
-                    </button>
-                @endif
+                <!-- Application Status -->
+                <div>
+                    <label style="display: block; font-size: 0.74rem; font-weight: 800; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 0.3rem;">
+                        Dossier Application Status
+                    </label>
+                    <select class="form-control form-select" wire:model.live="candidacyAppStatusFilter" style="background: var(--bg-card); color: var(--color-text-primary); font-size: 0.85rem;">
+                        <option value="ALL">All Overall Statuses</option>
+                        <option value="UNDER_REVIEW">In Peer Review (UNDER_REVIEW)</option>
+                        <option value="PAID">Paid / Scrutiny Cleared (PAID)</option>
+                        <option value="ELIGIBLE">Peer Cleared (ELIGIBLE)</option>
+                        <option value="REJECTED">Peer Failed (REJECTED)</option>
+                        <option value="SHORTLISTED">Shortlisted for Board</option>
+                    </select>
+                </div>
+
+                <!-- Reset Filters Button -->
+                <div>
+                    @if(!empty($candidacySearch) || $advertisementFilter !== 'ALL' || !empty($candidacyCampaignFilter) || $candidacyStatusFilter !== 'ALL' || $candidacyAppStatusFilter !== 'ALL')
+                        <button type="button" class="btn btn-secondary btn-sm" wire:click="resetCandidacyFilters" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; font-size: 0.82rem; padding: 0.55rem;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            <span>Reset Filters</span>
+                        </button>
+                    @endif
+                </div>
             </div>
         </div>
 
@@ -665,12 +733,20 @@
             <div class="table-container">
                 <table class="table">
                     <thead>
-                        <tr>
-                            <th>Candidate Particulars</th>
-                            <th>Academic Position</th>
+                        <tr style="user-select: none;">
+                            <th style="cursor: pointer;" wire:click="sortCandidacies('candidate_name')">
+                                Candidate Particulars @if($candidacySortBy === 'candidate_name') <span style="color: var(--secondary);">{{ $candidacySortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
+                            <th style="cursor: pointer;" wire:click="sortCandidacies('tracking_number')">
+                                Academic Position @if($candidacySortBy === 'tracking_number') <span style="color: var(--secondary);">{{ $candidacySortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
                             <th>Department & Discipline</th>
-                            <th>Current State</th>
-                            <th>Peer Review Progress & Referees</th>
+                            <th style="cursor: pointer;" wire:click="sortCandidacies('status')">
+                                Current State @if($candidacySortBy === 'status') <span style="color: var(--secondary);">{{ $candidacySortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
+                            <th style="cursor: pointer;" wire:click="sortCandidacies('reviews_count')">
+                                Peer Review Progress & Referees @if($candidacySortBy === 'reviews_count') <span style="color: var(--secondary);">{{ $candidacySortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                            </th>
                             <th style="text-align: right;">Actions</th>
                         </tr>
                     </thead>
@@ -803,10 +879,15 @@
                     </tbody>
                 </table>
             </div>
+
+            @if(method_exists($academicApplications, 'hasPages') && $academicApplications->hasPages())
+                <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); background: var(--bg-surface);">
+                    {{ $academicApplications->links() }}
+                </div>
+            @endif
         </div>
     @endif
 
-    <!-- ============================================================== -->
     <!-- MODAL 2: SEND APPLICATION FOR REVIEW (FIELD-RELATED MATCHING)   -->
     <!-- ============================================================== -->
     @if($showDispatchModal && $targetApplication)
@@ -1264,121 +1345,274 @@
     @if($showReportsModal && $viewingApplication)
         @php
             $submitted = $applicationReviews->where('status', 'SUBMITTED');
+            $pendingReviews = $applicationReviews->where('status', '!=', 'SUBMITTED');
             $avgScore = $submitted->count() > 0 ? $submitted->avg('overall_score') : null;
+            $stronglyRecCount = $submitted->where('recommendation', 'STRONGLY_RECOMMENDED')->count();
+            $recCount = $submitted->whereIn('recommendation', ['STRONGLY_RECOMMENDED', 'RECOMMENDED'])->count();
         @endphp
-        <div class="modal-overlay-premium" style="z-index: 1000;">
-            <div class="modal-dialog-premium" style="width: 100%; max-width: 860px; max-height: 90vh; overflow-y: auto; padding: 1.75rem;">
-                <div class="flex justify-between align-center mb-4" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <div class="modal-overlay-premium" style="z-index: 1050;">
+            <div class="modal-dialog-premium" style="width: 100%; max-width: 900px; max-height: 92vh; overflow-y: auto; padding: 1.75rem; background: var(--bg-card); border: 1.5px solid var(--border-color); box-shadow: 0 25px 60px rgba(0,0,0,0.4); border-radius: var(--radius-lg);">
+                
+                <!-- Modal Header -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border-color); padding-bottom: 1.25rem; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
                     <div>
-                        <h3 class="card-title" style="margin: 0; font-size: 1.25rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
+                            <span class="badge badge-indigo" style="font-size: 0.72rem; font-weight: 800;">CONFIDENTIAL PEER DOSSIER</span>
+                            <span class="badge badge-slate" style="font-size: 0.72rem; font-family: 'JetBrains Mono', monospace;">#{{ $viewingApplication->tracking_number }}</span>
+                        </div>
+                        <h3 class="card-title" style="margin: 0; font-size: 1.3rem; font-weight: 800; color: var(--color-text-primary);">
                             External Peer Review Reports: {{ $viewingApplication->campaign->title }}
                         </h3>
-                        <p class="card-subtitle" style="margin: 0.2rem 0 0;">
-                            Candidate: <strong>{{ $viewingApplication->user->basicInfo ? trim($viewingApplication->user->basicInfo->first_name . ' ' . $viewingApplication->user->basicInfo->last_name) : $viewingApplication->user->email }}</strong> • Department: <strong>{{ $viewingApplication->campaign->department }}</strong>
+                        <p class="card-subtitle" style="margin: 0.3rem 0 0; font-size: 0.85rem; color: var(--color-text-secondary);">
+                            Candidate: <strong style="color: var(--color-text-primary);">{{ $viewingApplication->user->basicInfo ? trim($viewingApplication->user->basicInfo->first_name . ' ' . $viewingApplication->user->basicInfo->last_name) : $viewingApplication->user->email }}</strong> • Department: <strong style="color: var(--secondary);">{{ $viewingApplication->campaign->department }}</strong>
                         </p>
                     </div>
-                    <button type="button" class="btn btn-secondary btn-sm" wire:click="closeReportsModal">✕</button>
+
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <a href="{{ route('peer-reports.print', $viewingApplication->id) }}" 
+                           target="_blank" 
+                           class="btn btn-primary btn-sm" 
+                           style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.85rem; font-weight: 800; box-shadow: 0 4px 12px var(--primary-glow);"
+                           title="Print Official Certified External Peer Consensus Evaluation Certificate (A4 Portrait)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                            <span>Print Consensus Report</span>
+                        </a>
+
+                        <button type="button" 
+                                wire:click="exportApplicationPeerReportsCsv({{ $viewingApplication->id }})" 
+                                class="btn btn-secondary btn-sm" 
+                                style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.8rem; font-weight: 700;"
+                                title="Download all peer reports for this candidate as CSV">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            <span>Export CSV</span>
+                        </button>
+
+                        <button type="button" class="btn btn-secondary btn-sm" wire:click="closeReportsModal" style="padding: 0.45rem 0.75rem;">✕</button>
+                    </div>
                 </div>
 
-                @if($submitted->count() > 0)
-                    <!-- Executive Consensus Summary Banner -->
-                    <div class="executive-summary-banner mb-6">
-                        <div class="flex justify-between align-center" style="flex-wrap: wrap; gap: 1rem;">
-                            <div>
-                                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--secondary); font-weight: 700; letter-spacing: 0.05em;">Consensus Dossier Assessment</span>
-                                <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--color-text-primary); margin: 0.25rem 0 0;">
-                                    {{ $submitted->count() }} of {{ $applicationReviews->count() }} Evaluation Reports Submitted
-                                </h3>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 1.25rem;">
-                                <div style="text-align: right;">
-                                    <span style="font-size: 0.72rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 700;">Average Peer Score</span>
-                                    <div style="font-size: 1.6rem; font-weight: 900; color: {{ $avgScore >= 80 ? 'var(--success)' : ($avgScore >= 60 ? 'var(--warning)' : 'var(--danger)') }};">
-                                        {{ number_format($avgScore, 1) }} <span style="font-size: 0.85rem; color: var(--color-text-secondary); font-weight: 600;">/ 100</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <!-- Live Status Notifications -->
+                @if(session()->has('message'))
+                    <div style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-bottom: 1.25rem; color: var(--success); font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>✓</span>
+                        <span>{{ session('message') }}</span>
+                    </div>
+                @endif
+                @if(session()->has('warning'))
+                    <div style="background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-bottom: 1.25rem; color: var(--warning); font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>⚠</span>
+                        <span>{{ session('warning') }}</span>
+                    </div>
+                @endif
+                @if(session()->has('error'))
+                    <div style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-bottom: 1.25rem; color: var(--danger); font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>✕</span>
+                        <span>{{ session('error') }}</span>
                     </div>
                 @endif
 
-                <div class="flex-col gap-4">
+                <!-- Executive Consensus Assessment 4-Stat Banner -->
+                <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--secondary); font-weight: 800; letter-spacing: 0.05em;">
+                            Consensus Dossier Assessment Summary
+                        </span>
+                        <span class="badge {{ $submitted->count() === $applicationReviews->count() ? 'badge-emerald' : 'badge-amber' }}" style="font-size: 0.74rem; font-weight: 800;">
+                            {{ $submitted->count() === $applicationReviews->count() ? 'Quorum Completed' : 'Peer Quorum Incomplete' }}
+                        </span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem;">
+                        <!-- Metric 1: Assigned Referees -->
+                        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem 1rem;">
+                            <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 700;">Referees Dispatched</div>
+                            <div style="font-size: 1.35rem; font-weight: 900; color: var(--color-text-primary); margin-top: 0.2rem;">
+                                {{ $applicationReviews->count() }} <span style="font-size: 0.75rem; color: var(--color-text-secondary); font-weight: 600;">Experts</span>
+                            </div>
+                        </div>
+
+                        <!-- Metric 2: Reports Submitted -->
+                        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem 1rem;">
+                            <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 700;">Reports Submitted</div>
+                            <div style="font-size: 1.35rem; font-weight: 900; color: {{ $submitted->count() > 0 ? 'var(--secondary)' : 'var(--color-text-muted)' }}; margin-top: 0.2rem;">
+                                {{ $submitted->count() }} <span style="font-size: 0.75rem; color: var(--color-text-secondary); font-weight: 600;">of {{ $applicationReviews->count() }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Metric 3: Average Peer Score -->
+                        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem 1rem;">
+                            <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 700;">Average Peer Score</div>
+                            <div style="font-size: 1.35rem; font-weight: 900; color: {{ $avgScore >= 80 ? 'var(--success)' : ($avgScore >= 60 ? 'var(--warning)' : ($avgScore ? 'var(--danger)' : 'var(--color-text-muted)')) }}; margin-top: 0.2rem;">
+                                {{ $avgScore !== null ? number_format($avgScore, 1) : 'Pending' }} 
+                                @if($avgScore !== null)<span style="font-size: 0.75rem; color: var(--color-text-secondary); font-weight: 600;">/ 100</span>@endif
+                            </div>
+                        </div>
+
+                        <!-- Metric 4: Statutory Recommendation -->
+                        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem 1rem;">
+                            <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 700;">Statutory Endorsement</div>
+                            <div style="font-size: 1.15rem; font-weight: 900; color: {{ $recCount >= 2 ? 'var(--success)' : 'var(--warning)' }}; margin-top: 0.2rem;">
+                                {{ $recCount }}/{{ $applicationReviews->count() }} Recommended
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Individual Referee Evaluation Cards -->
+                <div style="display: flex; flex-direction: column; gap: 1.25rem;">
                     @forelse($applicationReviews as $ar)
-                        <div class="card" style="background: var(--bg-surface); border-color: var(--border-color); padding: 1.25rem;">
-                            <div class="flex justify-between align-center mb-3" style="flex-wrap: wrap; gap: 0.5rem;">
+                        <div class="card" style="background: var(--bg-surface); border: 1.5px solid var(--border-color); padding: 1.35rem; border-radius: var(--radius-md); box-shadow: var(--shadow-sm);">
+                            <!-- Referee Header -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
                                 <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                    <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, rgba(6,182,212,0.2), rgba(99,102,241,0.2)); color: var(--secondary); font-weight: 800; font-size: 0.9rem; display: flex; align-items: center; justify-content: center;">
+                                    <div class="user-avatar-circle" style="width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, rgba(6,182,212,0.2), rgba(99,102,241,0.2)); color: var(--secondary); font-weight: 800; font-size: 0.95rem; display: flex; align-items: center; justify-content: center;">
                                         {{ strtoupper(substr($ar->reviewer->reviewerProfile?->name ?? 'R', 0, 1)) }}
                                     </div>
                                     <div>
-                                        <strong style="font-size: 1rem; color: var(--color-text-primary);">
+                                        <strong style="font-size: 1.05rem; color: var(--color-text-primary);">
                                             {{ $ar->reviewer->reviewerProfile?->name ?? 'External Reviewer' }}
                                         </strong>
-                                        <div style="font-size: 0.78rem; color: var(--color-text-secondary);">
-                                            {{ $ar->reviewer->reviewerProfile?->academic_rank }} • {{ $ar->reviewer->reviewerProfile?->university }} ({{ $ar->reviewer->reviewerProfile?->subject }})
+                                        <div style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 1px;">
+                                            {{ $ar->reviewer->reviewerProfile?->academic_rank }} • {{ $ar->reviewer->reviewerProfile?->university }} ({{ $ar->reviewer->reviewerProfile?->country }}) • <span style="color: var(--secondary); font-weight: 700;">{{ $ar->reviewer->reviewerProfile?->subject }}</span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div>
                                     @if($ar->status === 'SUBMITTED')
-                                        <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--success); font-weight: 700;">✓ Report Submitted</span>
+                                        <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--success); font-weight: 800; font-size: 0.8rem; padding: 0.35rem 0.75rem; border: 1px solid rgba(16,185,129,0.3);">
+                                            ✓ Report Submitted
+                                        </span>
                                     @else
-                                        <span class="badge" style="background: rgba(245,158,11,0.15); color: var(--warning); font-weight: 700;">⏳ Pending Evaluation</span>
+                                        <span class="badge" style="background: rgba(245,158,11,0.15); color: var(--warning); font-weight: 800; font-size: 0.8rem; padding: 0.35rem 0.75rem; border: 1px solid rgba(245,158,11,0.3);">
+                                            ⏳ Pending Evaluation
+                                        </span>
                                     @endif
                                 </div>
                             </div>
 
                             @if($ar->status === 'SUBMITTED')
-                                <div class="grid grid-cols-2 gap-4 mb-3" style="background: rgba(0,0,0,0.3); padding: 0.85rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                                <!-- Score & Recommendation Block -->
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; background: var(--bg-card); padding: 1rem 1.25rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 1rem;">
                                     <div>
-                                        <span style="font-size: 0.75rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700;">Overall Score</span><br>
-                                        <strong style="color: {{ $ar->overall_score >= 80 ? 'var(--success)' : ($ar->overall_score >= 60 ? 'var(--warning)' : 'var(--danger)') }}; font-size: 1.35rem; font-weight: 900;">
-                                            {{ $ar->overall_score }} <span style="font-size: 0.8rem; color: var(--color-text-secondary); font-weight: 600;">/ 100</span>
+                                        <span style="font-size: 0.72rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em;">Quantitative Peer Score</span><br>
+                                        <strong style="color: {{ $ar->overall_score >= 80 ? 'var(--success)' : ($ar->overall_score >= 60 ? 'var(--warning)' : 'var(--danger)') }}; font-size: 1.5rem; font-weight: 900;">
+                                            {{ $ar->overall_score }} <span style="font-size: 0.85rem; color: var(--color-text-secondary); font-weight: 600;">/ 100</span>
                                         </strong>
                                     </div>
                                     <div>
-                                        <span style="font-size: 0.75rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700;">Recommendation</span><br>
-                                        <span class="badge" style="margin-top: 0.25rem; font-size: 0.85rem; font-weight: 700; background: {{ in_array($ar->recommendation, ['STRONGLY_RECOMMENDED', 'RECOMMENDED']) ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)' }}; color: {{ in_array($ar->recommendation, ['STRONGLY_RECOMMENDED', 'RECOMMENDED']) ? 'var(--success)' : 'var(--danger)' }};">
+                                        <span style="font-size: 0.72rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em;">Statutory Recommendation</span><br>
+                                        <span class="badge" style="margin-top: 0.3rem; font-size: 0.85rem; font-weight: 800; padding: 0.35rem 0.75rem; background: {{ in_array($ar->recommendation, ['STRONGLY_RECOMMENDED', 'RECOMMENDED']) ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)' }}; color: {{ in_array($ar->recommendation, ['STRONGLY_RECOMMENDED', 'RECOMMENDED']) ? 'var(--success)' : 'var(--danger)' }}; border: 1px solid {{ in_array($ar->recommendation, ['STRONGLY_RECOMMENDED', 'RECOMMENDED']) ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)' }};">
                                             {{ str_replace('_', ' ', $ar->recommendation) }}
                                         </span>
                                     </div>
-                                </div>
-
-                                <div>
-                                    <strong style="font-size: 0.8rem; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Qualitative Expert Evaluation Remarks:</strong>
-                                    <div class="reviewer-quote-box mt-2">
-                                        "{{ $ar->report_text }}"
+                                    <div>
+                                        <span style="font-size: 0.72rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em;">Submitted Timestamp</span><br>
+                                        <div style="font-size: 0.85rem; font-weight: 700; color: var(--color-text-primary); margin-top: 0.35rem;">
+                                            {{ $ar->submitted_at?->format('d M Y, h:i A') ?: 'Recorded' }}
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="flex justify-between align-center mt-3" style="font-size: 0.75rem; color: var(--color-text-muted);">
-                                    <span>Submitted on: <strong>{{ $ar->submitted_at?->format('d M Y, h:i A') }}</strong></span>
-                                    @if($ar->evaluation_file_path)
-                                        <a href="/storage/{{ $ar->evaluation_file_path }}" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; text-decoration: none;">
-                                            📥 Download Signed Evaluation PDF
+                                <!-- Qualitative Remarks -->
+                                <div style="margin-bottom: 1rem;">
+                                    <strong style="font-size: 0.75rem; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Qualitative Expert Evaluation Remarks:</strong>
+                                    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-left: 4px solid var(--secondary); padding: 0.95rem 1.25rem; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; color: var(--color-text-primary); font-size: 0.9rem; line-height: 1.6; font-style: italic; margin-top: 0.35rem;">
+                                        "{{ $ar->report_text ?: 'Evaluation submitted without narrative remarks.' }}"
+                                    </div>
+                                </div>
+
+                                @if($ar->evaluation_file_path)
+                                    <div style="display: flex; justify-content: flex-end;">
+                                        <a href="/storage/{{ $ar->evaluation_file_path }}" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                            <span>📥 Download Signed Evaluation PDF</span>
                                         </a>
+                                    </div>
+                                @endif
+                            @else
+                                <!-- Pending Evaluation Details & Actions -->
+                                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem 1.25rem; margin-bottom: 1rem;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; font-size: 0.85rem;">
+                                        <span style="color: var(--color-text-secondary);">
+                                            Assignment Dispatched: <strong style="color: var(--color-text-primary);">{{ $ar->assigned_at?->format('d M Y') ?: 'Recently' }}</strong>
+                                        </span>
+                                        <span style="color: var(--color-text-secondary);">
+                                            Statutory Due Date: <strong style="color: var(--color-text-primary);">{{ $ar->due_date?->format('d M Y') ?: 'In 14 days' }}</strong>
+                                            @if($ar->due_date && now()->greaterThan($ar->due_date))
+                                                <span class="badge badge-rose" style="font-size: 0.7rem; font-weight: 800; margin-left: 0.35rem;">OVERDUE</span>
+                                            @endif
+                                        </span>
+                                    </div>
+                                    @if($ar->confidential_notes)
+                                        <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--color-text-muted); font-style: italic;">
+                                            Dispatch Notes: "{{ $ar->confidential_notes }}"
+                                        </div>
                                     @endif
                                 </div>
-                            @else
-                                <p style="color: var(--color-text-muted); font-size: 0.82rem; margin: 0;">
-                                    Review assigned on {{ $ar->assigned_at?->format('d M Y') }}. Review deadline: <strong>{{ $ar->due_date?->format('d M Y') ?: 'In 14 days' }}</strong>.
-                                </p>
+
+                                <!-- Reviewer Actions Row -->
+                                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border-color);">
+                                    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                        <button type="button" 
+                                                wire:click="sendReviewerReminder({{ $ar->id }})" 
+                                                class="btn btn-secondary btn-sm" 
+                                                style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; font-weight: 700;"
+                                                title="Send confidential reminder email to this referee">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                                            <span>Send Reminder Email</span>
+                                        </button>
+
+                                        <button type="button" 
+                                                wire:click="extendReviewDeadline({{ $ar->id }}, 7)" 
+                                                class="btn btn-secondary btn-sm" 
+                                                style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; font-weight: 700;"
+                                                title="Grant 7 additional calendar days to evaluate dossier">
+                                            <span>+7 Days Deadline</span>
+                                        </button>
+
+                                        <button type="button" 
+                                                wire:click="extendReviewDeadline({{ $ar->id }}, 14)" 
+                                                class="btn btn-secondary btn-sm" 
+                                                style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; font-weight: 700;"
+                                                title="Grant 14 additional calendar days to evaluate dossier">
+                                            <span>+14 Days Deadline</span>
+                                        </button>
+                                    </div>
+
+                                    <div>
+                                        <button type="button" 
+                                                wire:click="removeReviewerAssignment({{ $ar->id }})" 
+                                                wire:confirm="Revoke this referee assignment? The applicant will have 1 fewer assigned referee." 
+                                                class="btn btn-sm" 
+                                                style="background: rgba(239,68,68,0.12); color: var(--danger); border: 1px solid rgba(239,68,68,0.25); display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; font-weight: 700;"
+                                                title="Revoke and remove this external referee assignment">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                            <span>Revoke Assignment</span>
+                                        </button>
+                                    </div>
+                                </div>
                             @endif
                         </div>
                     @empty
-                        <p style="color: var(--color-text-muted); text-align: center; padding: 2rem;">No review assignments registered for this application.</p>
+                        <div class="card text-center" style="padding: 2.5rem; color: var(--color-text-muted);">
+                            <p style="font-size: 0.9rem; margin: 0;">No external peer review assignments registered for this application yet.</p>
+                        </div>
                     @endforelse
                 </div>
 
-                <div class="flex justify-end mt-4" style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
-                    <button type="button" class="btn btn-secondary" wire:click="closeReportsModal">Close Reports</button>
+                <!-- Modal Footer -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+                    <div style="font-size: 0.8rem; color: var(--color-text-muted);">
+                        Confidential proceedings under Statutory Recruitment & Peer Review Ordinance.
+                    </div>
+                    <button type="button" class="btn btn-secondary" wire:click="closeReportsModal">
+                        Close Reports
+                    </button>
                 </div>
+
             </div>
         </div>
     @endif
-
-    <!-- ============================================================== -->
     <!-- MODAL 5: REVIEWER PROFILE & DOSSIERS LEDGER MODAL             -->
     <!-- ============================================================== -->
     @if($showDetailsModal && $selectedReviewerForDetails)

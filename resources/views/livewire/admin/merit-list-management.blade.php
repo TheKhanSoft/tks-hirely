@@ -29,6 +29,19 @@
         </div>
 
         <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <button type="button" 
+                    wire:click="exportCsv" 
+                    class="btn btn-secondary" 
+                    style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.6rem 1.15rem; font-weight: 700; box-shadow: var(--shadow-sm);"
+                    title="Export currently filtered merit roster data to CSV format">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>Export Stage CSV</span>
+            </button>
+
             @if($selectedCampaign)
                 <a href="{{ route('merit-list.print', ['campaignId' => $selectedCampaign->id, 'stage' => $activeStage, 'quota' => $quotaFilter, 'search' => $search]) }}" 
                    target="_blank" 
@@ -93,8 +106,25 @@
 
     <!-- Filter Control Card -->
     <div class="card mb-6" style="padding: 1.25rem; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); border-radius: var(--radius-md);">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; align-items: flex-end;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; align-items: flex-end;">
             
+            <!-- Advertisement Select -->
+            <div>
+                <label style="display: block; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 0.35rem;">
+                    Advertisement Drive
+                </label>
+                <select wire:model.live="advertisementFilter" 
+                        class="form-control" 
+                        style="width: 100%; padding: 0.55rem 0.85rem; border-radius: 8px; font-size: 0.88rem; font-weight: 700; background: var(--bg-surface); color: var(--color-text-primary); border: 1px solid var(--border-color);">
+                    <option value="ALL">All Advertisements</option>
+                    @foreach($advertisements as $adv)
+                        <option value="{{ $adv->id }}">
+                            📢 {{ $adv->advertisement_no }} — {{ $adv->title }} ({{ $adv->year }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
             <!-- Campaign Select -->
             <div>
                 <label style="display: block; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 0.35rem;">
@@ -156,6 +186,91 @@
                     <option value="INCOMPLETE_DOSSIER">Deficient Dossier</option>
                     <option value="INELIGIBLE">Ineligible / Disqualified</option>
                 </select>
+            </div>
+
+            <!-- Fee Status Filter -->
+            <div>
+                <label style="display: block; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 0.35rem;">
+                    Fee Payment
+                </label>
+                <select wire:model.live="feeFilter" 
+                        class="form-control" 
+                        style="width: 100%; padding: 0.55rem 0.85rem; border-radius: 8px; font-size: 0.88rem; background: var(--bg-surface); color: var(--color-text-primary); border: 1px solid var(--border-color);">
+                    <option value="ALL">All Payments</option>
+                    <option value="PAID">Paid / Settled Only</option>
+                    <option value="UNPAID">Pending / Unpaid Only</option>
+                </select>
+            </div>
+
+            <!-- Gender Filter -->
+            <div>
+                <label style="display: block; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 0.35rem;">
+                    Gender
+                </label>
+                <select wire:model.live="genderFilter" 
+                        class="form-control" 
+                        style="width: 100%; padding: 0.55rem 0.85rem; border-radius: 8px; font-size: 0.88rem; background: var(--bg-surface); color: var(--color-text-primary); border: 1px solid var(--border-color);">
+                    <option value="ALL">All Genders</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <!-- Benchmark Cutoff Score Filter -->
+            <div>
+                <label style="display: block; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 0.35rem;">
+                    Min Score Cutoff %
+                </label>
+                <input type="number" 
+                       min="0" 
+                       max="100" 
+                       wire:model.live.debounce.300ms="minScoreFilter" 
+                       placeholder="e.g. 50" 
+                       class="form-control" 
+                       style="width: 100%; padding: 0.55rem 0.85rem; border-radius: 8px; font-size: 0.88rem; background: var(--bg-surface); color: var(--color-text-primary); border: 1px solid var(--border-color);">
+            </div>
+
+            <!-- Recommendation Filter -->
+            <div>
+                <label style="display: block; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 0.35rem;">
+                    Recommendation
+                </label>
+                <select wire:model.live="recommendationFilter" 
+                        class="form-control" 
+                        style="width: 100%; padding: 0.55rem 0.85rem; border-radius: 8px; font-size: 0.88rem; background: var(--bg-surface); color: var(--color-text-primary); border: 1px solid var(--border-color);">
+                    <option value="ALL">All Recommendations</option>
+                    <option value="SELECTED">Selected / Recommended</option>
+                    <option value="WAITLISTED">Waitlisted (Alternate)</option>
+                    <option value="NOT_RECOMMENDED">Not Recommended</option>
+                    <option value="DISQUALIFIED">Disqualified</option>
+                </select>
+            </div>
+
+            <!-- Per Page & Reset Actions -->
+            <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 0.35rem;">
+                        Per Page
+                    </label>
+                    <select wire:model.live="perPage" 
+                            class="form-control" 
+                            style="width: 100%; padding: 0.55rem 0.65rem; border-radius: 8px; font-size: 0.88rem; background: var(--bg-surface); color: var(--color-text-primary); border: 1px solid var(--border-color);">
+                        <option value="15">15</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+
+                <button type="button" 
+                        wire:click="resetFilters" 
+                        class="btn btn-secondary" 
+                        style="padding: 0.55rem 0.85rem; font-size: 0.84rem; display: inline-flex; align-items: center; gap: 0.35rem;" 
+                        title="Reset all search queries and active filters">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    <span>Reset</span>
+                </button>
             </div>
 
         </div>
@@ -241,53 +356,101 @@
     <div class="table-container" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow-x: auto; box-shadow: var(--shadow-sm);">
         <table class="data-table" style="width: 100%; border-collapse: collapse;">
             <thead>
-                <tr style="border-bottom: 2px solid var(--border-color); background: var(--bg-surface);">
+                <tr style="border-bottom: 2px solid var(--border-color); background: var(--bg-surface); user-select: none;">
                     @if($activeStage === 'intake')
                         <th style="padding: 0.85rem 1rem; text-align: center; width: 60px;">#</th>
-                        <th style="padding: 0.85rem 1rem;">Tracking ID</th>
-                        <th style="padding: 0.85rem 1rem;">Candidate Particulars</th>
+                        <th style="padding: 0.85rem 1rem; cursor: pointer;" wire:click="sort('tracking_number')">
+                            Tracking ID @if($sortBy === 'tracking_number') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
+                        <th style="padding: 0.85rem 1rem; cursor: pointer;" wire:click="sort('candidate_name')">
+                            Candidate Particulars @if($sortBy === 'candidate_name') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
                         <th style="padding: 0.85rem 1rem;">Father / Domicile</th>
                         <th style="padding: 0.85rem 1rem; text-align: center;">Fee Status</th>
                         <th style="padding: 0.85rem 1rem;">1Link Reference</th>
                         <th style="padding: 0.85rem 1rem; text-align: right;">Dossier Actions</th>
                     @elseif($activeStage === 'scrutiny')
-                        <th style="padding: 0.85rem 1rem; text-align: center; width: 70px;">Rank</th>
-                        <th style="padding: 0.85rem 1rem;">Tracking ID</th>
-                        <th style="padding: 0.85rem 1rem;">Candidate Particulars</th>
+                        <th style="padding: 0.85rem 1rem; text-align: center; width: 70px; cursor: pointer;" wire:click="sort('rank')">
+                            Rank @if($sortBy === 'rank') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
+                        <th style="padding: 0.85rem 1rem; cursor: pointer;" wire:click="sort('tracking_number')">
+                            Tracking ID @if($sortBy === 'tracking_number') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
+                        <th style="padding: 0.85rem 1rem; cursor: pointer;" wire:click="sort('candidate_name')">
+                            Candidate Particulars @if($sortBy === 'candidate_name') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
                         <th style="padding: 0.85rem 1rem;">Terminal Qualification</th>
-                        <th style="padding: 0.85rem 1rem; text-align: center;">Acad (/40)</th>
+                        <th style="padding: 0.85rem 1rem; text-align: center; cursor: pointer;" wire:click="sort('academic_score')">
+                            Acad (/40) @if($sortBy === 'academic_score') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
                         <th style="padding: 0.85rem 1rem; text-align: center;">Scrutiny Determination</th>
                         <th style="padding: 0.85rem 1rem;">Deficiency Grounds</th>
                         <th style="padding: 0.85rem 1rem; text-align: right;">Dossier Actions</th>
                     @elseif($activeStage === 'peer_review')
-                        <th style="padding: 0.85rem 1rem; text-align: center; width: 70px;">Rank</th>
-                        <th style="padding: 0.85rem 1rem;">Tracking ID</th>
-                        <th style="padding: 0.85rem 1rem;">Candidate Particulars</th>
+                        <th style="padding: 0.85rem 1rem; text-align: center; width: 70px; cursor: pointer;" wire:click="sort('rank')">
+                            Rank @if($sortBy === 'rank') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
+                        <th style="padding: 0.85rem 1rem; cursor: pointer;" wire:click="sort('tracking_number')">
+                            Tracking ID @if($sortBy === 'tracking_number') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
+                        <th style="padding: 0.85rem 1rem; cursor: pointer;" wire:click="sort('candidate_name')">
+                            Candidate Particulars @if($sortBy === 'candidate_name') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
                         <th style="padding: 0.85rem 1rem; text-align: center;">Referees Assigned</th>
-                        <th style="padding: 0.85rem 1rem; text-align: center;">Peer Score Avg</th>
+                        <th style="padding: 0.85rem 1rem; text-align: center; cursor: pointer;" wire:click="sort('peer_score_avg')">
+                            Peer Score Avg @if($sortBy === 'peer_score_avg') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
                         <th style="padding: 0.85rem 1rem; text-align: center;">Benchmark Verdict</th>
                         <th style="padding: 0.85rem 1rem; text-align: center;">Publications</th>
                         <th style="padding: 0.85rem 1rem; text-align: right;">Dossier Actions</th>
                     @elseif($activeStage === 'selection_board')
-                        <th style="padding: 0.85rem 1rem; text-align: center; width: 70px;">Rank</th>
-                        <th style="padding: 0.85rem 1rem;">Tracking ID</th>
-                        <th style="padding: 0.85rem 1rem;">Candidate Particulars</th>
-                        <th style="padding: 0.85rem 1rem; text-align: center;">Acad (/40)</th>
-                        <th style="padding: 0.85rem 1rem; text-align: center;">Research (/20)</th>
-                        <th style="padding: 0.85rem 1rem; text-align: center;">Board Viva (/40)</th>
-                        <th style="padding: 0.85rem 1rem; text-align: center;">Total Score</th>
+                        <th style="padding: 0.85rem 1rem; text-align: center; width: 70px; cursor: pointer;" wire:click="sort('rank')">
+                            Rank @if($sortBy === 'rank') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
+                        <th style="padding: 0.85rem 1rem; cursor: pointer;" wire:click="sort('tracking_number')">
+                            Tracking ID @if($sortBy === 'tracking_number') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
+                        <th style="padding: 0.85rem 1rem; cursor: pointer;" wire:click="sort('candidate_name')">
+                            Candidate Particulars @if($sortBy === 'candidate_name') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
+                        <th style="padding: 0.85rem 1rem; text-align: center; cursor: pointer;" wire:click="sort('academic_score')">
+                            Acad (/40) @if($sortBy === 'academic_score') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
+                        <th style="padding: 0.85rem 1rem; text-align: center; cursor: pointer;" wire:click="sort('research_exp_score')">
+                            Research (/20) @if($sortBy === 'research_exp_score') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
+                        <th style="padding: 0.85rem 1rem; text-align: center; cursor: pointer;" wire:click="sort('interview_score')">
+                            Board Viva (/40) @if($sortBy === 'interview_score') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
+                        <th style="padding: 0.85rem 1rem; text-align: center; cursor: pointer;" wire:click="sort('aggregate_score')">
+                            Total Score @if($sortBy === 'aggregate_score') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
                         <th style="padding: 0.85rem 1rem; text-align: center;">Board Status</th>
                         <th style="padding: 0.85rem 1rem; text-align: right;">Dossier Actions</th>
                     @else
                         {{-- Consolidated Final Gazette --}}
-                        <th style="padding: 0.85rem 1rem; text-align: center; width: 75px;">Rank</th>
-                        <th style="padding: 0.85rem 1rem;">Tracking ID</th>
-                        <th style="padding: 0.85rem 1rem;">Candidate Particulars</th>
-                        <th style="padding: 0.85rem 1rem; text-align: center;">Acad (/40)</th>
-                        <th style="padding: 0.85rem 1rem; text-align: center;">Exp/Pub (/15)</th>
+                        <th style="padding: 0.85rem 1rem; text-align: center; width: 75px; cursor: pointer;" wire:click="sort('rank')">
+                            Rank @if($sortBy === 'rank') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
+                        <th style="padding: 0.85rem 1rem; cursor: pointer;" wire:click="sort('tracking_number')">
+                            Tracking ID @if($sortBy === 'tracking_number') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
+                        <th style="padding: 0.85rem 1rem; cursor: pointer;" wire:click="sort('candidate_name')">
+                            Candidate Particulars @if($sortBy === 'candidate_name') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
+                        <th style="padding: 0.85rem 1rem; text-align: center; cursor: pointer;" wire:click="sort('academic_score')">
+                            Acad (/40) @if($sortBy === 'academic_score') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
+                        <th style="padding: 0.85rem 1rem; text-align: center; cursor: pointer;" wire:click="sort('research_exp_score')">
+                            Exp/Pub (/15) @if($sortBy === 'research_exp_score') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
                         <th style="padding: 0.85rem 1rem; text-align: center;">Peer (/15)</th>
-                        <th style="padding: 0.85rem 1rem; text-align: center;">Board (/30)</th>
-                        <th style="padding: 0.85rem 1rem; text-align: center;">Aggregate %</th>
+                        <th style="padding: 0.85rem 1rem; text-align: center; cursor: pointer;" wire:click="sort('interview_score')">
+                            Board (/30) @if($sortBy === 'interview_score') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
+                        <th style="padding: 0.85rem 1rem; text-align: center; cursor: pointer;" wire:click="sort('aggregate_score')">
+                            Aggregate % @if($sortBy === 'aggregate_score') <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                        </th>
                         <th style="padding: 0.85rem 1rem; text-align: center;">Final Selection Order</th>
                         <th style="padding: 0.85rem 1rem; text-align: right;">Dossier Actions</th>
                     @endif
@@ -461,6 +624,32 @@
                 @endforelse
             </tbody>
         </table>
+
+        <!-- Merit Roster Pagination Bar -->
+        @if($totalRecords > 0)
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 1.25rem; border-top: 1px solid var(--border-color); background: var(--bg-surface); flex-wrap: wrap; gap: 0.75rem;">
+                <div style="font-size: 0.84rem; color: var(--color-text-secondary);">
+                    Showing <strong style="color: var(--color-text-primary);">{{ min(($this->getPage() - 1) * (int)$perPage + 1, $totalRecords) }}</strong> to <strong style="color: var(--color-text-primary);">{{ min($this->getPage() * (int)$perPage, $totalRecords) }}</strong> of <strong style="color: var(--color-text-primary);">{{ $totalRecords }}</strong> candidates
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <button type="button" 
+                            class="btn btn-secondary btn-sm" 
+                            wire:click="previousPage" 
+                            @if($this->getPage() <= 1) disabled style="opacity: 0.5; cursor: not-allowed;" @endif>
+                        ← Previous
+                    </button>
+                    <span style="font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary); padding: 0 0.5rem;">
+                        Page {{ $this->getPage() }} of {{ max(1, (int)ceil($totalRecords / (int)$perPage)) }}
+                    </span>
+                    <button type="button" 
+                            class="btn btn-secondary btn-sm" 
+                            wire:click="nextPage" 
+                            @if($this->getPage() >= ceil($totalRecords / (int)$perPage)) disabled style="opacity: 0.5; cursor: not-allowed;" @endif>
+                        Next →
+                    </button>
+                </div>
+            </div>
+        @endif
     </div>
 
     <!-- Quick Dossier Preview Modal -->
