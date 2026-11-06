@@ -131,6 +131,48 @@ class SystemSettings extends Component
     public $global_min_terminal_percentage = '';
     public $global_min_terminal_cgpa = '';
 
+    // ⚖️ Statutory Merit Formulation & Selection Board Scoring Weights
+    public $merit_academic_weight = 50;
+    public $merit_higher_qualification_weight = 5;
+    public $merit_research_weight = 15;
+    public $merit_experience_weight = 10;
+    public $merit_interview_weight = 20;
+    public $merit_minimum_passing_aggregate = 50;
+
+    // 🔒 Security, Access Governance & Session Policies
+    public $auth_two_factor_policy = 'optional';
+    public $auth_session_timeout_minutes = 60;
+    public $auth_max_login_attempts = 5;
+    public $auth_lockout_duration_minutes = 15;
+    public $candidate_registration_status = 'open';
+    public $candidate_registration_closed_message = '';
+    public $job_board_visibility = 'public';
+    public $password_min_length = 8;
+    public $password_require_uppercase = true;
+    public $password_require_numeric = true;
+    public $password_require_special = false;
+    public $force_first_login_password_change = false;
+    public $enforce_strict_cnic_format = true;
+    public $max_upload_size_mb = 5;
+    public $allowed_file_types = 'pdf, jpg, jpeg, png, docx';
+
+    // ⚙️ System Health, Diagnostics & Maintenance
+    public $system_maintenance_mode = false;
+    public $maintenance_notice_heading = 'Scheduled Statutory System Maintenance';
+    public $maintenance_notice_message = '';
+
+    // 📱 SMS & Multi-Channel Alert Gateway
+    public $sms_enabled = false;
+    public $sms_provider = 'twilio';
+    public $sms_sender_id = 'AWKUM-HR';
+    public $sms_api_key = '';
+    public $sms_api_url = '';
+    public $sms_trigger_app_submitted = true;
+    public $sms_trigger_payment_verified = true;
+    public $sms_trigger_scrutiny_deficiency = true;
+    public $sms_trigger_interview_call = true;
+    public $test_sms_recipient = '';
+
     public function mount($tab = null)
     {
         abort_unless(Auth::check() && (Auth::user()->hasRole('super-admin') || Auth::user()->can('manage-settings')), 403);
@@ -154,7 +196,9 @@ class SystemSettings extends Component
             'academic-criteria', 'criteria', 'benchmarks', 'academic_criteria' => 'academic_criteria',
             'branding', 'brand', 'app', 'app-branding', 'app_branding', 'logos', 'logo' => 'branding',
             'contact', 'helpdesk', 'support', 'contacts' => 'contact',
-            'email', 'mail', 'smtp', 'notifications' => 'email',
+            'email', 'mail', 'smtp', 'notifications', 'sms' => 'email',
+            'security', 'sec', 'auth', 'access', 'session', 'passwords' => 'security',
+            'system', 'maintenance', 'diagnostics', 'health', 'cache' => 'system',
             default => 'pipeline',
         };
     }
@@ -170,6 +214,8 @@ class SystemSettings extends Component
             'branding' => 'branding',
             'contact' => 'contact',
             'email' => 'email',
+            'security' => 'security',
+            'system' => 'system',
             default => 'workflows',
         };
         $prefix = request()->is('registrar*') ? '/registrar' : '/admin';
@@ -285,6 +331,47 @@ class SystemSettings extends Component
         $this->global_min_marks_percentage = $globalCriteria['min_marks_percentage'] ?? '';
         $this->global_min_terminal_percentage = $globalCriteria['min_terminal_percentage'] ?? '';
         $this->global_min_terminal_cgpa = $globalCriteria['min_terminal_cgpa'] ?? '';
+
+        // Statutory Merit Formulation Weightages
+        $this->merit_academic_weight = (int) SystemSetting::get('merit_academic_weight', 50);
+        $this->merit_higher_qualification_weight = (int) SystemSetting::get('merit_higher_qualification_weight', 5);
+        $this->merit_research_weight = (int) SystemSetting::get('merit_research_weight', 15);
+        $this->merit_experience_weight = (int) SystemSetting::get('merit_experience_weight', 10);
+        $this->merit_interview_weight = (int) SystemSetting::get('merit_interview_weight', 20);
+        $this->merit_minimum_passing_aggregate = (int) SystemSetting::get('merit_minimum_passing_aggregate', 50);
+
+        // Security, Access Governance & Session Policies
+        $this->auth_two_factor_policy = (string) SystemSetting::get('auth_two_factor_policy', 'optional');
+        $this->auth_session_timeout_minutes = (int) SystemSetting::get('auth_session_timeout_minutes', 60);
+        $this->auth_max_login_attempts = (int) SystemSetting::get('auth_max_login_attempts', 5);
+        $this->auth_lockout_duration_minutes = (int) SystemSetting::get('auth_lockout_duration_minutes', 15);
+        $this->candidate_registration_status = (string) SystemSetting::get('candidate_registration_status', 'open');
+        $this->candidate_registration_closed_message = (string) SystemSetting::get('candidate_registration_closed_message', 'Online recruitment intake is currently closed. Please review active advertisements for upcoming announcement schedules.');
+        $this->job_board_visibility = (string) SystemSetting::get('job_board_visibility', 'public');
+        $this->password_min_length = (int) SystemSetting::get('password_min_length', 8);
+        $this->password_require_uppercase = (bool) SystemSetting::get('password_require_uppercase', true);
+        $this->password_require_numeric = (bool) SystemSetting::get('password_require_numeric', true);
+        $this->password_require_special = (bool) SystemSetting::get('password_require_special', false);
+        $this->force_first_login_password_change = (bool) SystemSetting::get('force_first_login_password_change', false);
+        $this->enforce_strict_cnic_format = (bool) SystemSetting::get('enforce_strict_cnic_format', true);
+        $this->max_upload_size_mb = (int) SystemSetting::get('max_upload_size_mb', 5);
+        $this->allowed_file_types = (string) SystemSetting::get('allowed_file_types', 'pdf, jpg, jpeg, png, docx');
+
+        // System Health, Diagnostics & Maintenance
+        $this->system_maintenance_mode = (bool) SystemSetting::get('system_maintenance_mode', false);
+        $this->maintenance_notice_heading = (string) SystemSetting::get('maintenance_notice_heading', 'Scheduled Statutory System Maintenance');
+        $this->maintenance_notice_message = (string) SystemSetting::get('maintenance_notice_message', 'The Hirely recruitment portal is undergoing scheduled maintenance and database optimization. Access will be restored shortly. Thank you for your patience.');
+
+        // SMS & Multi-Channel Alert Gateway
+        $this->sms_enabled = (bool) SystemSetting::get('sms_enabled', false);
+        $this->sms_provider = (string) SystemSetting::get('sms_provider', 'twilio');
+        $this->sms_sender_id = (string) SystemSetting::get('sms_sender_id', 'AWKUM-HR');
+        $this->sms_api_key = (string) SystemSetting::get('sms_api_key', '');
+        $this->sms_api_url = (string) SystemSetting::get('sms_api_url', '');
+        $this->sms_trigger_app_submitted = (bool) SystemSetting::get('sms_trigger_app_submitted', true);
+        $this->sms_trigger_payment_verified = (bool) SystemSetting::get('sms_trigger_payment_verified', true);
+        $this->sms_trigger_scrutiny_deficiency = (bool) SystemSetting::get('sms_trigger_scrutiny_deficiency', true);
+        $this->sms_trigger_interview_call = (bool) SystemSetting::get('sms_trigger_interview_call', true);
     }
 
     public function toggleSetting($key)
@@ -451,7 +538,15 @@ class SystemSettings extends Component
         SystemSetting::set('prof_required_peer_reviewers', (int)$this->prof_required_peer_reviewers, 'academic_criteria', 'integer');
         SystemSetting::set('lecturer_required_peer_reviewers', (int)$this->lecturer_required_peer_reviewers, 'academic_criteria', 'integer');
 
-        session()->flash('message', 'Global statutory academic division and marks benchmarks successfully updated.');
+        // Statutory Selection Board Merit Formula Weightages
+        SystemSetting::set('merit_academic_weight', (int)$this->merit_academic_weight, 'academic_criteria', 'integer');
+        SystemSetting::set('merit_higher_qualification_weight', (int)$this->merit_higher_qualification_weight, 'academic_criteria', 'integer');
+        SystemSetting::set('merit_research_weight', (int)$this->merit_research_weight, 'academic_criteria', 'integer');
+        SystemSetting::set('merit_experience_weight', (int)$this->merit_experience_weight, 'academic_criteria', 'integer');
+        SystemSetting::set('merit_interview_weight', (int)$this->merit_interview_weight, 'academic_criteria', 'integer');
+        SystemSetting::set('merit_minimum_passing_aggregate', (int)$this->merit_minimum_passing_aggregate, 'academic_criteria', 'integer');
+
+        session()->flash('message', 'Global statutory academic division benchmarks and selection merit weights successfully updated.');
     }
 
     public function saveBrandingSettings()
@@ -666,6 +761,12 @@ class SystemSettings extends Component
         $this->asst_prof_required_peer_reviewers = 3;
         $this->prof_required_peer_reviewers = 3;
         $this->lecturer_required_peer_reviewers = 0;
+        $this->merit_academic_weight = 50;
+        $this->merit_higher_qualification_weight = 5;
+        $this->merit_research_weight = 15;
+        $this->merit_experience_weight = 10;
+        $this->merit_interview_weight = 20;
+        $this->merit_minimum_passing_aggregate = 50;
         $this->saveAcademicCriteriaSettings();
         session()->flash('message', 'Statutory academic benchmarks reset to HEC standard baseline.');
     }
@@ -862,6 +963,227 @@ class SystemSettings extends Component
                 'message' => "Mail dispatch failed: " . $e->getMessage(),
             ]);
         }
+    }
+
+    // 🔒 Security, Access Governance & Session Policies
+    public function saveSecuritySettings()
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('manage-security-settings'), 403);
+        $this->validate([
+            'auth_two_factor_policy' => 'required|string|in:disabled,optional,enforced_staff,enforced_all',
+            'auth_session_timeout_minutes' => 'required|integer|min:5|max:1440',
+            'auth_max_login_attempts' => 'required|integer|min:1|max:20',
+            'auth_lockout_duration_minutes' => 'required|integer|min:1|max:1440',
+            'candidate_registration_status' => 'required|string|in:open,closed',
+            'candidate_registration_closed_message' => 'nullable|string|max:500',
+            'job_board_visibility' => 'required|string|in:public,members_only',
+            'password_min_length' => 'required|integer|min:6|max:64',
+            'max_upload_size_mb' => 'required|integer|min:1|max:100',
+            'allowed_file_types' => 'required|string|max:250',
+        ]);
+
+        SystemSetting::set('auth_two_factor_policy', $this->auth_two_factor_policy, 'security', 'string');
+        SystemSetting::set('auth_session_timeout_minutes', (int) $this->auth_session_timeout_minutes, 'security', 'integer');
+        SystemSetting::set('auth_max_login_attempts', (int) $this->auth_max_login_attempts, 'security', 'integer');
+        SystemSetting::set('auth_lockout_duration_minutes', (int) $this->auth_lockout_duration_minutes, 'security', 'integer');
+        SystemSetting::set('candidate_registration_status', $this->candidate_registration_status, 'security', 'string');
+        SystemSetting::set('candidate_registration_closed_message', $this->candidate_registration_closed_message, 'security', 'string');
+        SystemSetting::set('job_board_visibility', $this->job_board_visibility, 'security', 'string');
+        SystemSetting::set('password_min_length', (int) $this->password_min_length, 'security', 'integer');
+        SystemSetting::set('password_require_uppercase', (bool) $this->password_require_uppercase, 'security', 'boolean');
+        SystemSetting::set('password_require_numeric', (bool) $this->password_require_numeric, 'security', 'boolean');
+        SystemSetting::set('password_require_special', (bool) $this->password_require_special, 'security', 'boolean');
+        SystemSetting::set('force_first_login_password_change', (bool) $this->force_first_login_password_change, 'security', 'boolean');
+        SystemSetting::set('enforce_strict_cnic_format', (bool) $this->enforce_strict_cnic_format, 'security', 'boolean');
+        SystemSetting::set('max_upload_size_mb', (int) $this->max_upload_size_mb, 'security', 'integer');
+        SystemSetting::set('allowed_file_types', $this->allowed_file_types, 'security', 'string');
+
+        session()->flash('message', 'Security governance, access policies, and authentication thresholds successfully saved.');
+    }
+
+    public function resetSecurityToDefault()
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('manage-security-settings'), 403);
+        $this->auth_two_factor_policy = 'optional';
+        $this->auth_session_timeout_minutes = 60;
+        $this->auth_max_login_attempts = 5;
+        $this->auth_lockout_duration_minutes = 15;
+        $this->candidate_registration_status = 'open';
+        $this->candidate_registration_closed_message = 'Online recruitment intake is currently closed. Please review active advertisements for upcoming announcement schedules.';
+        $this->job_board_visibility = 'public';
+        $this->password_min_length = 8;
+        $this->password_require_uppercase = true;
+        $this->password_require_numeric = true;
+        $this->password_require_special = false;
+        $this->force_first_login_password_change = false;
+        $this->enforce_strict_cnic_format = true;
+        $this->max_upload_size_mb = 5;
+        $this->allowed_file_types = 'pdf, jpg, jpeg, png, docx';
+
+        $this->saveSecuritySettings();
+        session()->flash('message', 'Security policies restored to standard institutional defaults.');
+    }
+
+    // ⚙️ System Health, Diagnostics & Maintenance
+    public function saveMaintenanceSettings()
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('manage-system-maintenance'), 403);
+        $this->validate([
+            'maintenance_notice_heading' => 'required|string|max:150',
+            'maintenance_notice_message' => 'required|string|max:500',
+        ]);
+
+        SystemSetting::set('system_maintenance_mode', (bool) $this->system_maintenance_mode, 'system', 'boolean');
+        SystemSetting::set('maintenance_notice_heading', $this->maintenance_notice_heading, 'system', 'string');
+        SystemSetting::set('maintenance_notice_message', $this->maintenance_notice_message, 'system', 'string');
+
+        session()->flash('message', 'System maintenance mode and service notification status updated.');
+    }
+
+    public function resetMaintenanceToDefault()
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('manage-system-maintenance'), 403);
+        $this->system_maintenance_mode = false;
+        $this->maintenance_notice_heading = 'Scheduled Statutory System Maintenance';
+        $this->maintenance_notice_message = 'The Hirely recruitment portal is undergoing scheduled maintenance and database optimization. Access will be restored shortly. Thank you for your patience.';
+
+        $this->saveMaintenanceSettings();
+        session()->flash('message', 'System maintenance configurations restored to standard defaults.');
+    }
+
+    // 📱 SMS & Multi-Channel Alert Gateway
+    public function saveSmsSettings()
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('manage-sms-settings'), 403);
+        $this->validate([
+            'sms_provider' => 'required|string|in:twilio,zong,telenor,generic_webhook',
+            'sms_sender_id' => 'required|string|max:20',
+            'sms_api_key' => 'nullable|string|max:250',
+            'sms_api_url' => 'nullable|string|max:250',
+        ]);
+
+        SystemSetting::set('sms_enabled', (bool) $this->sms_enabled, 'email', 'boolean');
+        SystemSetting::set('sms_provider', $this->sms_provider, 'email', 'string');
+        SystemSetting::set('sms_sender_id', $this->sms_sender_id, 'email', 'string');
+        SystemSetting::set('sms_api_key', $this->sms_api_key, 'email', 'string');
+        SystemSetting::set('sms_api_url', $this->sms_api_url, 'email', 'string');
+        SystemSetting::set('sms_trigger_app_submitted', (bool) $this->sms_trigger_app_submitted, 'email', 'boolean');
+        SystemSetting::set('sms_trigger_payment_verified', (bool) $this->sms_trigger_payment_verified, 'email', 'boolean');
+        SystemSetting::set('sms_trigger_scrutiny_deficiency', (bool) $this->sms_trigger_scrutiny_deficiency, 'email', 'boolean');
+        SystemSetting::set('sms_trigger_interview_call', (bool) $this->sms_trigger_interview_call, 'email', 'boolean');
+
+        session()->flash('message', 'SMS notification gateway and candidate automated triggers saved.');
+    }
+
+    public function resetSmsToDefault()
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('manage-sms-settings'), 403);
+        $this->sms_enabled = false;
+        $this->sms_provider = 'twilio';
+        $this->sms_sender_id = 'AWKUM-HR';
+        $this->sms_api_key = '';
+        $this->sms_api_url = '';
+        $this->sms_trigger_app_submitted = true;
+        $this->sms_trigger_payment_verified = true;
+        $this->sms_trigger_scrutiny_deficiency = true;
+        $this->sms_trigger_interview_call = true;
+
+        $this->saveSmsSettings();
+        session()->flash('message', 'SMS gateway settings restored to defaults.');
+    }
+
+    public function sendTestSms()
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('manage-sms-settings'), 403);
+        $this->validate([
+            'test_sms_recipient' => 'required|string|min:10|max:20',
+        ]);
+
+        session()->flash('test_sms_status', [
+            'type' => 'success',
+            'message' => "Simulated test SMS successfully dispatched to '{$this->test_sms_recipient}' using sender mask '{$this->sms_sender_id}'.",
+        ]);
+    }
+
+    // 🖥️ Diagnostics & Cache Clearing Actions
+    public function getServerStatsProperty(): array
+    {
+        return [
+            'php_version' => PHP_VERSION,
+            'laravel_version' => app()->version(),
+            'environment' => app()->environment(),
+            'db_driver' => config('database.default'),
+            'cache_driver' => config('cache.default'),
+            'session_driver' => config('session.driver'),
+            'queue_connection' => config('queue.default'),
+            'timezone' => config('app.timezone'),
+            'memory_limit' => ini_get('memory_limit') ?: 'N/A',
+            'max_execution_time' => (ini_get('max_execution_time') ?: '0') . 's',
+            'upload_max_filesize' => ini_get('upload_max_filesize') ?: 'N/A',
+            'post_max_size' => ini_get('post_max_size') ?: 'N/A',
+        ];
+    }
+
+    public function getTableCountsProperty(): array
+    {
+        return [
+            'users' => \App\Models\User::count(),
+            'applications' => \App\Models\Application::count(),
+            'campaigns' => \App\Models\Campaign::count(),
+            'advertisements' => \App\Models\Advertisement::count(),
+            'payments' => class_exists(\App\Models\BillingLedger::class) ? \App\Models\BillingLedger::count() : 0,
+            'audit_logs' => class_exists(\App\Models\SecurityAuditLog::class) ? \App\Models\SecurityAuditLog::count() : 0,
+        ];
+    }
+
+    public function clearApplicationCache()
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('manage-system-maintenance'), 403);
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        session()->flash('maintenance_action_status', [
+            'type' => 'success',
+            'message' => 'Application data cache successfully flushed.',
+        ]);
+    }
+
+    public function clearViewCache()
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('manage-system-maintenance'), 403);
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+        session()->flash('maintenance_action_status', [
+            'type' => 'success',
+            'message' => 'Compiled Blade template views successfully cleared.',
+        ]);
+    }
+
+    public function clearRouteCache()
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('manage-system-maintenance'), 403);
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+        session()->flash('maintenance_action_status', [
+            'type' => 'success',
+            'message' => 'Route registration cache successfully reset.',
+        ]);
+    }
+
+    public function clearConfigCache()
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('manage-system-maintenance'), 403);
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        session()->flash('maintenance_action_status', [
+            'type' => 'success',
+            'message' => 'Configuration environment cache cleared.',
+        ]);
+    }
+
+    public function optimizeSystem()
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('manage-system-maintenance'), 403);
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+        session()->flash('maintenance_action_status', [
+            'type' => 'success',
+            'message' => 'Full system optimization executed (all framework caches reset).',
+        ]);
     }
 
     public function render()

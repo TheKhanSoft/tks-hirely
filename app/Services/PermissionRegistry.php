@@ -419,6 +419,26 @@ class PermissionRegistry
                     'label' => 'Manage System Settings',
                     'description' => 'Configure recruitment pipelines, document requirements, statutory constitutions, and organization settings',
                 ],
+                'manage-security-settings' => [
+                    'label' => 'Manage Security & Authentication Settings',
+                    'description' => 'Configure 2FA enforcement, session idle timeouts, account lockouts, and password complexity policies',
+                ],
+                'manage-system-maintenance' => [
+                    'label' => 'Manage System Maintenance & Caches',
+                    'description' => 'Toggle maintenance mode and clear application, route, view, and config caches',
+                ],
+                'view-system-health' => [
+                    'label' => 'View System Health & Diagnostics',
+                    'description' => 'Inspect server runtime environment, PHP/Laravel versions, database tables, and memory limits',
+                ],
+                'manage-sms-settings' => [
+                    'label' => 'Manage SMS Gateways & Notification Triggers',
+                    'description' => 'Configure SMS providers, API credentials, sender IDs, and automated candidate text message triggers',
+                ],
+                'manage-merit-formula' => [
+                    'label' => 'Manage Statutory Merit Weightages',
+                    'description' => 'Configure statutory selection board formula weightages for academics, research, experience, and interview',
+                ],
                 'manage-statuses' => [
                     'label' => 'Manage Dynamic Statuses & Lifecycles',
                     'description' => 'Configure application, applicant, and pipeline statuses, gate requirements, and transition flows',

@@ -4447,15 +4447,21 @@ html.light .help-hint-popover {
     color: var(--color-text-primary);
 }
 
-/* 4x2 Settings Hub Grid */
+/* Executive Settings Hub Grid (5x2 on desktop) */
 .settings-hub-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 0.85rem;
     margin-bottom: 1.75rem;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1400px) {
+    .settings-hub-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
     .settings-hub-grid {
         grid-template-columns: repeat(2, 1fr);
     }

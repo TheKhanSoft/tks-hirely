@@ -413,6 +413,79 @@ class SystemSetting extends Model
     }
 
     /**
+     * Check if system maintenance mode is active.
+     */
+    public static function isMaintenanceModeEnabled(): bool
+    {
+        return (bool) self::get('system_maintenance_mode', false);
+    }
+
+    /**
+     * Check if candidate registration is currently open.
+     */
+    public static function isRegistrationOpen(): bool
+    {
+        return strtolower((string) self::get('candidate_registration_status', 'open')) === 'open';
+    }
+
+    /**
+     * Get statutory merit weightage breakdown.
+     */
+    public static function getMeritFormulaWeights(): array
+    {
+        return [
+            'academic' => (int) self::get('merit_academic_weight', 50),
+            'higher_qualification' => (int) self::get('merit_higher_qualification_weight', 5),
+            'research' => (int) self::get('merit_research_weight', 15),
+            'experience' => (int) self::get('merit_experience_weight', 10),
+            'interview' => (int) self::get('merit_interview_weight', 20),
+            'passing_aggregate' => (int) self::get('merit_minimum_passing_aggregate', 50),
+        ];
+    }
+
+    /**
+     * Get consolidated security policies.
+     */
+    public static function getSecurityPolicies(): array
+    {
+        return [
+            'two_factor_policy' => (string) self::get('auth_two_factor_policy', 'optional'),
+            'session_timeout' => (int) self::get('auth_session_timeout_minutes', 60),
+            'max_login_attempts' => (int) self::get('auth_max_login_attempts', 5),
+            'lockout_duration' => (int) self::get('auth_lockout_duration_minutes', 15),
+            'registration_status' => (string) self::get('candidate_registration_status', 'open'),
+            'registration_closed_message' => (string) self::get('candidate_registration_closed_message', 'Online recruitment intake is currently closed.'),
+            'job_board_visibility' => (string) self::get('job_board_visibility', 'public'),
+            'password_min_length' => (int) self::get('password_min_length', 8),
+            'password_require_uppercase' => (bool) self::get('password_require_uppercase', true),
+            'password_require_numeric' => (bool) self::get('password_require_numeric', true),
+            'password_require_special' => (bool) self::get('password_require_special', false),
+            'force_first_login_password_change' => (bool) self::get('force_first_login_password_change', false),
+            'enforce_strict_cnic_format' => (bool) self::get('enforce_strict_cnic_format', true),
+            'max_upload_size_mb' => (int) self::get('max_upload_size_mb', 5),
+            'allowed_file_types' => (string) self::get('allowed_file_types', 'pdf, jpg, jpeg, png, docx'),
+        ];
+    }
+
+    /**
+     * Get SMS Gateway configuration.
+     */
+    public static function getSmsGatewayDetails(): array
+    {
+        return [
+            'enabled' => (bool) self::get('sms_enabled', false),
+            'provider' => (string) self::get('sms_provider', 'twilio'),
+            'sender_id' => (string) self::get('sms_sender_id', 'AWKUM-HR'),
+            'api_key' => (string) self::get('sms_api_key', ''),
+            'api_url' => (string) self::get('sms_api_url', ''),
+            'trigger_app_submitted' => (bool) self::get('sms_trigger_app_submitted', true),
+            'trigger_payment_verified' => (bool) self::get('sms_trigger_payment_verified', true),
+            'trigger_scrutiny_deficiency' => (bool) self::get('sms_trigger_scrutiny_deficiency', true),
+            'trigger_interview_call' => (bool) self::get('sms_trigger_interview_call', true),
+        ];
+    }
+
+    /**
      * Convert hexadecimal color code to RGBA format.
      */
     public static function hexToRgba(string $hex, float $alpha = 1.0): string
@@ -1254,6 +1327,278 @@ class SystemSetting extends Model
                 'type' => 'boolean',
                 'label' => 'Auto-Lock Demographic Profile Upon Voucher Generation',
                 'description' => 'Prevents changes to candidate CNIC, name, and core demographics once a fee voucher is issued.',
+            ],
+
+            // 🔒 Security, Access Governance & Session Policies
+            [
+                'key' => 'auth_two_factor_policy',
+                'value' => 'optional',
+                'group' => 'security',
+                'type' => 'string',
+                'label' => 'Two-Factor Authentication (2FA) Enforcement Policy',
+                'description' => 'Enforcement policy: disabled, optional (user choice), enforced_staff (mandatory for administrators and reviewers), or enforced_all.',
+            ],
+            [
+                'key' => 'auth_session_timeout_minutes',
+                'value' => '60',
+                'group' => 'security',
+                'type' => 'integer',
+                'label' => 'Idle Session Inactivity Timeout (Minutes)',
+                'description' => 'Automatically terminates idle administrative and reviewer sessions to prevent unauthorized desk access.',
+            ],
+            [
+                'key' => 'auth_max_login_attempts',
+                'value' => '5',
+                'group' => 'security',
+                'type' => 'integer',
+                'label' => 'Maximum Failed Login Attempts Before Lockout',
+                'description' => 'Number of consecutive invalid credential submissions before the account is temporarily suspended.',
+            ],
+            [
+                'key' => 'auth_lockout_duration_minutes',
+                'value' => '15',
+                'group' => 'security',
+                'type' => 'integer',
+                'label' => 'Account Lockout Duration (Minutes)',
+                'description' => 'Minutes an account remains locked after exceeding maximum failed login attempts.',
+            ],
+            [
+                'key' => 'candidate_registration_status',
+                'value' => 'open',
+                'group' => 'security',
+                'type' => 'string',
+                'label' => 'Candidate Online Registration Status',
+                'description' => 'Controls whether new applicants can create accounts: open (active recruitment window) or closed (admissions suspended).',
+            ],
+            [
+                'key' => 'candidate_registration_closed_message',
+                'value' => 'Online recruitment intake is currently closed. Please review active advertisements for upcoming announcement schedules.',
+                'group' => 'security',
+                'type' => 'string',
+                'label' => 'Registration Closed Announcement Message',
+                'description' => 'Guidance banner presented to candidates when registration is disabled.',
+            ],
+            [
+                'key' => 'job_board_visibility',
+                'value' => 'public',
+                'group' => 'security',
+                'type' => 'string',
+                'label' => 'Public Job Vacancy Board Visibility',
+                'description' => 'Controls career portal access: public (anyone can view positions) or members_only (must authenticate to browse).',
+            ],
+            [
+                'key' => 'password_min_length',
+                'value' => '8',
+                'group' => 'security',
+                'type' => 'integer',
+                'label' => 'Minimum Password Length',
+                'description' => 'Enforces character length threshold on applicant and employee accounts.',
+            ],
+            [
+                'key' => 'password_require_uppercase',
+                'value' => '1',
+                'group' => 'security',
+                'type' => 'boolean',
+                'label' => 'Require Uppercase Letter in Passwords',
+                'description' => 'Mandates at least one uppercase letter (A-Z) in passwords.',
+            ],
+            [
+                'key' => 'password_require_numeric',
+                'value' => '1',
+                'group' => 'security',
+                'type' => 'boolean',
+                'label' => 'Require Numeric Digit in Passwords',
+                'description' => 'Mandates at least one numerical digit (0-9) in passwords.',
+            ],
+            [
+                'key' => 'password_require_special',
+                'value' => '0',
+                'group' => 'security',
+                'type' => 'boolean',
+                'label' => 'Require Special Character in Passwords',
+                'description' => 'Mandates at least one symbol (!@#$%^&*) in passwords.',
+            ],
+            [
+                'key' => 'force_first_login_password_change',
+                'value' => '0',
+                'group' => 'security',
+                'type' => 'boolean',
+                'label' => 'Force Password Change on Initial Login',
+                'description' => 'Requires newly empanelled reviewers and staff to set a new password upon first session.',
+            ],
+            [
+                'key' => 'enforce_strict_cnic_format',
+                'value' => '1',
+                'group' => 'security',
+                'type' => 'boolean',
+                'label' => 'Enforce 13-Digit Pakistani CNIC Format',
+                'description' => 'Requires 13-digit hyphenated format (XXXXX-XXXXXXX-X) for national identity entries.',
+            ],
+            [
+                'key' => 'max_upload_size_mb',
+                'value' => '5',
+                'group' => 'security',
+                'type' => 'integer',
+                'label' => 'Maximum Single Document Upload Size (MB)',
+                'description' => 'Storage limit for individual candidate transcripts, certificates, and publications (MB).',
+            ],
+            [
+                'key' => 'allowed_file_types',
+                'value' => 'pdf, jpg, jpeg, png, docx',
+                'group' => 'security',
+                'type' => 'string',
+                'label' => 'Permitted Candidate Document File Formats',
+                'description' => 'Comma-separated list of safe MIME file extensions accepted by the document upload validator.',
+            ],
+
+            // ⚙️ System Health, Diagnostics & Maintenance Mode
+            [
+                'key' => 'system_maintenance_mode',
+                'value' => '0',
+                'group' => 'system',
+                'type' => 'boolean',
+                'label' => 'Portal Maintenance Mode',
+                'description' => 'Puts candidate-facing portal into maintenance mode with custom notice while administrators retain access.',
+            ],
+            [
+                'key' => 'maintenance_notice_heading',
+                'value' => 'Scheduled Statutory System Maintenance',
+                'group' => 'system',
+                'type' => 'string',
+                'label' => 'Maintenance Notice Heading',
+                'description' => 'Title banner displayed during maintenance windows.',
+            ],
+            [
+                'key' => 'maintenance_notice_message',
+                'value' => 'The Hirely recruitment portal is undergoing scheduled maintenance and database optimization. Access will be restored shortly. Thank you for your patience.',
+                'group' => 'system',
+                'type' => 'string',
+                'label' => 'Maintenance Notice Body Text',
+                'description' => 'Explanatory notice explaining scheduled maintenance schedule to applicants.',
+            ],
+
+            // 📱 SMS & Multi-Channel Alert Gateway
+            [
+                'key' => 'sms_enabled',
+                'value' => '0',
+                'group' => 'email',
+                'type' => 'boolean',
+                'label' => 'Enable Automated SMS Alert Gateway',
+                'description' => 'Enables automated transactional SMS alerts to candidate mobile numbers.',
+            ],
+            [
+                'key' => 'sms_provider',
+                'value' => 'twilio',
+                'group' => 'email',
+                'type' => 'string',
+                'label' => 'SMS Gateway Provider',
+                'description' => 'Selected gateway provider: twilio, zong, telenor, or generic_webhook.',
+            ],
+            [
+                'key' => 'sms_sender_id',
+                'value' => 'AWKUM-HR',
+                'group' => 'email',
+                'type' => 'string',
+                'label' => 'SMS Alphanumeric Sender ID / Mask',
+                'description' => 'Registered brand mask displayed on candidates phones (e.g. AWKUM-HR).',
+            ],
+            [
+                'key' => 'sms_api_key',
+                'value' => '',
+                'group' => 'email',
+                'type' => 'string',
+                'label' => 'SMS Provider API Key / Secret',
+                'description' => 'Authentication credential or API secret key for the SMS gateway.',
+            ],
+            [
+                'key' => 'sms_api_url',
+                'value' => '',
+                'group' => 'email',
+                'type' => 'string',
+                'label' => 'SMS Gateway Endpoint URL / Webhook',
+                'description' => 'HTTP POST endpoint for custom or telecom SMS gateway integration.',
+            ],
+            [
+                'key' => 'sms_trigger_app_submitted',
+                'value' => '1',
+                'group' => 'email',
+                'type' => 'boolean',
+                'label' => 'Dispatch SMS on Application Submission',
+                'description' => 'Sends confirmation text with tracking ID when candidate finalizes dossier.',
+            ],
+            [
+                'key' => 'sms_trigger_payment_verified',
+                'value' => '1',
+                'group' => 'email',
+                'type' => 'boolean',
+                'label' => 'Dispatch SMS on Challan Payment Verified',
+                'description' => 'Sends automated text when bank challan is verified or reconciled.',
+            ],
+            [
+                'key' => 'sms_trigger_scrutiny_deficiency',
+                'value' => '1',
+                'group' => 'email',
+                'type' => 'boolean',
+                'label' => 'Dispatch SMS on Scrutiny Deficiency / Ineligibility',
+                'description' => 'Alerts candidate via SMS to inspect deficiencies and lodge statutory appeal.',
+            ],
+            [
+                'key' => 'sms_trigger_interview_call',
+                'value' => '1',
+                'group' => 'email',
+                'type' => 'boolean',
+                'label' => 'Dispatch SMS on Selection Board Interview Call',
+                'description' => 'Sends urgent SMS alert when candidate is shortlisted for live selection board interview.',
+            ],
+
+            // ⚖️ Statutory Merit Formulation & Selection Board Scoring Weights
+            [
+                'key' => 'merit_academic_weight',
+                'value' => '50',
+                'group' => 'academic_criteria',
+                'type' => 'integer',
+                'label' => 'Academic Qualification Merit Weightage (%)',
+                'description' => 'Standard weightage allocated to candidate secondary, bachelor, and master marks (default 50%).',
+            ],
+            [
+                'key' => 'merit_higher_qualification_weight',
+                'value' => '5',
+                'group' => 'academic_criteria',
+                'type' => 'integer',
+                'label' => 'Additional Higher Qualification Weightage (%)',
+                'description' => 'Bonus statutory weightage for relevant M.Phil / Ph.D degrees beyond minimum eligibility (default 5%).',
+            ],
+            [
+                'key' => 'merit_research_weight',
+                'value' => '15',
+                'group' => 'academic_criteria',
+                'type' => 'integer',
+                'label' => 'Research Publications Merit Weightage (%)',
+                'description' => 'Weightage assigned to HEC recognized publications in W, X, and Y categories (default 15%).',
+            ],
+            [
+                'key' => 'merit_experience_weight',
+                'value' => '10',
+                'group' => 'academic_criteria',
+                'type' => 'integer',
+                'label' => 'Professional Experience Merit Weightage (%)',
+                'description' => 'Weightage allocated to relevant teaching and industrial experience (default 10%).',
+            ],
+            [
+                'key' => 'merit_interview_weight',
+                'value' => '20',
+                'group' => 'academic_criteria',
+                'type' => 'integer',
+                'label' => 'Selection Board Interview Weightage (%)',
+                'description' => 'Marks assigned by the statutory selection board during live candidate interview and presentation (default 20%).',
+            ],
+            [
+                'key' => 'merit_minimum_passing_aggregate',
+                'value' => '50',
+                'group' => 'academic_criteria',
+                'type' => 'integer',
+                'label' => 'Minimum Qualifying Aggregate Pass Marks (%)',
+                'description' => 'Minimum composite score threshold required to qualify for merit gazette recommendation (default 50%).',
             ],
         ];
 

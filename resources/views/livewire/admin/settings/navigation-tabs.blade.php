@@ -90,6 +90,28 @@
             'bg' => 'rgba(59, 130, 246, 0.12)',
             'icon' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>',
         ],
+        [
+            'id' => 'security',
+            'slug' => 'security',
+            'url' => $basePrefix . '/settings/security',
+            'label' => 'Security & Access',
+            'badge' => '2FA & Sessions',
+            'subtitle' => 'Auth policies, lockout & uploads',
+            'color' => '#e11d48',
+            'bg' => 'rgba(225, 29, 72, 0.12)',
+            'icon' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/></svg>',
+        ],
+        [
+            'id' => 'system',
+            'slug' => 'system',
+            'url' => $basePrefix . '/settings/system',
+            'label' => 'System & Health',
+            'badge' => 'Diagnostics',
+            'subtitle' => 'Server runtime, cache & maintenance',
+            'color' => '#64748b',
+            'bg' => 'rgba(100, 116, 139, 0.12)',
+            'icon' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m4.93 4.93 2.83 2.83"/><path d="M2 12h4"/><path d="m4.93 19.07 2.83-2.83"/><path d="M12 18v4"/><path d="m19.07 19.07-2.83-2.83"/><path d="M18 12h4"/><path d="m19.07 4.93-2.83 2.83"/><circle cx="12" cy="12" r="3"/></svg>',
+        ],
     ];
 
     $currentTabInfo = collect($settingsTabs)->firstWhere('id', $activeTab) ?? $settingsTabs[0];

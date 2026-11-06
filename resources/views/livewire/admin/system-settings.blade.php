@@ -24,6 +24,10 @@
         @include('livewire.admin.settings.contact')
     @elseif($activeTab === 'email')
         @include('livewire.admin.settings.email')
+    @elseif($activeTab === 'security')
+        @include('livewire.admin.settings.security')
+    @elseif($activeTab === 'system')
+        @include('livewire.admin.settings.system')
     @else
         @include('livewire.admin.settings.workflows')
     @endif

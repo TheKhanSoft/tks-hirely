@@ -111,6 +111,11 @@ class SpatieRoleAndPermissionSeeder extends Seeder
 
             // System Settings, Workflows & Analytics
             'manage-settings',
+            'manage-security-settings',
+            'manage-system-maintenance',
+            'view-system-health',
+            'manage-sms-settings',
+            'manage-merit-formula',
             'manage-statuses',
             'manage-constitutions',
             'export-constitution',

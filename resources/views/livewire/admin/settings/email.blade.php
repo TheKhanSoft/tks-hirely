@@ -307,4 +307,134 @@
             @endcan
         </div>
     </form>
+
+    {{-- DEDICATED SMS & TRANSACTIONAL ALERT GATEWAY SECTION --}}
+    <div style="margin-top: 2.5rem; border-top: 2px dashed var(--border-color); padding-top: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                    <span class="badge badge-emerald" style="font-size: 0.72rem; font-weight: 800;">SMS SERVICES</span>
+                    <span class="badge badge-indigo" style="font-size: 0.72rem; font-weight: 700;">TRANSACTIONAL ALERTS</span>
+                    <span class="badge badge-slate" style="font-size: 0.72rem;">TELECOM API</span>
+                </div>
+                <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: var(--color-text-primary);">
+                    📱 SMS Notification Gateway &amp; Candidate Mobile Alerts
+                </h3>
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.83rem; color: var(--color-text-secondary);">
+                    Broadcast real-time SMS notifications to applicants upon voucher verification, scrutiny deficiency notices, and selection board interview call letters.
+                </p>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                @if(Auth::user()->can('manage-settings') || Auth::user()->can('manage-sms-settings'))
+                <button type="button" 
+                        wire:click="resetSmsToDefault" 
+                        wire:confirm="Reset SMS gateway to defaults (disabled, AWKUM-HR mask)?"
+                        class="btn btn-secondary btn-sm" 
+                        style="font-size: 0.82rem; font-weight: 700;">
+                    Reset SMS Defaults
+                </button>
+                <button type="button" 
+                        wire:click="saveSmsSettings" 
+                        class="btn btn-primary btn-sm" 
+                        style="font-size: 0.82rem; font-weight: 800; padding: 0.5rem 1.25rem;">
+                    Save SMS Settings
+                </button>
+                @endif
+            </div>
+        </div>
+
+        <div style="background: var(--bg-surface); padding: 1rem 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <div style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                    <span>Enable Automated Transactional SMS Dispatch</span>
+                    @if($sms_enabled)
+                        <span class="badge badge-emerald" style="font-size: 0.68rem; font-weight: 800;">ACTIVE</span>
+                    @else
+                        <span class="badge badge-slate" style="font-size: 0.68rem; font-weight: 800;">DISABLED</span>
+                    @endif
+                </div>
+                <div style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 0.2rem;">
+                    Enables candidate text messages for critical statutory notifications (Pakistan &amp; International).
+                </div>
+            </div>
+
+            <input type="checkbox" wire:model="sms_enabled" style="width: 22px; height: 22px; accent-color: var(--primary); cursor: pointer;">
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+            <div>
+                <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">SMS Gateway Provider</label>
+                <select wire:model="sms_provider" class="form-control" style="font-weight: 600;">
+                    <option value="twilio">Twilio Cloud Communications</option>
+                    <option value="zong">Zong Corporate Bulk SMS Gateway</option>
+                    <option value="telenor">Telenor Corporate Messaging</option>
+                    <option value="generic_webhook">Generic HTTP Webhook / REST API</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">Alphanumeric Sender ID / Mask</label>
+                <input type="text" wire:model="sms_sender_id" class="form-control" style="font-weight: 700;" placeholder="AWKUM-HR">
+                <div style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 0.25rem;">Max 11 chars PTA-registered brand mask</div>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">API Key / Authentication Secret</label>
+                <input type="password" wire:model="sms_api_key" class="form-control" placeholder="••••••••••••••••">
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">Gateway Endpoint URL</label>
+                <input type="text" wire:model="sms_api_url" class="form-control" placeholder="https://api.gateway.com/v1/sms/send">
+            </div>
+        </div>
+
+        <!-- Automated SMS Event Triggers -->
+        <div style="margin-bottom: 1.5rem;">
+            <div style="font-weight: 800; font-size: 0.88rem; color: var(--color-text-primary); margin-bottom: 0.75rem;">
+                Statutory Event SMS Triggers:
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0.75rem;">
+                <label style="background: var(--bg-surface); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+                    <span style="font-size: 0.82rem; font-weight: 700;">Application Finalized</span>
+                    <input type="checkbox" wire:model="sms_trigger_app_submitted" style="accent-color: var(--primary);">
+                </label>
+
+                <label style="background: var(--bg-surface); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+                    <span style="font-size: 0.82rem; font-weight: 700;">Challan / Fee Paid</span>
+                    <input type="checkbox" wire:model="sms_trigger_payment_verified" style="accent-color: var(--primary);">
+                </label>
+
+                <label style="background: var(--bg-surface); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+                    <span style="font-size: 0.82rem; font-weight: 700;">Scrutiny Deficiency Notice</span>
+                    <input type="checkbox" wire:model="sms_trigger_scrutiny_deficiency" style="accent-color: var(--primary);">
+                </label>
+
+                <label style="background: var(--bg-surface); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+                    <span style="font-size: 0.82rem; font-weight: 700;">Interview Call Shortlist</span>
+                    <input type="checkbox" wire:model="sms_trigger_interview_call" style="accent-color: var(--primary);">
+                </label>
+            </div>
+        </div>
+
+        <!-- Live SMS Test Delivery -->
+        <div style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="font-weight: 800; font-size: 0.88rem; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                🧪 Live SMS Dispatch Verification
+            </div>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                <input type="text" wire:model="test_sms_recipient" class="form-control" style="max-width: 300px; font-weight: 600;" placeholder="+923001234567">
+                <button type="button" wire:click="sendTestSms" class="btn btn-secondary btn-sm" style="font-weight: 800;">
+                    Dispatch Test SMS
+                </button>
+            </div>
+            @if(session()->has('test_sms_status'))
+                @php $smsStatus = session('test_sms_status'); @endphp
+                <div style="margin-top: 0.75rem; font-size: 0.82rem; font-weight: 700; color: var(--success);">
+                    ✅ {{ $smsStatus['message'] }}
+                </div>
+            @endif
+        </div>
+    </div>
 </div>
