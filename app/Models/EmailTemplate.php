@@ -128,7 +128,10 @@ class EmailTemplate extends Model
         $supportEmail = $variables['{support_email}'] ?? SystemSetting::get('support_email', 'support@hirely.app');
         $loginUrl = $variables['{login_url}'] ?? url('/login');
         $portalFooter = SystemSetting::getPortalFooter(strtolower($recipientGroup));
-        $letterFooter = SystemSetting::getLetterFooter();
+        $letterFooterRaw = SystemSetting::getLetterFooter();
+        $letterFooter = is_array($letterFooterRaw)
+            ? trim(($letterFooterRaw['disclaimer'] ?? '') . ' ' . ($letterFooterRaw['contact'] ?? ''))
+            : (string) $letterFooterRaw;
         $logo = SystemSetting::get('letterhead_logo', '/images/logo-icon.svg');
         $accentColor = match ($recipientGroup) {
             'REVIEWER' => '#0ea5e9',
