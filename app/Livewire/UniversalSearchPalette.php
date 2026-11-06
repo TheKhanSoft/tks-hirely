@@ -771,7 +771,7 @@ class UniversalSearchPalette extends Component
                     $applicantName = $voucher->application?->user?->basicInfo ? trim(($voucher->application->user->basicInfo->first_name ?? '') . ' ' . ($voucher->application->user->basicInfo->last_name ?? '')) : 'Applicant';
                     $results[] = [
                         'id' => 'pay_' . $voucher->id,
-                        'title' => "Voucher #{$voucher->consumer_id} — PKR " . number_format($voucher->amount, 2),
+                        'title' => "Voucher #{$voucher->consumer_id} — PKR " . number_format((float)($voucher->amount ?? 0), 2),
                         'subtitle' => "Candidate: {$applicantName} • Trans ID: " . ($voucher->transaction_id ?: 'Pending Settlement'),
                         'url' => "$baseRoute/payments?search=" . urlencode((string)$voucher->consumer_id),
                         'category' => 'Payments & Vouchers',

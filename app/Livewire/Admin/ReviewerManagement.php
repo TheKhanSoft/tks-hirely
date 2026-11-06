@@ -618,6 +618,10 @@ class ReviewerManagement extends Component
                 ->where('application_id', $this->viewingApplication->id)
                 ->get();
         }
+
+        if ($this->selectedReviewerForDetails) {
+            $this->selectedReviewerForDetails = ReviewerProfile::with(['user', 'creator', 'reviews.application.campaign', 'reviews.application.user.basicInfo'])->find($this->selectedReviewerForDetails->id);
+        }
     }
 
     public function extendReviewDeadline($reviewId, $days = 7)
@@ -635,6 +639,10 @@ class ReviewerManagement extends Component
             $this->applicationReviews = ApplicationReview::with(['reviewer.reviewerProfile', 'assigner'])
                 ->where('application_id', $this->viewingApplication->id)
                 ->get();
+        }
+
+        if ($this->selectedReviewerForDetails) {
+            $this->selectedReviewerForDetails = ReviewerProfile::with(['user', 'creator', 'reviews.application.campaign', 'reviews.application.user.basicInfo'])->find($this->selectedReviewerForDetails->id);
         }
     }
 
@@ -699,6 +707,10 @@ class ReviewerManagement extends Component
             $this->applicationReviews = ApplicationReview::with(['reviewer.reviewerProfile', 'assigner'])
                 ->where('application_id', $this->viewingApplication->id)
                 ->get();
+        }
+
+        if ($this->selectedReviewerForDetails) {
+            $this->selectedReviewerForDetails = ReviewerProfile::with(['user', 'creator', 'reviews.application.campaign', 'reviews.application.user.basicInfo'])->find($this->selectedReviewerForDetails->id);
         }
     }
 
@@ -891,12 +903,61 @@ class ReviewerManagement extends Component
         return $this->streamCsvDownload('academic-reviewers-' . date('Y-m-d') . '.csv', $headers, $rows);
     }
 
+    public function exportReviewerDossiersCsv($profileId)
+    {
+        abort_unless(Auth::user()->can('export-reviewer') || Auth::user()->can('view-reviewer') || Auth::user()->can('manage-reviewers'), 403);
+        $profile = ReviewerProfile::with(['user', 'reviews.application.campaign.advertisement', 'reviews.application.user.basicInfo'])->findOrFail($profileId);
+
+        $headers = [
+            'Expert Referee', 'Designation / Rank', 'University / Institution', 'Contact Email',
+            'Dossier Tracking #', 'Candidate Name', 'Father Name', 'CNIC',
+            'Position Title', 'Department', 'Advertisement #',
+            'Assigned Date', 'Due Date', 'Evaluation Status', 'Score (/100)', 'Recommendation', 'Submission Date',
+            'Reviewer Remarks'
+        ];
+
+        $rows = [];
+        foreach ($profile->reviews as $r) {
+            $app = $r->application;
+            $candidateName = $app?->user?->basicInfo 
+                ? trim($app->user->basicInfo->first_name . ' ' . $app->user->basicInfo->last_name) 
+                : ($app?->user?->email ?? 'N/A');
+
+            $rows[] = [
+                $profile->name,
+                $profile->academic_rank,
+                $profile->university,
+                $profile->user?->email ?? 'N/A',
+                $app?->tracking_number ?? 'N/A',
+                $candidateName,
+                $app?->user?->basicInfo?->father_name ?? 'N/A',
+                $app?->user?->basicInfo?->cnic_number ?? 'Pending',
+                $app?->campaign?->title ?? 'N/A',
+                $app?->campaign?->department ?? 'N/A',
+                $app?->campaign?->advertisement?->advertisement_no ?? 'Direct Intake',
+                $r->assigned_at ? $r->assigned_at->format('d M Y') : 'N/A',
+                $r->due_date ? $r->due_date->format('d M Y') : 'N/A',
+                $r->status,
+                $r->overall_score !== null ? $r->overall_score : 'Pending',
+                $r->recommendation ? str_replace('_', ' ', $r->recommendation) : 'Pending Evaluation',
+                $r->submitted_at ? $r->submitted_at->format('d M Y H:i') : 'N/A',
+                $r->report_text ? str_replace(["\r", "\n"], ' ', $r->report_text) : 'N/A',
+            ];
+        }
+
+        $filename = 'expert-dossiers-' . Str::slug($profile->name) . '-' . date('Y-m-d') . '.csv';
+        return $this->streamCsvDownload($filename, $headers, $rows);
+    }
+
     public function render()
     {
         // 1. Query Reviewer Profiles (Tab 1)
         $reviewersQuery = ReviewerProfile::with(['user', 'creator'])
             ->whereDoesntHave('user.roles', fn($rq) => $rq->where('name', 'super-admin'))
-            ->withCount('reviews');
+            ->withCount([
+                'reviews',
+                'reviews as completed_reviews_count' => fn($q) => $q->where('status', 'SUBMITTED')
+            ]);
 
         if (!empty($this->search)) {
             $s = '%' . trim($this->search) . '%';

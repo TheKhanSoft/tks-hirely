@@ -691,7 +691,7 @@
                 </td>
                 <td class="label-col">Prescribed Fee Amount</td>
                 <td class="val-col">
-                    <strong>{{ $currency }} {{ number_format($billing?->amount ?? $campaign->application_fee, 2) }}</strong>
+                    <strong>{{ $currency }} {{ number_format((float) ($billing?->amount ?? $campaign->application_fee ?? 0), 2) }}</strong>
                 </td>
             </tr>
             <tr>
@@ -902,7 +902,7 @@
                             </td>
                             <td>{{ $proj->funding_agency ?? 'National / International Sponsor' }}</td>
                             <td style="text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 700;">
-                                {{ $currency }} {{ number_format($proj->grant_amount ?? 0, 2) }}
+                                {{ is_numeric($proj->grant_amount ?? null) ? $currency . ' ' . number_format((float)$proj->grant_amount, 2) : ($proj->grant_amount ?: '—') }}
                             </td>
                             <td style="text-align: center;">
                                 <span class="badge-pill status-ok">{{ $proj->role_in_project ?? 'PI' }}</span>
@@ -1092,7 +1092,7 @@
                             <td><strong>{{ $mil->title }}</strong></td>
                             <td style="text-align: center;">{{ $mil->year }}</td>
                             <td style="text-align: right; font-family: 'JetBrains Mono', monospace;">
-                                {{ $mil->budget ? $currency . ' ' . number_format($mil->budget, 2) : '—' }}
+                                {{ is_numeric($mil->budget ?? null) ? $currency . ' ' . number_format((float)$mil->budget, 2) : ($mil->budget ?: '—') }}
                             </td>
                             <td>{{ $mil->description ?? '—' }}</td>
                         </tr>

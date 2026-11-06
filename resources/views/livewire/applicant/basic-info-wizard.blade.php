@@ -505,7 +505,7 @@
                                     <code>{{ $exp['start_date'] }}</code> to 
                                     <code>{{ $exp['end_date'] ?: 'Present' }}</code>
                                 </td>
-                                <td>{{ $currencySymbol }} {{ number_format($exp['salary'], 2) }}</td>
+                                <td>{{ is_numeric($exp['salary'] ?? null) ? $currencySymbol . ' ' . number_format((float) $exp['salary'], 2) : ($exp['salary'] ?? 'N/A') }}</td>
                                 <td>
                                     @if(isset($exp['proof_path']))
                                         <a href="/storage/{{ $exp['proof_path'] }}" target="_blank" style="color: var(--secondary)">📄 View Letter</a>

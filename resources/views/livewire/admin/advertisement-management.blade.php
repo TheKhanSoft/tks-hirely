@@ -933,7 +933,7 @@
                                         </td>
                                         <td>
                                             <code style="font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;">
-                                                Rs. {{ number_format($job->application_fee, 0) }}
+                                                Rs. {{ number_format((float) ($job->application_fee ?? 0), 0) }}
                                             </code>
                                         </td>
                                     </tr>

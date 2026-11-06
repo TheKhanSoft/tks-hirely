@@ -57,7 +57,7 @@
             <span class="badge badge-slate" style="font-size: 0.7rem;">Live Portal Gating Status</span>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 2fr)); gap: 0.75rem;">
             <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem 0.85rem; display: flex; align-items: center; justify-content: space-between;">
                 <span style="font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary);">🎓 Transcripts</span>
                 <span class="badge {{ $require_transcript_proof ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">

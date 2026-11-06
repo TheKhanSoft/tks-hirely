@@ -4703,3 +4703,174 @@ html.light .settings-tab-card.active .settings-tab-title {
     color: #ffffff !important;
     box-shadow: 0 3px 10px var(--primary-glow);
 }
+
+/* ========================================================================= */
+/* ACADEMIC REVIEWERS & EXPERT REFEREES DESK ENHANCEMENTS                    */
+/* ========================================================================= */
+.reviewer-rank-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.22rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    line-height: 1.3;
+    max-width: 100%;
+}
+
+.reviewer-rank-badge .reviewer-rank-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+}
+
+.reviewer-discipline-text {
+    font-weight: 700;
+    font-size: 0.76rem;
+    color: var(--color-text-primary);
+    text-align: right;
+    line-height: 1.3;
+    max-width: 72%;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.reviewer-email-link {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color 0.15s ease;
+}
+
+.reviewer-email-link:hover {
+    color: var(--secondary);
+    text-decoration: underline;
+}
+
+.copy-email-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    padding: 2px 4px;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.copy-email-btn:hover {
+    color: var(--primary);
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.reviewer-focus-text {
+    font-size: 0.74rem;
+    color: var(--color-text-secondary);
+    text-align: right;
+    max-width: 72%;
+    line-height: 1.3;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Modal KPI Cards */
+.referee-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+@media (min-width: 640px) {
+    .referee-kpi-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.referee-kpi-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md, 12px);
+    padding: 0.85rem 1rem;
+    text-align: center;
+    transition: border-color 0.15s ease;
+}
+
+html.light .referee-kpi-card {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+.referee-kpi-label {
+    display: block;
+    font-size: 0.68rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+}
+
+.referee-kpi-val {
+    font-size: 1.45rem;
+    font-weight: 900;
+    line-height: 1.2;
+}
+
+/* Modal Dossier Tab Pills */
+.dossier-filter-pills {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    padding: 0.25rem;
+    border-radius: 9999px;
+    margin-bottom: 0.75rem;
+}
+
+html.light .dossier-filter-pills {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+}
+
+.dossier-tab-btn {
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: 0.74rem;
+    font-weight: 700;
+    padding: 0.28rem 0.75rem;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.dossier-tab-btn:hover {
+    color: var(--color-text-primary);
+}
+
+.dossier-tab-btn.active {
+    background: var(--primary);
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px var(--primary-glow);
+}
+

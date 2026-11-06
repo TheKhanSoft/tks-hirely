@@ -479,7 +479,7 @@
                                         {{ $camp->track_type }}
                                     </span>
                                 </td>
-                                <td><strong>PKR {{ number_format($camp->application_fee, 2) }}</strong></td>
+                                <td><strong>PKR {{ number_format((float) ($camp->application_fee ?? 0), 2) }}</strong></td>
                                 <td>
                                     <small style="display: block;">Open: {{ $camp->opening_date?->format('Y-m-d') }}</small>
                                     <small style="color: var(--color-text-secondary)">Close: {{ $camp->closing_date?->format('Y-m-d') }}</small>
@@ -894,7 +894,7 @@
                         <td><code style="color: var(--secondary)">{{ $pay->consumer_id }}</code></td>
                         <td>{{ $pay->application->user->email }}</td>
                         <td><code>{{ $pay->application->campaign->job_code }}</code></td>
-                        <td><strong>PKR {{ number_format($pay->amount, 2) }}</strong></td>
+                        <td><strong>PKR {{ number_format((float) ($pay->amount ?? 0), 2) }}</strong></td>
                         <td>
                             <span class="badge" style="background: {{ $pay->status === 'SETTLED' ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)' }}; color: {{ $pay->status === 'SETTLED' ? 'var(--success)' : 'var(--warning)' }};">
                                 {{ $pay->status }}
@@ -979,7 +979,7 @@
     
     <!-- 1. Application Details Modal -->
     <x-modal :show="$isDetailsOpen && $activeTab === 'applications'" title="Application Profile Details Summary" closeAction="$set('isDetailsOpen', false)" style="max-width: 800px;">
-        @if($selectedRecordDetails)
+        @if($selectedRecordDetails && $activeTab === 'applications')
             <div style="max-height: 450px; overflow-y: auto; padding-right: 0.5rem;">
                 <div class="grid grid-cols-2 gap-4 border-bottom pb-4 mb-4">
                     <div>
@@ -1018,7 +1018,7 @@
                     </div>
                     <div>
                         <p style="color: var(--color-text-secondary)">Voucher Amount Paid:</p>
-                        <strong style="color: var(--success)">PKR {{ number_format($selectedRecordDetails->billingLedger?->amount ?? 0, 2) }}</strong>
+                        <strong style="color: var(--success)">PKR {{ number_format((float) ($selectedRecordDetails->billingLedger?->amount ?? 0), 2) }}</strong>
                     </div>
                 </div>
 
@@ -1054,7 +1054,7 @@
 
     <!-- 2. Profile Details Modal -->
     <x-modal :show="$isDetailsOpen && $activeTab === 'basic_infos'" title="Complete Candidate Wizard Profile Details" closeAction="$set('isDetailsOpen', false)" style="max-width: 900px; width: 95%;">
-        @if($selectedRecordDetails)
+        @if($selectedRecordDetails && $activeTab === 'basic_infos')
             <div style="max-height: 550px; overflow-y: auto; padding-right: 0.5rem;">
                 <div class="grid grid-cols-3 gap-4 border-bottom pb-4 mb-4">
                     <div>
@@ -1124,7 +1124,7 @@
                                 <td>{{ $exp->organization }}</td>
                                 <td><code>{{ $exp->start_date?->format('Y-m-d') }}</code> to <code>{{ $exp->end_date?->format('Y-m-d') ?: 'Present' }}</code></td>
                                 <td>{{ $exp->sector }}</td>
-                                <td>PKR {{ number_format($exp->salary ?? 0, 2) }}</td>
+                                <td>{{ $exp->formatted_salary ?? (is_numeric($exp->salary) ? 'PKR ' . number_format((float) $exp->salary, 2) : ($exp->salary ?: 'N/A')) }}</td>
                                 <td>{{ $exp->description }}</td>
                                 <td>
                                     @if(isset($exp['proof_path']))
@@ -1143,7 +1143,7 @@
 
     <!-- 3. Security Audit Log Details Modal -->
     <x-modal :show="$isDetailsOpen && $activeTab === 'logs'" title="Security Audit State Details Diff" closeAction="$set('isDetailsOpen', false)" style="max-width: 800px;">
-        @if($selectedRecordDetails)
+        @if($selectedRecordDetails && $activeTab === 'logs')
             <div style="max-height: 450px; overflow-y: auto;">
                 <div class="grid grid-cols-3 gap-4 border-bottom pb-4 mb-4">
                     <div>

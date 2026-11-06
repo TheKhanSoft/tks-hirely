@@ -34,6 +34,22 @@ class ResearchProject extends Model
         'is_verified' => 'boolean',
     ];
 
+    /**
+     * Get gracefully formatted grant amount.
+     */
+    public function getFormattedGrantAmountAttribute(): string
+    {
+        if ($this->grant_amount === null || $this->grant_amount === '') {
+            return 'N/A';
+        }
+
+        if (is_numeric($this->grant_amount)) {
+            return 'PKR ' . number_format((float) $this->grant_amount, 2);
+        }
+
+        return (string) $this->grant_amount;
+    }
+
     public function basicInfo(): BelongsTo
     {
         return $this->belongsTo(BasicInfo::class, 'basic_info_id');

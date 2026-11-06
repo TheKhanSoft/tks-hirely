@@ -314,11 +314,11 @@
                     Settled Application Receipts
                 </div>
                 <div style="font-size: 1.6rem; font-weight: 900; color: var(--success); margin: 0.25rem 0 0.5rem; letter-spacing: -0.02em;">
-                    PKR {{ number_format($revenueStats['settled']) }}
+                    PKR {{ number_format((float) ($revenueStats['settled'] ?? 0)) }}
                 </div>
                 <div class="flex justify-between align-center" style="font-size: 0.8rem; color: var(--color-text-secondary); border-top: 1px solid var(--border-color); padding-top: 0.5rem;">
                     <span>Pending Bank Settlement:</span>
-                    <strong style="color: var(--warning);">PKR {{ number_format($revenueStats['pending']) }}</strong>
+                    <strong style="color: var(--warning);">PKR {{ number_format((float) ($revenueStats['pending'] ?? 0)) }}</strong>
                 </div>
             </div>
 
@@ -459,7 +459,7 @@
                                         <span class="badge" style="background: rgba(255,255,255,0.04); font-size: 0.72rem; color: var(--color-text-secondary); align-self: flex-start;">
                                             {{ $bi?->quota ?? 'Open Merit' }}
                                         </span>
-                                        <strong style="color: var(--warning); font-size: 0.84rem;">PKR {{ number_format($app->billingLedger?->amount, 2) }}</strong>
+                                        <strong style="color: var(--warning); font-size: 0.84rem;">PKR {{ number_format((float) ($app->billingLedger?->amount ?? 0), 2) }}</strong>
                                     </div>
                                 </td>
                                 <td>

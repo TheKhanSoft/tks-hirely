@@ -176,6 +176,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/registrar/merit-lists/{campaignId}/print', [MeritListPrintController::class, 'show']);
     Route::get('/admin/applications/{id}/peer-reports/print', [PeerReviewPrintController::class, 'show'])->name('peer-reports.print');
     Route::get('/registrar/applications/{id}/peer-reports/print', [PeerReviewPrintController::class, 'show']);
+    Route::get('/admin/reviewers/{id}/print', [PeerReviewPrintController::class, 'printReviewerProfile'])->name('reviewer-profile.print');
+    Route::get('/registrar/reviewers/{id}/print', [PeerReviewPrintController::class, 'printReviewerProfile']);
     Route::get('/admin/reviewers/dispatch/print', [PeerReviewPrintController::class, 'printDispatchRegister'])->name('reviewers-dispatch.print');
     Route::get('/admin/peer-dispatch-register/print', [PeerReviewPrintController::class, 'printDispatchRegister'])->name('peer-dispatch-register.print');
     Route::get('/registrar/reviewers/dispatch/print', [PeerReviewPrintController::class, 'printDispatchRegister']);

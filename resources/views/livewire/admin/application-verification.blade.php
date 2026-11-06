@@ -320,7 +320,7 @@
                             @forelse($application->user->basicInfo?->researchProjects ?? [] as $proj)
                                 <tr>
                                     <td><strong>{{ $proj->project_title }}</strong> <br><small style="color: var(--color-text-secondary)">Agency: {{ $proj->funding_agency }}</small></td>
-                                    <td><strong>PKR {{ number_format($proj->grant_amount, 2) }} M</strong></td>
+                                    <td><strong>{{ $proj->formatted_grant_amount ?? (is_numeric($proj->grant_amount) ? 'PKR ' . number_format((float) $proj->grant_amount, 2) : ($proj->grant_amount ?: 'N/A')) }}</strong></td>
                                     <td>
                                         <span style="font-weight: 700; font-family: monospace; color: {{ $proj->turnitin_similarity_percentage < 19 ? 'var(--success)' : 'var(--danger)' }};">
                                             {{ $proj->turnitin_similarity_percentage }}%

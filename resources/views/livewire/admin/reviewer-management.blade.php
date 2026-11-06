@@ -245,38 +245,69 @@
                     </x-slot:badge>
 
                     <x-slot:tag>
-                        <span class="badge {{ $rankClass }}" style="font-weight: 700; font-size: 0.72rem;">
-                            {{ $rev->academic_rank }}
-                        </span>
+                        <div class="reviewer-rank-badge {{ $rankClass }}" title="{{ $rev->academic_rank }}">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" style="flex-shrink: 0;">
+                                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                            </svg>
+                            <span class="reviewer-rank-text">{{ $rev->academic_rank }}</span>
+                        </div>
                     </x-slot:tag>
 
                     <x-slot:body>
-                        <div class="entity-card-metric-row">
-                            <span class="entity-card-metric-label">Discipline</span>
-                            <span class="badge badge-indigo" style="font-weight: 700; font-size: 0.72rem; padding: 0.18rem 0.5rem; word-break: break-word; white-space: normal; text-align: right; max-width: 68%;">
+                        <div class="entity-card-metric-row" style="align-items: flex-start;">
+                            <span class="entity-card-metric-label" style="padding-top: 1px;">Discipline</span>
+                            <span class="reviewer-discipline-text" title="{{ $rev->subject }}">
                                 {{ $rev->subject }}
                             </span>
                         </div>
                         <div class="entity-card-metric-row">
                             <span class="entity-card-metric-label">Country</span>
-                            <span class="entity-card-metric-value">📍 {{ $rev->country }}</span>
-                        </div>
-                        <div class="entity-card-metric-row">
-                            <span class="entity-card-metric-label">Email</span>
-                            <span class="mono-pill" style="max-width: 155px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $rev->user->email ?? 'N/A' }}">
-                                {{ $rev->user->email ?? 'N/A' }}
+                            <span class="entity-card-metric-value" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                                <span>{{ ($rev->country ?? '') === 'Pakistan' ? '🇵🇰' : '🌐' }}</span>
+                                <span>{{ $rev->country }}</span>
+                                <span class="badge {{ ($rev->country ?? '') === 'Pakistan' ? 'badge-emerald' : 'badge-cyan' }}" style="font-size: 0.62rem; padding: 0.1rem 0.35rem; font-weight: 800;">
+                                    {{ ($rev->country ?? '') === 'Pakistan' ? 'National' : 'Intl' }}
+                                </span>
                             </span>
                         </div>
+                        <div class="entity-card-metric-row" x-data="{ copied: false }">
+                            <span class="entity-card-metric-label">Email</span>
+                            <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.35rem; max-width: 72%; min-width: 0;">
+                                @if($rev->user?->email)
+                                    <a href="mailto:{{ $rev->user->email }}" 
+                                       class="reviewer-email-link" 
+                                       title="{{ $rev->user->email }}">
+                                        {{ $rev->user->email }}
+                                    </a>
+                                    <button type="button" 
+                                            class="copy-email-btn"
+                                            @click.stop="navigator.clipboard.writeText('{{ $rev->user->email }}'); copied = true; setTimeout(() => copied = false, 2000)" 
+                                            :title="copied ? 'Copied to clipboard!' : 'Copy email address'"
+                                            aria-label="Copy email">
+                                        <svg x-show="!copied" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                                            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                                            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                                        </svg>
+                                        <svg x-show="copied" style="display: none;" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.8">
+                                            <polyline points="20 6 9 17 4 12"/>
+                                        </svg>
+                                    </button>
+                                @else
+                                    <span style="color: var(--color-text-muted); font-size: 0.74rem;">N/A</span>
+                                @endif
+                            </div>
+                        </div>
                         <div class="entity-card-metric-row">
-                            <span class="entity-card-metric-label">Assigned</span>
-                            <span class="badge badge-cyan" style="font-weight: 800; font-size: 0.72rem; padding: 0.15rem 0.45rem;">
-                                {{ $rev->reviews_count }} Dossier{{ $rev->reviews_count === 1 ? '' : 's' }}
+                            <span class="entity-card-metric-label">Dossiers</span>
+                            <span class="badge badge-cyan" style="font-weight: 800; font-size: 0.72rem; padding: 0.15rem 0.45rem;" title="{{ $rev->completed_reviews_count ?? 0 }} submitted out of {{ $rev->reviews_count }} assigned">
+                                {{ $rev->completed_reviews_count ?? 0 }} / {{ $rev->reviews_count }} Done
                             </span>
                         </div>
                         @if($rev->specialization)
-                            <div class="entity-card-metric-row" style="margin-top: 0.2rem;">
-                                <span class="entity-card-metric-label">Focus</span>
-                                <span class="entity-card-metric-value" style="font-size: 0.74rem; color: var(--color-text-secondary); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $rev->specialization }}">
+                            <div class="entity-card-metric-row" style="margin-top: 0.15rem; align-items: flex-start;">
+                                <span class="entity-card-metric-label" style="padding-top: 1px;">Focus</span>
+                                <span class="reviewer-focus-text" title="{{ $rev->specialization }}">
                                     {{ $rev->specialization }}
                                 </span>
                             </div>
@@ -357,6 +388,14 @@
                             label="View Profile & Dossiers"
                         >
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </x-entity-card-menu-item>
+
+                        <x-entity-card-menu-item 
+                            :href="route('reviewer-profile.print', $rev->id)"
+                            target="_blank"
+                            label="Print Official Dossier"
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                         </x-entity-card-menu-item>
 
                         @if(auth()->user()->can('edit-reviewer') || auth()->user()->can('manage-reviewers'))
@@ -467,12 +506,26 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <div>
-                                            <code style="color: var(--color-text-primary); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace;">{{ $rev->user?->email }}</code>
-                                            @if($rev->phone)
-                                                <div style="color: var(--color-text-muted); font-size: 0.76rem; margin-top: 2px;">{{ $rev->phone }}</div>
+                                        <div style="display: flex; align-items: center; gap: 0.35rem;" x-data="{ copied: false }">
+                                            @if($rev->user?->email)
+                                                <a href="mailto:{{ $rev->user->email }}" class="reviewer-email-link" title="{{ $rev->user->email }}">
+                                                    {{ $rev->user->email }}
+                                                </a>
+                                                <button type="button" 
+                                                        class="copy-email-btn"
+                                                        @click.stop="navigator.clipboard.writeText('{{ $rev->user->email }}'); copied = true; setTimeout(() => copied = false, 2000)" 
+                                                        :title="copied ? 'Copied to clipboard!' : 'Copy email address'"
+                                                        aria-label="Copy email">
+                                                    <svg x-show="!copied" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                                                    <svg x-show="copied" style="display: none;" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.8"><polyline points="20 6 9 17 4 12"/></svg>
+                                                </button>
+                                            @else
+                                                <span style="color: var(--color-text-muted); font-size: 0.76rem;">N/A</span>
                                             @endif
                                         </div>
+                                        @if($rev->phone)
+                                            <div style="color: var(--color-text-muted); font-size: 0.74rem; margin-top: 2px;">{{ $rev->phone }}</div>
+                                        @endif
                                     </td>
                                     <td>
                                         <span style="font-size: 0.82rem; color: var(--color-text-secondary); max-width: 240px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $rev->specialization }}">
@@ -480,8 +533,8 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); font-weight: 800; border: 1px solid rgba(6,182,212,0.25); font-size: 0.76rem;">
-                                            {{ $rev->reviews_count }} Dossier{{ $rev->reviews_count === 1 ? '' : 's' }}
+                                        <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); font-weight: 800; border: 1px solid rgba(6,182,212,0.25); font-size: 0.74rem;" title="{{ $rev->completed_reviews_count ?? 0 }} submitted out of {{ $rev->reviews_count }} assigned">
+                                            {{ $rev->completed_reviews_count ?? 0 }} / {{ $rev->reviews_count }} Done
                                         </span>
                                     </td>
                                     <td>
@@ -513,6 +566,19 @@
                                                     <circle cx="12" cy="12" r="3"/>
                                                 </svg>
                                             </button>
+
+                                            <a href="{{ route('reviewer-profile.print', $rev->id) }}" 
+                                               target="_blank"
+                                               class="action-btn" 
+                                               style="color: var(--primary);"
+                                               data-tooltip="Print Official Dossier" 
+                                               aria-label="Print Dossier">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                                                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                                                    <rect x="6" y="14" width="12" height="8"></rect>
+                                                </svg>
+                                            </a>
 
                                             @if(auth()->user()->can('edit-reviewer') || auth()->user()->can('manage-reviewers'))
                                                 <button type="button" 
@@ -1691,27 +1757,27 @@
             $avgScore = $completedCount > 0 ? $detReviews->where('status', 'SUBMITTED')->avg('overall_score') : null;
         @endphp
         <div class="modal-overlay-premium" style="z-index: 1650;">
-            <div class="modal-dialog-premium" style="width: 100%; max-width: 860px; max-height: 92vh; overflow-y: auto; padding: 2rem; border-color: rgba(6,182,212,0.4); box-shadow: 0 30px 80px rgba(0,0,0,0.85);">
+            <div class="modal-dialog-premium" style="width: 100%; max-width: 900px; max-height: 92vh; overflow-y: auto; padding: 2rem; border-color: rgba(6,182,212,0.4); box-shadow: 0 30px 80px rgba(0,0,0,0.85);">
                 <!-- Modal Header -->
-                <div class="flex justify-between align-center mb-4" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.25rem;">
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <div class="user-avatar-circle" style="width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, rgba(6,182,212,0.25), rgba(99,102,241,0.25)); border: 1.5px solid rgba(6,182,212,0.4); color: var(--secondary); font-weight: 800; font-size: 1.35rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <div class="flex justify-between align-center mb-4" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 1rem; min-width: 0;">
+                        <div class="user-avatar-circle" style="width: 54px; height: 54px; border-radius: 14px; background: linear-gradient(135deg, rgba(6,182,212,0.25), rgba(99,102,241,0.25)); border: 1.5px solid rgba(6,182,212,0.4); color: var(--secondary); font-weight: 800; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             {{ strtoupper(substr($detParsed['full_name'] ?: $selectedReviewerForDetails->name, 0, 1)) }}
                         </div>
-                        <div>
+                        <div style="min-width: 0;">
                             @if(!empty($detParsed['prefix']))
-                                <span style="display: block; font-size: 0.76rem; font-weight: 800; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.2;">
+                                <span style="display: block; font-size: 0.74rem; font-weight: 800; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.2;">
                                     {{ $detParsed['prefix'] }}
                                 </span>
                             @endif
-                            <h3 class="card-title" style="margin: 0; font-size: 1.35rem; font-weight: 800; color: var(--color-text-primary); line-height: 1.2;">
+                            <h3 class="card-title" style="margin: 0; font-size: 1.35rem; font-weight: 800; color: var(--color-text-primary); line-height: 1.2; word-break: break-word;">
                                 {{ $detParsed['full_name'] }}
                             </h3>
-                            <div style="display: flex; align-items: center; gap: 0.6rem; margin-top: 0.35rem; flex-wrap: wrap;">
-                                <span class="badge badge-amber" style="font-size: 0.74rem; font-weight: 700;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.35rem; flex-wrap: wrap;">
+                                <span class="reviewer-rank-badge badge-amber" style="font-size: 0.72rem; padding: 0.15rem 0.5rem;">
                                     {{ $selectedReviewerForDetails->academic_rank }}
                                 </span>
-                                <span class="badge badge-indigo" style="font-size: 0.74rem; font-weight: 700;">
+                                <span class="badge badge-indigo" style="font-size: 0.72rem; padding: 0.15rem 0.5rem;">
                                     {{ $selectedReviewerForDetails->subject }}
                                 </span>
                                 <span style="font-size: 0.8rem; color: var(--color-text-muted);">
@@ -1721,44 +1787,71 @@
                         </div>
                     </div>
 
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+                        <a href="{{ route('reviewer-profile.print', $selectedReviewerForDetails->id) }}" 
+                           target="_blank" 
+                           class="btn btn-secondary btn-sm"
+                           style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.38rem 0.75rem; font-size: 0.8rem; font-weight: 700;"
+                           data-tooltip="Print Official Profile & Dossier (A4)">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                                <rect x="6" y="14" width="12" height="8"></rect>
+                            </svg>
+                            <span>Print Dossier</span>
+                        </a>
+
+                        <button type="button" 
+                                class="btn btn-secondary btn-sm"
+                                wire:click="exportReviewerDossiersCsv({{ $selectedReviewerForDetails->id }})"
+                                style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.38rem 0.75rem; font-size: 0.8rem; font-weight: 700;"
+                                data-tooltip="Download Dossiers as CSV">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" x2="12" y1="15" y2="3"/>
+                            </svg>
+                            <span>Export CSV</span>
+                        </button>
+
                         @if(auth()->user()->can('edit-reviewer') || auth()->user()->can('manage-reviewers'))
                             <button type="button" 
                                     wire:click="toggleReviewerStatus({{ $selectedReviewerForDetails->id }})"
-                                    style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.8rem; font-size: 0.76rem; font-weight: 800; border-radius: 9999px; cursor: pointer; transition: all 0.2s ease; border: 1px solid; {{ $selectedReviewerForDetails->is_active ? 'background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.35); box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);' : 'background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.35); box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);' }}"
+                                    style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.75rem; font-size: 0.76rem; font-weight: 800; border-radius: 9999px; cursor: pointer; transition: all 0.2s ease; border: 1px solid; {{ $selectedReviewerForDetails->is_active ? 'background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.35); box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);' : 'background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.35); box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);' }}"
                                     title="Click to toggle status">
                                 <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: {{ $selectedReviewerForDetails->is_active ? '#10b981' : '#ef4444' }};"></span>
                                 <span>{{ $selectedReviewerForDetails->is_active ? 'ACTIVE' : 'INACTIVE' }}</span>
                             </button>
                         @endif
+
                         <button type="button" class="btn btn-secondary btn-sm" wire:click="closeDetailsModal" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;">✕</button>
                     </div>
                 </div>
 
-                <!-- Referee KPI Metrics Strip -->
-                <div class="grid grid-cols-4 gap-3 mb-4">
-                    <div class="card" style="background: rgba(0,0,0,0.25); border-color: var(--border-color); padding: 0.85rem 1rem; text-align: center;">
-                        <span style="font-size: 0.7rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Assigned Dossiers</span>
-                        <div style="font-size: 1.4rem; font-weight: 900; color: var(--secondary); margin-top: 2px;">
+                <!-- Referee KPI Metrics Strip (Theme Adaptive) -->
+                <div class="referee-kpi-grid">
+                    <div class="referee-kpi-card">
+                        <span class="referee-kpi-label">Assigned Dossiers</span>
+                        <div class="referee-kpi-val" style="color: var(--secondary);">
                             {{ $detReviews->count() }}
                         </div>
                     </div>
-                    <div class="card" style="background: rgba(0,0,0,0.25); border-color: var(--border-color); padding: 0.85rem 1rem; text-align: center;">
-                        <span style="font-size: 0.7rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Completed</span>
-                        <div style="font-size: 1.4rem; font-weight: 900; color: #10b981; margin-top: 2px;">
+                    <div class="referee-kpi-card">
+                        <span class="referee-kpi-label">Completed / Submitted</span>
+                        <div class="referee-kpi-val" style="color: #10b981;">
                             {{ $completedCount }}
                         </div>
                     </div>
-                    <div class="card" style="background: rgba(0,0,0,0.25); border-color: var(--border-color); padding: 0.85rem 1rem; text-align: center;">
-                        <span style="font-size: 0.7rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Pending Evaluation</span>
-                        <div style="font-size: 1.4rem; font-weight: 900; color: #f59e0b; margin-top: 2px;">
+                    <div class="referee-kpi-card">
+                        <span class="referee-kpi-label">Pending Evaluation</span>
+                        <div class="referee-kpi-val" style="color: #f59e0b;">
                             {{ $pendingCount }}
                         </div>
                     </div>
-                    <div class="card" style="background: rgba(0,0,0,0.25); border-color: var(--border-color); padding: 0.85rem 1rem; text-align: center;">
-                        <span style="font-size: 0.7rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Avg Rating</span>
-                        <div style="font-size: 1.4rem; font-weight: 900; color: var(--primary); margin-top: 2px;">
-                            {{ $avgScore !== null ? number_format($avgScore, 1) . '/100' : 'N/A' }}
+                    <div class="referee-kpi-card">
+                        <span class="referee-kpi-label">Mean Rating Score</span>
+                        <div class="referee-kpi-val" style="color: var(--primary);">
+                            {{ $avgScore !== null ? number_format($avgScore, 1) . ' / 100' : 'N/A' }}
                         </div>
                     </div>
                 </div>
@@ -1769,48 +1862,95 @@
                         Institutional Affiliation & Contact Details
                     </h5>
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
+                        <div x-data="{ copied: false }">
                             <span style="font-size: 0.74rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700;">Institutional Email</span>
-                            <div style="color: var(--color-text-primary); font-size: 0.9rem; font-weight: 600; margin-top: 2px;">
-                                <code style="font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;">{{ $selectedReviewerForDetails->user?->email ?? 'Not linked' }}</code>
+                            <div style="display: flex; align-items: center; gap: 0.45rem; margin-top: 3px;">
+                                @if($selectedReviewerForDetails->user?->email)
+                                    <a href="mailto:{{ $selectedReviewerForDetails->user->email }}" 
+                                       style="color: var(--color-text-primary); font-size: 0.88rem; font-weight: 600; text-decoration: none; font-family: 'JetBrains Mono', monospace;"
+                                       class="reviewer-email-link">
+                                        {{ $selectedReviewerForDetails->user->email }}
+                                    </a>
+                                    <button type="button" 
+                                            class="copy-email-btn"
+                                            @click.stop="navigator.clipboard.writeText('{{ $selectedReviewerForDetails->user->email }}'); copied = true; setTimeout(() => copied = false, 2000)" 
+                                            :title="copied ? 'Copied!' : 'Copy email address'">
+                                        <svg x-show="!copied" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                                            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                                            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                                        </svg>
+                                        <svg x-show="copied" style="display: none;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.8">
+                                            <polyline points="20 6 9 17 4 12"/>
+                                        </svg>
+                                    </button>
+                                @else
+                                    <span style="color: var(--color-text-muted); font-size: 0.85rem;">Not linked</span>
+                                @endif
                             </div>
                         </div>
                         <div>
                             <span style="font-size: 0.74rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700;">Direct Phone</span>
-                            <div style="color: var(--color-text-primary); font-size: 0.9rem; font-weight: 600; margin-top: 2px;">
-                                {{ $selectedReviewerForDetails->phone ?: 'Not provided' }}
+                            <div style="color: var(--color-text-primary); font-size: 0.88rem; font-weight: 600; margin-top: 3px;">
+                                @if($selectedReviewerForDetails->phone)
+                                    <a href="tel:{{ $selectedReviewerForDetails->phone }}" style="color: var(--color-text-primary); text-decoration: none;">
+                                        {{ $selectedReviewerForDetails->phone }}
+                                    </a>
+                                @else
+                                    <span style="color: var(--color-text-muted);">Not provided</span>
+                                @endif
                             </div>
                         </div>
                         <div>
                             <span style="font-size: 0.74rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700;">Institution / University</span>
-                            <div style="color: var(--color-text-primary); font-size: 0.9rem; font-weight: 600; margin-top: 2px;">
+                            <div style="color: var(--color-text-primary); font-size: 0.88rem; font-weight: 600; margin-top: 3px;">
                                 {{ $selectedReviewerForDetails->university }}
                             </div>
                         </div>
                         <div>
-                            <span style="font-size: 0.74rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700;">Country of Residence</span>
-                            <div style="color: var(--color-text-primary); font-size: 0.9rem; font-weight: 600; margin-top: 2px;">
-                                📍 {{ $selectedReviewerForDetails->country }}
+                            <span style="font-size: 0.74rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700;">Jurisdiction & Country</span>
+                            <div style="color: var(--color-text-primary); font-size: 0.88rem; font-weight: 600; margin-top: 3px; display: flex; align-items: center; gap: 0.35rem;">
+                                <span>{{ ($selectedReviewerForDetails->country ?? '') === 'Pakistan' ? '🇵🇰' : '🌐' }}</span>
+                                <span>{{ $selectedReviewerForDetails->country }}</span>
+                                <span class="badge {{ ($selectedReviewerForDetails->country ?? '') === 'Pakistan' ? 'badge-emerald' : 'badge-cyan' }}" style="font-size: 0.65rem; padding: 0.1rem 0.4rem; font-weight: 800;">
+                                    {{ ($selectedReviewerForDetails->country ?? '') === 'Pakistan' ? 'National Referee' : 'International Referee' }}
+                                </span>
                             </div>
                         </div>
                         <div style="grid-column: 1 / -1;">
                             <span style="font-size: 0.74rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700;">Research Focus & Domain Expertise</span>
-                            <div style="color: var(--color-text-primary); font-size: 0.88rem; margin-top: 4px; line-height: 1.5; background: rgba(0,0,0,0.2); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                            <div style="color: var(--color-text-primary); font-size: 0.85rem; margin-top: 5px; line-height: 1.5; background: var(--bg-card); padding: 0.85rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
                                 {{ $selectedReviewerForDetails->specialization ?: 'General ' . $selectedReviewerForDetails->subject }}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Assigned Candidacies & Reviews Ledger -->
-                <div class="mb-4">
-                    <h5 style="font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 0.85rem 0; display: flex; align-items: center; gap: 0.5rem;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2.3"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                        <span>Assigned Candidacy Dossiers ({{ $detReviews->count() }})</span>
-                    </h5>
+                <!-- Assigned Candidacies & Reviews Ledger (with Tab Filtering) -->
+                <div class="mb-4" x-data="{ dossierTab: 'all' }">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <h5 style="font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2.3"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                            <span>Assigned Candidacy Dossiers ({{ $detReviews->count() }})</span>
+                        </h5>
+
+                        <!-- Status Filter Pills -->
+                        @if($detReviews->isNotEmpty())
+                            <div class="dossier-filter-pills">
+                                <button type="button" class="dossier-tab-btn" :class="{ 'active': dossierTab === 'all' }" @click="dossierTab = 'all'">
+                                    All Dossiers ({{ $detReviews->count() }})
+                                </button>
+                                <button type="button" class="dossier-tab-btn" :class="{ 'active': dossierTab === 'completed' }" @click="dossierTab = 'completed'">
+                                    ✓ Submitted ({{ $completedCount }})
+                                </button>
+                                <button type="button" class="dossier-tab-btn" :class="{ 'active': dossierTab === 'pending' }" @click="dossierTab = 'pending'">
+                                    ⏳ In Progress ({{ $pendingCount }})
+                                </button>
+                            </div>
+                        @endif
+                    </div>
 
                     @if($detReviews->isNotEmpty())
-                        <div class="table-container" style="max-height: 280px; overflow-y: auto;">
+                        <div class="table-container" style="max-height: 320px; overflow-y: auto;">
                             <table class="table" style="font-size: 0.82rem;">
                                 <thead>
                                     <tr>
@@ -1819,11 +1959,12 @@
                                         <th>Assigned / Due</th>
                                         <th>Status</th>
                                         <th>Score & Verdict</th>
+                                        <th style="text-align: right;">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($detReviews as $revAssignment)
-                                        <tr>
+                                        <tr x-show="dossierTab === 'all' || (dossierTab === 'completed' && '{{ $revAssignment->status }}' === 'SUBMITTED') || (dossierTab === 'pending' && '{{ $revAssignment->status }}' !== 'SUBMITTED')">
                                             <td>
                                                 <strong style="color: var(--color-text-primary); font-size: 0.88rem;">
                                                     {{ $revAssignment->application?->user?->basicInfo?->full_name ?: ($revAssignment->application?->user?->name ?: 'Applicant') }}
@@ -1851,6 +1992,11 @@
                                             <td>
                                                 @if($revAssignment->status === 'SUBMITTED')
                                                     <span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; font-weight: 800; font-size: 0.72rem;">✓ Submitted</span>
+                                                    @if($revAssignment->submitted_at)
+                                                        <div style="font-size: 0.7rem; color: var(--color-text-muted); margin-top: 2px;">
+                                                            {{ $revAssignment->submitted_at->format('d M Y') }}
+                                                        </div>
+                                                    @endif
                                                 @else
                                                     <span class="badge" style="background: rgba(245,158,11,0.15); color: #f59e0b; font-weight: 800; font-size: 0.72rem;">⏳ In Progress</span>
                                                 @endif
@@ -1867,13 +2013,44 @@
                                                     <span style="color: var(--color-text-muted); font-size: 0.76rem;">Pending</span>
                                                 @endif
                                             </td>
+                                            <td style="text-align: right;">
+                                                <div style="display: inline-flex; align-items: center; justify-content: flex-end; gap: 0.4rem;">
+                                                    @if($revAssignment->status === 'SUBMITTED')
+                                                        <a href="{{ route('peer-reports.print', $revAssignment->application_id) }}" 
+                                                           target="_blank" 
+                                                           class="action-btn action-btn-view" 
+                                                           data-tooltip="View Consensus Peer Report" 
+                                                           aria-label="View Peer Report">
+                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                                                <circle cx="12" cy="12" r="3"/>
+                                                            </svg>
+                                                        </a>
+                                                    @else
+                                                        @if(auth()->user()->can('assign-reviewer') || auth()->user()->can('manage-reviewers'))
+                                                            <button type="button" 
+                                                                    class="action-btn" 
+                                                                    style="color: var(--secondary);"
+                                                                    wire:click="sendReviewerReminder({{ $revAssignment->id }})" 
+                                                                    wire:loading.attr="disabled"
+                                                                    data-tooltip="Send Official Reminder Email" 
+                                                                    aria-label="Send Reminder">
+                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                                                                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                                                                </svg>
+                                                            </button>
+                                                        @endif
+                                                    @endif
+                                                </div>
+                                            </td>
                                         </tr>
                                     @endforeach
                                 </tbody>
                             </table>
                         </div>
                     @else
-                        <div style="text-align: center; padding: 2rem 1rem; background: rgba(0,0,0,0.15); border: 1.5px dashed var(--border-color); border-radius: var(--radius-md); color: var(--color-text-muted); font-size: 0.85rem;">
+                        <div style="text-align: center; padding: 2rem 1rem; background: var(--bg-card); border: 1.5px dashed var(--border-color); border-radius: var(--radius-md); color: var(--color-text-muted); font-size: 0.85rem;">
                             No candidacies or dossiers have been assigned to this expert referee yet.
                         </div>
                     @endif

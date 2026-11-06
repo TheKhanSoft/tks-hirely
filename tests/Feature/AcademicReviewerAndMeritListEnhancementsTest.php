@@ -242,5 +242,23 @@ class AcademicReviewerAndMeritListEnhancementsTest extends TestCase
         $dispatchResponse->assertStatus(200);
         $dispatchResponse->assertSee('CONFIDENTIAL EXTERNAL ACADEMIC PEER REVIEW DISPATCH REGISTER');
         $dispatchResponse->assertSee($app->tracking_number);
+
+        // Print official reviewer profile dossier route
+        $revProfile = ReviewerProfile::where('user_id', $revUser->id)->first();
+        $profileResponse = $this->get(route('reviewer-profile.print', $revProfile->id));
+        $profileResponse->assertStatus(200);
+        $profileResponse->assertSee('Official Expert Referee Profile');
+        $profileResponse->assertSee('Prof. Dr. Kenji Sato');
+        $profileResponse->assertSee('University of Tokyo');
+        $profileResponse->assertSee($app->tracking_number);
+
+        // Test Livewire exportReviewerDossiersCsv
+        Livewire::test(ReviewerManagement::class)
+            ->call('openDetailsModal', $revProfile->id)
+            ->assertSet('showDetailsModal', true)
+            ->assertSee('Prof. Dr. Kenji Sato')
+            ->assertSee('Assigned Candidacy Dossiers')
+            ->call('exportReviewerDossiersCsv', $revProfile->id)
+            ->assertFileDownloaded();
     }
 }

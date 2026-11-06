@@ -631,7 +631,7 @@
                             <x-slot:badge>
                                 <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
                                     <span class="badge badge-amber" style="font-size: 0.72rem; font-weight: 800; font-family: 'JetBrains Mono', monospace;">
-                                        {{ $currencySymbol }} {{ number_format($camp->application_fee, 0) }}
+                                        {{ $currencySymbol }} {{ number_format((float) ($camp->application_fee ?? 0), 0) }}
                                     </span>
                                     @if($isCompleted)
                                         <span style="font-size: 0.72rem; font-weight: 800; color: #a855f7; display: inline-flex; align-items: center; gap: 0.3rem;">
@@ -1102,7 +1102,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <strong style="color: var(--color-text-primary); font-family: monospace;">{{ $currencySymbol }} {{ number_format($camp->application_fee, 2) }}</strong>
+                                        <strong style="color: var(--color-text-primary); font-family: monospace;">{{ $currencySymbol }} {{ number_format((float) ($camp->application_fee ?? 0), 2) }}</strong>
                                     </td>
                                     <td style="text-align: right;">
                                         <div class="action-btn-group justify-end" x-data="{ openMenu: false }">
@@ -2119,7 +2119,7 @@
                     <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
                         <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-muted); display: block;">Application Fee</span>
                         <strong style="color: var(--color-text-primary); font-size: 1.05rem; font-family: 'JetBrains Mono', monospace; display: block; margin-top: 2px;">
-                            {{ $currencySymbol }} {{ number_format($selectedCampaign->application_fee, 2) }}
+                            {{ $currencySymbol }} {{ number_format((float) ($selectedCampaign->application_fee ?? 0), 2) }}
                         </strong>
                     </div>
 

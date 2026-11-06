@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Application;
 use App\Models\Campaign;
 use App\Models\Advertisement;
+use App\Models\ReviewerProfile;
 use App\Models\SystemSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -108,6 +109,50 @@ class PeerReviewPrintController extends Controller
             'orgName' => $orgName,
             'advertisement' => $ad,
             'campaign' => $campaign,
+        ]);
+    }
+
+    /**
+     * Display printable official academic reviewer profile & dossiers portfolio.
+     */
+    public function printReviewerProfile(Request $request, $id)
+    {
+        $currentUser = Auth::user();
+        if (!$currentUser) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        abort_unless(
+            $currentUser->can('view-review-reports') ||
+            $currentUser->can('view-reviewer') ||
+            $currentUser->can('manage-reviewers') ||
+            $currentUser->hasAnyRole(['super-admin', 'registrar', 'selection-board-member']),
+            403,
+            'You do not have permission to view official expert referee dossiers.'
+        );
+
+        $reviewer = ReviewerProfile::with([
+            'user',
+            'creator',
+            'reviews.application.campaign.advertisement',
+            'reviews.application.user.basicInfo',
+            'reviews.assigner',
+        ])->findOrFail($id);
+
+        $reviews = $reviewer->reviews ?? collect();
+        $submittedReviews = $reviews->where('status', 'SUBMITTED');
+        $pendingReviews = $reviews->where('status', '!=', 'SUBMITTED');
+        $avgScore = $submittedReviews->count() > 0 ? round((float)$submittedReviews->avg('overall_score'), 2) : 0.0;
+        
+        $orgName = SystemSetting::get('org_name', 'Hirely Higher Education & Recruitment Commission');
+
+        return view('print.reviewer-profile-dossier', [
+            'reviewer' => $reviewer,
+            'reviews' => $reviews,
+            'submittedReviews' => $submittedReviews,
+            'pendingReviews' => $pendingReviews,
+            'avgScore' => $avgScore,
+            'orgName' => $orgName,
         ]);
     }
 }

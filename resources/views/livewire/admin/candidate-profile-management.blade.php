@@ -829,7 +829,7 @@
                                     <td>{{ $exp->organization }}</td>
                                     <td><code style="font-size: 0.78rem;">{{ $exp->start_date?->format('Y-m-d') }}</code> to <code style="font-size: 0.78rem;">{{ $exp->end_date?->format('Y-m-d') ?: 'Present' }}</code></td>
                                     <td><span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary); font-size: 0.72rem;">{{ $exp->sector }}</span></td>
-                                    <td><strong>PKR {{ number_format($exp->salary ?? 0, 2) }}</strong></td>
+                                    <td><strong>{{ $exp->formatted_salary ?? (is_numeric($exp->salary) ? 'PKR ' . number_format((float) $exp->salary, 2) : ($exp->salary ?: 'N/A')) }}</strong></td>
                                     <td style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $exp->description }}">{{ $exp->description ?: 'N/A' }}</td>
                                     <td>
                                         @if(isset($exp['proof_path']))
@@ -838,6 +838,67 @@
                                             <span style="color: var(--color-text-muted); font-size: 0.75rem;">N/A</span>
                                         @endif
                                     </td>
+                                </tr>
+                            @endforeach
+                        </x-table>
+                    </div>
+                @endif
+
+                <!-- Research Projects -->
+                @if($selectedRecordDetails->researchProjects && $selectedRecordDetails->researchProjects->isNotEmpty())
+                    <div class="card mb-4" style="padding: 1.25rem; background: var(--bg-card);">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: var(--secondary); letter-spacing: 0.05em; margin-bottom: 0.85rem;">
+                            Funded Research Projects & Grants ({{ $selectedRecordDetails->researchProjects->count() }})
+                        </div>
+                        <x-table :headers="['Project Title', 'Funding Agency', 'Grant Value', 'Role', 'Similarity', 'Status']">
+                            @foreach($selectedRecordDetails->researchProjects as $proj)
+                                <tr>
+                                    <td><strong style="color: var(--color-text-primary);">{{ $proj->project_title }}</strong></td>
+                                    <td>{{ $proj->funding_agency }}</td>
+                                    <td><strong style="color: var(--color-text-primary);">{{ $proj->formatted_grant_amount ?? (is_numeric($proj->grant_amount) ? 'PKR ' . number_format((float)$proj->grant_amount, 2) : ($proj->grant_amount ?: 'N/A')) }}</strong></td>
+                                    <td><span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); font-weight: 700;">{{ $proj->role_in_project ?? 'PI' }}</span></td>
+                                    <td><code style="font-size: 0.78rem;">{{ $proj->turnitin_similarity_percentage ?? '—' }}%</code></td>
+                                    <td><span class="badge" style="background: {{ $proj->is_verified ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)' }}; color: {{ $proj->is_verified ? 'var(--success)' : 'var(--warning)' }};">{{ $proj->is_verified ? 'Verified' : 'Declared' }}</span></td>
+                                </tr>
+                            @endforeach
+                        </x-table>
+                    </div>
+                @endif
+
+                <!-- Academic Medals & Honors -->
+                @if($selectedRecordDetails->medals && $selectedRecordDetails->medals->isNotEmpty())
+                    <div class="card mb-4" style="padding: 1.25rem; background: var(--bg-card);">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: var(--secondary); letter-spacing: 0.05em; margin-bottom: 0.85rem;">
+                            Academic Distinctions & Medals ({{ $selectedRecordDetails->medals->count() }})
+                        </div>
+                        <x-table :headers="['Medal / Distinction', 'Awarding Body', 'Year', 'Category', 'Description']">
+                            @foreach($selectedRecordDetails->medals as $med)
+                                <tr>
+                                    <td><strong style="color: var(--color-text-primary);">{{ $med->title }}</strong></td>
+                                    <td>{{ $med->awarding_body }}</td>
+                                    <td><code>{{ $med->year }}</code></td>
+                                    <td><span class="badge" style="background: rgba(245,158,11,0.15); color: #d97706; font-weight: 700;">{{ $med->category ?? 'Gold Medal' }}</span></td>
+                                    <td style="font-size: 0.8rem; color: var(--color-text-secondary);">{{ $med->description ?: 'N/A' }}</td>
+                                </tr>
+                            @endforeach
+                        </x-table>
+                    </div>
+                @endif
+
+                <!-- Professional Events & Conferences -->
+                @if($selectedRecordDetails->events && $selectedRecordDetails->events->isNotEmpty())
+                    <div class="card mb-4" style="padding: 1.25rem; background: var(--bg-card);">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: var(--secondary); letter-spacing: 0.05em; margin-bottom: 0.85rem;">
+                            Conferences, Keynotes & Events ({{ $selectedRecordDetails->events->count() }})
+                        </div>
+                        <x-table :headers="['Event Name', 'Role', 'Organizer', 'Date / Year', 'Location']">
+                            @foreach($selectedRecordDetails->events as $evt)
+                                <tr>
+                                    <td><strong style="color: var(--color-text-primary);">{{ $evt->title }}</strong></td>
+                                    <td><span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary);">{{ $evt->role ?? 'Speaker' }}</span></td>
+                                    <td>{{ $evt->organizer }}</td>
+                                    <td><code>{{ $evt->event_date?->format('Y-m-d') ?? $evt->year ?? '—' }}</code></td>
+                                    <td style="font-size: 0.8rem;">{{ $evt->location ?: 'N/A' }}</td>
                                 </tr>
                             @endforeach
                         </x-table>
