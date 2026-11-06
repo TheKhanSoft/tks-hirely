@@ -545,7 +545,13 @@
                         </div>
                     @endif
                     <h2>
-                        {{ $viewMode === 'admin' ? 'Official Master Administrative Application Dossier & Scrutiny Record' : 'Official Application Form for Employment' }}
+                        @if(empty($campaign))
+                            Official Master Candidate Profile Dossier &amp; Research Portfolio
+                        @else
+                            {{ $viewMode === 'admin' 
+                                ? ($letterhead['dossier_title_admin'] ?? 'Official Master Administrative Application Dossier & Scrutiny Record') 
+                                : ($letterhead['dossier_title_candidate'] ?? 'Official Application Form for Employment') }}
+                        @endif
                     </h2>
                     @if(!empty($letterhead['custom_details']))
                         <div class="header-subtitle" style="font-size: 0.78rem; color: #64748b; font-style: normal; margin-top: 0.2rem; line-height: 1.35;">
@@ -582,7 +588,7 @@
             </div>
             <div>
                 <strong>Position / Job Code</strong>
-                <span>{{ $campaign->title ?? 'N/A' }} ({{ $campaign->job_code ?? 'N/A' }})</span>
+                <span>{{ $campaign?->title ?? 'General Candidate Registry' }} ({{ $campaign?->job_code ?? 'ROSTER' }})</span>
             </div>
             <div>
                 <strong>Submission Timestamp</strong>

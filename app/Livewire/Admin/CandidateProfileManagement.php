@@ -280,7 +280,7 @@ class CandidateProfileManagement extends Component
         abort_unless(Auth::user()->can('view-candidate-dossier') || Auth::user()->can('view-basic-info'), 403);
         $this->selectedRecordId = $id;
         $this->selectedRecordDetails = BasicInfo::with([
-            'user',
+            'user.applications.campaign.advertisement',
             'degrees',
             'experiences',
             'medals',

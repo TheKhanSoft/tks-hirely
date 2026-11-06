@@ -54,6 +54,8 @@ class SystemSettings extends Component
     public $letterhead_logo;
     public $letterhead_custom_details;
     public $letterhead_layout = 'classic_left';
+    public $letterhead_dossier_title_admin = 'Official Master Administrative Application Dossier & Scrutiny Record';
+    public $letterhead_dossier_title_candidate = 'Official Application Form for Employment';
     public $letterheadLogoUpload;
 
     // 🎨 App Identity & Branding
@@ -295,6 +297,8 @@ class SystemSettings extends Component
         $this->letterhead_logo = SystemSetting::get('letterhead_logo', '/images/logo-icon.svg');
         $this->letterhead_custom_details = SystemSetting::get('letterhead_custom_details', "Central Secretariat & Statutory Directorate\nWebsite: https://hirely.app • Email: support@hirely.app • Verification Portal: https://hirely.app/verify");
         $this->letterhead_layout = SystemSetting::get('letterhead_layout', 'classic_left');
+        $this->letterhead_dossier_title_admin = SystemSetting::get('letterhead_dossier_title_admin', 'Official Master Administrative Application Dossier & Scrutiny Record');
+        $this->letterhead_dossier_title_candidate = SystemSetting::get('letterhead_dossier_title_candidate', 'Official Application Form for Employment');
 
         // App Branding & Identity
         $this->app_name = SystemSetting::get('app_name', 'Hirely');
@@ -480,8 +484,14 @@ class SystemSettings extends Component
         SystemSetting::set('currency_symbol', $this->currency_symbol, 'organization', 'string');
         SystemSetting::set('default_application_fee', $this->default_application_fee, 'organization', 'integer');
 
-        // Also sync letterhead default heading if unconfigured
-        if (empty($this->letterhead_heading) || $this->letterhead_heading === 'Hirely Recruitment Management System') {
+        // Also sync letterhead default heading if unconfigured or generic
+        $genericHeadings = [
+            'Hirely Higher Education & Recruitment Commission',
+            'Hirely Recruitment Management System',
+            'Hirely Higher Education Commission',
+            '',
+        ];
+        if (empty($this->letterhead_heading) || in_array(trim($this->letterhead_heading), $genericHeadings)) {
             $this->letterhead_heading = $this->org_name;
             SystemSetting::set('letterhead_heading', $this->letterhead_heading, 'organization', 'string');
         }
@@ -506,6 +516,8 @@ class SystemSettings extends Component
             'letterhead_office' => 'nullable|string|max:190',
             'letterhead_custom_details' => 'nullable|string|max:2000',
             'letterhead_layout' => 'nullable|string|in:classic_left,crest_center,modern_clean',
+            'letterhead_dossier_title_admin' => 'nullable|string|max:190',
+            'letterhead_dossier_title_candidate' => 'nullable|string|max:190',
             'letterheadLogoUpload' => 'nullable|image|max:2048',
         ]);
 
@@ -523,6 +535,8 @@ class SystemSettings extends Component
         SystemSetting::set('letterhead_office', $this->letterhead_office, 'organization', 'string');
         SystemSetting::set('letterhead_custom_details', $this->letterhead_custom_details, 'organization', 'string');
         SystemSetting::set('letterhead_layout', $this->letterhead_layout, 'organization', 'string');
+        SystemSetting::set('letterhead_dossier_title_admin', $this->letterhead_dossier_title_admin, 'organization', 'string');
+        SystemSetting::set('letterhead_dossier_title_candidate', $this->letterhead_dossier_title_candidate, 'organization', 'string');
 
         session()->flash('message', 'Official printable letterhead header & styling successfully saved.');
     }
@@ -530,12 +544,14 @@ class SystemSettings extends Component
     public function resetLetterheadToDefault()
     {
         abort_unless(Auth::user()->can('manage-settings'), 403);
-        $this->letterhead_heading = $this->org_name ?: 'Hirely Higher Education & Recruitment Commission';
-        $this->letterhead_subheading = $this->org_location ?: 'Statutory Recruitment & Merit Selection Directorate';
-        $this->letterhead_office = $this->org_office_title ?: 'Office of the Central Registrar & Selection Board Secretariat';
-        $this->letterhead_logo = '/images/logo-icon.svg';
+        $this->letterhead_heading = $this->org_name ?: 'Hirely';
+        $this->letterhead_subheading = $this->org_location ?: '';
+        $this->letterhead_office = $this->org_office_title ?: 'Office of the Registrar';
+        $this->letterhead_logo = SystemSetting::getAppLogo() ?: '/images/logo-icon.svg';
         $this->letterhead_custom_details = "Central Secretariat & Statutory Directorate\nWebsite: https://hirely.app • Email: support@hirely.app • Verification Portal: https://hirely.app/verify";
         $this->letterhead_layout = 'classic_left';
+        $this->letterhead_dossier_title_admin = 'Official Master Administrative Application Dossier & Scrutiny Record';
+        $this->letterhead_dossier_title_candidate = 'Official Application Form for Employment';
         $this->letterheadLogoUpload = null;
         $this->saveLetterheadSettings();
         session()->flash('message', 'Letterhead header configuration restored to official default standards.');

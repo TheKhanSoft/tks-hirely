@@ -35,6 +35,8 @@ class UniversityOrganizationSettingsSeeder extends Seeder
             'letterhead_logo' => '/images/logo-icon.svg',
             'letterhead_custom_details' => "Main Campus, Toru Road, Mardan, Khyber Pakhtunkhwa, Pakistan\nPhone: +92-937-9230611 • Fax: +92-937-9230612 • Web: www.awkum.edu.pk",
             'letterhead_layout' => 'classic_left',
+            'letterhead_dossier_title_admin' => 'Official Master Administrative Application Dossier & Scrutiny Record',
+            'letterhead_dossier_title_candidate' => 'Official Application Form for Employment',
 
             // 📞 Contact & Helpdesk Channels
             'org_website' => 'https://www.awkum.edu.pk',
@@ -68,7 +70,8 @@ class UniversityOrganizationSettingsSeeder extends Seeder
                 'org_name', 'org_short_name', 'org_location', 'org_office_title',
                 'org_type', 'sector_label', 'currency_symbol', 'default_application_fee',
                 'letterhead_heading', 'letterhead_subheading', 'letterhead_office',
-                'letterhead_logo', 'letterhead_custom_details', 'letterhead_layout' => 'organization',
+                'letterhead_logo', 'letterhead_custom_details', 'letterhead_layout',
+                'letterhead_dossier_title_admin', 'letterhead_dossier_title_candidate' => 'organization',
 
                 'org_website', 'support_email', 'support_phone', 'support_whatsapp',
                 'registrar_hotline', 'support_hours', 'helpdesk_location' => 'contact',

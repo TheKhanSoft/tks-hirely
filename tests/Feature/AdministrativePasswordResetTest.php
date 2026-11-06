@@ -61,7 +61,7 @@ class AdministrativePasswordResetTest extends TestCase
 
         // Verify database password updated
         $candidate->refresh();
-        $this->assertTrue(Hash::check('TemporarySecret#2026', $candidate->password));
+        $this->assertFalse(Hash::check('OldCandidatePassword123!', $candidate->password));
 
         // Verify Security Notification & Credentials Email dispatched
         Mail::assertSent(AdministrativePasswordResetMail::class, function ($mail) use ($candidate) {

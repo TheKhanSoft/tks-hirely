@@ -735,12 +735,61 @@
                             </div>
                         </div>
                     </div>
-                    <div>
+                    <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+                        <a href="{{ route('candidate-profile.print', $selectedRecordDetails->id) }}" 
+                           target="_blank" 
+                           class="btn btn-primary btn-sm" 
+                           style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; text-decoration: none; padding: 0.4rem 0.85rem; font-size: 0.82rem; box-shadow: 0 2px 8px var(--primary-glow);">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                                <rect x="6" y="14" width="12" height="8"></rect>
+                            </svg>
+                            <span>Download / Print Dossier</span>
+                        </a>
                         <span class="badge" style="padding: 0.35rem 0.85rem; font-size: 0.8rem; border-radius: 999px; font-weight: 700; {{ $selectedRecordDetails->is_locked ? 'background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3);' : 'background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3);' }}">
                             {{ $selectedRecordDetails->is_locked ? '🔒 Dossier Locked' : '🔓 Editable Profile' }}
                         </span>
                     </div>
                 </div>
+
+                @php
+                    $candidateApps = $selectedRecordDetails->user?->applications ?? collect();
+                @endphp
+                @if($candidateApps->isNotEmpty())
+                    <!-- Active Applications & Position Dossiers -->
+                    <div class="card mb-4" style="padding: 1.15rem 1.25rem; background: var(--bg-card); border-left: 3.5px solid var(--primary);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                            <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: var(--primary); letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.4rem;">
+                                <span>📑</span>
+                                <span>Active Job Candidacies &amp; Position Dossiers ({{ $candidateApps->count() }})</span>
+                            </div>
+                            <span class="badge badge-slate" style="font-size: 0.7rem;">Application Dossiers</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.55rem;">
+                            @foreach($candidateApps as $app)
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 0.95rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); flex-wrap: wrap; gap: 0.75rem;">
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <strong style="color: var(--color-text-primary); font-size: 0.90rem;">{{ $app->campaign?->title ?? 'Campaign #' . $app->campaign_id }}</strong>
+                                            <code style="font-size: 0.76rem; background: var(--bg-card); padding: 0.15rem 0.4rem; border-radius: 4px; border: 1px solid var(--border-color);">{{ $app->tracking_number }}</code>
+                                        </div>
+                                        <div style="font-size: 0.76rem; color: var(--color-text-secondary); margin-top: 0.15rem;">
+                                            {{ $app->campaign?->advertisement?->title ?? 'Direct Intake' }} &bull; Applied: {{ $app->created_at->format('d M, Y') }}
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 0.55rem;">
+                                        <span class="badge badge-cyan" style="font-size: 0.70rem; font-weight: 800;">{{ strtoupper(str_replace('_', ' ', $app->status)) }}</span>
+                                        <a href="{{ route('application.print', $app->id) }}" target="_blank" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; font-weight: 700; text-decoration: none; padding: 0.35rem 0.75rem;">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                                            <span>Print App Dossier</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
 
                 <!-- Personal Demographics Grid -->
                 <div class="card mb-4" style="padding: 1.25rem; background: var(--bg-card);">
@@ -926,10 +975,22 @@
                     </div>
                 @endif
 
-                <div class="mt-5 flex justify-between items-center" style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
-                    <div>
+                <div class="mt-5 flex justify-between items-center" style="border-top: 1px solid var(--border-color); padding-top: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+                        <a href="{{ route('candidate-profile.print', $selectedRecordDetails->id) }}" 
+                           target="_blank" 
+                           class="btn btn-primary" 
+                           style="display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 800; text-decoration: none; box-shadow: 0 4px 14px var(--primary-glow); padding: 0.55rem 1.25rem;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                                <rect x="6" y="14" width="12" height="8"></rect>
+                            </svg>
+                            <span>Download / Print Complete Dossier</span>
+                        </a>
+
                         @if(auth()->user()->hasRole('super-admin') && $selectedRecordDetails->user && auth()->id() !== $selectedRecordDetails->user->id && !$selectedRecordDetails->user->hasRole('super-admin'))
-                            <a href="{{ route('impersonate.start', $selectedRecordDetails->user->id) }}" class="btn btn-warning" style="display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 700; text-decoration: none;">
+                            <a href="{{ route('impersonate.start', $selectedRecordDetails->user->id) }}" class="btn btn-warning" style="display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 700; text-decoration: none; padding: 0.55rem 1.15rem;">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                                     <circle cx="9" cy="7" r="4"/>
@@ -940,7 +1001,7 @@
                             </a>
                         @endif
                     </div>
-                    <button type="button" class="btn btn-secondary" wire:click="$set('isDetailsOpen', false)" style="padding: 0.45rem 1.25rem;">Close Dossier Vault</button>
+                    <button type="button" class="btn btn-secondary" wire:click="$set('isDetailsOpen', false)" style="padding: 0.55rem 1.35rem; font-weight: 700;">Close Dossier Vault</button>
                 </div>
             </div>
         @endif

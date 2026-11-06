@@ -382,7 +382,7 @@
                             </div>
                         @endif
                         <h2 style="font-size: 1.05rem; font-weight: 700; color: #334155; margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em;">
-                            Official Master Administrative Application Dossier & Scrutiny Record
+                            {{ $letterhead_dossier_title_admin ?: 'Official Master Administrative Application Dossier & Scrutiny Record' }}
                         </h2>
                         @if(!empty($letterhead_custom_details))
                             <div style="font-size: 0.78rem; color: #64748b; margin-top: 0.2rem; line-height: 1.35;">
@@ -523,6 +523,47 @@
                     @error('letterhead_custom_details')
                         <div style="color: var(--danger); font-size: 0.78rem; font-weight: 700; margin-top: 0.25rem;">{{ $message }}</div>
                     @enderror
+                </div>
+
+                <!-- Row 4: Document Titles for Admin Dossier & Candidate Form -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+                    <div>
+                        <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                            <span>Administrative Dossier Document Title (Admin View)</span>
+                            <x-help-hint type="inline" 
+                                         variant="info" 
+                                         title="Admin Dossier Document Title" 
+                                         text="Title printed beneath letterhead when downloaded by Staff, Registrar, or Scrutiny Officers." 
+                                         example="Default: Official Master Administrative Application Dossier & Scrutiny Record" />
+                        </label>
+                        <input type="text" 
+                               wire:model.live="letterhead_dossier_title_admin" 
+                               class="form-control" 
+                               placeholder="Official Master Administrative Application Dossier & Scrutiny Record" 
+                               style="font-size: 0.88rem; font-weight: 600; padding: 0.65rem 1rem;">
+                        @error('letterhead_dossier_title_admin')
+                            <div style="color: var(--danger); font-size: 0.78rem; font-weight: 700; margin-top: 0.25rem;">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                            <span>Candidate Application Form Title (Applicant View)</span>
+                            <x-help-hint type="inline" 
+                                         variant="info" 
+                                         title="Candidate Application Form Title" 
+                                         text="Title printed beneath letterhead when downloaded directly by the candidate from their applicant portal." 
+                                         example="Default: Official Application Form for Employment" />
+                        </label>
+                        <input type="text" 
+                               wire:model.live="letterhead_dossier_title_candidate" 
+                               class="form-control" 
+                               placeholder="Official Application Form for Employment" 
+                               style="font-size: 0.88rem; font-weight: 600; padding: 0.65rem 1rem;">
+                        @error('letterhead_dossier_title_candidate')
+                            <div style="color: var(--danger); font-size: 0.78rem; font-weight: 700; margin-top: 0.25rem;">{{ $message }}</div>
+                        @enderror
+                    </div>
                 </div>
 
                 <!-- Save Bar for Letterhead -->

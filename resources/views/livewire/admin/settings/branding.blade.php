@@ -50,7 +50,7 @@
 
     {{-- System Help Callout --}}
     <x-help-hint type="callout" variant="info" title="Global Dynamic Design System Architecture">
-        Settings modified here are dynamically rendered via CSS custom properties across the whole application. Changing the primary color, corner radius, typography, or card elevation immediately transforms the login page, candidate portal, scrutiny desk, selection board, and administrative consoles.
+        Settings modified here are dynamically rendered via CSS custom properties across the entire web interface (portal themes, colors, typography, login splash, and navbar brand logos). To customize official printable letterheads, institution legal crests, and document titles for printed candidate dossiers, call letters, and merit gazettes, visit the <a href="#" wire:click.prevent="setTab('organization')" style="color: var(--primary); font-weight: 800; text-decoration: underline;">Institution &amp; Sector</a> tab.
     </x-help-hint>
 
     <form wire:submit.prevent="saveBrandingSettings" style="margin-top: 1.5rem;">

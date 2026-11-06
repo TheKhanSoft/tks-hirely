@@ -359,13 +359,20 @@ class SystemSetting extends Model
     public static function getLetterheadLogo(): string
     {
         $logo = self::get('letterhead_logo');
-        if (!empty($logo)) {
+        if (!empty($logo) && $logo !== '/images/logo-icon.svg') {
             if (str_starts_with($logo, 'http://') || str_starts_with($logo, 'https://') || str_starts_with($logo, '/')) {
                 return $logo;
             }
             return asset('storage/' . $logo);
         }
-        return self::getAppLogo();
+
+        // Fallback to institutional application logo if uploaded
+        $appLogo = self::getAppLogo();
+        if (!empty($appLogo) && $appLogo !== '/images/logo-icon.svg') {
+            return $appLogo;
+        }
+
+        return $logo ?: '/images/logo-icon.svg';
     }
 
     /**
@@ -374,16 +381,30 @@ class SystemSetting extends Model
     public static function getLetterheadDetails(): array
     {
         $orgName = self::getOrgName();
-        $location = (string) self::get('org_location', 'National Directorate');
-        $office = (string) self::get('org_office_title', 'Recruitment & Statutory Selection Directorate');
+        $location = (string) self::get('org_location', '');
+        $office = (string) self::get('org_office_title', 'Office of the Registrar');
+
+        $savedHeading = (string) self::get('letterhead_heading', '');
+        $genericHeadings = [
+            'Hirely Higher Education & Recruitment Commission',
+            'Hirely Recruitment Management System',
+            'Hirely Higher Education Commission',
+            '',
+        ];
+
+        $effectiveHeading = (!empty($savedHeading) && !in_array(trim($savedHeading), $genericHeadings))
+            ? $savedHeading
+            : $orgName;
 
         return [
-            'heading' => (string) self::get('letterhead_heading', 'Hirely Higher Education & Recruitment Commission'),
+            'heading' => $effectiveHeading,
             'subheading' => (string) self::get('letterhead_subheading', $location),
             'office' => (string) self::get('letterhead_office', $office),
             'logo' => self::getLetterheadLogo(),
-            'custom_details' => (string) self::get('letterhead_custom_details', "Central Secretariat & Statutory Directorate\nWebsite: https://hirely.app • Email: support@hirely.app • Verification Portal: https://hirely.app/verify"),
+            'custom_details' => (string) self::get('letterhead_custom_details', ''),
             'layout' => (string) self::get('letterhead_layout', 'classic_left'),
+            'dossier_title_admin' => (string) self::get('letterhead_dossier_title_admin', 'Official Master Administrative Application Dossier & Scrutiny Record'),
+            'dossier_title_candidate' => (string) self::get('letterhead_dossier_title_candidate', 'Official Application Form for Employment'),
         ];
     }
 
