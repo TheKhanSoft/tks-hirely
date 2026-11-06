@@ -57,6 +57,18 @@
 </head>
 <body class="login-layout-{{ $loginLayout }} theme-density-{{ $themeVars['density'] }} theme-radius-{{ $themeVars['radiusStyle'] }}" style="display: flex; align-items: center; justify-content: center; min-height: 100vh; position: relative; padding: 1.5rem 1rem;">
 
+    <!-- Floating Header Controls (Theme Toggle) -->
+    <div style="position: absolute; top: 1.25rem; right: 1.5rem; z-index: 50; display: flex; align-items: center; gap: 0.5rem;">
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 9999px; padding: 3px 6px; display: flex; align-items: center; gap: 3px; box-shadow: var(--shadow-sm); backdrop-filter: blur(12px);">
+            <button type="button" onclick="setLoginTheme('light')" id="themeBtnLight" title="Light Theme" style="background: none; border: none; border-radius: 9999px; padding: 0.35rem 0.65rem; font-size: 0.76rem; font-weight: 700; color: var(--color-text-secondary); cursor: pointer; display: flex; align-items: center; gap: 0.3rem; transition: all 0.2s;">
+                <span>☀️</span> <span>Light</span>
+            </button>
+            <button type="button" onclick="setLoginTheme('dark')" id="themeBtnDark" title="Dark Theme" style="background: none; border: none; border-radius: 9999px; padding: 0.35rem 0.65rem; font-size: 0.76rem; font-weight: 700; color: var(--color-text-secondary); cursor: pointer; display: flex; align-items: center; gap: 0.3rem; transition: all 0.2s;">
+                <span>🌙</span> <span>Dark</span>
+            </button>
+        </div>
+    </div>
+
     @if($loginLayout !== 'minimalist')
         <!-- Ambient Backdrop Mesh Glows -->
         <div style="position: absolute; width: 550px; height: 550px; border-radius: 50%; background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%); top: 5%; left: 10%; pointer-events: none; filter: blur(70px); opacity: 0.45;"></div>
@@ -92,63 +104,72 @@
             <!-- SPLIT MODERN DUAL-COLUMN HERO -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; align-items: stretch;">
                 
-                <!-- Left Showcase Column: Institutional Profile & Features -->
-                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; padding: 2.25rem 2rem; background: linear-gradient(145deg, rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.72)); border: 1.5px solid var(--border-color); border-radius: var(--radius-lg); position: relative; overflow: hidden;">
+                <!-- Left Showcase Column: Institutional Profile & Features (Crisp Dark Theme Card) -->
+                <div class="card auth-showcase-card" style="display: flex; flex-direction: column; justify-content: space-between; padding: 2.25rem 2rem; background: linear-gradient(150deg, #0b1120 0%, #1e1b4b 60%, #090d16 100%) !important; border: 1.5px solid rgba(255, 255, 255, 0.12) !important; border-radius: var(--radius-lg); position: relative; overflow: hidden; box-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.45) !important;">
                     <!-- Ambient Inner Glow -->
                     <div style="position: absolute; width: 220px; height: 220px; border-radius: 50%; background: var(--primary-glow); top: -40px; right: -40px; pointer-events: none; filter: blur(50px); opacity: 0.35;"></div>
                     
                     <div>
                         <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1.75rem;">
-                            <div class="brand-icon-box" style="width: 48px; height: 48px; padding: 0; background: transparent; box-shadow: none; display: flex; align-items: center; justify-content: center;">
-                                <img src="{{ $sysAppLogo }}" alt="{{ $sysAppName }}" width="48" height="48" style="border-radius: 12px; box-shadow: 0 8px 24px var(--primary-glow); display: block; object-fit: contain;">
+                            <div class="brand-icon-box" style="width: 50px; height: 50px; padding: 0; background: transparent; box-shadow: none; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <img src="{{ $sysAppLogo }}" alt="{{ $sysAppName }}" width="50" height="50" style="border-radius: 12px; box-shadow: 0 8px 24px var(--primary-glow); display: block; object-fit: contain;">
                             </div>
                             <div>
-                                <div style="font-size: 0.74rem; font-weight: 800; text-transform: uppercase; color: var(--secondary); letter-spacing: 0.06em;">Official Institutional Portal</div>
-                                <h2 style="font-size: 1.45rem; font-weight: 900; color: var(--color-text-primary); margin: 0; line-height: 1.2;">{{ strtoupper($sysAppName) }}</h2>
+                                <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #38bdf8; letter-spacing: 0.08em; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                    <span>🛡️</span>
+                                    <span>OFFICIAL INSTITUTIONAL PORTAL</span>
+                                </div>
+                                <h2 style="font-size: 1.5rem; font-weight: 900; color: #ffffff !important; margin: 0; line-height: 1.2; letter-spacing: -0.02em;">
+                                    {{ strtoupper($sysAppName) }}
+                                </h2>
+                                <div style="font-size: 0.78rem; color: #cbd5e1; font-weight: 600; margin-top: 0.15rem;">
+                                    {{ $orgShortName }} • {{ $orgName }}
+                                </div>
                             </div>
                         </div>
 
-                        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--color-text-primary); line-height: 1.4; margin-bottom: 0.65rem;">
-                            Statutory Faculty & Executive Recruitment Operating System
+                        <h3 style="font-size: 1.22rem; font-weight: 800; color: #f8fafc !important; line-height: 1.38; margin-bottom: 0.75rem;">
+                            Statutory Faculty &amp; Executive Recruitment Operating System
                         </h3>
-                        <p style="font-size: 0.86rem; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 1.75rem;">
+                        <p style="font-size: 0.88rem; color: #cbd5e1 !important; line-height: 1.6; margin-bottom: 1.75rem;">
                             {{ $sysTagline }} — Engineered for merit-based academic appointments, statutory scrutiny vetting, peer review evaluations, and automated selection board proceedings.
                         </p>
 
                         <!-- Key Institutional Governance Pillars -->
-                        <div style="display: flex; flex-direction: column; gap: 0.85rem;">
-                            <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-                                <div style="width: 26px; height: 26px; border-radius: 6px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; flex-shrink: 0;">✓</div>
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div style="display: flex; align-items: flex-start; gap: 0.85rem;">
+                                <div style="width: 28px; height: 28px; border-radius: 7px; background: rgba(99, 102, 241, 0.25); border: 1px solid rgba(99, 102, 241, 0.4); color: #a5b4fc; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 900; flex-shrink: 0;">✓</div>
                                 <div>
-                                    <div style="font-size: 0.84rem; font-weight: 700; color: var(--color-text-primary);">HEC Statutory Criteria Alignment</div>
-                                    <div style="font-size: 0.76rem; color: var(--color-text-muted);">Division restrictions, terminal degree cutoffs, and minimum qualification rules.</div>
+                                    <div style="font-size: 0.88rem; font-weight: 700; color: #ffffff !important;">HEC Statutory Criteria Alignment</div>
+                                    <div style="font-size: 0.78rem; color: #94a3b8 !important; line-height: 1.45;">Division restrictions, terminal degree cutoffs, and minimum qualification rules.</div>
                                 </div>
                             </div>
 
-                            <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-                                <div style="width: 26px; height: 26px; border-radius: 6px; background: var(--secondary-light); color: var(--secondary); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; flex-shrink: 0;">✓</div>
+                            <div style="display: flex; align-items: flex-start; gap: 0.85rem;">
+                                <div style="width: 28px; height: 28px; border-radius: 7px; background: rgba(6, 182, 212, 0.25); border: 1px solid rgba(6, 182, 212, 0.4); color: #67e8f9; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 900; flex-shrink: 0;">✓</div>
                                 <div>
-                                    <div style="font-size: 0.84rem; font-weight: 700; color: var(--color-text-primary);">Confidential Blind Peer Review</div>
-                                    <div style="font-size: 0.76rem; color: var(--color-text-muted);">Empanelled international & national referee scoring with statutory consensus reports.</div>
+                                    <div style="font-size: 0.88rem; font-weight: 700; color: #ffffff !important;">Confidential Blind Peer Review</div>
+                                    <div style="font-size: 0.78rem; color: #94a3b8 !important; line-height: 1.45;">Empanelled international &amp; national referee scoring with statutory consensus reports.</div>
                                 </div>
                             </div>
 
-                            <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-                                <div style="width: 26px; height: 26px; border-radius: 6px; background: rgba(16, 185, 129, 0.14); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; flex-shrink: 0;">✓</div>
+                            <div style="display: flex; align-items: flex-start; gap: 0.85rem;">
+                                <div style="width: 28px; height: 28px; border-radius: 7px; background: rgba(16, 185, 129, 0.25); border: 1px solid rgba(16, 185, 129, 0.4); color: #6ee7b7; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 900; flex-shrink: 0;">✓</div>
                                 <div>
-                                    <div style="font-size: 0.84rem; font-weight: 700; color: var(--color-text-primary);">Automated 1Link & 1Bill Verification</div>
-                                    <div style="font-size: 0.76rem; color: var(--color-text-muted);">Real-time candidate challan settlement with grace period enforcement.</div>
+                                    <div style="font-size: 0.88rem; font-weight: 700; color: #ffffff !important;">Automated 1Link &amp; 1Bill Verification</div>
+                                    <div style="font-size: 0.78rem; color: #94a3b8 !important; line-height: 1.45;">Real-time candidate challan settlement with grace period enforcement.</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div style="margin-top: 2rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
-                        <span class="badge badge-emerald" style="font-size: 0.72rem; font-weight: 800;">
-                            ● Active Recruitment Drives Live
+                    <div style="margin-top: 2rem; padding-top: 1.25rem; border-top: 1px solid rgba(255, 255, 255, 0.12); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+                        <span style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.65rem; border-radius: 9999px; background: rgba(16, 185, 129, 0.18); border: 1px solid rgba(16, 185, 129, 0.35); font-size: 0.72rem; font-weight: 800; color: #34d399;">
+                            <span style="width: 6px; height: 6px; border-radius: 50%; background: #34d399; box-shadow: 0 0 8px #34d399;"></span>
+                            <span>Active Recruitment Drives Live</span>
                         </span>
                         @if(!empty($orgWebsite))
-                            <a href="{{ $orgWebsite }}" target="_blank" style="font-size: 0.76rem; color: var(--secondary); text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem;">
+                            <a href="{{ $orgWebsite }}" target="_blank" style="font-size: 0.78rem; color: #38bdf8; text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 0.3rem;">
                                 <span>Institution Web</span>
                                 <span>&rarr;</span>
                             </a>
@@ -191,5 +212,37 @@
 
     </div>
 
+    <script>
+        function setLoginTheme(mode) {
+            localStorage.setItem('theme', mode);
+            if (mode === 'dark') {
+                document.documentElement.classList.remove('light');
+            } else {
+                document.documentElement.classList.add('light');
+            }
+            updateThemeButtons();
+        }
+
+        function updateThemeButtons() {
+            const isLight = document.documentElement.classList.contains('light');
+            const lightBtn = document.getElementById('themeBtnLight');
+            const darkBtn = document.getElementById('themeBtnDark');
+            if (lightBtn && darkBtn) {
+                if (isLight) {
+                    lightBtn.style.background = 'var(--primary)';
+                    lightBtn.style.color = '#ffffff';
+                    darkBtn.style.background = 'transparent';
+                    darkBtn.style.color = 'var(--color-text-secondary)';
+                } else {
+                    darkBtn.style.background = 'var(--primary)';
+                    darkBtn.style.color = '#ffffff';
+                    lightBtn.style.background = 'transparent';
+                    lightBtn.style.color = 'var(--color-text-secondary)';
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', updateThemeButtons);
+    </script>
 </body>
 </html>

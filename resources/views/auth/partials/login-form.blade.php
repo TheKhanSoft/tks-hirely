@@ -46,38 +46,38 @@
 
 <!-- 1-Click Sandbox Fast Switch -->
 <div style="border-top: 1px solid var(--border-color); padding-top: 1.15rem; margin-top: 1.25rem;">
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.65rem;">
-        <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--secondary);">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.65rem; flex-wrap: wrap; gap: 0.25rem;">
+        <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--secondary);">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
             </svg>
             <span>1-Click Sandbox Fast Switch</span>
         </div>
-        <span style="font-size: 0.7rem; color: var(--color-text-muted);">Click to Autofill</span>
+        <span style="font-size: 0.7rem; color: var(--color-text-muted); font-weight: 600;">Click role to autofill</span>
     </div>
 
-    <div class="quick-sandbox-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.5rem;">
-        <button type="button" class="quick-sandbox-chip" onclick="selectDemoAccount('registrar@university.edu', 'Registrar')">
+    <div class="quick-sandbox-grid" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem;">
+        <button type="button" class="quick-sandbox-chip" onclick="selectDemoAccount('registrar@university.edu', 'Registrar')" title="Click to autofill: registrar@university.edu" style="border-left: 3px solid #6366f1;">
             <strong>🏛️ Registrar</strong>
             <span>registrar@university.edu</span>
         </button>
-        <button type="button" class="quick-sandbox-chip" onclick="selectDemoAccount('applicant1@gmail.com', 'Applicant')">
+        <button type="button" class="quick-sandbox-chip" onclick="selectDemoAccount('applicant1@gmail.com', 'Applicant')" title="Click to autofill: applicant1@gmail.com" style="border-left: 3px solid #8b5cf6;">
             <strong>👤 Candidate 1</strong>
             <span>applicant1@gmail.com</span>
         </button>
-        <button type="button" class="quick-sandbox-chip" onclick="selectDemoAccount('scrutiny1@university.edu', 'Scrutiny Officer')">
+        <button type="button" class="quick-sandbox-chip" onclick="selectDemoAccount('scrutiny1@university.edu', 'Scrutiny Officer')" title="Click to autofill: scrutiny1@university.edu" style="border-left: 3px solid #0ea5e9;">
             <strong>🔍 Scrutiny Officer</strong>
             <span>scrutiny1@university.edu</span>
         </button>
-        <button type="button" class="quick-sandbox-chip" onclick="selectDemoAccount('appellate1@university.edu', 'Appellate Panel')">
+        <button type="button" class="quick-sandbox-chip" onclick="selectDemoAccount('appellate1@university.edu', 'Appellate Panel')" title="Click to autofill: appellate1@university.edu" style="border-left: 3px solid #f59e0b;">
             <strong>⚖️ Appellate Panel</strong>
             <span>appellate1@university.edu</span>
         </button>
-        <button type="button" class="quick-sandbox-chip" onclick="selectDemoAccount('board1@university.edu', 'Selection Board')">
+        <button type="button" class="quick-sandbox-chip" onclick="selectDemoAccount('board1@university.edu', 'Selection Board')" title="Click to autofill: board1@university.edu" style="border-left: 3px solid #10b981;">
             <strong>⭐ Selection Board</strong>
             <span>board1@university.edu</span>
         </button>
-        <button type="button" class="quick-sandbox-chip" onclick="selectDemoAccount('superadmin@university.edu', 'Super Admin')">
+        <button type="button" class="quick-sandbox-chip" onclick="selectDemoAccount('superadmin@university.edu', 'Super Admin')" title="Click to autofill: superadmin@university.edu" style="border-left: 3px solid #e11d48;">
             <strong>⚡ Super Admin</strong>
             <span>superadmin@university.edu</span>
         </button>
@@ -86,25 +86,25 @@
 
 <!-- Helpdesk & Candidate Facilitation Channel -->
 @if(!empty($supportEmail) || !empty($supportPhone) || !empty($supportWhatsapp) || !empty($helpdeskLocation))
-<div style="margin-top: 1.25rem; padding: 0.9rem 1rem; border-radius: var(--radius-sm); background: var(--bg-surface); border: 1px solid var(--border-color); font-size: 0.8rem;">
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.45rem;">
-        <div style="font-weight: 800; color: var(--color-text-primary); display: flex; align-items: center; gap: 0.4rem;">
+<div style="margin-top: 1.25rem; padding: 0.85rem 1rem; border-radius: var(--radius-sm); background: var(--bg-surface); border: 1px solid var(--border-color); font-size: 0.8rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.45rem; flex-wrap: wrap; gap: 0.35rem;">
+        <div style="font-weight: 800; color: var(--color-text-primary); display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem;">
             <span>🎧</span>
-            <span>Candidate Helpdesk & Inquiries</span>
+            <span>Candidate Helpdesk &amp; Inquiries</span>
         </div>
         @if(!empty($supportHours))
-            <span style="font-size: 0.72rem; color: var(--color-text-muted);">{{ $supportHours }}</span>
+            <span style="font-size: 0.72rem; color: var(--color-text-muted); font-weight: 600;">{{ $supportHours }}</span>
         @endif
     </div>
 
-    <div style="display: flex; flex-wrap: wrap; gap: 0.75rem 1.25rem; color: var(--color-text-secondary); margin-top: 0.4rem;">
+    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; color: var(--color-text-secondary); margin-top: 0.4rem; font-size: 0.78rem;">
         @if(!empty($supportEmail))
-            <a href="mailto:{{ $supportEmail }}" style="color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600;">
+            <a href="mailto:{{ $supportEmail }}" style="color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 700;">
                 <span>📧</span> <span>{{ $supportEmail }}</span>
             </a>
         @endif
         @if(!empty($supportPhone))
-            <a href="tel:{{ $supportPhone }}" style="color: var(--color-text-secondary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+            <a href="tel:{{ $supportPhone }}" style="color: var(--color-text-secondary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600;">
                 <span>📞</span> <span>{{ $supportPhone }}</span>
             </a>
         @endif
@@ -116,7 +116,7 @@
     </div>
 
     @if(!empty($helpdeskLocation))
-        <div style="margin-top: 0.4rem; font-size: 0.74rem; color: var(--color-text-muted); display: flex; align-items: center; gap: 0.35rem;">
+        <div style="margin-top: 0.45rem; font-size: 0.72rem; color: var(--color-text-muted); display: flex; align-items: center; gap: 0.35rem; border-top: 1px dotted var(--border-color); padding-top: 0.35rem;">
             <span>📍</span>
             <span>{{ $helpdeskLocation }}</span>
         </div>

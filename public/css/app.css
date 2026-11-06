@@ -1383,37 +1383,99 @@ html.light .metric-card:hover {
     margin-bottom: 1.5rem;
 }
 
+.auth-showcase-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 2.25rem 2rem;
+    background: linear-gradient(150deg, #0b1120 0%, #1e1b4b 60%, #090d16 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: var(--radius-lg);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.45) !important;
+    color: #ffffff !important;
+}
+
+.auth-showcase-card h2,
+.auth-showcase-card h3,
+.auth-showcase-card strong {
+    color: #ffffff !important;
+}
+
+.auth-showcase-card p,
+.auth-showcase-card .showcase-desc {
+    color: #cbd5e1 !important;
+}
+
+.auth-showcase-card .showcase-muted {
+    color: #94a3b8 !important;
+}
+
 .quick-sandbox-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
     margin-top: 0.75rem;
 }
 
+@media (max-width: 480px) {
+    .quick-sandbox-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
 .quick-sandbox-chip {
-    background: var(--bg-btn-secondary);
+    background: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
-    padding: 0.5rem 0.65rem;
+    padding: 0.6rem 0.75rem;
     text-align: left;
     cursor: pointer;
-    transition: var(--transition-fast);
+    transition: all 0.18s ease;
     color: var(--color-text-secondary);
     font-size: 0.75rem;
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    position: relative;
 }
 
 .quick-sandbox-chip:hover {
-    background: var(--sidebar-link-active);
+    background: var(--bg-card);
     border-color: var(--primary);
-    color: var(--color-text-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.quick-sandbox-chip:active {
+    transform: translateY(0);
 }
 
 .quick-sandbox-chip strong {
     color: var(--color-text-primary);
-    font-size: 0.8rem;
+    font-size: 0.82rem;
+    font-weight: 700;
     margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+
+.quick-sandbox-chip span {
+    color: var(--color-text-muted);
+    font-size: 0.72rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+
+.quick-sandbox-chip:hover span {
+    color: var(--primary);
 }
 
 /* Utilities */
