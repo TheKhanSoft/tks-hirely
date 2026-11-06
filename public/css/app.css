@@ -2561,6 +2561,16 @@ html.light [data-tooltip]::after {
         grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     }
 }
+@media (min-width: 1260px) {
+    .entity-cards-grid.grid-3-cols {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
+@media (min-width: 1620px) {
+    .entity-cards-grid.grid-3-cols {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
 
 /* 4-to-5-column variant for compact cards like Users and Candidates */
 .entity-cards-grid.cols-compact {

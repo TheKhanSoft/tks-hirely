@@ -183,7 +183,7 @@ class PasswordResetManager
             'target_user_id' => $targetUser->id,
             'target_name' => $targetUser->display_name,
             'target_email' => $targetUser->email,
-            'temporary_password' => $plainPassword,
+            'temporary_password' => $method === 'email' ? null : $plainPassword,
             'method' => $method,
             'email_dispatched' => $emailDispatched,
             'email_error' => $emailError,

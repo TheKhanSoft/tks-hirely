@@ -140,6 +140,7 @@
             entity-name="Empanelled Reviewers"
             :can-export="true"
             :can-import="true"
+            grid-class="grid-3-cols"
         >
             <x-slot:filters>
                 @if(!empty($availableSubjects))

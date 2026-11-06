@@ -94,25 +94,40 @@
                         </p>
                     </div>
 
-                    <!-- Password Display Box -->
-                    <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem;">
-                        <div style="font-size: 0.78rem; text-transform: uppercase; font-weight: 700; color: var(--color-text-muted); margin-bottom: 0.45rem;">
-                            Temporary Generated Password
+                    <!-- Password Display / Delivery Feedback Box -->
+                    @if(($resetSuccessResult['method'] ?? '') === 'email')
+                        <div style="background: rgba(16,185,129,0.06); border: 1.5px solid rgba(16,185,129,0.3); border-radius: 10px; padding: 1.5rem; margin-bottom: 1.25rem; text-align: center;">
+                            <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(16,185,129,0.15); display: inline-flex; align-items: center; justify-content: center; color: var(--success); font-size: 1.4rem; margin-bottom: 0.6rem;">
+                                ✉️
+                            </div>
+                            <div style="font-weight: 800; font-size: 1.05rem; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                                Credentials Dispatched to {{ $resetSuccessResult['target_email'] }}
+                            </div>
+                            <p style="font-size: 0.84rem; color: var(--color-text-muted); margin: 0 auto; line-height: 1.5; max-width: 480px;">
+                                A new secure temporary password has been generated and dispatched directly to the account holder's institutional email address. In accordance with zero-knowledge security policies, the password is not revealed on screen.
+                            </p>
                         </div>
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; background: var(--bg-card); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-color);"
-                             x-data="{ copied: false }">
-                            <span style="font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 1.2rem; font-weight: 800; color: var(--primary); letter-spacing: 1px;">
-                                {{ $resetSuccessResult['temporary_password'] }}
-                            </span>
-                            <button type="button" 
-                                    class="btn btn-secondary btn-sm"
-                                    @click="navigator.clipboard.writeText('{{ $resetSuccessResult['temporary_password'] }}'); copied = true; setTimeout(() => copied = false, 2500);"
-                                    style="padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem;">
-                                <span x-show="!copied">📋 Copy Password</span>
-                                <span x-show="copied" style="color: var(--success); font-weight: 800;">✓ Copied!</span>
-                            </button>
+                    @else
+                        <!-- Password Display Box for Screen / WhatsApp Handover -->
+                        <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem;">
+                            <div style="font-size: 0.78rem; text-transform: uppercase; font-weight: 700; color: var(--color-text-muted); margin-bottom: 0.45rem;">
+                                Temporary Generated Password
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; background: var(--bg-card); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-color);"
+                                 x-data="{ copied: false }">
+                                <span style="font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 1.2rem; font-weight: 800; color: var(--primary); letter-spacing: 1px;">
+                                    {{ $resetSuccessResult['temporary_password'] }}
+                                </span>
+                                <button type="button" 
+                                        class="btn btn-secondary btn-sm"
+                                        @click="navigator.clipboard.writeText('{{ $resetSuccessResult['temporary_password'] }}'); copied = true; setTimeout(() => copied = false, 2500);"
+                                        style="padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                    <span x-show="!copied">📋 Copy Password</span>
+                                    <span x-show="copied" style="color: var(--success); font-weight: 800;">✓ Copied!</span>
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    @endif
 
                     <!-- Dispatch Delivery Feedback -->
                     <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.15rem; margin-bottom: 1.5rem;">
@@ -206,46 +221,65 @@
                         </div>
                     </div>
 
-                    <!-- Password Configuration -->
-                    <div style="margin-bottom: 1.35rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem;">
-                            <label style="font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-secondary); margin: 0;">
-                                2. New Temporary Password *
-                            </label>
-                            <button type="button" 
-                                    class="btn btn-secondary btn-sm" 
-                                    wire:click="regenerateResetPassword"
-                                    style="padding: 0.2rem 0.55rem; font-size: 0.74rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.3rem;">
-                                <span>↻ Re-generate</span>
-                            </button>
-                        </div>
-
-                        <div style="display: flex; gap: 0.5rem; align-items: center;">
-                            <input type="text" 
-                                   class="form-control" 
-                                   wire:model="resetPlainPassword" 
-                                   style="font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 1.05rem; font-weight: 800; color: var(--primary); letter-spacing: 0.5px;"
-                                   placeholder="e.g. Hirely#123456">
-                        </div>
-                        <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.35rem;">
-                            You may keep the auto-generated password or type a custom alphanumeric string (min 6 characters).
-                        </div>
-                    </div>
-
-                    <!-- Security Alert Policy Checkbox -->
-                    <div style="background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1.5rem;">
-                        <label style="display: flex; align-items: flex-start; gap: 0.65rem; cursor: pointer; margin: 0;">
-                            <input type="checkbox" wire:model="resetAlwaysSendEmail" style="width: 1.15rem; height: 1.15rem; margin-top: 0.15rem; accent-color: var(--primary);">
-                            <div>
-                                <span style="font-weight: 700; font-size: 0.84rem; color: var(--color-text-primary);">
-                                    Send security audit notification email to {{ $resetTargetUser->email }}
-                                </span>
-                                <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.15rem;">
-                                    Informs the account holder that an administrative password reset was executed by the Registrar's Office.
+                    @if($resetMethod === 'email')
+                        <!-- Zero-Knowledge Security Notice for Email Delivery -->
+                        <div style="background: rgba(99,102,241,0.06); border: 1.5px dashed rgba(99,102,241,0.3); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.35rem;">
+                            <div style="display: flex; align-items: flex-start; gap: 0.85rem;">
+                                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(99,102,241,0.15); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.2rem; flex-shrink: 0;">
+                                    🔒
+                                </div>
+                                <div>
+                                    <div style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary); margin-bottom: 0.25rem;">
+                                        Zero-Knowledge Secure Email Delivery
+                                    </div>
+                                    <div style="font-size: 0.8rem; color: var(--color-text-secondary); line-height: 1.5;">
+                                        A cryptographically secure, high-entropy temporary password will be generated automatically by the server and sent directly to <strong>{{ $resetTargetUser->email }}</strong>. For privacy and compliance, the password is not revealed on screen.
+                                    </div>
                                 </div>
                             </div>
-                        </label>
-                    </div>
+                        </div>
+                    @else
+                        <!-- Password Configuration for WhatsApp / Screen Handover -->
+                        <div style="margin-bottom: 1.35rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem;">
+                                <label style="font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-secondary); margin: 0;">
+                                    2. New Temporary Password *
+                                </label>
+                                <button type="button" 
+                                        class="btn btn-secondary btn-sm" 
+                                        wire:click="regenerateResetPassword"
+                                        style="padding: 0.2rem 0.55rem; font-size: 0.74rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.3rem;">
+                                    <span>↻ Re-generate</span>
+                                </button>
+                            </div>
+
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <input type="text" 
+                                       class="form-control" 
+                                       wire:model="resetPlainPassword" 
+                                       style="font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 1.05rem; font-weight: 800; color: var(--primary); letter-spacing: 0.5px;"
+                                       placeholder="e.g. Hirely#123456">
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.35rem;">
+                                You may keep the auto-generated password or type a custom alphanumeric string (min 6 characters).
+                            </div>
+                        </div>
+
+                        <!-- Security Alert Policy Checkbox -->
+                        <div style="background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1.5rem;">
+                            <label style="display: flex; align-items: flex-start; gap: 0.65rem; cursor: pointer; margin: 0;">
+                                <input type="checkbox" wire:model="resetAlwaysSendEmail" style="width: 1.15rem; height: 1.15rem; margin-top: 0.15rem; accent-color: var(--primary);">
+                                <div>
+                                    <span style="font-weight: 700; font-size: 0.84rem; color: var(--color-text-primary);">
+                                        Send security audit notification email to {{ $resetTargetUser->email }}
+                                    </span>
+                                    <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.15rem;">
+                                        Informs the account holder that an administrative password reset was executed by the Registrar's Office.
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    @endif
 
                     <!-- Actions -->
                     <div style="display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
@@ -257,8 +291,13 @@
                                 wire:click="executePasswordReset"
                                 wire:loading.attr="disabled"
                                 style="padding: 0.55rem 1.65rem; font-weight: 800; display: inline-flex; align-items: center; gap: 0.45rem; box-shadow: 0 4px 14px rgba(99,102,241,0.4);">
-                            <span wire:loading.remove wire:target="executePasswordReset">Confirm & Reset Password</span>
-                            <span wire:loading wire:target="executePasswordReset">Processing Reset...</span>
+                            @if($resetMethod === 'email')
+                                <span wire:loading.remove wire:target="executePasswordReset">Generate & Send Password to Email</span>
+                                <span wire:loading wire:target="executePasswordReset">Generating & Sending...</span>
+                            @else
+                                <span wire:loading.remove wire:target="executePasswordReset">Confirm & Reset Password</span>
+                                <span wire:loading wire:target="executePasswordReset">Processing Reset...</span>
+                            @endif
                         </button>
                     </div>
                 </div>

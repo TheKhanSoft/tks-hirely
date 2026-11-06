@@ -293,7 +293,7 @@
                 <div style="padding: 1.15rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
                     <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem;">
                         <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
-                            Terminal Degree Minimum CGPA (4.00 Scale)
+                            Terminal Degree Minimum CGPA
                         </span>
                         <x-help-hint type="inline" 
                                      variant="statutory" 
@@ -308,6 +308,8 @@
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                         <input type="number" 
                                step="0.01" 
+                               min="0.00"
+                               max="4.00"
                                wire:model.live="global_min_terminal_cgpa" 
                                placeholder="e.g. 3.00" 
                                class="form-control" 

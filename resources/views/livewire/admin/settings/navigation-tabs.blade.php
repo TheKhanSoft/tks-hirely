@@ -91,6 +91,17 @@
             'icon' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>',
         ],
         [
+            'id' => 'email_templates',
+            'slug' => 'email-templates',
+            'url' => $basePrefix . '/settings/email-templates',
+            'label' => 'Email Templates & Triggers',
+            'badge' => 'Communications',
+            'subtitle' => 'Official templates, trigger toggles & custom desk',
+            'color' => '#8b5cf6',
+            'bg' => 'rgba(139, 92, 246, 0.12)',
+            'icon' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+        ],
+        [
             'id' => 'security',
             'slug' => 'security',
             'url' => $basePrefix . '/settings/security',

@@ -111,6 +111,10 @@ class SpatieRoleAndPermissionSeeder extends Seeder
 
             // System Settings, Workflows & Analytics
             'manage-settings',
+            'manage-email-templates',
+            'view-email-templates',
+            'send-custom-email',
+            'toggle-email-triggers',
             'manage-security-settings',
             'manage-system-maintenance',
             'view-system-health',

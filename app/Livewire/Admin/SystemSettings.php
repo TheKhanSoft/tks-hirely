@@ -173,6 +173,35 @@ class SystemSettings extends Component
     public $sms_trigger_interview_call = true;
     public $test_sms_recipient = '';
 
+    // ✉️ Email Templates & Custom Dispatch Desk
+    public $templateRecipientFilter = 'ALL';
+    public $templateSearch = '';
+    public $selectedTemplateId = null;
+    public $template_name = '';
+    public $template_subject = '';
+    public $template_preheader = '';
+    public $template_body = '';
+    public $template_is_trigger_enabled = true;
+    public $template_placeholders = [];
+    public $isTemplateModalOpen = false;
+
+    public $isPreviewModalOpen = false;
+    public $previewHtml = '';
+    public $previewSubject = '';
+    public $previewTemplateName = '';
+
+    // Custom Email Composer
+    public $isCustomEmailModalOpen = false;
+    public $custom_recipient_type = 'custom'; // 'candidate', 'reviewer', 'board', 'custom'
+    public $custom_recipient_user_id = null;
+    public $custom_recipient_email = '';
+    public $custom_recipient_name = '';
+    public $custom_subject = '';
+    public $custom_body = '';
+    public $custom_selected_template_slug = '';
+    public $custom_action_url = '';
+    public $custom_action_text = '';
+
     public function mount($tab = null)
     {
         abort_unless(Auth::check() && (Auth::user()->hasRole('super-admin') || Auth::user()->can('manage-settings')), 403);
@@ -199,6 +228,7 @@ class SystemSettings extends Component
             'email', 'mail', 'smtp', 'notifications', 'sms' => 'email',
             'security', 'sec', 'auth', 'access', 'session', 'passwords' => 'security',
             'system', 'maintenance', 'diagnostics', 'health', 'cache' => 'system',
+            'email-templates', 'email_templates', 'templates', 'template', 'communications' => 'email_templates',
             default => 'pipeline',
         };
     }
@@ -216,6 +246,7 @@ class SystemSettings extends Component
             'email' => 'email',
             'security' => 'security',
             'system' => 'system',
+            'email_templates' => 'email-templates',
             default => 'workflows',
         };
         $prefix = request()->is('registrar*') ? '/registrar' : '/admin';
@@ -1186,9 +1217,362 @@ class SystemSettings extends Component
         ]);
     }
 
+    // =========================================================================
+    // ✉️ EMAIL TEMPLATES & COMMUNICATIONS ACTIONS
+    // =========================================================================
+
+    public function toggleTemplateTrigger($id)
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('toggle-email-triggers') || Auth::user()->can('manage-email-templates'), 403);
+        $template = \App\Models\EmailTemplate::findOrFail($id);
+        $newState = $template->toggleTrigger();
+
+        session()->flash('message', "Trigger for [{$template->name}] is now " . ($newState ? 'ENABLED (Automated emails active).' : 'DISABLED (Automated emails paused).'));
+    }
+
+    public function openEditTemplateModal($id)
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('manage-email-templates'), 403);
+        $template = \App\Models\EmailTemplate::findOrFail($id);
+        $this->selectedTemplateId = $template->id;
+        $this->template_name = $template->name;
+        $this->template_subject = $template->subject;
+        $this->template_preheader = $template->preheader ?? '';
+        $this->template_body = $template->body_html;
+        $this->template_is_trigger_enabled = $template->is_trigger_enabled;
+        $this->template_placeholders = $template->placeholders ?? [];
+        $this->isTemplateModalOpen = true;
+    }
+
+    public function closeTemplateModal()
+    {
+        $this->isTemplateModalOpen = false;
+        $this->selectedTemplateId = null;
+    }
+
+    public function saveTemplate()
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('manage-email-templates'), 403);
+        $this->validate([
+            'template_subject' => 'required|string|max:255',
+            'template_body' => 'required|string',
+        ]);
+
+        $template = \App\Models\EmailTemplate::findOrFail($this->selectedTemplateId);
+        $template->update([
+            'subject' => $this->template_subject,
+            'preheader' => $this->template_preheader,
+            'body_html' => $this->template_body,
+            'is_trigger_enabled' => (bool)$this->template_is_trigger_enabled,
+            'last_updated_by' => Auth::id(),
+        ]);
+
+        $this->isTemplateModalOpen = false;
+        session()->flash('message', "Email Template [{$template->name}] successfully updated.");
+    }
+
+    public function resetTemplateToDefault($id)
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('manage-email-templates'), 403);
+        $template = \App\Models\EmailTemplate::findOrFail($id);
+        $allDefaults = \App\Models\EmailTemplate::getDefaultTemplateDefinitions();
+        $def = collect($allDefaults)->firstWhere('slug', $template->slug);
+
+        if ($def) {
+            $template->update([
+                'subject' => $def['subject'],
+                'preheader' => $def['preheader'] ?? null,
+                'body_html' => $def['body_html'],
+                'is_trigger_enabled' => true,
+                'last_updated_by' => Auth::id(),
+            ]);
+
+            $this->template_subject = $def['subject'];
+            $this->template_preheader = $def['preheader'] ?? '';
+            $this->template_body = $def['body_html'];
+            $this->template_is_trigger_enabled = true;
+
+            session()->flash('message', "Template [{$template->name}] restored to statutory default layout.");
+        }
+    }
+
+    public function openPreviewModal($id)
+    {
+        $template = \App\Models\EmailTemplate::findOrFail($id);
+        $this->previewTemplateName = $template->name;
+        $this->previewSubject = $template->renderSubject();
+        $this->previewHtml = $template->renderHtml([
+            '{recipient_name}' => 'Dr. Muhammad Bilal',
+            '{recipient_email}' => 'candidate.bilal@example.edu.pk',
+            '{temporary_password}' => 'SecuredPass!2026',
+            '{reset_url}' => url('/password/reset/sample-token'),
+            '{token_expiry}' => '60 minutes',
+            '{changed_at}' => now()->format('d M Y, h:i A T'),
+            '{reset_method}' => 'Self-Service Security Reset',
+            '{job_title}' => 'Assistant Professor - Computer Science',
+            '{job_code}' => 'CS-FAC-2026',
+            '{tracking_number}' => 'APP-2026-CS-0042',
+            '{department}' => 'Department of Computing & Data Science',
+            '{submission_date}' => now()->format('d M Y'),
+            '{dossier_url}' => url('/candidate/dashboard'),
+            '{consumer_id}' => '100088921004',
+            '{amount}' => '3,000',
+            '{currency}' => 'PKR',
+            '{due_date}' => now()->addDays(15)->format('d M Y'),
+            '{download_voucher_url}' => url('/vouchers/sample-download'),
+            '{transaction_id}' => '1BILL-99428-TXN',
+            '{amount_paid}' => 'PKR 3,000.00',
+            '{settled_at}' => now()->format('d M Y, h:i A'),
+            '{receipt_url}' => url('/candidate/dashboard'),
+            '{scrutiny_status}' => 'ELIGIBLE',
+            '{scrutiny_remarks}' => 'All academic degrees, PEC/HEC accreditations, and required research articles verified in HEC W-Category journals.',
+            '{appeal_deadline}' => now()->addDays(7)->format('d M Y'),
+            '{appeal_url}' => url('/candidate/appeals'),
+            '{appeal_outcome}' => 'APPEAL UPHELD — CANDIDATE ELIGIBLE',
+            '{appellate_remarks}' => 'Appellate Committee verified original HEC equivalence certificate dated 15 Jan 2026.',
+            '{decision_date}' => now()->format('d M Y'),
+            '{interview_date}' => now()->addDays(14)->format('l, d F Y'),
+            '{reporting_time}' => '09:00 AM PKT',
+            '{venue}' => 'Syndicate Conference Hall, Toru Road, Main Campus',
+            '{required_documents}' => 'All original degree transcripts, experience certificates, research papers, and CNIC',
+            '{call_letter_download_url}' => url('/candidate/call-letter/sample'),
+            '{basic_pay_scale}' => 'BPS-19',
+            '{offer_reference_no}' => 'AWKUM/REG/STAT-APPT/2026-88',
+            '{acceptance_deadline}' => now()->addDays(10)->format('d M Y'),
+            '{next_steps}' => 'Submit medical fitness certificate from Standing Medical Board within 10 days.',
+            '{reviewer_name}' => 'Prof. Dr. Sarah Connor',
+            '{reviewer_rank}' => 'Tenured Professor',
+            '{university}' => 'Massachusetts Institute of Technology (MIT)',
+            '{candidate_cadre}' => 'Professor of Computer Science (BPS-21 / TTS)',
+            '{honorarium_details}' => 'PKR 25,000 / USD $100 per vetted dossier',
+            '{portal_url}' => url('/reviewer/portal'),
+            '{dossier_code}' => 'DOSSIER-CS-04',
+            '{specialization}' => 'Artificial Intelligence & Large Scale Distributed Systems',
+            '{publications_count}' => '14',
+            '{days_remaining}' => '5 days',
+            '{review_desk_url}' => url('/reviewer/portal'),
+            '{submission_timestamp}' => now()->format('d M Y, h:i A T'),
+            '{member_name}' => 'Prof. Dr. Tariq Aziz',
+            '{meeting_date}' => now()->addDays(12)->format('d M Y'),
+            '{meeting_time}' => '10:00 AM PKT',
+            '{meeting_venue}' => 'Executive Syndicate Hall, Registrar Directorate',
+            '{meeting_agenda}' => 'Statutory Selection of Assistant Professors in Department of Computer Science',
+            '{candidate_dockets_url}' => url('/board/grading'),
+            '{committee_title}' => 'Statutory Qualification Scrutiny Board',
+            '{campaign_title}' => 'Assistant Professor - Computer Science',
+            '{statutory_role}' => 'Subject Specialist & Evaluator',
+        ]);
+        $this->isPreviewModalOpen = true;
+    }
+
+    public function closePreviewModal()
+    {
+        $this->isPreviewModalOpen = false;
+        $this->previewHtml = '';
+    }
+
+    public function openCustomEmailModal(?string $templateSlug = null)
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('send-custom-email'), 403);
+        $this->custom_recipient_type = 'custom';
+        $this->custom_recipient_user_id = null;
+        $this->custom_recipient_email = '';
+        $this->custom_recipient_name = '';
+        $this->custom_subject = '';
+        $this->custom_body = '';
+        $this->custom_selected_template_slug = $templateSlug ?? '';
+
+        if (!empty($templateSlug)) {
+            $this->loadTemplateForCustomEmail();
+        }
+
+        $this->isCustomEmailModalOpen = true;
+    }
+
+    public function closeCustomEmailModal()
+    {
+        $this->isCustomEmailModalOpen = false;
+    }
+
+    public function loadTemplateForCustomEmail()
+    {
+        if (empty($this->custom_selected_template_slug)) {
+            return;
+        }
+
+        $tmpl = \App\Models\EmailTemplate::getBySlug($this->custom_selected_template_slug);
+        if ($tmpl) {
+            $this->custom_subject = $tmpl->subject;
+            $this->custom_body = $tmpl->body_html;
+        }
+    }
+
+    public function updatedCustomRecipientUserId($userId)
+    {
+        if (empty($userId)) return;
+
+        $user = \App\Models\User::find($userId);
+        if ($user) {
+            $this->custom_recipient_email = $user->email;
+            $this->custom_recipient_name = $user->reviewerProfile?->name 
+                ?? ($user->basicInfo ? ($user->basicInfo->first_name . ' ' . $user->basicInfo->last_name) : $user->email);
+        }
+    }
+
+    public function sendCustomEmailAction()
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('send-custom-email'), 403);
+
+        $this->validate([
+            'custom_recipient_email' => 'required|email|max:255',
+            'custom_subject' => 'required|string|max:255',
+            'custom_body' => 'required|string|min:5',
+        ]);
+
+        $recipientUser = !empty($this->custom_recipient_user_id) 
+            ? \App\Models\User::find($this->custom_recipient_user_id) 
+            : \App\Models\User::where('email', $this->custom_recipient_email)->first();
+
+        $result = \App\Services\MailNotificationService::sendCustomEmail(
+            recipientEmail: trim($this->custom_recipient_email),
+            subject: $this->custom_subject,
+            bodyHtml: $this->custom_body,
+            recipientName: $this->custom_recipient_name ?: null,
+            recipientUser: $recipientUser,
+            senderUser: Auth::user()
+        );
+
+        if ($result['status'] === 'sent') {
+            $this->isCustomEmailModalOpen = false;
+            session()->flash('message', "✓ Custom email dispatched successfully to {$this->custom_recipient_email}.");
+        } else {
+            session()->flash('error', "Failed to dispatch email: " . ($result['message'] ?? 'Unknown mail server error.'));
+        }
+    }
+
+    public function sendTestTemplateEmail($templateId)
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('manage-email-templates'), 403);
+
+        $template = \App\Models\EmailTemplate::findOrFail($templateId);
+        $testEmail = Auth::user()->email;
+
+        $result = \App\Services\MailNotificationService::sendTemplate(
+            slug: $template->slug,
+            recipientEmail: $testEmail,
+            variables: [
+                '{recipient_name}' => Auth::user()->name ?? 'Administrator',
+                '{candidate_name}' => 'Candidate Demo',
+                '{job_title}' => 'Assistant Professor - Computer Science',
+                '{tracking_number}' => 'APP-2026-TEST-01',
+                '{dossier_url}' => url('/candidate/dashboard'),
+                '{consumer_id}' => '100099881122',
+                '{amount}' => '3,000',
+                '{currency}' => 'PKR',
+                '{due_date}' => now()->addDays(14)->format('d M Y'),
+                '{download_voucher_url}' => url('/vouchers/test'),
+                '{transaction_id}' => 'TEST-TXN-12345',
+                '{amount_paid}' => 'PKR 3,000.00',
+                '{settled_at}' => now()->format('d M Y H:i'),
+                '{receipt_url}' => url('/candidate/dashboard'),
+                '{scrutiny_status}' => 'ELIGIBLE',
+                '{scrutiny_remarks}' => 'Test verification verified according to statutory rules.',
+                '{appeal_deadline}' => now()->addDays(7)->format('d M Y'),
+                '{appeal_url}' => url('/candidate/appeals'),
+                '{appeal_outcome}' => 'APPEAL UPHELD',
+                '{appellate_remarks}' => 'Test appellate review order verified.',
+                '{decision_date}' => now()->format('d M Y'),
+                '{interview_date}' => now()->addDays(10)->format('d M Y'),
+                '{reporting_time}' => '09:30 AM',
+                '{venue}' => 'Executive Syndicate Hall',
+                '{required_documents}' => 'Original degrees and credentials',
+                '{call_letter_download_url}' => url('/candidate/call-letter'),
+                '{basic_pay_scale}' => 'BPS-19',
+                '{offer_reference_no}' => 'TEST-REF-9988',
+                '{acceptance_deadline}' => now()->addDays(14)->format('d M Y'),
+                '{next_steps}' => 'Follow medical and appointment guidelines.',
+                '{reviewer_name}' => Auth::user()->name ?? 'Dr. Expert Referee',
+                '{reviewer_rank}' => 'Professor',
+                '{university}' => 'National University of Sciences & Technology',
+                '{candidate_cadre}' => 'Assistant Professor of Computer Science',
+                '{honorarium_details}' => 'PKR 25,000',
+                '{portal_url}' => url('/reviewer/portal'),
+                '{dossier_code}' => 'TEST-DOSSIER-01',
+                '{specialization}' => 'Computer Science & AI',
+                '{publications_count}' => '12',
+                '{days_remaining}' => '7 days',
+                '{review_desk_url}' => url('/reviewer/portal'),
+                '{submission_timestamp}' => now()->format('d M Y H:i T'),
+                '{member_name}' => Auth::user()->name ?? 'Board Member',
+                '{meeting_date}' => now()->addDays(7)->format('d M Y'),
+                '{meeting_time}' => '10:00 AM',
+                '{meeting_venue}' => 'Syndicate Room',
+                '{meeting_agenda}' => 'Statutory Faculty Selection',
+                '{candidate_dockets_url}' => url('/board/grading'),
+                '{committee_title}' => 'Selection Board Panel',
+                '{campaign_title}' => 'Assistant Professor - Computer Science',
+                '{statutory_role}' => 'Member',
+            ],
+            recipientUser: Auth::user(),
+            senderUser: Auth::user()
+        );
+
+        if ($result['status'] === 'sent') {
+            session()->flash('message', "✓ Test email for [{$template->name}] dispatched to your inbox ({$testEmail}).");
+        } elseif ($result['status'] === 'skipped') {
+            session()->flash('warning', "Notice: Trigger is currently disabled for this template. (Logged in email logs as skipped).");
+        } else {
+            session()->flash('error', "Could not send test email: " . ($result['message'] ?? 'Unknown error.'));
+        }
+    }
+
     public function render()
     {
-        return view('livewire.admin.system-settings')
-            ->layout('layouts.app', ['title' => 'System & Workflow Settings - Hirely']);
+        $emailTemplates = null;
+        $emailLogs = null;
+        $candidatesList = collect();
+        $reviewersList = collect();
+        $boardMembersList = collect();
+
+        if ($this->activeTab === 'email_templates') {
+            if (\Illuminate\Support\Facades\Schema::hasTable('email_templates')) {
+                $query = \App\Models\EmailTemplate::query();
+                if ($this->templateRecipientFilter !== 'ALL') {
+                    $query->where('recipient_group', $this->templateRecipientFilter);
+                }
+                if (!empty($this->templateSearch)) {
+                    $s = '%' . trim($this->templateSearch) . '%';
+                    $query->where(function($q) use ($s) {
+                        $q->where('name', 'like', $s)
+                          ->orWhere('slug', 'like', $s)
+                          ->orWhere('subject', 'like', $s);
+                    });
+                }
+                $emailTemplates = $query->orderBy('recipient_group')->orderBy('name')->get();
+            }
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('email_logs')) {
+                $emailLogs = \App\Models\EmailLog::latest('id')->take(8)->get();
+            }
+
+            $candidatesList = \App\Models\User::whereHas('roles', fn($q) => $q->where('name', 'applicant'))
+                ->with('basicInfo')
+                ->take(40)
+                ->get();
+
+            $reviewersList = \App\Models\ReviewerProfile::with('user')->take(40)->get();
+
+            $boardMembersList = \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['selection-board-member', 'board-member', 'scrutiny-committee']))
+                ->take(40)
+                ->get();
+        }
+
+        return view('livewire.admin.system-settings', [
+            'emailTemplates' => $emailTemplates,
+            'emailLogs' => $emailLogs,
+            'candidatesList' => $candidatesList,
+            'reviewersList' => $reviewersList,
+            'boardMembersList' => $boardMembersList,
+        ])->layout('layouts.app', ['title' => 'System & Workflow Settings - Hirely']);
     }
 }

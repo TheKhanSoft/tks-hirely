@@ -24,6 +24,9 @@ class DatabaseSeeder extends Seeder
         // 1. Run Spatie role seeder
         $this->call(SpatieRoleAndPermissionSeeder::class);
 
+        // 1b. Seed Official Email Templates & Triggers
+        $this->call(EmailTemplatesSeeder::class);
+
         // 2. Seed Default Accounts
         $users = [
             'superadmin@university.edu' => 'super-admin',

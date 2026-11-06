@@ -49,13 +49,28 @@ trait WithPasswordReset
 
         $this->resetTargetUserId = $targetUser->id;
         $this->resetTargetUser = $targetUser;
-        $this->resetPlainPassword = PasswordResetManager::generateTemporaryPassword();
+        $this->resetPlainPassword = '';
         $this->resetCustomPassword = '';
         $this->resetMethod = 'email';
         $this->resetAlwaysSendEmail = true;
         $this->resetSuccessResult = null;
         $this->resetErrorMessage = null;
         $this->showPasswordResetModal = true;
+    }
+
+    /**
+     * Handle delivery method changes.
+     */
+    public function updatedResetMethod($value)
+    {
+        if ($value !== 'email') {
+            if (empty($this->resetPlainPassword)) {
+                $this->resetPlainPassword = PasswordResetManager::generateTemporaryPassword();
+            }
+        } else {
+            $this->resetPlainPassword = '';
+            $this->resetCustomPassword = '';
+        }
     }
 
     /**
@@ -93,13 +108,19 @@ trait WithPasswordReset
 
         $targetUser = User::with(['roles', 'basicInfo', 'reviewerProfile'])->findOrFail($this->resetTargetUserId);
 
-        $passwordToSet = !empty(trim($this->resetCustomPassword)) 
-            ? trim($this->resetCustomPassword) 
-            : $this->resetPlainPassword;
+        if ($this->resetMethod === 'email') {
+            $passwordToSet = PasswordResetManager::generateTemporaryPassword();
+            $this->resetPlainPassword = '';
+            $this->resetCustomPassword = '';
+        } else {
+            $passwordToSet = !empty(trim($this->resetCustomPassword)) 
+                ? trim($this->resetCustomPassword) 
+                : $this->resetPlainPassword;
 
-        if (strlen($passwordToSet) < 6) {
-            $this->resetErrorMessage = 'The password must be at least 6 characters in length.';
-            return;
+            if (strlen($passwordToSet) < 6) {
+                $this->resetErrorMessage = 'The password must be at least 6 characters in length.';
+                return;
+            }
         }
 
         try {
