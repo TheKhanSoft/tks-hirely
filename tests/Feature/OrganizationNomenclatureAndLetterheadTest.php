@@ -50,8 +50,8 @@ class OrganizationNomenclatureAndLetterheadTest extends TestCase
 
     public function test_organization_full_and_short_name_defaults_and_helpers(): void
     {
-        $this->assertEquals('Abdul Wali Khan University Mardan', SystemSetting::getOrgName());
-        $this->assertEquals('AWKUM', SystemSetting::getOrgShortName());
+        $this->assertEquals('Hirely', SystemSetting::getOrgName());
+        $this->assertEquals('Hirely', SystemSetting::getOrgShortName());
 
         SystemSetting::set('org_name', 'University of Peshawar', 'organization', 'string');
         SystemSetting::set('org_short_name', 'UOP', 'organization', 'string');

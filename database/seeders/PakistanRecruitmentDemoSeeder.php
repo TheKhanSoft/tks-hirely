@@ -63,22 +63,23 @@ class PakistanRecruitmentDemoSeeder extends Seeder
         $registrar = User::where('email', 'registrar@university.edu')->first();
         $registrarId = $registrar?->id;
 
-        $facultyConst = CommitteeConstitution::where('slug', 'statutory-selection-committee-assistant-professor')->first()
+        $facultyConst = CommitteeConstitution::where('slug', 'statutory-selection-asst-prof')->first()
+            ?? CommitteeConstitution::where('slug', 'statutory-selection-committee-assistant-professor')->first()
             ?? CommitteeConstitution::first();
-        $profConst = CommitteeConstitution::where('slug', 'statutory-professorial-selection-board')->first()
-            ?? CommitteeConstitution::skip(1)->first()
+        $profConst = CommitteeConstitution::where('slug', 'statutory-selection-professorial')->first()
+            ?? CommitteeConstitution::where('slug', 'statutory-professorial-selection-board')->first()
             ?? $facultyConst;
-        $adminConst = CommitteeConstitution::where('slug', 'corporate-executive-leadership-panel')->first()
-            ?? CommitteeConstitution::skip(2)->first()
+        $adminConst = CommitteeConstitution::where('slug', 'university-statutory-officer-selection-board')->first()
             ?? $facultyConst;
-        $supportConst = CommitteeConstitution::where('slug', 'public-sector-service-selection-board')->first()
-            ?? CommitteeConstitution::skip(4)->first()
+        $supportConst = CommitteeConstitution::where('slug', 'university-support-selection-committee')->first()
             ?? $facultyConst;
 
-        $hecFlow = RecruitmentProcessFlow::where('slug', 'higher-education-standard-statutory-recruitment-pipeline')->first()
+        $hecFlow = RecruitmentProcessFlow::where('slug', 'academic-statutory-pipeline')->first()
+            ?? RecruitmentProcessFlow::where('slug', 'higher-education-standard-statutory-recruitment-pipeline')->first()
             ?? RecruitmentProcessFlow::first();
-        $publicFlow = RecruitmentProcessFlow::where('slug', 'public-sector-service-selection-pipeline')->first()
-            ?? RecruitmentProcessFlow::skip(2)->first()
+        $adminFlow = RecruitmentProcessFlow::where('slug', 'university-officer-statutory-pipeline')->first()
+            ?? $hecFlow;
+        $supportFlow = RecruitmentProcessFlow::where('slug', 'university-support-cadre-pipeline')->first()
             ?? $hecFlow;
 
         // ---------------------------------------------------------------------
@@ -295,7 +296,7 @@ class PakistanRecruitmentDemoSeeder extends Seeder
                 'is_active' => true,
                 'require_transcript_proof' => false,
                 'constitution_id' => $supportConst?->id,
-                'process_flow_id' => $publicFlow?->id,
+                'process_flow_id' => $supportFlow?->id,
                 'scoring_rules' => [
                     'trade_cert_points' => 10.0,
                     'require_transcript_proof' => false,
@@ -313,7 +314,7 @@ class PakistanRecruitmentDemoSeeder extends Seeder
                 'is_active' => true,
                 'require_transcript_proof' => false,
                 'constitution_id' => $supportConst?->id,
-                'process_flow_id' => $publicFlow?->id,
+                'process_flow_id' => $supportFlow?->id,
                 'scoring_rules' => [
                     'trade_cert_points' => 10.0,
                     'require_transcript_proof' => false,
@@ -331,7 +332,7 @@ class PakistanRecruitmentDemoSeeder extends Seeder
                 'is_active' => true,
                 'require_transcript_proof' => false,
                 'constitution_id' => $supportConst?->id,
-                'process_flow_id' => $publicFlow?->id,
+                'process_flow_id' => $supportFlow?->id,
                 'scoring_rules' => [
                     'trade_cert_points' => 10.0,
                     'require_transcript_proof' => false,
@@ -349,7 +350,7 @@ class PakistanRecruitmentDemoSeeder extends Seeder
                 'is_active' => true,
                 'require_transcript_proof' => false,
                 'constitution_id' => $supportConst?->id,
-                'process_flow_id' => $publicFlow?->id,
+                'process_flow_id' => $supportFlow?->id,
                 'scoring_rules' => [
                     'trade_cert_points' => 10.0,
                     'require_transcript_proof' => false,
@@ -367,7 +368,7 @@ class PakistanRecruitmentDemoSeeder extends Seeder
                 'is_active' => true,
                 'require_transcript_proof' => false,
                 'constitution_id' => $supportConst?->id,
-                'process_flow_id' => $publicFlow?->id,
+                'process_flow_id' => $supportFlow?->id,
                 'scoring_rules' => [
                     'trade_cert_points' => 10.0,
                     'require_transcript_proof' => false,
@@ -503,7 +504,7 @@ class PakistanRecruitmentDemoSeeder extends Seeder
                 'is_active' => true,
                 'require_transcript_proof' => false,
                 'constitution_id' => $adminConst?->id,
-                'process_flow_id' => $hecFlow?->id,
+                'process_flow_id' => $adminFlow?->id,
                 'scoring_rules' => [
                     'experience_years_weight' => 2.0,
                     'require_transcript_proof' => false,
@@ -521,7 +522,7 @@ class PakistanRecruitmentDemoSeeder extends Seeder
                 'is_active' => true,
                 'require_transcript_proof' => false,
                 'constitution_id' => $adminConst?->id,
-                'process_flow_id' => $hecFlow?->id,
+                'process_flow_id' => $adminFlow?->id,
                 'scoring_rules' => [
                     'experience_years_weight' => 1.5,
                     'require_transcript_proof' => false,
@@ -539,7 +540,7 @@ class PakistanRecruitmentDemoSeeder extends Seeder
                 'is_active' => true,
                 'require_transcript_proof' => false,
                 'constitution_id' => $adminConst?->id,
-                'process_flow_id' => $hecFlow?->id,
+                'process_flow_id' => $adminFlow?->id,
                 'scoring_rules' => [
                     'experience_years_weight' => 1.0,
                     'require_transcript_proof' => false,
@@ -557,7 +558,7 @@ class PakistanRecruitmentDemoSeeder extends Seeder
                 'is_active' => true,
                 'require_transcript_proof' => false,
                 'constitution_id' => $adminConst?->id,
-                'process_flow_id' => $hecFlow?->id,
+                'process_flow_id' => $adminFlow?->id,
                 'scoring_rules' => [
                     'experience_years_weight' => 2.0,
                     'require_transcript_proof' => false,
@@ -566,7 +567,7 @@ class PakistanRecruitmentDemoSeeder extends Seeder
             [
                 'advertisement_id' => $advertisements['55/2023']->id,
                 'job_code' => 'PRO-ASST-55',
-                'title' => 'Assistant Director Public Relations & Corporate Media (BPS-17)',
+                'title' => 'Assistant Director Public Relations & Institutional Media (BPS-17)',
                 'track_type' => 'ADMINISTRATIVE',
                 'department' => 'Public Relations Office',
                 'opening_date' => Carbon::parse('2023-03-01 09:00:00'),
@@ -575,7 +576,7 @@ class PakistanRecruitmentDemoSeeder extends Seeder
                 'is_active' => true,
                 'require_transcript_proof' => false,
                 'constitution_id' => $adminConst?->id,
-                'process_flow_id' => $hecFlow?->id,
+                'process_flow_id' => $adminFlow?->id,
                 'scoring_rules' => [
                     'experience_years_weight' => 1.0,
                     'require_transcript_proof' => false,

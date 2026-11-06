@@ -164,7 +164,7 @@ class SystemSettings extends Component
     // 📱 SMS & Multi-Channel Alert Gateway
     public $sms_enabled = false;
     public $sms_provider = 'twilio';
-    public $sms_sender_id = 'AWKUM-HR';
+    public $sms_sender_id = 'HIRELY';
     public $sms_api_key = '';
     public $sms_api_url = '';
     public $sms_trigger_app_submitted = true;
@@ -247,10 +247,10 @@ class SystemSettings extends Component
         $this->auto_lock_profile_on_voucher = (bool) SystemSetting::get('auto_lock_profile_on_voucher', true);
 
         // Organization
-        $this->org_name = SystemSetting::get('org_name', 'Abdul Wali Khan University Mardan');
-        $this->org_short_name = SystemSetting::get('org_short_name', 'AWKUM');
-        $this->org_location = SystemSetting::get('org_location', 'Khyber Pakhtunkhwa, Pakistan');
-        $this->org_office_title = SystemSetting::get('org_office_title', 'Office of the Registrar');
+        $this->org_name = SystemSetting::get('org_name', 'Hirely');
+        $this->org_short_name = SystemSetting::get('org_short_name', 'Hirely');
+        $this->org_location = SystemSetting::get('org_location', 'National Directorate');
+        $this->org_office_title = SystemSetting::get('org_office_title', 'Recruitment & Statutory Selection Directorate');
         $this->org_type = SystemSetting::get('org_type', 'HIGHER_EDUCATION');
         $this->sector_label = SystemSetting::get('sector_label', 'Department / Division');
         $this->currency_symbol = SystemSetting::get('currency_symbol', 'PKR');
@@ -261,7 +261,7 @@ class SystemSettings extends Component
         $this->letterhead_subheading = SystemSetting::get('letterhead_subheading', $this->org_location);
         $this->letterhead_office = SystemSetting::get('letterhead_office', $this->org_office_title);
         $this->letterhead_logo = SystemSetting::get('letterhead_logo', '/images/logo-icon.svg');
-        $this->letterhead_custom_details = SystemSetting::get('letterhead_custom_details', "Main Campus, Toru Road, Mardan, Khyber Pakhtunkhwa, Pakistan\nPhone: +92-937-9230611 • Fax: +92-937-9230612 • Web: www.awkum.edu.pk");
+        $this->letterhead_custom_details = SystemSetting::get('letterhead_custom_details', "Central Secretariat & Statutory Directorate\nWebsite: https://hirely.app • Email: support@hirely.app • Verification Portal: https://hirely.app/verify");
         $this->letterhead_layout = SystemSetting::get('letterhead_layout', 'classic_left');
 
         // App Branding & Identity
@@ -285,29 +285,29 @@ class SystemSettings extends Component
         $this->portal_announcement_enabled = (bool) SystemSetting::get('portal_announcement_enabled', false);
         $this->portal_announcement_type = SystemSetting::get('portal_announcement_type', 'info');
         $this->portal_announcement_message = SystemSetting::get('portal_announcement_message', '');
-        $this->footer_copyright_text = SystemSetting::get('footer_copyright_text', '© ' . date('Y') . ' Abdul Wali Khan University Mardan (AWKUM). All rights reserved.');
-        $this->footer_candidate_text = SystemSetting::get('footer_candidate_text', 'Candidate Facilitation Desk: For application guidance or voucher verification, contact support@hirely.edu.pk or helpline +92-51-9250000.');
-        $this->footer_admin_text = SystemSetting::get('footer_admin_text', 'Official Administrative Desk • Abdul Wali Khan University Mardan (AWKUM) • System Access Audited & Recorded.');
-        $this->footer_board_text = SystemSetting::get('footer_board_text', 'Statutory Selection Board Secretariat • Abdul Wali Khan University Mardan • Strictly Confidential Under University Act.');
+        $this->footer_copyright_text = SystemSetting::get('footer_copyright_text', '© ' . date('Y') . ' Hirely. All rights reserved.');
+        $this->footer_candidate_text = SystemSetting::get('footer_candidate_text', 'Candidate Facilitation Desk: For application guidance or voucher verification, contact support@hirely.app or submit an inquiry through the helpdesk.');
+        $this->footer_admin_text = SystemSetting::get('footer_admin_text', 'Official Administrative Desk • Hirely Enterprise OS • System Access Audited & Recorded.');
+        $this->footer_board_text = SystemSetting::get('footer_board_text', 'Statutory Selection Board Secretariat • Strictly Confidential & Privileged Record.');
         $this->footer_reviewer_text = SystemSetting::get('footer_reviewer_text', 'Academic Peer Evaluation Desk • External Referee Integrity • Blind Review Protocols Active.');
-        $this->letter_footer_text = SystemSetting::get('letter_footer_text', 'This is an official computer-generated document issued under the seal and authority of Abdul Wali Khan University Mardan (AWKUM). Any alteration, erasure, or unauthorized tampering renders this document null and void.');
-        $this->letter_footer_contact = SystemSetting::get('letter_footer_contact', 'Office of the Registrar, AWKUM • Tel: +92-937-9230611 • Web: www.awkum.edu.pk');
+        $this->letter_footer_text = SystemSetting::get('letter_footer_text', 'This is an official computer-generated document issued under statutory recruitment authority. Any alteration, erasure, or unauthorized tampering renders this document null and void.');
+        $this->letter_footer_contact = SystemSetting::get('letter_footer_contact', 'Recruitment Directorate • Candidate Records & Statutory Scrutiny Archive • Verification Portal: https://hirely.app');
         $this->letter_show_audit_trail = (bool) SystemSetting::get('letter_show_audit_trail', true);
         $this->letter_show_verify_ref = (bool) SystemSetting::get('letter_show_verify_ref', true);
 
         // Contact & Helpdesk
-        $this->support_email = SystemSetting::get('support_email', 'support@hirely.edu.pk');
-        $this->support_phone = SystemSetting::get('support_phone', '+92-51-9250000');
-        $this->support_whatsapp = SystemSetting::get('support_whatsapp', '+92-300-1234567');
-        $this->registrar_hotline = SystemSetting::get('registrar_hotline', '+92-51-9250001');
-        $this->support_hours = SystemSetting::get('support_hours', 'Monday to Friday: 08:30 AM – 04:30 PM PKT');
-        $this->helpdesk_location = SystemSetting::get('helpdesk_location', 'Recruitment & Facilitation Center, Academic Block B, Main Campus');
-        $this->org_website = SystemSetting::get('org_website', 'https://hirely.edu.pk');
+        $this->support_email = SystemSetting::get('support_email', 'support@hirely.app');
+        $this->support_phone = SystemSetting::get('support_phone', '+1 (800) 555-0199');
+        $this->support_whatsapp = SystemSetting::get('support_whatsapp', '');
+        $this->registrar_hotline = SystemSetting::get('registrar_hotline', '');
+        $this->support_hours = SystemSetting::get('support_hours', 'Monday to Friday: 09:00 AM – 05:00 PM');
+        $this->helpdesk_location = SystemSetting::get('helpdesk_location', 'Central Recruitment & Candidate Facilitation Center');
+        $this->org_website = SystemSetting::get('org_website', 'https://hirely.app');
 
         // Email & Delivery
         $this->mail_from_name = SystemSetting::get('mail_from_name', 'Hirely Recruitment Desk');
-        $this->mail_from_address = SystemSetting::get('mail_from_address', 'noreply@hirely.edu.pk');
-        $this->mail_reply_to = SystemSetting::get('mail_reply_to', 'support@hirely.edu.pk');
+        $this->mail_from_address = SystemSetting::get('mail_from_address', 'noreply@hirely.app');
+        $this->mail_reply_to = SystemSetting::get('mail_reply_to', 'support@hirely.app');
         $this->mail_mailer = SystemSetting::get('mail_mailer', 'smtp');
         $this->mail_host = SystemSetting::get('mail_host', 'smtp.mailgun.org');
         $this->mail_port = (int) SystemSetting::get('mail_port', 587);
@@ -490,15 +490,15 @@ class SystemSettings extends Component
     public function resetLetterheadToDefault()
     {
         abort_unless(Auth::user()->can('manage-settings'), 403);
-        $this->letterhead_heading = $this->org_name ?: 'Abdul Wali Khan University Mardan';
-        $this->letterhead_subheading = $this->org_location ?: 'Khyber Pakhtunkhwa, Pakistan';
-        $this->letterhead_office = $this->org_office_title ?: 'Office of the Registrar';
+        $this->letterhead_heading = $this->org_name ?: 'Hirely Higher Education & Recruitment Commission';
+        $this->letterhead_subheading = $this->org_location ?: 'Statutory Recruitment & Merit Selection Directorate';
+        $this->letterhead_office = $this->org_office_title ?: 'Office of the Central Registrar & Selection Board Secretariat';
         $this->letterhead_logo = '/images/logo-icon.svg';
-        $this->letterhead_custom_details = "Main Campus, Toru Road, Mardan, Khyber Pakhtunkhwa, Pakistan\nPhone: +92-937-9230611 • Fax: +92-937-9230612 • Web: www.awkum.edu.pk";
+        $this->letterhead_custom_details = "Central Secretariat & Statutory Directorate\nWebsite: https://hirely.app • Email: support@hirely.app • Verification Portal: https://hirely.app/verify";
         $this->letterhead_layout = 'classic_left';
         $this->letterheadLogoUpload = null;
         $this->saveLetterheadSettings();
-        session()->flash('message', 'Letterhead header configuration restored to official university standards.');
+        session()->flash('message', 'Letterhead header configuration restored to official default standards.');
     }
 
     public function saveConstitutions()
@@ -733,17 +733,17 @@ class SystemSettings extends Component
     public function resetOrganizationToDefault()
     {
         abort_unless(Auth::user()->can('manage-settings'), 403);
-        $this->org_name = 'Abdul Wali Khan University Mardan';
-        $this->org_short_name = 'AWKUM';
-        $this->org_location = 'Khyber Pakhtunkhwa, Pakistan';
-        $this->org_office_title = 'Office of the Registrar';
+        $this->org_name = 'Hirely';
+        $this->org_short_name = 'Hirely';
+        $this->org_location = 'National Directorate';
+        $this->org_office_title = 'Recruitment & Statutory Selection Directorate';
         $this->org_type = 'HIGHER_EDUCATION';
         $this->sector_label = 'Department / Division';
         $this->currency_symbol = 'PKR';
         $this->default_application_fee = 3000;
         $this->saveOrganizationProfile();
         $this->resetLetterheadToDefault();
-        session()->flash('message', 'Organization sector profile, legal name, short name, and letterhead reset to university defaults.');
+        session()->flash('message', 'Organization profile, legal name, short name, and letterhead reset to default.');
     }
 
     public function resetAcademicCriteriaToDefault()
@@ -803,13 +803,13 @@ class SystemSettings extends Component
         $this->faviconUpload = null;
         $this->portal_announcement_enabled = false;
         $this->portal_announcement_message = '';
-        $this->footer_copyright_text = '© ' . date('Y') . ' Abdul Wali Khan University Mardan (AWKUM). All rights reserved.';
-        $this->footer_candidate_text = 'Candidate Facilitation Desk: For application guidance or voucher verification, contact support@hirely.edu.pk or helpline +92-51-9250000.';
-        $this->footer_admin_text = 'Official Administrative Desk • Abdul Wali Khan University Mardan (AWKUM) • System Access Audited & Recorded.';
-        $this->footer_board_text = 'Statutory Selection Board Secretariat • Abdul Wali Khan University Mardan • Strictly Confidential Under University Act.';
+        $this->footer_copyright_text = '© ' . date('Y') . ' Hirely. All rights reserved.';
+        $this->footer_candidate_text = 'Candidate Facilitation Desk: For application guidance or voucher verification, contact support@hirely.app or submit an inquiry through the helpdesk.';
+        $this->footer_admin_text = 'Official Administrative Desk • Hirely Enterprise OS • System Access Audited & Recorded.';
+        $this->footer_board_text = 'Statutory Selection Board Secretariat • Strictly Confidential & Privileged Record.';
         $this->footer_reviewer_text = 'Academic Peer Evaluation Desk • External Referee Integrity • Blind Review Protocols Active.';
-        $this->letter_footer_text = 'This is an official computer-generated document issued under the seal and authority of Abdul Wali Khan University Mardan (AWKUM). Any alteration, erasure, or unauthorized tampering renders this document null and void.';
-        $this->letter_footer_contact = 'Office of the Registrar, AWKUM • Tel: +92-937-9230611 • Web: www.awkum.edu.pk';
+        $this->letter_footer_text = 'This is an official computer-generated document issued under statutory recruitment authority. Any alteration, erasure, or unauthorized tampering renders this document null and void.';
+        $this->letter_footer_contact = 'Recruitment Directorate • Candidate Records & Statutory Scrutiny Archive • Verification Portal: https://hirely.app';
         $this->letter_show_audit_trail = true;
         $this->letter_show_verify_ref = true;
         $this->saveBrandingSettings();
@@ -819,23 +819,23 @@ class SystemSettings extends Component
     public function resetContactToDefault()
     {
         abort_unless(Auth::user()->can('manage-settings'), 403);
-        $this->support_email = 'support@hirely.edu.pk';
-        $this->support_phone = '+92-51-9250000';
-        $this->support_whatsapp = '+92-300-1234567';
-        $this->registrar_hotline = '+92-51-9250001';
-        $this->support_hours = 'Monday to Friday: 08:30 AM – 04:30 PM PKT';
-        $this->helpdesk_location = 'Recruitment & Facilitation Center, Academic Block B, Main Campus';
-        $this->org_website = 'https://hirely.edu.pk';
+        $this->support_email = 'support@hirely.app';
+        $this->support_phone = '+1 (800) 555-0199';
+        $this->support_whatsapp = '';
+        $this->registrar_hotline = '';
+        $this->support_hours = 'Monday to Friday: 09:00 AM – 05:00 PM';
+        $this->helpdesk_location = 'Central Recruitment & Candidate Facilitation Center';
+        $this->org_website = 'https://hirely.app';
         $this->saveContactSettings();
-        session()->flash('message', 'Helpdesk contact channels restored to standard institutional presets.');
+        session()->flash('message', 'Helpdesk contact channels restored to standard presets.');
     }
 
     public function resetEmailToDefault()
     {
         abort_unless(Auth::user()->can('manage-settings'), 403);
         $this->mail_from_name = 'Hirely Recruitment Desk';
-        $this->mail_from_address = 'noreply@hirely.edu.pk';
-        $this->mail_reply_to = 'support@hirely.edu.pk';
+        $this->mail_from_address = 'noreply@hirely.app';
+        $this->mail_reply_to = 'support@hirely.app';
         $this->mail_mailer = 'smtp';
         $this->mail_host = 'smtp.mailgun.org';
         $this->mail_port = 587;
@@ -1080,7 +1080,7 @@ class SystemSettings extends Component
         abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('manage-sms-settings'), 403);
         $this->sms_enabled = false;
         $this->sms_provider = 'twilio';
-        $this->sms_sender_id = 'AWKUM-HR';
+        $this->sms_sender_id = 'HIRELY';
         $this->sms_api_key = '';
         $this->sms_api_url = '';
         $this->sms_trigger_app_submitted = true;

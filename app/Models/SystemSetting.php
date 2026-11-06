@@ -313,7 +313,7 @@ class SystemSetting extends Model
      */
     public static function getOrgName(): string
     {
-        return (string) self::get('org_name', 'Abdul Wali Khan University Mardan');
+        return (string) self::get('org_name', 'Hirely');
     }
 
     /**
@@ -321,7 +321,7 @@ class SystemSetting extends Model
      */
     public static function getOrgShortName(): string
     {
-        return (string) self::get('org_short_name', 'AWKUM');
+        return (string) self::get('org_short_name', 'Hirely');
     }
 
     /**
@@ -345,15 +345,15 @@ class SystemSetting extends Model
     public static function getLetterheadDetails(): array
     {
         $orgName = self::getOrgName();
-        $location = (string) self::get('org_location', 'Khyber Pakhtunkhwa, Pakistan');
-        $office = (string) self::get('org_office_title', 'Office of the Registrar');
+        $location = (string) self::get('org_location', 'National Directorate');
+        $office = (string) self::get('org_office_title', 'Recruitment & Statutory Selection Directorate');
 
         return [
-            'heading' => (string) self::get('letterhead_heading', $orgName),
+            'heading' => (string) self::get('letterhead_heading', 'Hirely Higher Education & Recruitment Commission'),
             'subheading' => (string) self::get('letterhead_subheading', $location),
             'office' => (string) self::get('letterhead_office', $office),
             'logo' => self::getLetterheadLogo(),
-            'custom_details' => (string) self::get('letterhead_custom_details', "Main Campus, Toru Road, Mardan, Khyber Pakhtunkhwa, Pakistan\nPhone: +92-937-9230611 • Fax: +92-937-9230612 • Web: www.awkum.edu.pk"),
+            'custom_details' => (string) self::get('letterhead_custom_details', "Central Secretariat & Statutory Directorate\nWebsite: https://hirely.app • Email: support@hirely.app • Verification Portal: https://hirely.app/verify"),
             'layout' => (string) self::get('letterhead_layout', 'classic_left'),
         ];
     }
@@ -369,7 +369,7 @@ class SystemSetting extends Model
         return match ($portal) {
             'candidate', 'applicant' => (string) self::get(
                 'footer_candidate_text',
-                'Candidate Facilitation Desk: For application guidance or voucher verification, contact ' . self::get('support_email', 'support@hirely.edu.pk') . ' or helpline ' . self::get('support_phone', '+92-51-9250000') . '.'
+                'Candidate Facilitation Desk: For application guidance or voucher verification, contact ' . self::get('support_email', 'support@hirely.app') . '.'
             ),
             'admin', 'registrar' => (string) self::get(
                 'footer_admin_text',
@@ -377,7 +377,7 @@ class SystemSetting extends Model
             ),
             'board', 'scrutiny' => (string) self::get(
                 'footer_board_text',
-                "Statutory Selection Board Secretariat • {$orgName} • Strictly Confidential Under University Act."
+                "Statutory Selection Board Secretariat • Strictly Confidential & Privileged Record."
             ),
             'reviewer', 'peer_review' => (string) self::get(
                 'footer_reviewer_text',
@@ -405,7 +405,7 @@ class SystemSetting extends Model
             ),
             'contact' => (string) self::get(
                 'letter_footer_contact',
-                (string) self::get('org_office_title', 'Office of the Registrar') . ", {$orgShort} • Web: " . self::get('org_website', 'https://hirely.edu.pk')
+                'Recruitment Directorate • Candidate Records & Statutory Scrutiny Archive • Verification Portal: https://hirely.app'
             ),
             'show_audit' => (bool) self::get('letter_show_audit_trail', true),
             'show_verify_ref' => (bool) self::get('letter_show_verify_ref', true),
@@ -475,7 +475,7 @@ class SystemSetting extends Model
         return [
             'enabled' => (bool) self::get('sms_enabled', false),
             'provider' => (string) self::get('sms_provider', 'twilio'),
-            'sender_id' => (string) self::get('sms_sender_id', 'AWKUM-HR'),
+            'sender_id' => (string) self::get('sms_sender_id', 'HIRELY'),
             'api_key' => (string) self::get('sms_api_key', ''),
             'api_url' => (string) self::get('sms_api_url', ''),
             'trigger_app_submitted' => (bool) self::get('sms_trigger_app_submitted', true),
@@ -853,7 +853,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'footer_copyright_text',
-                'value' => '© ' . date('Y') . ' Abdul Wali Khan University Mardan (AWKUM). All rights reserved.',
+                'value' => '© ' . date('Y') . ' Hirely. All rights reserved.',
                 'group' => 'branding',
                 'type' => 'string',
                 'label' => 'Portal Footer Copyright Notice',
@@ -861,7 +861,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'footer_candidate_text',
-                'value' => 'Candidate Facilitation Desk: For application guidance or voucher verification, contact support@hirely.edu.pk or helpline +92-51-9250000.',
+                'value' => 'Candidate Facilitation Desk: For application guidance or voucher verification, contact support@hirely.app or submit an inquiry through the helpdesk.',
                 'group' => 'branding',
                 'type' => 'string',
                 'label' => 'Candidate Portal Footer Notice',
@@ -869,7 +869,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'footer_admin_text',
-                'value' => 'Official Administrative Desk • Abdul Wali Khan University Mardan (AWKUM) • System Access Audited & Recorded.',
+                'value' => 'Official Administrative Desk • Hirely Enterprise OS • System Access Audited & Recorded.',
                 'group' => 'branding',
                 'type' => 'string',
                 'label' => 'Admin & Registrar Portal Footer Notice',
@@ -877,7 +877,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'footer_board_text',
-                'value' => 'Statutory Selection Board Secretariat • Abdul Wali Khan University Mardan • Strictly Confidential Under University Act.',
+                'value' => 'Statutory Selection Board Secretariat • Strictly Confidential & Privileged Record.',
                 'group' => 'branding',
                 'type' => 'string',
                 'label' => 'Selection Board & Scrutiny Portal Footer Notice',
@@ -893,7 +893,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'letter_footer_text',
-                'value' => 'This is an official computer-generated document issued under the seal and authority of Abdul Wali Khan University Mardan (AWKUM). Any alteration, erasure, or unauthorized tampering renders this document null and void.',
+                'value' => 'This is an official computer-generated document issued under statutory recruitment authority. Any alteration, erasure, or unauthorized tampering renders this document null and void.',
                 'group' => 'branding',
                 'type' => 'string',
                 'label' => 'Printed Document Statutory Disclaimer',
@@ -901,7 +901,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'letter_footer_contact',
-                'value' => 'Office of the Registrar, AWKUM • Tel: +92-937-9230611 • Web: www.awkum.edu.pk',
+                'value' => 'Recruitment Directorate • Candidate Records & Statutory Scrutiny Archive • Verification Portal: https://hirely.app',
                 'group' => 'branding',
                 'type' => 'string',
                 'label' => 'Printed Document Footer Contact Line',
@@ -927,7 +927,7 @@ class SystemSetting extends Model
             // 📞 Contact & Helpdesk Channels
             [
                 'key' => 'support_email',
-                'value' => 'support@hirely.edu.pk',
+                'value' => 'support@hirely.app',
                 'group' => 'contact',
                 'type' => 'string',
                 'label' => 'Candidate Support & Inquiries Email',
@@ -935,7 +935,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'support_phone',
-                'value' => '+92-51-9250000',
+                'value' => '+1 (800) 555-0199',
                 'group' => 'contact',
                 'type' => 'string',
                 'label' => 'Recruitment Helpdesk Phone Line',
@@ -943,7 +943,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'support_whatsapp',
-                'value' => '+92-300-1234567',
+                'value' => '',
                 'group' => 'contact',
                 'type' => 'string',
                 'label' => 'WhatsApp Candidate Helpline',
@@ -951,7 +951,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'registrar_hotline',
-                'value' => '+92-51-9250001',
+                'value' => '',
                 'group' => 'contact',
                 'type' => 'string',
                 'label' => 'Registrar / Emergency Secretariat Hotline',
@@ -959,7 +959,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'support_hours',
-                'value' => 'Monday to Friday: 08:30 AM – 04:30 PM PKT',
+                'value' => 'Monday to Friday: 09:00 AM – 05:00 PM',
                 'group' => 'contact',
                 'type' => 'string',
                 'label' => 'Support Service Hours',
@@ -967,7 +967,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'helpdesk_location',
-                'value' => 'Recruitment & Facilitation Center, Academic Block B, Main Campus',
+                'value' => 'Central Recruitment & Candidate Facilitation Center',
                 'group' => 'contact',
                 'type' => 'string',
                 'label' => 'Physical Helpdesk & Facilitation Center',
@@ -975,7 +975,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'org_website',
-                'value' => 'https://hirely.edu.pk',
+                'value' => 'https://hirely.app',
                 'group' => 'contact',
                 'type' => 'string',
                 'label' => 'Official Organization / University Website',
@@ -993,7 +993,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'mail_from_address',
-                'value' => 'noreply@hirely.edu.pk',
+                'value' => 'noreply@hirely.app',
                 'group' => 'email',
                 'type' => 'string',
                 'label' => 'Default Mailer From Email Address',
@@ -1001,7 +1001,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'mail_reply_to',
-                'value' => 'support@hirely.edu.pk',
+                'value' => 'support@hirely.app',
                 'group' => 'email',
                 'type' => 'string',
                 'label' => 'Default Reply-To Email Address',
@@ -1058,7 +1058,7 @@ class SystemSetting extends Model
             // 🏢 Organization & Sector Profile
             [
                 'key' => 'org_name',
-                'value' => 'Abdul Wali Khan University Mardan',
+                'value' => 'Hirely',
                 'group' => 'organization',
                 'type' => 'string',
                 'label' => 'Organization / University Full Legal Name',
@@ -1066,7 +1066,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'org_short_name',
-                'value' => 'AWKUM',
+                'value' => 'Hirely',
                 'group' => 'organization',
                 'type' => 'string',
                 'label' => 'Organization Short Name / Acronym',
@@ -1074,7 +1074,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'org_location',
-                'value' => 'Khyber Pakhtunkhwa, Pakistan',
+                'value' => 'National Directorate',
                 'group' => 'organization',
                 'type' => 'string',
                 'label' => 'Institutional Jurisdiction / Location',
@@ -1082,7 +1082,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'org_office_title',
-                'value' => 'Office of the Registrar',
+                'value' => 'Recruitment & Statutory Selection Directorate',
                 'group' => 'organization',
                 'type' => 'string',
                 'label' => 'Executing Directorate / Office Name',
@@ -1090,7 +1090,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'letterhead_heading',
-                'value' => 'Abdul Wali Khan University Mardan',
+                'value' => 'Hirely Higher Education & Recruitment Commission',
                 'group' => 'organization',
                 'type' => 'string',
                 'label' => 'Primary Letterhead Title / Heading',
@@ -1098,7 +1098,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'letterhead_subheading',
-                'value' => 'Khyber Pakhtunkhwa, Pakistan',
+                'value' => 'Statutory Recruitment & Merit Selection Directorate',
                 'group' => 'organization',
                 'type' => 'string',
                 'label' => 'Letterhead Sub-Heading / Region',
@@ -1106,7 +1106,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'letterhead_office',
-                'value' => 'Office of the Registrar',
+                'value' => 'Office of the Central Registrar & Selection Board Secretariat',
                 'group' => 'organization',
                 'type' => 'string',
                 'label' => 'Letterhead Office / Directorate',
@@ -1122,7 +1122,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'letterhead_custom_details',
-                'value' => "Main Campus, Toru Road, Mardan, Khyber Pakhtunkhwa, Pakistan\nPhone: +92-937-9230611 • Fax: +92-937-9230612 • Web: www.awkum.edu.pk",
+                'value' => "Central Secretariat & Statutory Directorate\nWebsite: https://hirely.app • Email: support@hirely.app • Verification Portal: https://hirely.app/verify",
                 'group' => 'organization',
                 'type' => 'string',
                 'label' => 'Letterhead Rich Details / Contact Block',
@@ -1496,7 +1496,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'sms_sender_id',
-                'value' => 'AWKUM-HR',
+                'value' => 'HIRELY',
                 'group' => 'email',
                 'type' => 'string',
                 'label' => 'SMS Alphanumeric Sender ID / Mask',

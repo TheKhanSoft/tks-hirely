@@ -83,7 +83,7 @@ class AdvancedSystemSettingsAndSecurityGovernanceTest extends TestCase
 
         $sms = SystemSetting::getSmsGatewayDetails();
         $this->assertFalse($sms['enabled']);
-        $this->assertEquals('AWKUM-HR', $sms['sender_id']);
+        $this->assertEquals('HIRELY', $sms['sender_id']);
     }
 
     public function test_super_admin_can_save_security_policies(): void

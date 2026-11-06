@@ -166,7 +166,7 @@ class CampaignCommitteeAllocationTest extends TestCase
         $this->actingAs($this->registrar);
 
         $scrutiny2 = User::where('email', 'scrutiny2@university.edu')->first();
-        $external2 = User::where('email', 'engr.tariq.aziz@telecom.gov.pk')->first();
+        $external2 = User::where('email', 'engr.tariq.aziz@nust.edu.pk')->orWhere('email', 'engr.tariq.aziz@telecom.gov.pk')->first();
 
         $component = Livewire::test(CampaignCrud::class)
             ->set('activeTab', 'committees')

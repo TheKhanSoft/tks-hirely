@@ -148,12 +148,12 @@ class SystemSettingsThemeAndResetTest extends TestCase
         Livewire::actingAs($this->superAdmin)
             ->test(SystemSettings::class)
             ->call('resetOrganizationToDefault')
-            ->assertSet('org_name', 'Abdul Wali Khan University Mardan')
+            ->assertSet('org_name', 'Hirely')
             ->assertSet('currency_symbol', 'PKR')
             ->assertSet('sector_label', 'Department / Division')
             ->assertSet('default_application_fee', 3000);
 
-        $this->assertEquals('Abdul Wali Khan University Mardan', SystemSetting::get('org_name'));
+        $this->assertEquals('Hirely', SystemSetting::get('org_name'));
         $this->assertEquals('PKR', SystemSetting::get('currency_symbol'));
     }
 
@@ -208,17 +208,16 @@ class SystemSettingsThemeAndResetTest extends TestCase
         Livewire::actingAs($this->superAdmin)
             ->test(SystemSettings::class)
             ->call('resetContactToDefault')
-            ->assertSet('support_email', 'support@hirely.edu.pk')
-            ->assertSet('support_phone', '+92-51-9250000');
+            ->assertSet('support_email', 'support@hirely.app');
 
         Livewire::actingAs($this->superAdmin)
             ->test(SystemSettings::class)
             ->call('resetEmailToDefault')
             ->assertSet('mail_mailer', 'smtp')
             ->assertSet('mail_from_name', 'Hirely Recruitment Desk')
-            ->assertSet('mail_from_address', 'noreply@hirely.edu.pk');
+            ->assertSet('mail_from_address', 'noreply@hirely.app');
 
-        $this->assertEquals('support@hirely.edu.pk', SystemSetting::get('support_email'));
+        $this->assertEquals('support@hirely.app', SystemSetting::get('support_email'));
         $this->assertEquals('smtp', SystemSetting::get('mail_mailer'));
     }
 

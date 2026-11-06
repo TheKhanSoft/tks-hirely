@@ -18,6 +18,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // 0. Seed Default Hirely Platform Settings
+        \App\Models\SystemSetting::seedDefaultSettings();
+
         // 1. Run Spatie role seeder
         $this->call(SpatieRoleAndPermissionSeeder::class);
 
@@ -122,13 +125,13 @@ class DatabaseSeeder extends Seeder
                 'role' => 'selection-board-member'
             ],
             [
-                'email' => 'engr.tariq.aziz@telecom.gov.pk',
-                'name' => 'Engr. Tariq Aziz',
+                'email' => 'engr.tariq.aziz@nust.edu.pk',
+                'name' => 'Engr. Prof. Tariq Aziz',
                 'subject' => 'Information Technology & Networks',
-                'rank' => 'Director Technology Operations',
-                'institution' => 'Federal Telecommunications Authority / Partner Office',
+                'rank' => 'Professor & Chair of IT Infrastructure',
+                'institution' => 'National University of Sciences & Technology (NUST)',
                 'country' => 'Pakistan',
-                'specialization' => 'National IT Infrastructure, Cyber Policy & Telecom Engineering',
+                'specialization' => 'National University IT Infrastructure, Cyber Defense & Telecom Systems',
                 'role' => 'selection-board-member'
             ],
             [
