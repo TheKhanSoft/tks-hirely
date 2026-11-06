@@ -37,14 +37,14 @@ class AppServiceProvider extends ServiceProvider
         // Dynamic Runtime Mail Configuration Injection from System Settings
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('system_settings')) {
-                $mailHost = \App\Models\SystemSetting::get('mail_host');
-                $mailFromAddress = \App\Models\SystemSetting::get('mail_from_address');
-                $mailFromName = \App\Models\SystemSetting::get('mail_from_name');
-                $mailPort = \App\Models\SystemSetting::get('mail_port');
-                $mailEncryption = \App\Models\SystemSetting::get('mail_encryption');
-                $mailUsername = \App\Models\SystemSetting::get('mail_username');
-                $mailPassword = \App\Models\SystemSetting::get('mail_password');
-                $mailDriver = \App\Models\SystemSetting::get('mail_mailer', 'smtp');
+                $mailHost = \App\Models\SystemSetting::get('mail_host', env('MAIL_HOST', '127.0.0.1'));
+                $mailFromAddress = \App\Models\SystemSetting::get('mail_from_address', env('MAIL_FROM_ADDRESS'));
+                $mailFromName = \App\Models\SystemSetting::get('mail_from_name', env('MAIL_FROM_NAME'));
+                $mailPort = \App\Models\SystemSetting::get('mail_port', env('MAIL_PORT', 1025));
+                $mailEncryption = \App\Models\SystemSetting::get('mail_encryption', env('MAIL_ENCRYPTION', 'none'));
+                $mailUsername = \App\Models\SystemSetting::get('mail_username', env('MAIL_USERNAME'));
+                $mailPassword = \App\Models\SystemSetting::get('mail_password', env('MAIL_PASSWORD'));
+                $mailDriver = \App\Models\SystemSetting::get('mail_mailer', env('MAIL_MAILER', 'smtp'));
 
                 if (!empty($mailFromAddress)) {
                     config([
@@ -57,7 +57,7 @@ class AppServiceProvider extends ServiceProvider
                     config([
                         'mail.default' => $mailDriver ?: 'smtp',
                         'mail.mailers.smtp.host' => $mailHost,
-                        'mail.mailers.smtp.port' => (int) ($mailPort ?: 587),
+                        'mail.mailers.smtp.port' => (int) ($mailPort ?: 1025),
                         'mail.mailers.smtp.encryption' => ($mailEncryption === 'none' || empty($mailEncryption)) ? null : $mailEncryption,
                         'mail.mailers.smtp.username' => $mailUsername ?: null,
                         'mail.mailers.smtp.password' => $mailPassword ?: null,
