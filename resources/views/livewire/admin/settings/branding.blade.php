@@ -472,6 +472,68 @@
                     @error('app_description') <div style="color: var(--danger); font-size: 0.78rem; font-weight: 700; margin-top: 0.25rem;">{{ $message }}</div> @enderror
                     <small style="color: var(--color-text-secondary); font-size: 0.78rem; display: block; margin-top: 0.25rem;">Summary text used for browser search engine indexing and footer credits.</small>
                 </div>
+
+                <!-- Regional Formatting, Timezone & Portal Identification -->
+                <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px dashed var(--border-color); display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem;">
+                    <!-- Tracking Number Prefix -->
+                    <div>
+                        <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                            <span>Dossier Tracking Prefix</span>
+                        </label>
+                        <input type="text" 
+                               wire:model="app_tracking_prefix" 
+                               class="form-control" 
+                               placeholder="e.g. APP- or AWKUM-" 
+                               style="font-size: 0.90rem; font-weight: 700; padding: 0.55rem 0.85rem;">
+                        <small style="color: var(--color-text-secondary); font-size: 0.75rem; display: block; margin-top: 0.25rem;">e.g. {{ $app_tracking_prefix ?? 'APP-' }}00142</small>
+                    </div>
+
+                    <!-- Date Format -->
+                    <div>
+                        <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                            <span>System Date Format</span>
+                        </label>
+                        <select wire:model="app_date_format" class="form-control" style="font-size: 0.88rem; font-weight: 700; padding: 0.55rem 0.85rem;">
+                            <option value="d M, Y">06 Nov, 2026 (d M, Y)</option>
+                            <option value="d/m/Y">06/11/2026 (d/m/Y)</option>
+                            <option value="Y-m-d">2026-11-06 (ISO Y-m-d)</option>
+                            <option value="M d, Y">Nov 06, 2026 (M d, Y)</option>
+                        </select>
+                    </div>
+
+                    <!-- Time Format -->
+                    <div>
+                        <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                            <span>Clock / Time Display</span>
+                        </label>
+                        <select wire:model="app_time_format" class="form-control" style="font-size: 0.88rem; font-weight: 700; padding: 0.55rem 0.85rem;">
+                            <option value="12h">12-Hour AM/PM (e.g. 02:30 PM)</option>
+                            <option value="24h">24-Hour Military (e.g. 14:30)</option>
+                        </select>
+                    </div>
+
+                    <!-- Timezone Display -->
+                    <div>
+                        <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                            <span>Timezone Display Badge</span>
+                        </label>
+                        <input type="text" 
+                               wire:model="app_timezone_display" 
+                               class="form-control" 
+                               placeholder="e.g. PKT (UTC+5)" 
+                               style="font-size: 0.90rem; font-weight: 700; padding: 0.55rem 0.85rem;">
+                        <small style="color: var(--color-text-secondary); font-size: 0.75rem; display: block; margin-top: 0.25rem;">Rendered beside test dates &amp; board timelines.</small>
+                    </div>
+
+                    <!-- Public Jobs Visibility -->
+                    <div style="display: flex; flex-direction: column; justify-content: center;">
+                        <label style="display: flex; align-items: center; gap: 0.65rem; cursor: pointer; font-size: 0.85rem; font-weight: 800; color: var(--color-text-primary);">
+                            <input type="checkbox" wire:model="public_jobs_enabled" style="width: 17px; height: 17px; accent-color: var(--primary);">
+                            <span>Public Job Board Browsing</span>
+                        </label>
+                        <small style="color: var(--color-text-secondary); font-size: 0.75rem; margin-top: 0.25rem;">Allows guests to search advertised positions without logging in.</small>
+                    </div>
+                </div>
             </div>
 
             <!-- ========================================================================= -->

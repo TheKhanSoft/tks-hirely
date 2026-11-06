@@ -60,7 +60,7 @@
                 <div style="font-size: 0.85rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.15rem;">{{ $letterhead['subheading'] }}</div>
             @endif
             @if(!empty($letterhead['office']))
-                <div style="font-size: 0.82rem; font-weight: 800; color: #2563eb; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 0.15rem;">{{ $letterhead['office'] }}</div>
+                <div style="font-size: 1.25rem; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 0.25rem; margin-bottom: 0.2rem;">{{ $letterhead['office'] }}</div>
             @endif
             <div class="doc-title">CONFIDENTIAL EXTERNAL ACADEMIC PEER REVIEW DISPATCH REGISTER</div>
             <div style="font-size: 0.8rem; color: #64748b; font-style: italic;">Official Institutional Record for Academic Referee Evaluations</div>

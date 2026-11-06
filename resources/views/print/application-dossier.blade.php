@@ -143,7 +143,7 @@
         }
 
         .header-title-box h1 {
-            font-size: 1.35rem;
+            font-size: 1.45rem;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.04em;
@@ -152,13 +152,41 @@
             line-height: 1.2;
         }
 
+        .header-title-box .header-subheading {
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 0.15rem;
+        }
+
+        .header-title-box .header-office {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #0f172a;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-top: 0.25rem;
+            margin-bottom: 0.2rem;
+            line-height: 1.25;
+        }
+
+        .header-title-box .header-office.office-large {
+            font-size: 1.40rem;
+        }
+
+        .header-title-box .header-office.office-compact {
+            font-size: 1.10rem;
+        }
+
         .header-title-box h2 {
             font-size: 1.05rem;
             font-weight: 700;
             color: #334155;
             margin-top: 0.25rem;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.04em;
         }
 
         .header-title-box .header-subtitle {
@@ -519,7 +547,12 @@
     </div>
 
     <!-- Official Printable Document -->
-    <div class="document-wrapper">
+    <div class="document-wrapper" style="position: relative;">
+        @if(($application->status === 'DRAFT' || $application->status === 'INITIATED') && (!isset($letterhead['show_draft_watermark']) || $letterhead['show_draft_watermark']))
+            <div style="position: absolute; top: 38%; left: 8%; transform: rotate(-35deg); font-size: 5.5rem; font-weight: 900; color: rgba(239, 68, 68, 0.07); pointer-events: none; z-index: 10; text-transform: uppercase; letter-spacing: 0.15em; font-family: 'Plus Jakarta Sans', sans-serif;">
+                UNSUBMITTED DRAFT
+            </div>
+        @endif
         
         <!-- Official Letterhead Header -->
         <div class="official-header">
@@ -535,29 +568,38 @@
                 <div class="header-title-box">
                     <h1>{{ $letterhead['heading'] }}</h1>
                     @if(!empty($letterhead['subheading']))
-                        <div style="font-size: 0.88rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.15rem;">
+                        <div class="header-subheading" style="font-size: 0.92rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.15rem;">
                             {{ $letterhead['subheading'] }}
                         </div>
                     @endif
                     @if(!empty($letterhead['office']))
-                        <div style="font-size: 0.82rem; font-weight: 800; color: #2563eb; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 0.15rem;">
+                        @php
+                            $officeSizeClass = match($letterhead['office_font_size'] ?? 'standard') {
+                                'large' => 'office-large',
+                                'compact' => 'office-compact',
+                                default => ''
+                            };
+                        @endphp
+                        <div class="header-office {{ $officeSizeClass }}" style="font-size: {{ ($letterhead['office_font_size'] ?? '') === 'large' ? '1.40rem' : (($letterhead['office_font_size'] ?? '') === 'compact' ? '1.10rem' : '1.25rem') }}; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 0.25rem; margin-bottom: 0.2rem; line-height: 1.25;">
                             {{ $letterhead['office'] }}
                         </div>
                     @endif
-                    <h2>
-                        @if(empty($campaign))
-                            Official Master Candidate Profile Dossier &amp; Research Portfolio
-                        @else
-                            {{ $viewMode === 'admin' 
-                                ? ($letterhead['dossier_title_admin'] ?? 'Official Master Administrative Application Dossier & Scrutiny Record') 
-                                : ($letterhead['dossier_title_candidate'] ?? 'Official Application Form for Employment') }}
-                        @endif
-                    </h2>
+                    @php
+                        $rawAdminTitle = $letterhead['dossier_title_admin'] ?? 'Official Master Application Dossier & Scrutiny Record';
+                        $cleanedAdminTitle = trim(str_ireplace('Administrative ', '', $rawAdminTitle));
+                        $candidateTitle = trim($letterhead['dossier_title_candidate'] ?? 'Official Application Form for Employment');
+                        $activeDossierTitle = empty($campaign) 
+                            ? 'Official Master Candidate Profile Dossier & Research Portfolio' 
+                            : ($viewMode === 'admin' ? $cleanedAdminTitle : $candidateTitle);
+                    @endphp
+                    @if(!empty($activeDossierTitle) && (!isset($letterhead['show_document_title']) || $letterhead['show_document_title']))
+                        <h2>{{ $activeDossierTitle }}</h2>
+                    @endif
                     @if(!empty($letterhead['custom_details']))
                         <div class="header-subtitle" style="font-size: 0.78rem; color: #64748b; font-style: normal; margin-top: 0.2rem; line-height: 1.35;">
                             {!! nl2br(e($letterhead['custom_details'])) !!}
                         </div>
-                    @else
+                    @elseif(!isset($letterhead['show_statutory_note']) || $letterhead['show_statutory_note'])
                         <div class="header-subtitle">
                             Prescribed under Statutory University Employment Code & Service Statutes
                         </div>
@@ -565,6 +607,7 @@
                 </div>
             </div>
 
+            @if(!isset($letterhead['show_candidate_photo']) || $letterhead['show_candidate_photo'])
             <div class="candidate-photo-box">
                 @if($basicInfo?->profile_picture_url)
                     <img src="{{ $basicInfo->profile_picture_url }}" alt="Candidate Photograph">
@@ -574,6 +617,7 @@
                     </div>
                 @endif
             </div>
+            @endif
         </div>
 
         <!-- Tracking Particulars Strip -->
@@ -607,7 +651,7 @@
                 <span class="badge-pill status-ok" style="font-size: 7.5pt;">{{ $printedByRole }}</span>
             </div>
             <div>
-                <strong>Printed / Downloaded on Date Time</strong>
+                <strong>Printed / Downloaded on</strong>
                 <span style="font-family: 'JetBrains Mono', monospace;">{{ $printedAt->format('d M, Y h:i:s A') }}</span>
             </div>
         </div>

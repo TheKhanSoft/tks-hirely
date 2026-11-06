@@ -372,23 +372,38 @@
                             {{ $letterhead_heading ?: ($org_name ?: 'Abdul Wali Khan University Mardan') }}
                         </h1>
                         @if(!empty($letterhead_subheading ?: $org_location))
-                            <div style="font-size: 0.88rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.15rem;">
+                            <div style="font-size: 0.92rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.15rem;">
                                 {{ $letterhead_subheading ?: $org_location }}
                             </div>
                         @endif
                         @if(!empty($letterhead_office ?: $org_office_title))
-                            <div style="font-size: 0.82rem; font-weight: 800; color: #2563eb; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 0.15rem;">
+                            @php
+                                $officeFontSize = match($letterhead_office_font_size ?? 'standard') {
+                                    'large' => '1.40rem',
+                                    'compact' => '1.10rem',
+                                    default => '1.25rem'
+                                };
+                            @endphp
+                            <div style="font-size: {{ $officeFontSize }}; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 0.25rem; margin-bottom: 0.2rem; line-height: 1.25;">
                                 {{ $letterhead_office ?: $org_office_title }}
                             </div>
                         @endif
-                        <h2 style="font-size: 1.05rem; font-weight: 700; color: #334155; margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em;">
-                            {{ $letterhead_dossier_title_admin ?: 'Official Master Administrative Application Dossier & Scrutiny Record' }}
-                        </h2>
+                        @if($letterhead_show_document_title)
+                            @php
+                                $rawPreviewTitle = $letterhead_dossier_title_admin ?: 'Official Master Application Dossier & Scrutiny Record';
+                                $cleanPreviewTitle = trim(str_ireplace('Administrative ', '', $rawPreviewTitle));
+                            @endphp
+                            @if(!empty($cleanPreviewTitle))
+                                <h2 style="font-size: 1.05rem; font-weight: 700; color: #334155; margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                                    {{ $cleanPreviewTitle }}
+                                </h2>
+                            @endif
+                        @endif
                         @if(!empty($letterhead_custom_details))
                             <div style="font-size: 0.78rem; color: #64748b; margin-top: 0.2rem; line-height: 1.35;">
                                 {!! nl2br(e($letterhead_custom_details)) !!}
                             </div>
-                        @else
+                        @elseif($letterhead_show_statutory_note)
                             <div style="font-size: 0.85rem; color: #64748b; font-style: italic; margin-top: 0.2rem;">
                                 Prescribed under Statutory University Employment Code & Service Statutes
                             </div>
@@ -397,10 +412,12 @@
                 </div>
 
                 <!-- Candidate Photo Placeholder Box -->
+                @if($dossier_show_photo)
                 <div style="width: 110px; height: 130px; border: 2px solid #0f172a; background: #f1f5f9; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 4px; flex-shrink: 0;">
                     <div style="font-size: 1.5rem; opacity: 0.4;">👤</div>
                     <div style="font-size: 7.5pt; color: #64748b; margin-top: 0.25rem; font-weight: 600;">Candidate Photo Attached Here</div>
                 </div>
+                @endif
             </div>
         </div>
 
@@ -452,7 +469,7 @@
                 </div>
 
                 <!-- Row 2: Office Title & Dedicated Logo Upload -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+                <div style="display: grid; grid-template-columns: 1.2fr 0.8fr 1fr; gap: 1.25rem;">
                     <!-- Office Title -->
                     <div>
                         <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
@@ -473,10 +490,29 @@
                         @enderror
                     </div>
 
+                    <!-- Office Title Font Size -->
+                    <div>
+                        <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                            <span>Office Text Size</span>
+                            <x-help-hint type="inline" 
+                                         variant="tip" 
+                                         title="Office Heading Size" 
+                                         text="Select the font size of the Office line on printed letterheads." />
+                        </label>
+                        <select wire:model.live="letterhead_office_font_size" class="form-control" style="font-size: 0.88rem; font-weight: 700; padding: 0.65rem 0.85rem;">
+                            <option value="standard">Standard Prominent (1.25rem / 14pt)</option>
+                            <option value="large">Extra Large (1.40rem / 16pt)</option>
+                            <option value="compact">Compact (1.10rem / 12pt)</option>
+                        </select>
+                        @error('letterhead_office_font_size')
+                            <div style="color: var(--danger); font-size: 0.78rem; font-weight: 700; margin-top: 0.25rem;">{{ $message }}</div>
+                        @enderror
+                    </div>
+
                     <!-- Dedicated Letterhead Emblem Upload -->
                     <div>
                         <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
-                            <span>Letterhead Crest / High-Resolution Emblem</span>
+                            <span>Letterhead Crest / Emblem</span>
                             <x-help-hint type="inline" 
                                          variant="tip" 
                                          title="Official Document Emblem" 
@@ -529,17 +565,17 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
                     <div>
                         <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
-                            <span>Administrative Dossier Document Title (Admin View)</span>
+                            <span>Master Dossier Document Title (Staff &amp; Admin View)</span>
                             <x-help-hint type="inline" 
                                          variant="info" 
-                                         title="Admin Dossier Document Title" 
+                                         title="Master Dossier Document Title" 
                                          text="Title printed beneath letterhead when downloaded by Staff, Registrar, or Scrutiny Officers." 
-                                         example="Default: Official Master Administrative Application Dossier & Scrutiny Record" />
+                                         example="Default: Official Master Application Dossier & Scrutiny Record" />
                         </label>
                         <input type="text" 
                                wire:model.live="letterhead_dossier_title_admin" 
                                class="form-control" 
-                               placeholder="Official Master Administrative Application Dossier & Scrutiny Record" 
+                               placeholder="Official Master Application Dossier & Scrutiny Record" 
                                style="font-size: 0.88rem; font-weight: 600; padding: 0.65rem 1rem;">
                         @error('letterhead_dossier_title_admin')
                             <div style="color: var(--danger); font-size: 0.78rem; font-weight: 700; margin-top: 0.25rem;">{{ $message }}</div>
@@ -563,6 +599,31 @@
                         @error('letterhead_dossier_title_candidate')
                             <div style="color: var(--danger); font-size: 0.78rem; font-weight: 700; margin-top: 0.25rem;">{{ $message }}</div>
                         @enderror
+                    </div>
+                </div>
+
+                <!-- Row 5: Document Print & Letterhead Display Controls -->
+                <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
+                    <div style="font-size: 0.85rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.85rem; display: flex; align-items: center; gap: 0.4rem;">
+                        <span>🖨️ Dossier &amp; Printed Document Layout Toggles</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
+                        <label style="display: flex; align-items: center; gap: 0.65rem; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: var(--color-text-primary);">
+                            <input type="checkbox" wire:model.live="letterhead_show_document_title" style="width: 17px; height: 17px; accent-color: var(--primary);">
+                            <span>Show Document Title on Letterhead</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.65rem; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: var(--color-text-primary);">
+                            <input type="checkbox" wire:model.live="letterhead_show_statutory_note" style="width: 17px; height: 17px; accent-color: var(--primary);">
+                            <span>Show Statutory Reference Subtitle</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.65rem; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: var(--color-text-primary);">
+                            <input type="checkbox" wire:model.live="dossier_show_photo" style="width: 17px; height: 17px; accent-color: var(--primary);">
+                            <span>Include Candidate Photo Box</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.65rem; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: var(--color-text-primary);">
+                            <input type="checkbox" wire:model.live="dossier_show_draft_watermark" style="width: 17px; height: 17px; accent-color: var(--primary);">
+                            <span>Watermark Unsubmitted Drafts</span>
+                        </label>
                     </div>
                 </div>
 

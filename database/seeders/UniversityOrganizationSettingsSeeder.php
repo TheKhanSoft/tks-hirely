@@ -32,11 +32,16 @@ class UniversityOrganizationSettingsSeeder extends Seeder
             'letterhead_heading' => 'Abdul Wali Khan University Mardan',
             'letterhead_subheading' => 'Khyber Pakhtunkhwa, Pakistan',
             'letterhead_office' => 'Office of the Registrar',
+            'letterhead_office_font_size' => 'standard',
             'letterhead_logo' => '/images/logo-icon.svg',
             'letterhead_custom_details' => "Main Campus, Toru Road, Mardan, Khyber Pakhtunkhwa, Pakistan\nPhone: +92-937-9230611 • Fax: +92-937-9230612 • Web: www.awkum.edu.pk",
             'letterhead_layout' => 'classic_left',
-            'letterhead_dossier_title_admin' => 'Official Master Administrative Application Dossier & Scrutiny Record',
+            'letterhead_dossier_title_admin' => 'Official Master Application Dossier & Scrutiny Record',
             'letterhead_dossier_title_candidate' => 'Official Application Form for Employment',
+            'letterhead_show_document_title' => true,
+            'letterhead_show_statutory_note' => true,
+            'dossier_show_photo' => true,
+            'dossier_show_draft_watermark' => true,
 
             // 📞 Contact & Helpdesk Channels
             'org_website' => 'https://www.awkum.edu.pk',

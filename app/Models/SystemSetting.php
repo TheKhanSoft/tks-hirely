@@ -381,8 +381,9 @@ class SystemSetting extends Model
     public static function getLetterheadDetails(): array
     {
         $orgName = self::getOrgName();
-        $location = (string) self::get('org_location', '');
-        $office = (string) self::get('org_office_title', 'Office of the Registrar');
+        $isGenericHirely = ($orgName === 'Hirely');
+        $location = (string) self::get('org_location', $isGenericHirely ? 'National Directorate' : '');
+        $office = (string) self::get('org_office_title', $isGenericHirely ? 'Recruitment & Statutory Selection Directorate' : 'Office of the Registrar');
 
         $savedHeading = (string) self::get('letterhead_heading', '');
         $genericHeadings = [
@@ -394,17 +395,32 @@ class SystemSetting extends Model
 
         $effectiveHeading = (!empty($savedHeading) && !in_array(trim($savedHeading), $genericHeadings))
             ? $savedHeading
-            : $orgName;
+            : ($isGenericHirely ? 'Hirely Higher Education & Recruitment Commission' : $orgName);
+
+        $defaultDetails = $isGenericHirely 
+            ? "Central Secretariat & Statutory Directorate\nWebsite: https://hirely.app • Email: support@hirely.app • Verification Portal: https://hirely.app/verify"
+            : '';
+
+        $rawAdminTitle = (string) self::get('letterhead_dossier_title_admin', 'Official Master Application Dossier & Scrutiny Record');
+        $cleanAdminTitle = trim(str_ireplace('Administrative ', '', $rawAdminTitle));
+        if (empty($cleanAdminTitle)) {
+            $cleanAdminTitle = 'Official Master Application Dossier & Scrutiny Record';
+        }
 
         return [
             'heading' => $effectiveHeading,
             'subheading' => (string) self::get('letterhead_subheading', $location),
             'office' => (string) self::get('letterhead_office', $office),
+            'office_font_size' => (string) self::get('letterhead_office_font_size', 'standard'),
             'logo' => self::getLetterheadLogo(),
-            'custom_details' => (string) self::get('letterhead_custom_details', ''),
+            'custom_details' => (string) self::get('letterhead_custom_details', $defaultDetails),
             'layout' => (string) self::get('letterhead_layout', 'classic_left'),
-            'dossier_title_admin' => (string) self::get('letterhead_dossier_title_admin', 'Official Master Administrative Application Dossier & Scrutiny Record'),
+            'dossier_title_admin' => $cleanAdminTitle,
             'dossier_title_candidate' => (string) self::get('letterhead_dossier_title_candidate', 'Official Application Form for Employment'),
+            'show_document_title' => (bool) self::get('letterhead_show_document_title', true),
+            'show_statutory_note' => (bool) self::get('letterhead_show_statutory_note', true),
+            'show_candidate_photo' => (bool) self::get('dossier_show_photo', true),
+            'show_draft_watermark' => (bool) self::get('dossier_show_draft_watermark', true),
         ];
     }
 

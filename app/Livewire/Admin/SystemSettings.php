@@ -36,6 +36,10 @@ class SystemSettings extends Component
     public $prevent_duplicate_campaign_applications;
     public $challan_grace_days;
     public $auto_lock_profile_on_voucher;
+    public $candidate_allow_application_withdrawal = false;
+    public $max_active_applications_per_candidate = 5;
+    public $max_upload_file_size_mb = 5;
+    public $enable_online_challan_verification = true;
 
     // 🏢 Organization Profile
     public $org_name;
@@ -54,9 +58,21 @@ class SystemSettings extends Component
     public $letterhead_logo;
     public $letterhead_custom_details;
     public $letterhead_layout = 'classic_left';
-    public $letterhead_dossier_title_admin = 'Official Master Administrative Application Dossier & Scrutiny Record';
+    public $letterhead_office_font_size = 'standard';
+    public $letterhead_dossier_title_admin = 'Official Master Application Dossier & Scrutiny Record';
     public $letterhead_dossier_title_candidate = 'Official Application Form for Employment';
+    public $letterhead_show_document_title = true;
+    public $letterhead_show_statutory_note = true;
+    public $dossier_show_photo = true;
+    public $dossier_show_draft_watermark = true;
     public $letterheadLogoUpload;
+
+    // 🌐 General Platform Format & Localization
+    public $app_date_format = 'd M, Y';
+    public $app_time_format = '12h';
+    public $app_timezone_display = 'PKT (UTC+5)';
+    public $app_tracking_prefix = 'APP-';
+    public $public_jobs_enabled = true;
 
     // 🎨 App Identity & Branding
     public $app_name;
@@ -279,6 +295,10 @@ class SystemSettings extends Component
         $this->prevent_duplicate_campaign_applications = (bool) SystemSetting::get('prevent_duplicate_campaign_applications', true);
         $this->challan_grace_days = (int) SystemSetting::get('challan_grace_days', 14);
         $this->auto_lock_profile_on_voucher = (bool) SystemSetting::get('auto_lock_profile_on_voucher', true);
+        $this->candidate_allow_application_withdrawal = (bool) SystemSetting::get('candidate_allow_application_withdrawal', false);
+        $this->max_active_applications_per_candidate = (int) SystemSetting::get('max_active_applications_per_candidate', 5);
+        $this->max_upload_file_size_mb = (int) SystemSetting::get('max_upload_file_size_mb', 5);
+        $this->enable_online_challan_verification = (bool) SystemSetting::get('enable_online_challan_verification', true);
 
         // Organization
         $this->org_name = SystemSetting::get('org_name', 'Hirely');
@@ -297,8 +317,14 @@ class SystemSettings extends Component
         $this->letterhead_logo = SystemSetting::get('letterhead_logo', '/images/logo-icon.svg');
         $this->letterhead_custom_details = SystemSetting::get('letterhead_custom_details', "Central Secretariat & Statutory Directorate\nWebsite: https://hirely.app • Email: support@hirely.app • Verification Portal: https://hirely.app/verify");
         $this->letterhead_layout = SystemSetting::get('letterhead_layout', 'classic_left');
-        $this->letterhead_dossier_title_admin = SystemSetting::get('letterhead_dossier_title_admin', 'Official Master Administrative Application Dossier & Scrutiny Record');
+        $this->letterhead_office_font_size = SystemSetting::get('letterhead_office_font_size', 'standard');
+        $rawAdminTitle = SystemSetting::get('letterhead_dossier_title_admin', 'Official Master Application Dossier & Scrutiny Record');
+        $this->letterhead_dossier_title_admin = trim(str_ireplace('Administrative ', '', (string)$rawAdminTitle)) ?: 'Official Master Application Dossier & Scrutiny Record';
         $this->letterhead_dossier_title_candidate = SystemSetting::get('letterhead_dossier_title_candidate', 'Official Application Form for Employment');
+        $this->letterhead_show_document_title = (bool) SystemSetting::get('letterhead_show_document_title', true);
+        $this->letterhead_show_statutory_note = (bool) SystemSetting::get('letterhead_show_statutory_note', true);
+        $this->dossier_show_photo = (bool) SystemSetting::get('dossier_show_photo', true);
+        $this->dossier_show_draft_watermark = (bool) SystemSetting::get('dossier_show_draft_watermark', true);
 
         // App Branding & Identity
         $this->app_name = SystemSetting::get('app_name', 'Hirely');
@@ -330,6 +356,11 @@ class SystemSettings extends Component
         $this->letter_footer_contact = SystemSetting::get('letter_footer_contact', 'Recruitment Directorate • Candidate Records & Statutory Scrutiny Archive • Verification Portal: https://hirely.app');
         $this->letter_show_audit_trail = (bool) SystemSetting::get('letter_show_audit_trail', true);
         $this->letter_show_verify_ref = (bool) SystemSetting::get('letter_show_verify_ref', true);
+        $this->app_date_format = SystemSetting::get('app_date_format', 'd M, Y');
+        $this->app_time_format = SystemSetting::get('app_time_format', '12h');
+        $this->app_timezone_display = SystemSetting::get('app_timezone_display', 'PKT (UTC+5)');
+        $this->app_tracking_prefix = SystemSetting::get('app_tracking_prefix', 'APP-');
+        $this->public_jobs_enabled = (bool) SystemSetting::get('public_jobs_enabled', true);
 
         // Contact & Helpdesk
         $this->support_email = SystemSetting::get('support_email', 'support@hirely.app');
@@ -451,14 +482,20 @@ class SystemSettings extends Component
         abort_unless(Auth::user()->can('manage-settings'), 403);
         $this->validate([
             'challan_grace_days' => 'required|integer|min:1|max:90',
+            'max_active_applications_per_candidate' => 'required|integer|min:1|max:50',
+            'max_upload_file_size_mb' => 'required|integer|min:1|max:50',
         ]);
 
         SystemSetting::set('allow_multiple_applications', $this->allow_multiple_applications, 'candidate_rules', 'boolean');
         SystemSetting::set('prevent_duplicate_campaign_applications', $this->prevent_duplicate_campaign_applications, 'candidate_rules', 'boolean');
         SystemSetting::set('challan_grace_days', $this->challan_grace_days, 'candidate_rules', 'integer');
         SystemSetting::set('auto_lock_profile_on_voucher', $this->auto_lock_profile_on_voucher, 'candidate_rules', 'boolean');
+        SystemSetting::set('candidate_allow_application_withdrawal', $this->candidate_allow_application_withdrawal, 'candidate_rules', 'boolean');
+        SystemSetting::set('max_active_applications_per_candidate', $this->max_active_applications_per_candidate, 'candidate_rules', 'integer');
+        SystemSetting::set('max_upload_file_size_mb', $this->max_upload_file_size_mb, 'candidate_rules', 'integer');
+        SystemSetting::set('enable_online_challan_verification', $this->enable_online_challan_verification, 'candidate_rules', 'boolean');
 
-        session()->flash('message', 'Candidate application and voucher settlement rules updated.');
+        session()->flash('message', 'Candidate application, intake policies, and voucher settlement rules updated.');
     }
 
     public function saveOrganizationProfile()
@@ -516,6 +553,7 @@ class SystemSettings extends Component
             'letterhead_office' => 'nullable|string|max:190',
             'letterhead_custom_details' => 'nullable|string|max:2000',
             'letterhead_layout' => 'nullable|string|in:classic_left,crest_center,modern_clean',
+            'letterhead_office_font_size' => 'nullable|string|in:standard,large,compact',
             'letterhead_dossier_title_admin' => 'nullable|string|max:190',
             'letterhead_dossier_title_candidate' => 'nullable|string|max:190',
             'letterheadLogoUpload' => 'nullable|image|max:2048',
@@ -530,13 +568,21 @@ class SystemSettings extends Component
             SystemSetting::set('letterhead_logo', $this->letterhead_logo, 'organization', 'string');
         }
 
+        // Clean out legacy "Administrative" from title
+        $this->letterhead_dossier_title_admin = trim(str_ireplace('Administrative ', '', (string)$this->letterhead_dossier_title_admin));
+
         SystemSetting::set('letterhead_heading', $this->letterhead_heading, 'organization', 'string');
         SystemSetting::set('letterhead_subheading', $this->letterhead_subheading, 'organization', 'string');
         SystemSetting::set('letterhead_office', $this->letterhead_office, 'organization', 'string');
+        SystemSetting::set('letterhead_office_font_size', $this->letterhead_office_font_size, 'organization', 'string');
         SystemSetting::set('letterhead_custom_details', $this->letterhead_custom_details, 'organization', 'string');
         SystemSetting::set('letterhead_layout', $this->letterhead_layout, 'organization', 'string');
         SystemSetting::set('letterhead_dossier_title_admin', $this->letterhead_dossier_title_admin, 'organization', 'string');
         SystemSetting::set('letterhead_dossier_title_candidate', $this->letterhead_dossier_title_candidate, 'organization', 'string');
+        SystemSetting::set('letterhead_show_document_title', $this->letterhead_show_document_title, 'organization', 'boolean');
+        SystemSetting::set('letterhead_show_statutory_note', $this->letterhead_show_statutory_note, 'organization', 'boolean');
+        SystemSetting::set('dossier_show_photo', $this->dossier_show_photo, 'organization', 'boolean');
+        SystemSetting::set('dossier_show_draft_watermark', $this->dossier_show_draft_watermark, 'organization', 'boolean');
 
         session()->flash('message', 'Official printable letterhead header & styling successfully saved.');
     }
@@ -547,11 +593,16 @@ class SystemSettings extends Component
         $this->letterhead_heading = $this->org_name ?: 'Hirely';
         $this->letterhead_subheading = $this->org_location ?: '';
         $this->letterhead_office = $this->org_office_title ?: 'Office of the Registrar';
+        $this->letterhead_office_font_size = 'standard';
         $this->letterhead_logo = SystemSetting::getAppLogo() ?: '/images/logo-icon.svg';
         $this->letterhead_custom_details = "Central Secretariat & Statutory Directorate\nWebsite: https://hirely.app • Email: support@hirely.app • Verification Portal: https://hirely.app/verify";
         $this->letterhead_layout = 'classic_left';
-        $this->letterhead_dossier_title_admin = 'Official Master Administrative Application Dossier & Scrutiny Record';
+        $this->letterhead_dossier_title_admin = 'Official Master Application Dossier & Scrutiny Record';
         $this->letterhead_dossier_title_candidate = 'Official Application Form for Employment';
+        $this->letterhead_show_document_title = true;
+        $this->letterhead_show_statutory_note = true;
+        $this->dossier_show_photo = true;
+        $this->dossier_show_draft_watermark = true;
         $this->letterheadLogoUpload = null;
         $this->saveLetterheadSettings();
         session()->flash('message', 'Letterhead header configuration restored to official default standards.');
@@ -686,6 +737,11 @@ class SystemSettings extends Component
         SystemSetting::set('letter_footer_contact', $this->letter_footer_contact, 'branding', 'string');
         SystemSetting::set('letter_show_audit_trail', (bool) $this->letter_show_audit_trail, 'branding', 'boolean');
         SystemSetting::set('letter_show_verify_ref', (bool) $this->letter_show_verify_ref, 'branding', 'boolean');
+        SystemSetting::set('app_date_format', $this->app_date_format, 'branding', 'string');
+        SystemSetting::set('app_time_format', $this->app_time_format, 'branding', 'string');
+        SystemSetting::set('app_timezone_display', $this->app_timezone_display, 'branding', 'string');
+        SystemSetting::set('app_tracking_prefix', $this->app_tracking_prefix, 'branding', 'string');
+        SystemSetting::set('public_jobs_enabled', (bool) $this->public_jobs_enabled, 'branding', 'boolean');
 
         SystemSetting::clearCache();
 
@@ -784,6 +840,10 @@ class SystemSettings extends Component
         $this->prevent_duplicate_campaign_applications = true;
         $this->challan_grace_days = 14;
         $this->auto_lock_profile_on_voucher = true;
+        $this->candidate_allow_application_withdrawal = false;
+        $this->max_active_applications_per_candidate = 5;
+        $this->max_upload_file_size_mb = 5;
+        $this->enable_online_challan_verification = true;
         $this->saveCandidateRules();
         session()->flash('message', 'Candidate application & challan rules restored to default recommendations.');
     }

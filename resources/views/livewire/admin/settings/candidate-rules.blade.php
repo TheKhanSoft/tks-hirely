@@ -210,6 +210,113 @@
                 </div>
             </div>
 
+            <!-- 5. Application Withdrawal Policy -->
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $candidate_allow_application_withdrawal ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
+                <div style="max-width: 80%;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                        <span style="font-size: 1.15rem;">↩️</span>
+                        <span style="font-size: 0.98rem; font-weight: 800; color: var(--color-text-primary);">
+                            Allow Candidates to Withdraw Applications (Pre-Scrutiny)
+                        </span>
+                        <span class="badge {{ $candidate_allow_application_withdrawal ? 'badge-amber' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">
+                            {{ $candidate_allow_application_withdrawal ? 'WITHDRAWAL ENABLED' : 'NON-WITHDRAWABLE' }}
+                        </span>
+                        <x-help-hint type="inline" 
+                                     variant="info"
+                                     title="Candidate Withdrawal"
+                                     text="Permits candidates to withdraw their submitted application from their dashboard before scrutiny vetting begins." />
+                    </div>
+                    <div style="font-size: 0.82rem; color: var(--color-text-secondary); line-height: 1.5;">
+                        Allows applicants to voluntarily withdraw their submission before the statutory scrutiny committee initiates formal file evaluation.
+                    </div>
+                </div>
+                <div>
+                    <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
+                        <input type="checkbox" wire:model.live="candidate_allow_application_withdrawal" style="opacity: 0; width: 0; height: 0;">
+                        <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $candidate_allow_application_withdrawal ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $candidate_allow_application_withdrawal ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
+                            <span style="position: absolute; content: ''; height: 20px; width: 20px; left: {{ $candidate_allow_application_withdrawal ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 6. Intake Limits & Document Upload Quotas -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+                <div style="padding: 1.25rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                    <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.25rem;">
+                        <span style="font-size: 1.15rem;">📊</span>
+                        <span style="font-size: 0.95rem; font-weight: 800; color: var(--color-text-primary);">Max Active Applications / Candidate</span>
+                    </div>
+                    <div style="font-size: 0.78rem; color: var(--color-text-secondary); margin-bottom: 0.75rem;">
+                        Maximum number of active concurrent applications an applicant can hold at once.
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="number" 
+                               wire:model.live="max_active_applications_per_candidate" 
+                               min="1" 
+                               max="20" 
+                               class="form-control" 
+                               style="width: 90px; text-align: center; font-weight: 800; font-size: 1.05rem;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: var(--color-text-secondary);">Applications</span>
+                    </div>
+                    @error('max_active_applications_per_candidate')
+                        <div style="color: var(--danger); font-size: 0.75rem; font-weight: 700; margin-top: 0.25rem;">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div style="padding: 1.25rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                    <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.25rem;">
+                        <span style="font-size: 1.15rem;">📁</span>
+                        <span style="font-size: 0.95rem; font-weight: 800; color: var(--color-text-primary);">Proof Upload Max File Size (MB)</span>
+                    </div>
+                    <div style="font-size: 0.78rem; color: var(--color-text-secondary); margin-bottom: 0.75rem;">
+                        Maximum file size allowed for degree scans, CNIC, and employment certificates.
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="number" 
+                               wire:model.live="max_upload_file_size_mb" 
+                               min="1" 
+                               max="50" 
+                               class="form-control" 
+                               style="width: 90px; text-align: center; font-weight: 800; font-size: 1.05rem;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: var(--color-text-secondary);">MB per file</span>
+                    </div>
+                    @error('max_upload_file_size_mb')
+                        <div style="color: var(--danger); font-size: 0.75rem; font-weight: 700; margin-top: 0.25rem;">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+
+            <!-- 7. Candidate Online Challan Auto-Verification -->
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $enable_online_challan_verification ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
+                <div style="max-width: 80%;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                        <span style="font-size: 1.15rem;">⚡</span>
+                        <span style="font-size: 0.98rem; font-weight: 800; color: var(--color-text-primary);">
+                            Candidate Self-Service 1Link / 1Bill Voucher Verification
+                        </span>
+                        <span class="badge {{ $enable_online_challan_verification ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">
+                            {{ $enable_online_challan_verification ? 'ACTIVE DESK' : 'ADMIN ONLY' }}
+                        </span>
+                        <x-help-hint type="inline" 
+                                     variant="tip"
+                                     title="Payment Verification Trigger"
+                                     text="Allows candidates to click 'Verify Payment Status' from their portal to fetch live 1Link/Kuickpay settlement." />
+                    </div>
+                    <div style="font-size: 0.82rem; color: var(--color-text-secondary); line-height: 1.5;">
+                        Allows applicants to initiate instant real-time bank ledger reconciliation for their paid challans directly from the applicant dashboard.
+                    </div>
+                </div>
+                <div>
+                    <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
+                        <input type="checkbox" wire:model.live="enable_online_challan_verification" style="opacity: 0; width: 0; height: 0;">
+                        <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $enable_online_challan_verification ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $enable_online_challan_verification ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
+                            <span style="position: absolute; content: ''; height: 20px; width: 20px; left: {{ $enable_online_challan_verification ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
         </div>
 
         <div style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
