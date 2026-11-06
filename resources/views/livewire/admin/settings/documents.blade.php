@@ -57,46 +57,46 @@
             <span class="badge badge-slate" style="font-size: 0.7rem;">Live Portal Gating Status</span>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 2fr)); gap: 0.75rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem;">
             <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem 0.85rem; display: flex; align-items: center; justify-content: space-between;">
                 <span style="font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary);">🎓 Transcripts</span>
                 <span class="badge {{ $require_transcript_proof ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">
-                    {{ $require_transcript_proof ? 'MANDATORY' : 'OPTIONAL' }}
+                    {{ $require_transcript_proof ? 'REQUIRED' : 'OPTIONAL' }}
                 </span>
             </div>
 
             <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem 0.85rem; display: flex; align-items: center; justify-content: space-between;">
                 <span style="font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary);">📚 Research Papers</span>
                 <span class="badge {{ $require_publications_academic ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">
-                    {{ $require_publications_academic ? 'MANDATORY' : 'OPTIONAL' }}
+                    {{ $require_publications_academic ? 'REQUIRED' : 'OPTIONAL' }}
                 </span>
             </div>
 
             <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem 0.85rem; display: flex; align-items: center; justify-content: space-between;">
                 <span style="font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary);">🪪 CNIC / Passport</span>
                 <span class="badge {{ $require_cnic_upload ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">
-                    {{ $require_cnic_upload ? 'MANDATORY' : 'OPTIONAL' }}
+                    {{ $require_cnic_upload ? 'REQUIRED' : 'OPTIONAL' }}
                 </span>
             </div>
 
             <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem 0.85rem; display: flex; align-items: center; justify-content: space-between;">
                 <span style="font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary);">🏛️ Employer NOC</span>
                 <span class="badge {{ $require_noc_employed ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">
-                    {{ $require_noc_employed ? 'MANDATORY' : 'OPTIONAL' }}
+                    {{ $require_noc_employed ? 'REQUIRED' : 'OPTIONAL' }}
                 </span>
             </div>
 
             <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem 0.85rem; display: flex; align-items: center; justify-content: space-between;">
                 <span style="font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary);">💼 Experience Letters</span>
                 <span class="badge {{ $require_experience_proof ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">
-                    {{ $require_experience_proof ? 'MANDATORY' : 'OPTIONAL' }}
+                    {{ $require_experience_proof ? 'REQUIRED' : 'OPTIONAL' }}
                 </span>
             </div>
 
             <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem 0.85rem; display: flex; align-items: center; justify-content: space-between;">
                 <span style="font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary);">🧾 Challan Receipt</span>
                 <span class="badge {{ $require_challan_receipt_upload ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">
-                    {{ $require_challan_receipt_upload ? 'MANDATORY' : 'OPTIONAL' }}
+                    {{ $require_challan_receipt_upload ? 'REQUIRED' : 'OPTIONAL' }}
                 </span>
             </div>
         </div>
