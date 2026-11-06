@@ -4522,7 +4522,7 @@ html.light .help-hint-popover {
 /* Executive Settings Hub Grid (5x2 on desktop) */
 .settings-hub-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 0.85rem;
     margin-bottom: 1.75rem;
 }
