@@ -2,6 +2,7 @@
     $sysAppName = \App\Models\SystemSetting::getAppName();
     $sysOrgName = \App\Models\SystemSetting::getOrgName();
     $sysOrgShortName = \App\Models\SystemSetting::getOrgShortName();
+    $sysBrandDisplay = \App\Models\SystemSetting::getBrandDisplayName();
     $sysAppLogo = \App\Models\SystemSetting::getAppLogo();
     $sysAppFavicon = \App\Models\SystemSetting::getAppFavicon();
     $sysAppVersion = \App\Models\SystemSetting::get('app_version', 'v2.4 Enterprise OS');
@@ -18,7 +19,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $title ?? ($sysAppName . ' - University Recruitment OS') }}</title>
+    <title>{{ $title ?? ($sysBrandDisplay . ' — ' . $sysOrgName) }}</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     
@@ -63,7 +64,7 @@
                     <img src="{{ $sysAppLogo }}" alt="{{ $sysOrgShortName }}" width="34" height="34" style="border-radius: 9px; display: block; box-shadow: 0 4px 14px var(--primary-glow); object-fit: contain;">
                 </div>
                 <div style="overflow: hidden; min-width: 0;">
-                    <div class="brand-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $sysOrgName }}">{{ strtoupper($sysAppName) }}</div>
+                    <div class="brand-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $sysOrgName }}">{{ strtoupper($sysBrandDisplay) }}</div>
                     <div class="brand-badge" style="white-space: nowrap;"><span class="badge-dot" style="background: currentColor;"></span> {{ $sysAppVersion }}</div>
                 </div>
             </a>

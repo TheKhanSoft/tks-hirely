@@ -95,6 +95,18 @@ class SystemSetting extends Model
     }
 
     /**
+     * Clear all system settings caches.
+     */
+    public static function clearCache(): void
+    {
+        Cache::forget('system_settings_all_grouped');
+        $keys = self::pluck('key')->all();
+        foreach ($keys as $k) {
+            Cache::forget("system_setting_{$k}");
+        }
+    }
+
+    /**
      * Check if a pipeline workflow step is enabled.
      */
     public static function isPipelineStepEnabled(string $step): bool
@@ -276,6 +288,23 @@ class SystemSetting extends Model
     public static function getAppName(): string
     {
         return (string) self::get('app_name', config('app.name', 'Hirely'));
+    }
+
+    /**
+     * Get primary brand display name for sidebars, compact headers, and mobile titles.
+     * Prioritizes the institutional acronym/short name (e.g. AWKUM) if configured.
+     */
+    public static function getBrandDisplayName(): string
+    {
+        $short = (string) self::get('org_short_name', '');
+        if (!empty($short) && strtolower($short) !== 'hirely') {
+            return $short;
+        }
+        $appName = (string) self::get('app_name', '');
+        if (!empty($appName) && strtolower($appName) !== 'hirely') {
+            return $appName;
+        }
+        return !empty($short) ? $short : ($appName ?: 'Hirely');
     }
 
     /**

@@ -1,5 +1,6 @@
 @php
     $sysAppName = \App\Models\SystemSetting::getAppName();
+    $sysBrandDisplay = \App\Models\SystemSetting::getBrandDisplayName();
     $sysAppLogo = \App\Models\SystemSetting::getAppLogo();
     $sysAppFavicon = \App\Models\SystemSetting::getAppFavicon();
     $sysTagline = \App\Models\SystemSetting::get('app_tagline', 'Unified Faculty & Officer Recruitment Portal');
@@ -15,7 +16,7 @@
     $supportHours = \App\Models\SystemSetting::get('support_hours');
     $helpdeskLocation = \App\Models\SystemSetting::get('helpdesk_location');
     $orgWebsite = \App\Models\SystemSetting::get('org_website');
-    $footerCopyright = \App\Models\SystemSetting::get('footer_copyright_text', '© ' . date('Y') . ' ' . $sysAppName . '. All rights reserved.');
+    $footerCopyright = \App\Models\SystemSetting::get('footer_copyright_text', '© ' . date('Y') . ' ' . $orgName . ' (' . $orgShortName . '). All rights reserved.');
     
     $themeVars = \App\Models\SystemSetting::getThemeVariables();
     $loginLayout = $themeVars['loginLayout'] ?? 'split-modern';
@@ -26,7 +27,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-    <title>Sign In — {{ $sysAppName }} University Recruitment OS</title>
+    <title>Sign In — {{ $sysBrandDisplay }} | {{ $orgName }}</title>
     
     <!-- Modern Favicons & Brand Assets -->
     <link rel="icon" href="{{ $sysAppFavicon }}">
@@ -120,7 +121,7 @@
                                     <span>OFFICIAL INSTITUTIONAL PORTAL</span>
                                 </div>
                                 <h2 style="font-size: 1.5rem; font-weight: 900; color: #ffffff !important; margin: 0; line-height: 1.2; letter-spacing: -0.02em;">
-                                    {{ strtoupper($sysAppName) }}
+                                    {{ strtoupper($sysBrandDisplay) }}
                                 </h2>
                                 <div style="font-size: 0.78rem; color: #cbd5e1; font-weight: 600; margin-top: 0.15rem;">
                                     {{ $orgShortName }} • {{ $orgName }}

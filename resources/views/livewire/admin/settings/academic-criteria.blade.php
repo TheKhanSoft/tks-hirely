@@ -228,73 +228,122 @@
 
         <!-- SECTION 2: Percentage & CGPA Thresholds -->
         <div style="margin-bottom: 2rem;">
-            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
-                <span style="font-size: 1.15rem;">🎯</span>
-                <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: var(--color-text-primary);">
-                    Minimum Aggregate Percentage & Terminal CGPA Benchmarks
-                </h4>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 1.25rem;">🎯</span>
+                    <div>
+                        <h4 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary);">
+                            Minimum Aggregate Percentage &amp; Terminal CGPA Benchmarks
+                        </h4>
+                        <p style="margin: 0.15rem 0 0 0; font-size: 0.78rem; color: var(--color-text-secondary);">
+                            Automated transcript scoring thresholds verified during candidate dossier scrutiny.
+                        </p>
+                    </div>
+                </div>
+                <span class="badge badge-indigo" style="font-size: 0.7rem; font-weight: 800;">HEC STANDARD SCALE</span>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1.15rem;">
                 
-                <!-- Min Aggregate Percentage -->
-                <div style="padding: 1.15rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
-                    <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem;">
-                        <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
-                            Global Minimum Academic Aggregate %
-                        </span>
+                <!-- 1. Min Aggregate Percentage -->
+                <div class="card" style="padding: 1.25rem; background: var(--bg-surface); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); transition: all 0.2s ease;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 30px; height: 30px; border-radius: 8px; background: rgba(99,102,241,0.12); color: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: 800; flex-shrink: 0;">
+                                🎯
+                            </div>
+                            <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
+                                Global Academic Aggregate
+                            </span>
+                        </div>
                         <x-help-hint type="inline" 
                                      variant="info" 
                                      title="Minimum Marks Cutoff" 
                                      text="Global minimum threshold for marks percentage across qualifying examinations." 
                                      example="e.g. 60% for 1st Division" />
                     </div>
-                    <div style="font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: 0.65rem;">
-                        Baseline marks threshold applied to career qualification records.
+                    <div style="font-size: 0.78rem; color: var(--color-text-secondary); margin-bottom: 0.75rem; min-height: 2.2em; line-height: 1.4;">
+                        Baseline marks threshold applied to career qualification records across entire trajectory.
                     </div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    
+                    <!-- Fused Modern Input Group -->
+                    <div style="display: flex; align-items: stretch; border: 1.5px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--bg-card); box-shadow: inset 0 1px 2px rgba(0,0,0,0.04); transition: border-color 0.2s;">
                         <input type="number" 
                                step="0.1" 
+                               min="0"
+                               max="100"
                                wire:model.live="global_min_marks_percentage" 
                                placeholder="e.g. 60.0" 
                                class="form-control" 
-                               style="font-size: 0.92rem; padding: 0.45rem 0.75rem;">
-                        <span style="font-weight: 700; color: var(--color-text-secondary);">%</span>
+                               style="border: none; background: transparent; padding: 0.65rem 0.95rem; font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); flex: 1; min-width: 0; box-shadow: none;">
+                        <div style="display: flex; align-items: center; justify-content: center; padding: 0 1.15rem; background: var(--bg-surface); border-left: 1.5px solid var(--border-color); font-weight: 800; font-size: 0.95rem; color: var(--primary); letter-spacing: 0.02em;">
+                            %
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.65rem; font-size: 0.72rem;">
+                        <span style="color: var(--color-text-muted);">Career Cutoff:</span>
+                        <span class="badge badge-slate" style="font-size: 0.68rem; font-weight: 800;">
+                            {{ $global_min_marks_percentage ? $global_min_marks_percentage . '% Minimum' : 'No Global Cutoff' }}
+                        </span>
                     </div>
                 </div>
 
-                <!-- Min Terminal Degree Marks % -->
-                <div style="padding: 1.15rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
-                    <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem;">
-                        <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
-                            Terminal Degree Minimum Marks %
-                        </span>
+                <!-- 2. Min Terminal Degree Marks % -->
+                <div class="card" style="padding: 1.25rem; background: var(--bg-surface); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); transition: all 0.2s ease;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 30px; height: 30px; border-radius: 8px; background: rgba(14,165,233,0.12); color: #0ea5e9; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: 800; flex-shrink: 0;">
+                                🎓
+                            </div>
+                            <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
+                                Terminal Degree Marks %
+                            </span>
+                        </div>
                         <x-help-hint type="inline" 
                                      variant="info" 
                                      title="Terminal Degree Marks" 
                                      text="Threshold specifically enforced on the highest required qualification." 
                                      example="e.g. 65% in MS/MPhil" />
                     </div>
-                    <div style="font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: 0.65rem;">
-                        Minimum required score in candidate's highest qualifying degree.
+                    <div style="font-size: 0.78rem; color: var(--color-text-secondary); margin-bottom: 0.75rem; min-height: 2.2em; line-height: 1.4;">
+                        Minimum required score in candidate's highest qualifying degree for this rank.
                     </div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+
+                    <!-- Fused Modern Input Group -->
+                    <div style="display: flex; align-items: stretch; border: 1.5px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--bg-card); box-shadow: inset 0 1px 2px rgba(0,0,0,0.04); transition: border-color 0.2s;">
                         <input type="number" 
                                step="0.1" 
+                               min="0"
+                               max="100"
                                wire:model.live="global_min_terminal_percentage" 
                                placeholder="e.g. 65.0" 
                                class="form-control" 
-                               style="font-size: 0.92rem; padding: 0.45rem 0.75rem;">
-                        <span style="font-weight: 700; color: var(--color-text-secondary);">%</span>
+                               style="border: none; background: transparent; padding: 0.65rem 0.95rem; font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); flex: 1; min-width: 0; box-shadow: none;">
+                        <div style="display: flex; align-items: center; justify-content: center; padding: 0 1.15rem; background: var(--bg-surface); border-left: 1.5px solid var(--border-color); font-weight: 800; font-size: 0.95rem; color: #0ea5e9; letter-spacing: 0.02em;">
+                            %
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.65rem; font-size: 0.72rem;">
+                        <span style="color: var(--color-text-muted);">Highest Qualification:</span>
+                        <span class="badge badge-cyan" style="font-size: 0.68rem; font-weight: 800;">
+                            {{ $global_min_terminal_percentage ? $global_min_terminal_percentage . '% in MS/PhD' : 'Unconstrained' }}
+                        </span>
                     </div>
                 </div>
 
-                <!-- Min Terminal CGPA -->
-                <div style="padding: 1.15rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
-                    <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem;">
-                        <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
-                            Terminal Degree Minimum CGPA
-                        </span>
+                <!-- 3. Min Terminal CGPA (HIGHLIGHTED SCALE / 4.00) -->
+                <div class="card" style="padding: 1.25rem; background: var(--bg-surface); border: 1.5px solid {{ (float)$global_min_terminal_cgpa >= 3.0 ? 'rgba(245,158,11,0.5)' : 'var(--border-color)' }}; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); transition: all 0.2s ease;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 30px; height: 30px; border-radius: 8px; background: rgba(245,158,11,0.15); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: 800; flex-shrink: 0;">
+                                📊
+                            </div>
+                            <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
+                                Terminal Degree Minimum CGPA
+                            </span>
+                        </div>
                         <x-help-hint type="inline" 
                                      variant="statutory" 
                                      statute="HEC Semester Guidelines" 
@@ -302,10 +351,12 @@
                                      text="Minimum CGPA in semester system (e.g. 3.00/4.00 or 3.50/4.00 for PhD entry/faculty eligibility)." 
                                      example="Standard: 3.00" />
                     </div>
-                    <div style="font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: 0.65rem;">
-                        Minimum grade point average on semester transcripts.
+                    <div style="font-size: 0.78rem; color: var(--color-text-secondary); margin-bottom: 0.75rem; min-height: 2.2em; line-height: 1.4;">
+                        Minimum grade point average on semester transcripts (4.00 scale).
                     </div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+
+                    <!-- Fused Modern Input Group with Styled / 4.00 Suffix -->
+                    <div style="display: flex; align-items: stretch; border: 1.5px solid rgba(245,158,11,0.45); border-radius: 8px; overflow: hidden; background: var(--bg-card); box-shadow: 0 2px 8px -2px rgba(245,158,11,0.15); transition: all 0.2s;">
                         <input type="number" 
                                step="0.01" 
                                min="0.00"
@@ -313,8 +364,27 @@
                                wire:model.live="global_min_terminal_cgpa" 
                                placeholder="e.g. 3.00" 
                                class="form-control" 
-                               style="font-size: 0.92rem; padding: 0.45rem 0.75rem;">
-                        <span style="font-weight: 700; color: var(--color-text-secondary);">/ 4.00</span>
+                               style="border: none; background: transparent; padding: 0.65rem 0.95rem; font-size: 1.12rem; font-weight: 900; color: var(--color-text-primary); flex: 1; min-width: 0; box-shadow: none;">
+                        <div style="display: flex; align-items: center; justify-content: center; padding: 0 1.25rem; background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.22)); border-left: 1.5px solid rgba(245,158,11,0.35); font-weight: 900; font-size: 1rem; color: #d97706; letter-spacing: 0.05em; white-space: nowrap;">
+                            / 4.00
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.65rem; font-size: 0.72rem;">
+                        <span style="color: var(--color-text-muted);">Standard Scale:</span>
+                        @if((float)$global_min_terminal_cgpa >= 3.0)
+                            <span class="badge badge-emerald" style="font-size: 0.68rem; font-weight: 800;">
+                                ✓ HEC Compliant (&ge; 3.00 / 4.00)
+                            </span>
+                        @elseif((float)$global_min_terminal_cgpa > 0)
+                            <span class="badge badge-amber" style="font-size: 0.68rem; font-weight: 800;">
+                                Cutoff: {{ number_format((float)$global_min_terminal_cgpa, 2) }} / 4.00
+                            </span>
+                        @else
+                            <span class="badge badge-slate" style="font-size: 0.68rem; font-weight: 800;">
+                                No CGPA Bar
+                            </span>
+                        @endif
                     </div>
                 </div>
 
@@ -322,22 +392,35 @@
         </div>
 
         <!-- SECTION 3: External Peer Reviewer Quotas by Rank -->
-        <div style="margin-bottom: 1.5rem;">
-            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
-                <span style="font-size: 1.15rem;">👨‍🏫</span>
-                <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: var(--color-text-primary);">
-                    Statutory External Peer Referee Quotas by Academic Rank
-                </h4>
+        <div style="margin-bottom: 2rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 1.25rem;">👨‍🏫</span>
+                    <div>
+                        <h4 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary);">
+                            Statutory External Peer Referee Quotas by Academic Rank
+                        </h4>
+                        <p style="margin: 0.15rem 0 0 0; font-size: 0.78rem; color: var(--color-text-secondary);">
+                            Mandatory external evaluation dossiers dispatched for confidential peer vetting before selection board.
+                        </p>
+                    </div>
+                </div>
+                <span class="badge badge-cyan" style="font-size: 0.7rem; font-weight: 800;">STATUTORY QUORUM</span>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1.15rem;">
                 
                 <!-- Assistant Professor Quota -->
-                <div style="padding: 1.15rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
-                    <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem;">
-                        <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
-                            Assistant Professor (TTS / BPS)
-                        </span>
+                <div class="card" style="padding: 1.25rem; background: var(--bg-surface); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); transition: all 0.2s ease;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 30px; height: 30px; border-radius: 8px; background: rgba(99,102,241,0.12); color: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: 800; flex-shrink: 0;">
+                                🔬
+                            </div>
+                            <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
+                                Assistant Professor (TTS / BPS)
+                            </span>
+                        </div>
                         <x-help-hint type="inline" 
                                      variant="statutory" 
                                      statute="TTS Statutes Sec. 2.4" 
@@ -345,26 +428,52 @@
                                      text="HEC requires minimum 3 independent external evaluation reports from technologically advanced countries for Tenure Track (TTS) Assistant Professors." 
                                      example="Standard: 3 referees" />
                     </div>
-                    <div style="font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: 0.65rem;">
-                        Minimum mandatory external peer review dossiers to dispatch.
+                    <div style="font-size: 0.78rem; color: var(--color-text-secondary); margin-bottom: 0.75rem; min-height: 2.2em; line-height: 1.4;">
+                        Minimum mandatory external peer review dossiers to dispatch for Assistant Professor candidacies.
                     </div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+
+                    <!-- Fused Modern Input Group -->
+                    <div style="display: flex; align-items: stretch; border: 1.5px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--bg-card); box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);">
                         <input type="number" 
                                wire:model.live="asst_prof_required_peer_reviewers" 
-                               min="1" 
+                               min="0" 
                                max="10" 
                                class="form-control" 
-                               style="width: 90px; text-align: center; font-weight: 800; font-size: 1rem;">
-                        <span style="font-weight: 700; color: var(--color-text-secondary);">Experts</span>
+                               style="border: none; background: transparent; padding: 0.65rem 0.95rem; text-align: center; font-weight: 900; font-size: 1.15rem; color: var(--color-text-primary); width: 85px; box-shadow: none;">
+                        <div style="display: flex; align-items: center; justify-content: center; padding: 0 1.15rem; background: var(--bg-surface); border-left: 1.5px solid var(--border-color); font-weight: 800; font-size: 0.85rem; color: var(--color-text-secondary); flex: 1; text-transform: uppercase; letter-spacing: 0.04em;">
+                            Experts / Dossiers
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.65rem; font-size: 0.72rem;">
+                        <span style="color: var(--color-text-muted);">TTS Requirement:</span>
+                        @if((int)$asst_prof_required_peer_reviewers >= 3)
+                            <span class="badge badge-emerald" style="font-size: 0.68rem; font-weight: 800;">
+                                ✓ Statutory Quorum ({{ $asst_prof_required_peer_reviewers }} Referees)
+                            </span>
+                        @elseif((int)$asst_prof_required_peer_reviewers > 0)
+                            <span class="badge badge-amber" style="font-size: 0.68rem; font-weight: 800;">
+                                Partial Quota ({{ $asst_prof_required_peer_reviewers }} Referees)
+                            </span>
+                        @else
+                            <span class="badge badge-slate" style="font-size: 0.68rem; font-weight: 800;">
+                                Peer Review Bypassed
+                            </span>
+                        @endif
                     </div>
                 </div>
 
                 <!-- Professor & Associate Professor Quota -->
-                <div style="padding: 1.15rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
-                    <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem;">
-                        <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
-                            Professor & Associate Professor
-                        </span>
+                <div class="card" style="padding: 1.25rem; background: var(--bg-surface); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); transition: all 0.2s ease;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 30px; height: 30px; border-radius: 8px; background: rgba(16,185,129,0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: 800; flex-shrink: 0;">
+                                🏛️
+                            </div>
+                            <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
+                                Professor &amp; Associate Professor
+                            </span>
+                        </div>
                         <x-help-hint type="inline" 
                                      variant="statutory" 
                                      statute="HEC Senior Chair Criteria" 
@@ -372,43 +481,86 @@
                                      text="Senior academic chairs must receive positive recommendations from independent foreign referees before appearing at the Selection Board." 
                                      example="Standard: 3 referees" />
                     </div>
-                    <div style="font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: 0.65rem;">
-                        Mandatory external foreign and national referee reports.
+                    <div style="font-size: 0.78rem; color: var(--color-text-secondary); margin-bottom: 0.75rem; min-height: 2.2em; line-height: 1.4;">
+                        Mandatory external foreign and national referee reports for senior academic professorships.
                     </div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+
+                    <!-- Fused Modern Input Group -->
+                    <div style="display: flex; align-items: stretch; border: 1.5px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--bg-card); box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);">
                         <input type="number" 
                                wire:model.live="prof_required_peer_reviewers" 
-                               min="1" 
+                               min="0" 
                                max="10" 
                                class="form-control" 
-                               style="width: 90px; text-align: center; font-weight: 800; font-size: 1rem;">
-                        <span style="font-weight: 700; color: var(--color-text-secondary);">Experts</span>
+                               style="border: none; background: transparent; padding: 0.65rem 0.95rem; text-align: center; font-weight: 900; font-size: 1.15rem; color: var(--color-text-primary); width: 85px; box-shadow: none;">
+                        <div style="display: flex; align-items: center; justify-content: center; padding: 0 1.15rem; background: var(--bg-surface); border-left: 1.5px solid var(--border-color); font-weight: 800; font-size: 0.85rem; color: var(--color-text-secondary); flex: 1; text-transform: uppercase; letter-spacing: 0.04em;">
+                            Experts / Dossiers
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.65rem; font-size: 0.72rem;">
+                        <span style="color: var(--color-text-muted);">Senior Quorum:</span>
+                        @if((int)$prof_required_peer_reviewers >= 3)
+                            <span class="badge badge-emerald" style="font-size: 0.68rem; font-weight: 800;">
+                                ✓ Full International Quorum ({{ $prof_required_peer_reviewers }})
+                            </span>
+                        @elseif((int)$prof_required_peer_reviewers > 0)
+                            <span class="badge badge-amber" style="font-size: 0.68rem; font-weight: 800;">
+                                Quota: {{ $prof_required_peer_reviewers }} Referees
+                            </span>
+                        @else
+                            <span class="badge badge-slate" style="font-size: 0.68rem; font-weight: 800;">
+                                Peer Review Bypassed
+                            </span>
+                        @endif
                     </div>
                 </div>
 
                 <!-- Lecturer Quota -->
-                <div style="padding: 1.15rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
-                    <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem;">
-                        <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
-                            Lecturer / Junior Teaching Cadre
-                        </span>
+                <div class="card" style="padding: 1.25rem; background: var(--bg-surface); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); transition: all 0.2s ease;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 30px; height: 30px; border-radius: 8px; background: rgba(148,163,184,0.15); color: #64748b; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: 800; flex-shrink: 0;">
+                                📖
+                            </div>
+                            <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
+                                Lecturer / Teaching Cadre
+                            </span>
+                        </div>
                         <x-help-hint type="inline" 
                                      variant="tip" 
                                      title="Lecturer Evaluation" 
                                      text="Junior academic positions generally rely on scrutiny screening and written tests without external referee dispatch (0 means skipped)." 
                                      example="Standard: 0 (Skipped)" />
                     </div>
-                    <div style="font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: 0.65rem;">
-                        External referees required (Set 0 to skip peer review for lecturers).
+                    <div style="font-size: 0.78rem; color: var(--color-text-secondary); margin-bottom: 0.75rem; min-height: 2.2em; line-height: 1.4;">
+                        External referees required (Set 0 to skip external referee dispatch for junior faculty).
                     </div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+
+                    <!-- Fused Modern Input Group -->
+                    <div style="display: flex; align-items: stretch; border: 1.5px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--bg-card); box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);">
                         <input type="number" 
                                wire:model.live="lecturer_required_peer_reviewers" 
                                min="0" 
                                max="10" 
                                class="form-control" 
-                               style="width: 90px; text-align: center; font-weight: 800; font-size: 1rem;">
-                        <span style="font-weight: 700; color: var(--color-text-secondary);">Experts</span>
+                               style="border: none; background: transparent; padding: 0.65rem 0.95rem; text-align: center; font-weight: 900; font-size: 1.15rem; color: var(--color-text-primary); width: 85px; box-shadow: none;">
+                        <div style="display: flex; align-items: center; justify-content: center; padding: 0 1.15rem; background: var(--bg-surface); border-left: 1.5px solid var(--border-color); font-weight: 800; font-size: 0.85rem; color: var(--color-text-secondary); flex: 1; text-transform: uppercase; letter-spacing: 0.04em;">
+                            Experts / Dossiers
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.65rem; font-size: 0.72rem;">
+                        <span style="color: var(--color-text-muted);">Junior Cadre:</span>
+                        @if((int)$lecturer_required_peer_reviewers === 0)
+                            <span class="badge badge-slate" style="font-size: 0.68rem; font-weight: 800;">
+                                Skipped for Lecturers (0)
+                            </span>
+                        @else
+                            <span class="badge badge-indigo" style="font-size: 0.68rem; font-weight: 800;">
+                                {{ $lecturer_required_peer_reviewers }} External Referees
+                            </span>
+                        @endif
                     </div>
                 </div>
 

@@ -139,7 +139,7 @@
                            class="form-control" 
                            placeholder="e.g. AWKUM" 
                            style="font-size: 0.95rem; font-weight: 800; letter-spacing: 0.05em; padding: 0.65rem 1rem;">
-                    <small style="color: var(--color-text-secondary); font-size: 0.76rem; display: block; margin-top: 0.25rem;">Displayed in sidebar & compact spaces.</small>
+                    <small style="color: var(--primary); font-weight: 700; font-size: 0.76rem; display: block; margin-top: 0.25rem;">Directly powers the sidebar brand mark, topbar workspace pills &amp; compact spaces.</small>
                     @error('org_short_name')
                         <div style="color: var(--danger); font-size: 0.78rem; font-weight: 700; margin-top: 0.25rem;">{{ $message }}</div>
                     @enderror

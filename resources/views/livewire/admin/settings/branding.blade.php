@@ -373,9 +373,14 @@
             <!-- ========================================================================= -->
             <div style="background: var(--bg-card); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
-                    <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-                        <span>🏷️ Application Brand Identity</span>
-                    </h3>
+                    <div>
+                        <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                            <span>🏷️ Application Brand Identity &amp; Platform Title</span>
+                        </h3>
+                        <p style="font-size: 0.8rem; color: var(--color-text-secondary); margin: 0.2rem 0 0 0;">
+                            Configure platform software title, slogans, and software edition badges.
+                        </p>
+                    </div>
                     @can('manage-settings')
                     <button type="button" 
                             wire:click="resetBrandingToDefault" 
@@ -387,20 +392,42 @@
                     @endcan
                 </div>
 
+                <!-- Nomenclature Harmony Notice -->
+                <div style="background: rgba(99,102,241,0.06); border: 1px dashed rgba(99,102,241,0.3); border-radius: var(--radius-sm); padding: 0.85rem 1.15rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.65rem;">
+                        <span style="font-size: 1.15rem;">🏛️</span>
+                        <div style="font-size: 0.82rem; color: var(--color-text-secondary); line-height: 1.45;">
+                            <strong>Institutional Short Name:</strong> The sidebar drawer and portal topbars automatically display your university acronym 
+                            <span class="badge badge-indigo" style="font-size: 0.72rem; font-weight: 800;">{{ strtoupper($org_short_name ?: 'AWKUM') }}</span> 
+                            (configured in <a href="javascript:void(0)" wire:click="setTab('organization')" style="color: var(--primary); font-weight: 700; text-decoration: underline;">Institution Profile</a>).
+                        </div>
+                    </div>
+                    @if(!empty($org_short_name) && $app_name !== $org_short_name)
+                        <button type="button" 
+                                wire:click="$set('app_name', '{{ $org_short_name }}')"
+                                class="btn btn-secondary btn-sm" 
+                                style="font-size: 0.72rem; font-weight: 800; padding: 0.35rem 0.65rem;">
+                            Set App Name to "{{ $org_short_name }}"
+                        </button>
+                    @endif
+                </div>
+
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
                     <!-- App Name -->
                     <div>
-                        <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
-                            <span>Application Name</span>
-                            <span style="color: var(--danger);">*</span>
-                        </label>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                            <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin: 0;">
+                                <span>Platform Brand Name</span>
+                                <span style="color: var(--danger);">*</span>
+                            </label>
+                        </div>
                         <input type="text" 
                                wire:model="app_name" 
                                class="form-control" 
-                               placeholder="e.g. Hirely" 
+                               placeholder="e.g. {{ $org_short_name ?: 'AWKUM' }}" 
                                style="font-size: 0.95rem; font-weight: 700; padding: 0.65rem 1rem;">
                         @error('app_name') <div style="color: var(--danger); font-size: 0.78rem; font-weight: 700; margin-top: 0.25rem;">{{ $message }}</div> @enderror
-                        <small style="color: var(--color-text-secondary); font-size: 0.78rem; display: block; margin-top: 0.25rem;">Primary brand name displayed in headers, navigation, and page titles.</small>
+                        <small style="color: var(--color-text-secondary); font-size: 0.78rem; display: block; margin-top: 0.25rem;">Software suite title used in browser tabs, system alerts, and notifications.</small>
                     </div>
 
                     <!-- App Tagline / Slogan -->

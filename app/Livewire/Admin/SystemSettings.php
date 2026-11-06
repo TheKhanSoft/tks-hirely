@@ -485,6 +485,14 @@ class SystemSettings extends Component
             SystemSetting::set('letterhead_heading', $this->letterhead_heading, 'organization', 'string');
         }
 
+        // Keep app branding aligned with organization short name if default
+        if (empty($this->app_name) || $this->app_name === 'Hirely') {
+            $this->app_name = $this->org_short_name;
+            SystemSetting::set('app_name', $this->app_name, 'branding', 'string');
+        }
+
+        SystemSetting::clearCache();
+
         session()->flash('message', 'Organization legal title, short name, sector taxonomy, and fee standards saved.');
     }
 
@@ -661,6 +669,8 @@ class SystemSettings extends Component
         SystemSetting::set('letter_footer_contact', $this->letter_footer_contact, 'branding', 'string');
         SystemSetting::set('letter_show_audit_trail', (bool) $this->letter_show_audit_trail, 'branding', 'boolean');
         SystemSetting::set('letter_show_verify_ref', (bool) $this->letter_show_verify_ref, 'branding', 'boolean');
+
+        SystemSetting::clearCache();
 
         session()->flash('message', 'Platform theme, brand identity, layout aesthetics, and portal footers saved.');
     }
