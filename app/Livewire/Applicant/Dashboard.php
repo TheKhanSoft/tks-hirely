@@ -40,6 +40,11 @@ class Dashboard extends Component
 
     public function openAppealForm($applicationId)
     {
+        if (!\App\Models\SystemSetting::isPipelineStepEnabled('appellate')) {
+            session()->flash('error', 'Grievance appellate review stage is currently closed or disabled by institutional administration.');
+            return;
+        }
+
         $this->selectedApplicationId = $applicationId;
         $this->showAppealForm = true;
     }
@@ -47,6 +52,12 @@ class Dashboard extends Component
     public function submitAppeal()
     {
         abort_unless(Auth::user()->can('submit-appeal') || Auth::user()->can('submit-applications'), 403);
+
+        if (!\App\Models\SystemSetting::isPipelineStepEnabled('appellate')) {
+            session()->flash('error', 'Grievance appellate review stage is currently closed or disabled by institutional administration.');
+            $this->showAppealForm = false;
+            return;
+        }
 
         $this->validate([
             'appealText' => 'required|string|min:20',
@@ -86,6 +97,12 @@ class Dashboard extends Component
             return redirect()->to('/applicant/wizard');
         }
 
+        $allowMultiple = (bool) \App\Models\SystemSetting::get('allow_multiple_applications', true);
+        if (!$allowMultiple && $user->applications()->exists()) {
+            session()->flash('error', 'Institutional policy does not permit multiple applications. You already have a registered application in the recruitment cycle.');
+            return;
+        }
+
         $this->selectedCampaignIdForModal = null;
         $this->campaignSearch = '';
         $this->showApplyModal = true;
@@ -110,11 +127,13 @@ class Dashboard extends Component
 
     public function selectCampaignForModal($campaignId)
     {
-        // Check if user has already applied for this campaign
-        $alreadyApplied = Auth::user()->applications()->where('campaign_id', $campaignId)->exists();
-        if ($alreadyApplied) {
-            $this->addError('selectedCampaignIdForModal', 'You have already applied for this position. Candidates cannot submit duplicate applications for the same campaign.');
-            return;
+        $preventDuplicate = (bool) \App\Models\SystemSetting::get('prevent_duplicate_campaign_applications', true);
+        if ($preventDuplicate) {
+            $alreadyApplied = Auth::user()->applications()->where('campaign_id', $campaignId)->exists();
+            if ($alreadyApplied) {
+                $this->addError('selectedCampaignIdForModal', 'You have already applied for this position. Candidates cannot submit duplicate applications for the same campaign.');
+                return;
+            }
         }
 
         $this->resetErrorBag('selectedCampaignIdForModal');
@@ -138,17 +157,25 @@ class Dashboard extends Component
             return redirect()->to('/applicant/wizard');
         }
 
+        $allowMultiple = (bool) \App\Models\SystemSetting::get('allow_multiple_applications', true);
+        if (!$allowMultiple && $user->applications()->exists()) {
+            $this->addError('selectedCampaignIdForModal', 'Institutional policy restricts candidates to a single application across active campaigns.');
+            return;
+        }
+
         $campaign = Campaign::findOrFail($this->selectedCampaignIdForModal);
 
         // Strict duplicate check: prevent reapplying for the same campaign
+        $preventDuplicate = (bool) \App\Models\SystemSetting::get('prevent_duplicate_campaign_applications', true);
         $alreadyApplied = $user->applications()->where('campaign_id', $campaign->id)->exists();
-        if ($alreadyApplied) {
+        if ($preventDuplicate && $alreadyApplied) {
             $this->addError('selectedCampaignIdForModal', 'You have already applied for this position. Duplicate applications for the same position are not allowed.');
             return;
         }
 
-        // Lock basicInfo if not locked
-        if (!$basicInfo->is_locked) {
+        // Lock basicInfo if setting is enabled
+        $autoLock = (bool) \App\Models\SystemSetting::get('auto_lock_profile_on_voucher', true);
+        if ($autoLock && !$basicInfo->is_locked) {
             $basicInfo->update(['is_locked' => true]);
         }
 

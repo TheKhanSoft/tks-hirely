@@ -1,3 +1,16 @@
+@php
+    $currencySymbol = \App\Models\SystemSetting::get('currency_symbol', 'PKR');
+    $sectorLabel = \App\Models\SystemSetting::get('sector_label', 'Department / Division');
+    $allowMultiple = (bool) \App\Models\SystemSetting::get('allow_multiple_applications', true);
+    $appellateEnabled = \App\Models\SystemSetting::isPipelineStepEnabled('appellate');
+    $challanGraceDays = (int) \App\Models\SystemSetting::get('challan_grace_days', 14);
+    $supportEmail = \App\Models\SystemSetting::get('support_email');
+    $supportPhone = \App\Models\SystemSetting::get('support_phone');
+    $supportWhatsapp = \App\Models\SystemSetting::get('support_whatsapp');
+    $supportHours = \App\Models\SystemSetting::get('support_hours');
+    $helpdeskLocation = \App\Models\SystemSetting::get('helpdesk_location');
+    $orgWebsite = \App\Models\SystemSetting::get('org_website');
+@endphp
 <div class="flex-col gap-6">
     <!-- Flash Success Notification -->
     @if (session()->has('message'))
@@ -11,6 +24,26 @@
                     <div>
                         <strong style="color: #6ee7b7; font-size: 0.95rem;">Action Successful</strong>
                         <p style="color: var(--color-text-secondary); font-size: 0.88rem; margin: 0.15rem 0 0;">{{ session('message') }}</p>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="this.closest('.card').remove()">✕</button>
+            </div>
+        </div>
+    @endif
+
+    <!-- Flash Error Notification -->
+    @if (session()->has('error'))
+        <div class="card" style="background: rgba(239, 68, 68, 0.1); border-color: var(--danger); padding: 1rem 1.25rem;">
+            <div class="flex align-center justify-between" style="gap: 1rem;">
+                <div class="flex align-center gap-3">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" x2="12" y1="8" y2="12"/>
+                        <line x1="12" x2="12.01" y1="16" y2="16"/>
+                    </svg>
+                    <div>
+                        <strong style="color: #fca5a5; font-size: 0.95rem;">Attention / Notice</strong>
+                        <p style="color: var(--color-text-secondary); font-size: 0.88rem; margin: 0.15rem 0 0;">{{ session('error') }}</p>
                     </div>
                 </div>
                 <button type="button" class="btn btn-secondary btn-sm" onclick="this.closest('.card').remove()">✕</button>
@@ -374,13 +407,19 @@
                 </div>
 
                 <div class="flex align-center gap-2">
-                    <button type="button" class="btn btn-primary btn-sm" wire:click="openApplyModal">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                        <span>Apply for Another Position</span>
-                    </button>
+                    @if($allowMultiple || $totalApplications === 0)
+                        <button type="button" class="btn btn-primary btn-sm" wire:click="openApplyModal">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            <span>{{ $totalApplications === 0 ? 'Apply for Position' : 'Apply for Another Position' }}</span>
+                        </button>
+                    @else
+                        <span class="badge" style="background: rgba(148, 163, 184, 0.15); color: var(--color-text-muted); font-size: 0.78rem; padding: 0.4rem 0.75rem; border: 1px solid var(--border-color);">
+                            🔒 Single Application Policy Active
+                        </span>
+                    @endif
                 </div>
             </div>
 
@@ -472,7 +511,7 @@
                                 </td>
                                 <td>
                                     <strong style="color: var(--color-text-primary); font-size: 0.95rem;">
-                                        PKR {{ number_format($app->billingLedger?->amount ?? $app->campaign->application_fee, 2) }}
+                                        {{ $currencySymbol }} {{ number_format($app->billingLedger?->amount ?? $app->campaign->application_fee, 2) }}
                                     </strong>
                                 </td>
                                 <td>
@@ -557,9 +596,15 @@
                                                 <span>Pay Sim</span>
                                             </a>
                                         @elseif($app->status === 'INELIGIBLE')
-                                            <button type="button" class="btn btn-danger btn-sm" wire:click="openAppealForm({{ $app->id }})">
-                                                <span>Appeal</span>
-                                            </button>
+                                            @if($appellateEnabled)
+                                                <button type="button" class="btn btn-danger btn-sm" wire:click="openAppealForm({{ $app->id }})">
+                                                    <span>Appeal</span>
+                                                </button>
+                                            @else
+                                                <span class="badge badge-ineligible" style="font-size: 0.7rem;" title="Appellate grievance window is closed">
+                                                    Disqualified
+                                                </span>
+                                            @endif
                                         @endif
                                     </div>
 
@@ -588,6 +633,77 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- CANDIDATE FACILITATION & STATUTORY HELPDESK CARD               -->
+        <!-- ============================================================== -->
+        <div class="card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.04) 0%, rgba(6, 182, 212, 0.04) 100%); border: 1px solid var(--border-color);">
+            <div class="flex justify-between align-center mb-3" style="flex-wrap: wrap; gap: 0.75rem;">
+                <div class="flex align-center gap-2">
+                    <span style="font-size: 1.35rem;">🎧</span>
+                    <div>
+                        <h4 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary);">
+                            Candidate Facilitation & Statutory Recruitment Helpdesk
+                        </h4>
+                        <p style="margin: 0.2rem 0 0; font-size: 0.8rem; color: var(--color-text-secondary);">
+                            Official institutional assistance for voucher reconciliation, document verification, and statutory grievance inquiries.
+                        </p>
+                    </div>
+                </div>
+
+                @if(!empty($supportHours))
+                    <span class="badge" style="background: rgba(99, 102, 241, 0.12); color: var(--primary); font-size: 0.75rem; font-weight: 700;">
+                        🕒 {{ $supportHours }}
+                    </span>
+                @endif
+            </div>
+
+            <div class="grid grid-cols-3 gap-3" style="margin-top: 1rem;">
+                @if(!empty($supportEmail))
+                    <a href="mailto:{{ $supportEmail }}" style="text-decoration: none; display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1rem; border-radius: var(--radius-sm); background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--color-text-primary);">
+                        <span style="font-size: 1.4rem;">📧</span>
+                        <div style="overflow: hidden;">
+                            <span style="font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: var(--color-text-muted); display: block;">Official Inquiries Email</span>
+                            <strong style="font-size: 0.84rem; color: var(--primary); text-overflow: ellipsis; overflow: hidden; display: block; white-space: nowrap;">{{ $supportEmail }}</strong>
+                        </div>
+                    </a>
+                @endif
+
+                @if(!empty($supportPhone))
+                    <a href="tel:{{ $supportPhone }}" style="text-decoration: none; display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1rem; border-radius: var(--radius-sm); background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--color-text-primary);">
+                        <span style="font-size: 1.4rem;">📞</span>
+                        <div>
+                            <span style="font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: var(--color-text-muted); display: block;">Helpline Telephone</span>
+                            <strong style="font-size: 0.84rem; color: var(--color-text-primary);">{{ $supportPhone }}</strong>
+                        </div>
+                    </a>
+                @endif
+
+                @if(!empty($supportWhatsapp))
+                    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $supportWhatsapp) }}" target="_blank" style="text-decoration: none; display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1rem; border-radius: var(--radius-sm); background: var(--bg-surface); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--color-text-primary);">
+                        <span style="font-size: 1.4rem;">💬</span>
+                        <div>
+                            <span style="font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: #10b981; display: block;">WhatsApp Support</span>
+                            <strong style="font-size: 0.84rem; color: #10b981;">{{ $supportWhatsapp }}</strong>
+                        </div>
+                    </a>
+                @endif
+            </div>
+
+            @if(!empty($helpdeskLocation))
+                <div style="margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; font-size: 0.78rem; color: var(--color-text-muted);">
+                    <div style="display: flex; align-items: center; gap: 0.45rem;">
+                        <span>📍</span>
+                        <span><strong>Physical Facilitation Center:</strong> {{ $helpdeskLocation }}</span>
+                    </div>
+                    @if(!empty($orgWebsite))
+                        <a href="{{ $orgWebsite }}" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 600;">
+                            Institutional Portal &rarr;
+                        </a>
+                    @endif
+                </div>
+            @endif
         </div>
     @endif
 
@@ -702,7 +818,7 @@
                                 <div style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem;" class="flex justify-between align-center">
                                     <div>
                                         <small style="color: var(--color-text-muted); font-size: 0.7rem; text-transform: uppercase;">Processing Fee</small><br>
-                                        <strong style="color: var(--warning); font-size: 0.95rem;">PKR {{ number_format($camp->application_fee) }}</strong>
+                                        <strong style="color: var(--warning); font-size: 0.95rem;">{{ $currencySymbol }} {{ number_format($camp->application_fee) }}</strong>
                                     </div>
 
                                     <div>
@@ -743,7 +859,7 @@
                                 {{ $chosenCampaign?->title }}
                             </strong>
                             <span style="color: var(--warning); font-weight: 700; margin-left: 0.5rem;">
-                                (PKR {{ number_format($chosenCampaign?->application_fee ?? 0) }})
+                                ({{ $currencySymbol }} {{ number_format($chosenCampaign?->application_fee ?? 0) }})
                             </span>
                         @else
                             <span style="font-size: 0.82rem; color: var(--color-text-muted);">
@@ -915,7 +1031,7 @@
                                         Application Processing Fee (Total Paid)
                                     </span>
                                     <strong style="font-family: 'JetBrains Mono', monospace; font-size: 1.45rem; color: #15803d;">
-                                        PKR {{ number_format($selectedSlipApp->billingLedger?->amount ?? $selectedSlipApp->campaign->application_fee, 2) }}
+                                        {{ $currencySymbol }} {{ number_format($selectedSlipApp->billingLedger?->amount ?? $selectedSlipApp->campaign->application_fee, 2) }}
                                     </strong>
                                 </div>
 
@@ -1003,19 +1119,25 @@
                                         </div>
 
                                         <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
-                                            <span style="color: #64748b;">Department:</span>
+                                            <span style="color: #64748b;">{{ $sectorLabel }}:</span>
                                             <span style="color: #0f172a; text-align: right;">{{ $selectedSlipApp->campaign->department }}</span>
                                         </div>
 
                                         <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
                                             <span style="color: #64748b;">Due Date:</span>
-                                            <span style="color: #0f172a;">{{ $selectedSlipApp->campaign->closing_date?->format('d M Y') }}</span>
+                                            @php
+                                                $calcDueDate = $selectedSlipApp->created_at ? $selectedSlipApp->created_at->copy()->addDays($challanGraceDays) : now()->addDays($challanGraceDays);
+                                                if ($selectedSlipApp->campaign->closing_date && $selectedSlipApp->campaign->closing_date->lessThan($calcDueDate)) {
+                                                    $calcDueDate = $selectedSlipApp->campaign->closing_date;
+                                                }
+                                            @endphp
+                                            <span style="color: #0f172a; font-weight: 600;">{{ $calcDueDate->format('d M Y') }}</span>
                                         </div>
 
                                         <div style="display: flex; justify-content: space-between; background: #fef3c7; padding: 0.4rem; border-radius: 4px; margin-top: 0.35rem;">
                                             <span style="font-weight: 700; color: #92400e;">Fee Amount:</span>
                                             <strong style="font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; color: #b45309;">
-                                                PKR {{ number_format($selectedSlipApp->billingLedger?->amount ?? $selectedSlipApp->campaign->application_fee) }}
+                                                {{ $currencySymbol }} {{ number_format($selectedSlipApp->billingLedger?->amount ?? $selectedSlipApp->campaign->application_fee) }}
                                             </strong>
                                         </div>
 
@@ -1030,7 +1152,7 @@
 
                                         <!-- ON PRINT: Official deposit instructions without the web emoji badge -->
                                         <div class="print-only" style="border: 1px dashed #cbd5e1; border-radius: 4px; padding: 0.35rem; margin-top: 0.4rem; text-align: center; font-size: 0.65rem; color: #475569;">
-                                            <strong style="color: #0f172a; text-transform: uppercase;">Amount Due: PKR {{ number_format($selectedSlipApp->billingLedger?->amount ?? $selectedSlipApp->campaign->application_fee) }}</strong>
+                                            <strong style="color: #0f172a; text-transform: uppercase;">Amount Due: {{ $currencySymbol }} {{ number_format($selectedSlipApp->billingLedger?->amount ?? $selectedSlipApp->campaign->application_fee) }}</strong>
                                             <div style="font-size: 0.6rem; color: #64748b;">Depositor / Cashier Validation Required</div>
                                         </div>
                                     </div>

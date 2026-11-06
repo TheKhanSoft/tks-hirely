@@ -1,3 +1,6 @@
+@php
+    $currencySymbol = \App\Models\SystemSetting::get('currency_symbol', 'PKR');
+@endphp
 <div>
     <!-- Executive Control Header -->
     <div class="page-hero-header">
@@ -104,7 +107,7 @@
                         </svg>
                     </div>
                 </div>
-                <div class="metric-value" style="color: var(--secondary); font-size: 1.35rem;">PKR {{ number_format($stats['total_revenue'], 0) }}</div>
+                <div class="metric-value" style="color: var(--secondary); font-size: 1.35rem;">{{ $currencySymbol }} {{ number_format($stats['total_revenue'], 0) }}</div>
                 <div class="metric-subtext">{{ $payContext }}</div>
             </div>
         </div>
@@ -165,7 +168,7 @@
                 @endif
 
                 <div class="grid grid-cols-3 gap-5 mt-4 align-center">
-                    <x-input label="Total Processing Fee (PKR) *" :error="$errors->first('pay_amount')">
+                    <x-input label="Total Processing Fee ({{ $currencySymbol }}) *" :error="$errors->first('pay_amount')">
                         <input type="number" step="0.01" class="form-control" wire:model="pay_amount">
                     </x-input>
                     <x-select label="Voucher Settlement Status *" :error="$errors->first('pay_status')">
@@ -317,7 +320,7 @@
                         <div class="entity-card-metric-row">
                             <span class="entity-card-metric-label">Fee Amount:</span>
                             <span class="entity-card-metric-value" style="font-size: 0.95rem; font-weight: 800; color: {{ $pay->status === 'SETTLED' ? 'var(--success)' : 'var(--color-text-primary)' }};">
-                                PKR {{ number_format($pay->amount, 2) }}
+                                {{ $currencySymbol }} {{ number_format($pay->amount, 2) }}
                             </span>
                         </div>
 
@@ -468,7 +471,7 @@
                             <th>Applicant Candidate</th>
                             <th>Target Vacancy</th>
                             <th style="cursor: pointer;" wire:click="sort('amount')" title="Sort by Amount">
-                                Amount (PKR) @if($sortBy === 'amount') <span style="color: var(--secondary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
+                                Amount ({{ $currencySymbol }}) @if($sortBy === 'amount') <span style="color: var(--secondary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
                             </th>
                             <th style="cursor: pointer;" wire:click="sort('status')" title="Sort by Voucher Status">
                                 Voucher Status @if($sortBy === 'status') <span style="color: var(--secondary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span> @endif
@@ -504,7 +507,7 @@
                                 </td>
                                 <td>
                                     <strong style="font-size: 0.95rem; color: {{ $pay->status === 'SETTLED' ? 'var(--success)' : 'var(--color-text-primary)' }};">
-                                        PKR {{ number_format($pay->amount, 2) }}
+                                        {{ $currencySymbol }} {{ number_format($pay->amount, 2) }}
                                     </strong>
                                 </td>
                                 <td>
@@ -705,7 +708,7 @@
                         <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
                             <span style="font-size: 0.75rem; color: var(--color-text-muted); display: block; text-transform: uppercase; letter-spacing: 0.04em;">Challan Amount</span>
                             <strong style="color: {{ $selectedPayment->status === 'SETTLED' ? 'var(--success)' : 'var(--color-text-primary)' }}; font-size: 1.15rem; font-family: 'JetBrains Mono', monospace; display: block; margin-top: 3px;">
-                                PKR {{ number_format($selectedPayment->amount, 2) }}
+                                {{ $currencySymbol }} {{ number_format($selectedPayment->amount, 2) }}
                             </strong>
                         </div>
 

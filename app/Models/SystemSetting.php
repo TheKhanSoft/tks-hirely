@@ -628,7 +628,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'enforce_strict_peer_review_quorum',
-                'value' => '1',
+                'value' => '0',
                 'group' => 'pipeline',
                 'type' => 'boolean',
                 'label' => 'Strict Peer Review Quota Enforcement',

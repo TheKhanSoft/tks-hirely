@@ -2,6 +2,7 @@
     <x-card wire:key="wizard-header-card" title="Applicant Recruitment Dossier Wizard" subtitle="Provide your biodata, educational history, professional experience, milestones, and generate your fee voucher.">
         <!-- Wizard Progress Steps with Labels Underneath -->
         @php
+            $currencySymbol = \App\Models\SystemSetting::get('currency_symbol', 'PKR');
             $stepLabels = [
                 1 => 'Bio-Data',
                 2 => 'Academics',
@@ -446,7 +447,7 @@
                                     <option value="Semi-Government">Semi-Government Sector</option>
                                 </select>
                             </x-select>
-                            <x-input label="Gross Monthly Salary (PKR)" :error="$errors->first('new_exp_salary')">
+                            <x-input label="Gross Monthly Salary ({{ $currencySymbol }})" :error="$errors->first('new_exp_salary')">
                                 <input type="number" class="form-control" wire:model="new_exp_salary" placeholder="e.g. 120000" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
                             </x-input>
                             <x-input label="Experience Proof / NOC (PDF max 2MB)" :error="$errors->first('new_exp_proof')">
@@ -504,7 +505,7 @@
                                     <code>{{ $exp['start_date'] }}</code> to 
                                     <code>{{ $exp['end_date'] ?: 'Present' }}</code>
                                 </td>
-                                <td>PKR {{ number_format($exp['salary'], 2) }}</td>
+                                <td>{{ $currencySymbol }} {{ number_format($exp['salary'], 2) }}</td>
                                 <td>
                                     @if(isset($exp['proof_path']))
                                         <a href="/storage/{{ $exp['proof_path'] }}" target="_blank" style="color: var(--secondary)">📄 View Letter</a>
@@ -691,7 +692,7 @@
                                 </x-input>
                             </div>
                             <div class="grid grid-cols-3 gap-4 mt-4 align-center">
-                                <x-input label="Budget Managed (Millions PKR)" :error="$errors->first('new_ms_budget')">
+                                <x-input label="Budget Managed (Millions {{ $currencySymbol }})" :error="$errors->first('new_ms_budget')">
                                     <input type="number" class="form-control" wire:model="new_ms_budget" placeholder="e.g. 15.5" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
                                 </x-input>
                                 <x-input label="Execution Year" :error="$errors->first('new_ms_year')">
@@ -711,7 +712,7 @@
                             @forelse($milestones as $idx => $ms)
                                 <tr>
                                     <td><strong style="color: var(--secondary)">{{ $ms['title'] }}</strong></td>
-                                    <td>PKR {{ number_format($ms['budget'], 1) }} Million</td>
+                                    <td>{{ $currencySymbol }} {{ number_format($ms['budget'], 1) }} Million</td>
                                     <td>{{ $ms['year'] }}</td>
                                     <td><small style="max-width: 250px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $ms['description'] }}</small></td>
                                     <td>
@@ -814,7 +815,7 @@
                                 <x-input label="Grant Sponsor / Body" :error="$errors->first('new_proj_sponsor')">
                                     <input type="text" class="form-control" wire:model="new_proj_sponsor" placeholder="Sponsoring office" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
                                 </x-input>
-                                <x-input label="Total Grant Value (PKR)" :error="$errors->first('new_proj_amount')">
+                                <x-input label="Total Grant Value ({{ $currencySymbol }})" :error="$errors->first('new_proj_amount')">
                                     <input type="number" class="form-control" wire:model="new_proj_amount" placeholder="e.g. 500000" {{ $basicInfo?->is_locked ? 'disabled' : '' }}>
                                 </x-input>
                             </div>
@@ -862,7 +863,7 @@
                                     </td>
                                     <td>
                                         <strong>{{ $p['funding_agency'] }}</strong><br>
-                                        PKR {{ number_format($p['grant_amount'], 2) }}
+                                        {{ $currencySymbol }} {{ number_format($p['grant_amount'], 2) }}
                                     </td>
                                     <td>{{ $p['start_date'] }}</td>
                                     <td>
@@ -1265,7 +1266,7 @@
                                     </div>
                                     <div>
                                         <small style="color: var(--color-text-secondary); text-transform: uppercase; font-size: 0.75rem; font-weight: 700;">Processing Fee</small><br>
-                                        <strong style="color: var(--success); font-size: 1.1rem;">PKR {{ number_format($this->selectedCampaignModel->application_fee, 2) }}</strong>
+                                        <strong style="color: var(--success); font-size: 1.1rem;">{{ $currencySymbol }} {{ number_format($this->selectedCampaignModel->application_fee, 2) }}</strong>
                                     </div>
 
                                     @if($this->selectedCampaignModel->advertisement)
@@ -1419,7 +1420,7 @@
                                     <div class="challan-grid-row" style="background: rgba(245, 158, 11, 0.04); padding: 0.85rem 0.5rem; border-radius: var(--radius-xs);">
                                         <span style="font-weight: 700; color: var(--color-text-primary); font-size: 0.95rem;">Total Application Processing Fee:</span>
                                         <strong style="color: var(--warning); font-size: 1.35rem; font-family: 'JetBrains Mono', monospace;">
-                                            PKR {{ number_format($billing?->amount ?? $application_fee, 2) }}
+                                            {{ $currencySymbol }} {{ number_format($billing?->amount ?? $application_fee, 2) }}
                                         </strong>
                                     </div>
                                 </div>
@@ -1489,7 +1490,7 @@
                                                         $isAlreadyApplied = in_array($camp->id, $appliedCampaignIds);
                                                     @endphp
                                                     <option value="{{ $camp->id }}" {{ $isAlreadyApplied ? 'disabled' : '' }}>
-                                                        {{ $isAlreadyApplied ? '✓ [ALREADY APPLIED] ' : '' }}{{ $camp->title }} ({{ $camp->job_code }}) - PKR {{ number_format($camp->application_fee) }}
+                                                        {{ $isAlreadyApplied ? '✓ [ALREADY APPLIED] ' : '' }}{{ $camp->title }} ({{ $camp->job_code }}) - {{ $currencySymbol }} {{ number_format($camp->application_fee) }}
                                                     </option>
                                                 @endforeach
                                             </optgroup>
@@ -1502,7 +1503,7 @@
                                         <div>
                                             <span style="font-size: 0.82rem; color: var(--color-text-secondary); text-transform: uppercase; font-weight: 700;">Processing Fee:</span>
                                             <strong style="color: var(--warning); font-size: 1.25rem; margin-left: 0.5rem; font-family: 'JetBrains Mono', monospace;">
-                                                PKR {{ number_format($this->selectedCampaignModel->application_fee, 2) }}
+                                                {{ $currencySymbol }} {{ number_format($this->selectedCampaignModel->application_fee, 2) }}
                                             </strong>
                                             <div style="font-size: 0.78rem; color: var(--color-text-muted); margin-top: 0.2rem;">
                                                 Department: {{ $this->selectedCampaignModel->department }} • Track: {{ $this->selectedCampaignModel->track_type }}

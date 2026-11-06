@@ -2,8 +2,19 @@
     $sysAppName = \App\Models\SystemSetting::getAppName();
     $sysAppLogo = \App\Models\SystemSetting::getAppLogo();
     $sysAppFavicon = \App\Models\SystemSetting::getAppFavicon();
-    $sysTagline = \App\Models\SystemSetting::get('app_tagline', 'Unified University Faculty & Officer Recruitment Portal');
+    $sysTagline = \App\Models\SystemSetting::get('app_tagline', 'Unified Faculty & Officer Recruitment Portal');
     $sysAccentColor = \App\Models\SystemSetting::get('theme_accent_color', '#4f46e5');
+    $orgName = \App\Models\SystemSetting::get('org_name', $sysAppName . ' Recruitment Management System');
+    $announcementActive = (bool) \App\Models\SystemSetting::get('portal_announcement_enabled', false);
+    $announcementType = \App\Models\SystemSetting::get('portal_announcement_type', 'info');
+    $announcementMsg = \App\Models\SystemSetting::get('portal_announcement_message', '');
+    $supportEmail = \App\Models\SystemSetting::get('support_email');
+    $supportPhone = \App\Models\SystemSetting::get('support_phone');
+    $supportWhatsapp = \App\Models\SystemSetting::get('support_whatsapp');
+    $supportHours = \App\Models\SystemSetting::get('support_hours');
+    $helpdeskLocation = \App\Models\SystemSetting::get('helpdesk_location');
+    $orgWebsite = \App\Models\SystemSetting::get('org_website');
+    $footerCopyright = \App\Models\SystemSetting::get('footer_copyright_text', '© ' . date('Y') . ' ' . $sysAppName . '. All rights reserved.');
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -52,6 +63,28 @@
     <div style="position: absolute; width: 450px; height: 450px; border-radius: 50%; background: radial-gradient(circle, var(--secondary-glow) 0%, transparent 70%); bottom: 10%; right: 15%; pointer-events: none; filter: blur(60px); opacity: 0.5;"></div>
 
     <div class="container auth-wrapper" style="position: relative; z-index: 10;">
+        @if($announcementActive && !empty($announcementMsg))
+            @php
+                $bannerMeta = match($announcementType) {
+                    'warning' => ['bg' => 'rgba(245, 158, 11, 0.14)', 'border' => 'rgba(245, 158, 11, 0.45)', 'text' => '#fbbf24', 'badge' => 'Attention', 'icon' => '⚠️'],
+                    'danger' => ['bg' => 'rgba(239, 68, 68, 0.14)', 'border' => 'rgba(239, 68, 68, 0.45)', 'text' => '#f87171', 'badge' => 'Urgent Notice', 'icon' => '🚨'],
+                    'success' => ['bg' => 'rgba(16, 185, 129, 0.14)', 'border' => 'rgba(16, 185, 129, 0.45)', 'text' => '#34d399', 'badge' => 'Update', 'icon' => '✅'],
+                    default => ['bg' => 'rgba(79, 70, 229, 0.14)', 'border' => 'rgba(79, 70, 229, 0.45)', 'text' => '#a5b4fc', 'badge' => 'Announcement', 'icon' => '📢'],
+                };
+            @endphp
+            <div class="card" style="border-color: {{ $bannerMeta['border'] }}; background: {{ $bannerMeta['bg'] }}; margin-bottom: 1.25rem; padding: 0.85rem 1.15rem; display: flex; align-items: center; justify-content: space-between; gap: 0.85rem; border-radius: var(--radius-sm);">
+                <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                    <span style="font-size: 1.25rem; line-height: 1;">{{ $bannerMeta['icon'] }}</span>
+                    <span style="background: {{ $bannerMeta['border'] }}; color: {{ $bannerMeta['text'] }}; padding: 0.15rem 0.55rem; border-radius: 4px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;">
+                        {{ $bannerMeta['badge'] }}
+                    </span>
+                    <span style="color: {{ $bannerMeta['text'] }}; font-weight: 600; font-size: 0.88rem; line-height: 1.4;">
+                        {{ $announcementMsg }}
+                    </span>
+                </div>
+            </div>
+        @endif
+
         <div class="card auth-card">
             <!-- Brand Logo Header -->
             <div class="text-center mb-6">
@@ -152,11 +185,56 @@
                 </div>
             </div>
 
+            <!-- Helpdesk & Candidate Facilitation Channel -->
+            @if(!empty($supportEmail) || !empty($supportPhone) || !empty($supportWhatsapp) || !empty($helpdeskLocation))
+            <div style="margin-top: 1.5rem; padding: 0.9rem 1rem; border-radius: var(--radius-sm); background: var(--bg-surface); border: 1px solid var(--border-color); font-size: 0.8rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.45rem;">
+                    <div style="font-weight: 700; color: var(--color-text-primary); display: flex; align-items: center; gap: 0.4rem;">
+                        <span>🎧</span>
+                        <span>Candidate Helpdesk & Inquiries</span>
+                    </div>
+                    @if(!empty($supportHours))
+                        <span style="font-size: 0.72rem; color: var(--color-text-muted);">{{ $supportHours }}</span>
+                    @endif
+                </div>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 0.75rem 1.25rem; color: var(--color-text-secondary); margin-top: 0.4rem;">
+                    @if(!empty($supportEmail))
+                        <a href="mailto:{{ $supportEmail }}" style="color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+                            <span>📧</span> <span>{{ $supportEmail }}</span>
+                        </a>
+                    @endif
+                    @if(!empty($supportPhone))
+                        <a href="tel:{{ $supportPhone }}" style="color: var(--color-text-secondary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+                            <span>📞</span> <span>{{ $supportPhone }}</span>
+                        </a>
+                    @endif
+                    @if(!empty($supportWhatsapp))
+                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $supportWhatsapp) }}" target="_blank" style="color: #10b981; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600;">
+                            <span>💬</span> <span>WhatsApp Helpline</span>
+                        </a>
+                    @endif
+                </div>
+
+                @if(!empty($helpdeskLocation))
+                    <div style="margin-top: 0.4rem; font-size: 0.74rem; color: var(--color-text-muted); display: flex; align-items: center; gap: 0.35rem;">
+                        <span>📍</span>
+                        <span>{{ $helpdeskLocation }}</span>
+                    </div>
+                @endif
+            </div>
+            @endif
+
             <!-- Footer note -->
             <div style="margin-top: 1.5rem; text-align: center;">
-                <p style="font-size: 0.75rem; color: var(--color-text-muted);">
-                    {{ $sysAppName }} Enterprise Recruitment Platform &bull; Pakistan Higher Education Standards
+                <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.25rem;">
+                    {{ $orgName }} &bull; {{ $footerCopyright }}
                 </p>
+                @if(!empty($orgWebsite))
+                    <a href="{{ $orgWebsite }}" target="_blank" style="font-size: 0.72rem; color: var(--primary); text-decoration: none;">
+                        Visit Institutional Portal &rarr;
+                    </a>
+                @endif
             </div>
         </div>
     </div>

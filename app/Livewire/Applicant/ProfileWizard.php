@@ -612,7 +612,7 @@ class ProfileWizard extends Component
             return;
         }
 
-        $isProofRequired = $this->selectedCampaignModel?->requiresTranscriptProof() ?? true;
+        $isProofRequired = SystemSetting::isDocumentRequired('transcript') && ($this->selectedCampaignModel?->requiresTranscriptProof() ?? true);
 
         $this->validate([
             'new_degree_level' => 'required|string|in:' . implode(',', array_keys($this->getNextDegreeLevelOptionsProperty())),
@@ -713,6 +713,10 @@ class ProfileWizard extends Component
     // Experience
     public function addExperience()
     {
+        $isExpProofRequired = SystemSetting::isDocumentRequired('experience');
+        $isNocRequired = SystemSetting::isDocumentRequired('noc');
+        $needsNoc = $isNocRequired && in_array($this->new_exp_sector, ['Government', 'Semi-Government']) && empty($this->new_exp_end);
+
         $this->validate([
             'new_exp_title' => 'required|string|max:150',
             'new_exp_company' => 'required|string|max:255',
@@ -720,8 +724,10 @@ class ProfileWizard extends Component
             'new_exp_end' => 'nullable|date|after_or_equal:new_exp_start',
             'new_exp_sector' => 'required|in:Government,Semi-Government,Private',
             'new_exp_salary' => 'required|numeric',
-            'new_exp_proof' => 'required|file|max:2048',
+            'new_exp_proof' => ($isExpProofRequired || $needsNoc) ? 'required|file|max:2048' : 'nullable|file|max:2048',
             'new_exp_description' => 'required|string|max:1000',
+        ], [
+            'new_exp_proof.required' => $needsNoc ? 'Departmental No Objection Certificate (NOC) / Service Proof is mandatory for currently serving public sector employees.' : 'Experience certificate / appointment letter upload is required.',
         ]);
 
         $path = $this->new_exp_proof->store('experience', 'public');
@@ -1493,20 +1499,42 @@ class ProfileWizard extends Component
             return;
         }
 
+        // Multiple application policy check
+        $allowMultiple = (bool) SystemSetting::get('allow_multiple_applications', true);
+        if (!$allowMultiple && Application::where('user_id', Auth::id())->exists()) {
+            $this->addError('campaign_id', 'Institutional policy does not permit multiple applications across campaigns. You have an existing registered application.');
+            return;
+        }
+
         // Duplicate application check: prevent reapplying for the same campaign
+        $preventDuplicate = (bool) SystemSetting::get('prevent_duplicate_campaign_applications', true);
         $existing = Application::where('user_id', Auth::id())
             ->where('campaign_id', $this->campaign_id)
             ->first();
-        if ($existing) {
+        if ($preventDuplicate && $existing) {
             $this->addError('campaign_id', 'You have already applied for this position (Ref #' . ($existing->billingLedger?->consumer_id ?? 'N/A') . '). You cannot apply for the same position multiple times.');
             return;
         }
 
-        // Lock basicInfo from further edits and assign final track type
-        $basicInfo->update([
-            'is_locked' => true,
-            'track_type' => $campaign->track_type,
-        ]);
+        // Mandatory Degree Transcripts check
+        if (SystemSetting::isDocumentRequired('transcript') && $basicInfo->degrees()->count() === 0) {
+            $this->addError('campaign_id', 'Mandatory Requirement: System policy requires at least one verified degree with transcript proof before generating your voucher.');
+            return;
+        }
+
+        // Mandatory Research Publications for Academic Roles
+        if ($campaign->track_type === 'ACADEMIC' && SystemSetting::isDocumentRequired('publications') && $basicInfo->publications()->count() === 0) {
+            $this->addError('campaign_id', 'Mandatory Requirement: System policy requires at least one verified research publication for academic track positions.');
+            return;
+        }
+
+        // Auto-lock basicInfo based on system settings and assign final track type
+        $autoLock = (bool) SystemSetting::get('auto_lock_profile_on_voucher', true);
+        $updateData = ['track_type' => $campaign->track_type];
+        if ($autoLock) {
+            $updateData['is_locked'] = true;
+        }
+        $basicInfo->update($updateData);
 
         // Generate unique 12-digit consumer ID
         $this->consumer_id = '1000' . str_pad((string)rand(10000000, 99999999), 8, '0', STR_PAD_LEFT);

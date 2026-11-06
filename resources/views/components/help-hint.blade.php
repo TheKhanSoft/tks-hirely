@@ -102,7 +102,8 @@
              x-transition:leave-start="opacity-100 transform scale-100"
              x-transition:leave-end="opacity-0 transform scale-95"
              class="help-hint-popover"
-             :class="{ 'place-bottom': placeBottom }">
+             :class="{ 'place-bottom': placeBottom }"
+             style="position: absolute; width: 320px; min-width: 280px; max-width: min(90vw, 360px); word-break: normal; white-space: normal; overflow-wrap: break-word; text-align: left; z-index: 9999;">
             
             @if($statute)
                 <div style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; color: {{ $themeStyles['badge_color'] }}; letter-spacing: 0.05em; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.3rem;">

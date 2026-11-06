@@ -162,6 +162,9 @@ class CampaignCrud extends Component
             $this->syncConstitutionFromCampaign($this->selected_campaign_id);
         }
         $this->loadCommitteeData();
+
+        $this->application_fee = (float) \App\Models\SystemSetting::get('default_application_fee', 3000);
+        $this->require_transcript_proof = (bool) \App\Models\SystemSetting::isDocumentRequired('transcript');
     }
 
     public function updatingAdvertisementFilter()
@@ -517,8 +520,8 @@ class CampaignCrud extends Component
         $this->department = '';
         $this->opening_date = '';
         $this->closing_date = '';
-        $this->application_fee = 1000.00;
-        $this->require_transcript_proof = true;
+        $this->application_fee = (float) \App\Models\SystemSetting::get('default_application_fee', 3000);
+        $this->require_transcript_proof = (bool) \App\Models\SystemSetting::isDocumentRequired('transcript');
         $this->constitution_id = null;
         $this->process_flow_id = null;
         $this->advertisement_id = null;

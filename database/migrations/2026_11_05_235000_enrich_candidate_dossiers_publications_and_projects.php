@@ -29,7 +29,7 @@ return new class extends Migration
             'enable_appellate_step' => true,
             'enable_board_interview_step' => true,
             'enforce_strict_committee_quorum' => true,
-            'enforce_strict_peer_review_quorum' => true,
+            'enforce_strict_peer_review_quorum' => false,
             'require_publications_academic' => false,
             'require_transcript_proof' => false,
             'require_experience_proof' => false,

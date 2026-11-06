@@ -183,7 +183,7 @@
                             </a>
                         @endcan
 
-                        @if($user->can('manage-reviewers') || $user->can('view-reviewer'))
+                        @if(($user->can('manage-reviewers') || $user->can('view-reviewer')) && \App\Models\SystemSetting::isPipelineStepEnabled('peer_review'))
                             <a href="{{ $baseRoute }}/reviewers" class="sidebar-link {{ request()->is('admin/reviewers*') || request()->is('registrar/reviewers*') ? 'active' : '' }}">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
@@ -257,7 +257,7 @@
                     @endif
 
                     {{-- 2. Scrutiny Committee Desk --}}
-                    @if($isSuperAdmin || $isScrutiny || $user->can('scrutinize-application'))
+                    @if(($isSuperAdmin || $isScrutiny || $user->can('scrutinize-application')) && \App\Models\SystemSetting::isPipelineStepEnabled('scrutiny'))
                         <div class="sidebar-section-title">Scrutiny Desk</div>
                         <a href="/scrutiny/dashboard" class="sidebar-link {{ request()->is('scrutiny*') ? 'active' : '' }}">
                             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -271,7 +271,7 @@
                     @endif
 
                     {{-- 3. Selection Board Desk --}}
-                    @if($isSuperAdmin || $isBoard || $user->can('access-board-grading') || $user->can('evaluate-application'))
+                    @if(($isSuperAdmin || $isBoard || $user->can('access-board-grading') || $user->can('evaluate-application')) && \App\Models\SystemSetting::isPipelineStepEnabled('board_interview'))
                         <div class="sidebar-section-title">Selection Board</div>
                         <a href="/board/dashboard" class="sidebar-link {{ request()->is('board*') ? 'active' : '' }}">
                             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -282,7 +282,7 @@
                     @endif
 
                     {{-- 4. Appellate Committee Desk --}}
-                    @if($isSuperAdmin || $isAppellate || $user->can('view-appeal') || $user->can('process-appeal'))
+                    @if(($isSuperAdmin || $isAppellate || $user->can('view-appeal') || $user->can('process-appeal')) && \App\Models\SystemSetting::isPipelineStepEnabled('appellate'))
                         <div class="sidebar-section-title">Appellate Desk</div>
                         <a href="/appellate/dashboard" class="sidebar-link {{ request()->is('appellate*') || request()->is('admin/appeals*') ? 'active' : '' }}">
                             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -297,7 +297,7 @@
                     @endif
 
                     {{-- 5. Academic Reviewer Peer Review Desk --}}
-                    @if($isSuperAdmin || $isReviewer || $user->can('evaluate-academic-dossier'))
+                    @if(($isSuperAdmin || $isReviewer || $user->can('evaluate-academic-dossier')) && \App\Models\SystemSetting::isPipelineStepEnabled('peer_review'))
                         <div class="sidebar-section-title">Peer Review</div>
                         <a href="/reviewer/dashboard" class="sidebar-link {{ request()->is('reviewer*') ? 'active' : '' }}">
                             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

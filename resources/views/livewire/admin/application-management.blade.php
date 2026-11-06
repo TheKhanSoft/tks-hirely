@@ -1,3 +1,6 @@
+@php
+    $currencySymbol = \App\Models\SystemSetting::get('currency_symbol', 'PKR');
+@endphp
 <div>
     <!-- Executive Control Header -->
     <div class="page-hero-header">
@@ -374,7 +377,7 @@
                             <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
                                 @if($isPaid)
                                     <span class="badge badge-emerald" style="font-size: 0.68rem; font-weight: 700; padding: 0.15rem 0.45rem; display: inline-flex; align-items: center; gap: 0.25rem;">
-                                        <span>✓ PAID (PKR {{ number_format($app->billingLedger->amount, 0) }})</span>
+                                        <span>✓ PAID ({{ $currencySymbol }} {{ number_format($app->billingLedger->amount, 0) }})</span>
                                     </span>
                                 @else
                                     <span class="badge badge-amber" style="font-size: 0.68rem; font-weight: 700; padding: 0.15rem 0.45rem; display: inline-flex; align-items: center; gap: 0.25rem;">
@@ -820,7 +823,7 @@
                                             ✓ SETTLED
                                         </span>
                                         <div style="font-size: 0.72rem; color: var(--success); font-weight: 700; margin-top: 2px;">
-                                            PKR {{ number_format($app->billingLedger->amount, 0) }}
+                                            {{ $currencySymbol }} {{ number_format($app->billingLedger->amount, 0) }}
                                         </div>
                                     @else
                                         <span class="badge" style="background: rgba(245,158,11,0.15); color: var(--warning); border: 1px solid rgba(245,158,11,0.3); font-size: 0.75rem; font-weight: 700;">
@@ -1418,7 +1421,7 @@
                         </div>
                         <div>
                             <div style="color: var(--color-text-muted); font-size: 0.75rem; text-transform: uppercase;">Fee Amount</div>
-                            <strong style="color: var(--success); font-size: 1rem;">PKR {{ number_format($selectedRecordDetails->billingLedger?->amount ?? 0, 2) }}</strong>
+                            <strong style="color: var(--success); font-size: 1rem;">{{ $currencySymbol }} {{ number_format($selectedRecordDetails->billingLedger?->amount ?? 0, 2) }}</strong>
                         </div>
                     </div>
                 </div>
