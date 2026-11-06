@@ -295,4 +295,29 @@ class EmailTemplatesAndTriggerGovernanceTest extends TestCase
             'dispatch_type' => 'AUTOMATED_TRIGGER',
         ]);
     }
+
+    public function test_admin_can_send_test_template_email_without_named_parameter_error(): void
+    {
+        Mail::fake();
+        $this->actingAs($this->registrar);
+
+        $template = EmailTemplate::where('slug', 'candidate-voucher-generated')->firstOrFail();
+
+        Livewire::test(SystemSettings::class, ['tab' => 'email-templates'])
+            ->call('sendTestTemplateEmail', $template->id)
+            ->assertSee("Test email for [{$template->name}] dispatched to your inbox");
+
+        Mail::assertSent(DynamicNotificationMail::class, function ($mail) {
+            return $mail->hasTo('registrar.emails@university.edu')
+                && str_contains($mail->mailSubject, 'Challan Voucher Issued')
+                && str_contains($mail->renderedHtml, 'Payment Billing Breakdown');
+        });
+
+        $this->assertDatabaseHas('email_logs', [
+            'recipient_email' => 'registrar.emails@university.edu',
+            'template_slug' => 'candidate-voucher-generated',
+            'status' => 'SENT',
+            'dispatch_type' => 'SYSTEM_AUTOMATED',
+        ]);
+    }
 }

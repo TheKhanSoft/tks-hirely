@@ -20,7 +20,9 @@ class MailNotificationService
         string $recipientEmail,
         array $variables = [],
         ?User $recipientUser = null,
-        ?User $senderUser = null
+        ?User $senderUser = null,
+        ?string $recipientName = null,
+        string $dispatchType = 'AUTOMATED_TRIGGER'
     ): array {
         $template = EmailTemplate::getBySlug($slug);
 
@@ -32,13 +34,16 @@ class MailNotificationService
             ];
         }
 
+        $resolvedRecipientName = $recipientName 
+            ?: ($variables['{recipient_name}'] ?? $variables['{candidate_name}'] ?? $recipientUser?->display_name ?? null);
+
         // 1. Check if Trigger is Enabled by Administrator
         if (!$template->is_trigger_enabled || !$template->is_active) {
             Log::info("MailNotificationService: Email trigger for [{$slug}] is DISABLED by administrator. Skipping dispatch to [{$recipientEmail}].");
 
             EmailLog::create([
                 'recipient_email' => $recipientEmail,
-                'recipient_name' => $variables['{recipient_name}'] ?? $variables['{candidate_name}'] ?? $recipientUser?->display_name ?? null,
+                'recipient_name' => $resolvedRecipientName,
                 'recipient_type' => $template->recipient_group,
                 'recipient_user_id' => $recipientUser?->id,
                 'template_slug' => $slug,
@@ -47,7 +52,7 @@ class MailNotificationService
                 'status' => 'TRIGGER_DISABLED_SKIPPED',
                 'error_message' => 'Automated trigger disabled in system settings.',
                 'sent_by_user_id' => $senderUser?->id ?? Auth::id(),
-                'dispatch_type' => 'AUTOMATED_TRIGGER',
+                'dispatch_type' => $dispatchType,
                 'sent_at' => now(),
             ]);
 
@@ -60,7 +65,6 @@ class MailNotificationService
         // 2. Render Subject and Content
         $subject = $template->renderSubject($variables);
         $html = $template->renderHtml($variables);
-        $recipientName = $variables['{recipient_name}'] ?? $variables['{candidate_name}'] ?? $recipientUser?->display_name ?? null;
 
         // 3. Dispatch Email via Configured Mailer
         try {
@@ -70,7 +74,7 @@ class MailNotificationService
 
             EmailLog::create([
                 'recipient_email' => $recipientEmail,
-                'recipient_name' => $recipientName,
+                'recipient_name' => $resolvedRecipientName,
                 'recipient_type' => $template->recipient_group,
                 'recipient_user_id' => $recipientUser?->id,
                 'template_slug' => $slug,
@@ -78,7 +82,7 @@ class MailNotificationService
                 'body_html' => $html,
                 'status' => 'SENT',
                 'sent_by_user_id' => $senderUser?->id ?? Auth::id(),
-                'dispatch_type' => 'AUTOMATED_TRIGGER',
+                'dispatch_type' => $dispatchType,
                 'sent_at' => now(),
             ]);
 
@@ -94,7 +98,7 @@ class MailNotificationService
 
             EmailLog::create([
                 'recipient_email' => $recipientEmail,
-                'recipient_name' => $recipientName,
+                'recipient_name' => $resolvedRecipientName,
                 'recipient_type' => $template->recipient_group,
                 'recipient_user_id' => $recipientUser?->id,
                 'template_slug' => $slug,
@@ -103,7 +107,7 @@ class MailNotificationService
                 'status' => 'FAILED',
                 'error_message' => $e->getMessage(),
                 'sent_by_user_id' => $senderUser?->id ?? Auth::id(),
-                'dispatch_type' => 'AUTOMATED_TRIGGER',
+                'dispatch_type' => $dispatchType,
                 'sent_at' => now(),
             ]);
 

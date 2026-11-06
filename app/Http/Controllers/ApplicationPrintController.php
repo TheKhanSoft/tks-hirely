@@ -148,8 +148,8 @@ class ApplicationPrintController extends Controller
             || $currentUser->can('scrutinize-application')
             || $currentUser->can('access-board-grading');
 
-        // Security: Candidate can ONLY print their own dossier
-        if ($isApplicant && $targetUser && $targetUser->id !== $currentUser->id) {
+        // Security: Candidate / non-staff can ONLY print their own dossier
+        if (!$isStaff && (!$targetUser || $targetUser->id !== $currentUser->id)) {
             abort(403, 'You are not authorized to view or print this candidate dossier.');
         }
 
@@ -172,6 +172,7 @@ class ApplicationPrintController extends Controller
                 'created_at' => $basicInfo->created_at ?? now(),
             ]);
             $application->id = 0;
+            $application->tracking_number = 'CAND-' . str_pad($basicInfo->id, 6, '0', STR_PAD_LEFT);
             $application->user_id = $basicInfo->user_id;
             $application->setRelation('user', $targetUser);
         }

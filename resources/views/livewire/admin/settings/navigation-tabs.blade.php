@@ -156,10 +156,7 @@
             <strong style="font-size: 0.82rem; font-weight: 800; color: var(--color-text-primary);">{{ $currentTabInfo['label'] }}</strong>
         </div>
 
-        <div class="badge-os-version">
-            <span class="pulse-status-dot"></span>
-            <span>v2.4 Enterprise OS</span>
-        </div>
+      
 
         {{-- Live Dirty State Tracker --}}
         <div wire:dirty class="unsaved-badge-pill" style="display: none;">

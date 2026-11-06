@@ -27,7 +27,15 @@ class Application extends Model
      */
     public function getTrackingNumberAttribute(): string
     {
+        if (!empty($this->attributes['tracking_number'])) {
+            return $this->attributes['tracking_number'];
+        }
         return 'APP-' . str_pad($this->id, 5, '0', STR_PAD_LEFT);
+    }
+
+    public function setTrackingNumberAttribute($value): void
+    {
+        $this->attributes['tracking_number'] = $value;
     }
 
     protected $casts = [
