@@ -1,3 +1,7 @@
+@php
+    $letterhead = $letterhead ?? \App\Models\SystemSetting::getLetterheadDetails();
+    $letterFooter = $letterFooter ?? \App\Models\SystemSetting::getLetterFooter();
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -521,21 +525,37 @@
         <div class="official-header">
             <div class="header-left">
                 <div class="emblem-box">
-                    @if(!empty($appLogo))
-                        <img src="{{ $appLogo }}" alt="{{ $orgName }}" style="max-height: 48px; max-width: 48px; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-                        <span style="display: none;">{{ substr($orgName, 0, 1) }}</span>
+                    @if(!empty($letterhead['logo']))
+                        <img src="{{ $letterhead['logo'] }}" alt="{{ $letterhead['heading'] }}" style="max-height: 52px; max-width: 52px; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                        <span style="display: none;">{{ substr($letterhead['heading'], 0, 1) }}</span>
                     @else
-                        <span>{{ substr($orgName, 0, 1) }}</span>
+                        <span>{{ substr($letterhead['heading'], 0, 1) }}</span>
                     @endif
                 </div>
                 <div class="header-title-box">
-                    <h1>{{ $orgName }}</h1>
+                    <h1>{{ $letterhead['heading'] }}</h1>
+                    @if(!empty($letterhead['subheading']))
+                        <div style="font-size: 0.88rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.15rem;">
+                            {{ $letterhead['subheading'] }}
+                        </div>
+                    @endif
+                    @if(!empty($letterhead['office']))
+                        <div style="font-size: 0.82rem; font-weight: 800; color: #2563eb; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 0.15rem;">
+                            {{ $letterhead['office'] }}
+                        </div>
+                    @endif
                     <h2>
                         {{ $viewMode === 'admin' ? 'Official Master Administrative Application Dossier & Scrutiny Record' : 'Official Application Form for Employment' }}
                     </h2>
-                    <div class="header-subtitle">
-                        Prescribed under Statutory University Employment Code & Service Statutes
-                    </div>
+                    @if(!empty($letterhead['custom_details']))
+                        <div class="header-subtitle" style="font-size: 0.78rem; color: #64748b; font-style: normal; margin-top: 0.2rem; line-height: 1.35;">
+                            {!! nl2br(e($letterhead['custom_details'])) !!}
+                        </div>
+                    @else
+                        <div class="header-subtitle">
+                            Prescribed under Statutory University Employment Code & Service Statutes
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -1408,16 +1428,32 @@
         @endif
 
         <!-- Formal Document Provenance & Verification Endorsement Footer -->
-        <div style="margin-top: 1.5rem; padding-top: 0.75rem; border-top: 1px dashed #94a3b8; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 8pt; color: #475569; display: flex; justify-content: space-between; align-items: center; page-break-inside: avoid;">
-            <div>
-                <strong>Document Audit Trail:</strong> Printed / Downloaded by <strong>{{ $printedByName }} ({{ $printedByUsername }})</strong> - <em>{{ $printedByRole }}</em>
+        <div style="margin-top: 1.5rem; padding-top: 0.75rem; border-top: 1px dashed #94a3b8; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 8pt; color: #475569; display: flex; flex-direction: column; gap: 0.45rem; page-break-inside: avoid;">
+            @if(!empty($letterFooter['disclaimer']))
+                <div style="font-size: 7.5pt; color: #64748b; line-height: 1.4; border-bottom: 1px dotted #cbd5e1; padding-bottom: 0.35rem;">
+                    <strong>Statutory Verification & Legal Endorsement:</strong> {{ $letterFooter['disclaimer'] }}
+                </div>
+            @endif
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                @if($letterFooter['show_audit'] ?? true)
+                    <div>
+                        <strong>Document Audit Trail:</strong> Printed / Downloaded by <strong>{{ $printedByName }} ({{ $printedByUsername }})</strong> - <em>{{ $printedByRole }}</em>
+                    </div>
+                    <div>
+                        <strong>Printed / Downloaded on:</strong> {{ $printedAt->format('d M, Y \a\t h:i:s A') }}
+                    </div>
+                @endif
+                @if($letterFooter['show_verify_ref'] ?? true)
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 7.5pt; color: #64748b;">
+                        VERIFY-REF: #{{ $application->tracking_number }}-{{ strtoupper(substr(hash('sha256', $application->id . $application->tracking_number . $printedAt->timestamp), 0, 10)) }}
+                    </div>
+                @endif
             </div>
-            <div>
-                <strong>Printed / Downloaded on:</strong> {{ $printedAt->format('d M, Y \a\t h:i:s A') }}
-            </div>
-            <div style="font-family: 'JetBrains Mono', monospace; font-size: 7.5pt; color: #64748b;">
-                VERIFY-REF: #{{ $application->tracking_number }}-{{ strtoupper(substr(hash('sha256', $application->id . $application->tracking_number . $printedAt->timestamp), 0, 10)) }}
-            </div>
+            @if(!empty($letterFooter['contact']))
+                <div style="font-size: 7.2pt; color: #64748b; text-align: center; margin-top: 0.15rem;">
+                    {{ $letterFooter['contact'] }}
+                </div>
+            @endif
         </div>
 
     </div>

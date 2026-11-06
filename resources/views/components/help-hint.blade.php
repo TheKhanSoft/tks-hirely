@@ -79,7 +79,7 @@
               }
           }" 
           @mouseleave="show = false" 
-          style="position: relative; display: inline-flex; align-items: center; vertical-align: middle; margin-left: 0.35rem;">
+          style="position: relative; display: inline-flex; align-items: center; vertical-align: middle; margin-left: 0.35rem; flex-shrink: 0;">
         
         <button type="button" 
                 @mouseenter="checkPlacement(); show = true" 
@@ -88,11 +88,11 @@
                 @click.prevent="checkPlacement(); show = !show"
                 aria-label="View help information"
                 class="help-hint-trigger"
-                style="background: {{ $themeStyles['icon_bg'] }}; border: 1px solid {{ $themeStyles['icon_border'] }}; color: {{ $themeStyles['icon_color'] }}; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 800; cursor: pointer; transition: all 0.2s ease; padding: 0; outline: none; line-height: 1;">
+                style="background: {{ $themeStyles['icon_bg'] }}; border: 1px solid {{ $themeStyles['icon_border'] }}; color: {{ $themeStyles['icon_color'] }}; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 800; cursor: pointer; transition: all 0.2s ease; padding: 0; outline: none; line-height: 1; flex-shrink: 0;">
             ?
         </button>
 
-        {{-- Floating Popover (CRITICAL: Styled via .help-hint-popover CSS to ensure fixed 320px width and prevent Alpine style override) --}}
+        {{-- Floating Popover (Fixed 320px width immune to flex shrink) --}}
         <div x-show="show" 
              x-cloak 
              x-transition:enter="transition ease-out duration-150"
@@ -103,7 +103,7 @@
              x-transition:leave-end="opacity-0 transform scale-95"
              class="help-hint-popover"
              :class="{ 'place-bottom': placeBottom }"
-             style="position: absolute; width: 320px; min-width: 280px; max-width: min(90vw, 360px); word-break: normal; white-space: normal; overflow-wrap: break-word; text-align: left; z-index: 9999;">
+             style="position: absolute; width: 320px !important; min-width: 300px !important; max-width: 360px !important; word-break: normal !important; white-space: normal !important; overflow-wrap: break-word !important; text-align: left; z-index: 99999;">
             
             @if($statute)
                 <div style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; color: {{ $themeStyles['badge_color'] }}; letter-spacing: 0.05em; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.3rem;">

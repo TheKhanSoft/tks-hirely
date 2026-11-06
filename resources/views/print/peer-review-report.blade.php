@@ -1,3 +1,7 @@
+@php
+    $letterhead = \App\Models\SystemSetting::getLetterheadDetails();
+    $letterFooter = \App\Models\SystemSetting::getLetterFooter();
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -240,9 +244,25 @@
         
         <!-- Official University Letterhead -->
         <div class="official-header">
-            <div class="org-title">{{ $orgName }}</div>
+            @if(!empty($letterhead['logo']))
+                <div style="margin-bottom: 0.5rem;">
+                    <img src="{{ $letterhead['logo'] }}" alt="{{ $letterhead['heading'] }}" style="max-height: 52px; max-width: 52px; object-fit: contain;">
+                </div>
+            @endif
+            <div class="org-title">{{ $letterhead['heading'] }}</div>
+            @if(!empty($letterhead['subheading']))
+                <div style="font-size: 0.85rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.15rem;">{{ $letterhead['subheading'] }}</div>
+            @endif
+            @if(!empty($letterhead['office']))
+                <div style="font-size: 0.82rem; font-weight: 800; color: #2563eb; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 0.15rem;">{{ $letterhead['office'] }}</div>
+            @endif
             <div class="doc-title">CONFIDENTIAL EXTERNAL PEER REVIEW EVALUATION CERTIFICATE</div>
             <div class="statutory-sub">Issued pursuant to HEC Faculty Appointment Criteria & Statutory Selection Framework</div>
+            @if(!empty($letterhead['custom_details']))
+                <div style="font-size: 0.76rem; color: #64748b; margin-top: 0.25rem;">
+                    {!! nl2br(e($letterhead['custom_details'])) !!}
+                </div>
+            @endif
         </div>
 
         <!-- Candidate & Position Meta Grid -->
@@ -396,6 +416,28 @@
                 <div class="sig-line">Registrar / Secretary Selection Board</div>
                 <div style="font-size: 0.72rem; color: #64748b;">Statutory Verification Seal</div>
             </div>
+        </div>
+
+        <!-- Official Statutory Endorsement Footer -->
+        <div style="margin-top: 1.5rem; padding-top: 0.75rem; border-top: 1px dashed #94a3b8; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 8pt; color: #475569; display: flex; flex-direction: column; gap: 0.4rem; page-break-inside: avoid;">
+            @if(!empty($letterFooter['disclaimer']))
+                <div style="font-size: 7.5pt; color: #64748b; line-height: 1.4; border-bottom: 1px dotted #cbd5e1; padding-bottom: 0.35rem;">
+                    <strong>Statutory Verification & Legal Endorsement:</strong> {{ $letterFooter['disclaimer'] }}
+                </div>
+            @endif
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                <div>
+                    <strong>Peer Evaluation Dossier:</strong> #{{ $application->tracking_number }} • Referees Empanelled: {{ $reviews->count() }} ({{ $submittedReviews->count() }} Completed)
+                </div>
+                <div>
+                    <strong>Evaluation Record Date:</strong> {{ now()->format('d M, Y \a\t h:i A') }}
+                </div>
+            </div>
+            @if(!empty($letterFooter['contact']))
+                <div style="font-size: 7.2pt; color: #64748b; text-align: center; margin-top: 0.15rem;">
+                    {{ $letterFooter['contact'] }}
+                </div>
+            @endif
         </div>
 
     </div>

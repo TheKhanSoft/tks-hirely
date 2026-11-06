@@ -5,6 +5,7 @@
             <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
                 <span class="badge badge-indigo" style="font-size: 0.72rem; font-weight: 800;">EMAIL SERVICES</span>
                 <span class="badge badge-slate" style="font-size: 0.72rem;">SMTP &amp; GATEWAY</span>
+                <span class="badge badge-cyan" style="font-size: 0.72rem; font-weight: 700;">TRANSACTIONAL DISPATCH</span>
             </div>
             <h2 class="card-title" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--color-text-primary);">
                 Email Delivery, SMTP Protocol &amp; Sender Identities
@@ -14,33 +15,73 @@
             </p>
         </div>
 
-        @can('manage-settings')
-        <button type="button" 
-                wire:click="saveEmailSettings" 
-                class="btn btn-primary" 
-                style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.4rem; font-weight: 800; font-size: 0.88rem; box-shadow: 0 4px 14px var(--primary-glow);">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                <polyline points="17 21 17 13 7 13 7 21"/>
-                <polyline points="7 3 7 8 15 8"/>
-            </svg>
-            <span wire:loading.remove wire:target="saveEmailSettings">Save Email Settings</span>
-            <span wire:loading wire:target="saveEmailSettings">Saving...</span>
-        </button>
-        @endcan
-    </div>
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            @can('manage-settings')
+            <button type="button" 
+                    wire:click="resetEmailToDefault" 
+                    wire:confirm="Reset email settings to system defaults (log driver, Hirely sender)?"
+                    class="btn btn-secondary btn-sm" 
+                    style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.55rem 0.95rem; font-weight: 700; font-size: 0.82rem;"
+                    title="Restore email settings to standard defaults">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                <span>Reset SMTP Defaults</span>
+            </button>
 
-    @if(session()->has('message'))
-        <div class="alert alert-success" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            <span>{{ session('message') }}</span>
+            <button type="button" 
+                    wire:click="saveEmailSettings" 
+                    class="btn btn-primary" 
+                    style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.4rem; font-weight: 800; font-size: 0.88rem; box-shadow: 0 4px 14px var(--primary-glow);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                <span wire:loading.remove wire:target="saveEmailSettings">Save Email Settings</span>
+                <span wire:loading wire:target="saveEmailSettings">Saving...</span>
+            </button>
+            @endcan
         </div>
-    @endif
+    </div>
 
     {{-- System Help Callout --}}
     <x-help-hint type="callout" variant="info" title="Automated Notifications &amp; Candidate Alerts">
         All automated transactional emails—including fee payment confirmations, scrutiny status changes, interview calls, and statutory appointment letters—are routed through this gateway.
     </x-help-hint>
+
+    {{-- LIVE GATEWAY STATUS STRIP --}}
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; margin-top: 1.25rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="font-size: 0.8rem; font-weight: 800; text-transform: uppercase; color: var(--secondary); letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.4rem;">
+                <span>📡 Active SMTP Dispatch Gateway Summary</span>
+            </div>
+            <span class="badge {{ $mail_mailer === 'smtp' ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.7rem; font-weight: 800;">
+                Protocol: {{ strtoupper($mail_mailer ?? 'SMTP') }}
+            </span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem;">
+            <div style="background: var(--bg-card); padding: 0.75rem 0.95rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 700;">Host &amp; Port</div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-top: 0.15rem;">
+                    {{ $mail_host ?: '127.0.0.1' }}:{{ $mail_port ?: '587' }}
+                </div>
+            </div>
+
+            <div style="background: var(--bg-card); padding: 0.75rem 0.95rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 700;">Security Encryption</div>
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--secondary); margin-top: 0.15rem;">
+                    {{ strtoupper($mail_encryption ?: 'TLS') }}
+                </div>
+            </div>
+
+            <div style="background: var(--bg-card); padding: 0.75rem 0.95rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 700;">Sender Display</div>
+                <div style="font-size: 0.85rem; font-weight: 700; color: var(--color-text-primary); margin-top: 0.15rem; word-break: break-all;">
+                    {{ $mail_from_name ?: 'Hirely Desk' }}
+                </div>
+            </div>
+        </div>
+    </div>
 
     <form wire:submit.prevent="saveEmailSettings" style="margin-top: 1.5rem;">
         <div style="display: flex; flex-direction: column; gap: 2rem;">
@@ -48,7 +89,7 @@
             <!-- ========================================================================= -->
             <!-- 1. SENDER IDENTITY & HEADERS                                              -->
             <!-- ========================================================================= -->
-            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem;">
+            <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem;">
                 <h3 style="font-size: 1rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
                     <span>👤 Outgoing Sender Identity &amp; Header Labels</span>
                 </h3>
@@ -61,7 +102,7 @@
                             <span style="color: var(--danger);">*</span>
                         </label>
                         <input type="text" 
-                               wire:model="mail_from_name" 
+                               wire:model.live="mail_from_name" 
                                class="form-control" 
                                placeholder="e.g. Hirely Recruitment Desk" 
                                style="font-size: 0.92rem; padding: 0.65rem 1rem;">
@@ -76,7 +117,7 @@
                             <span style="color: var(--danger);">*</span>
                         </label>
                         <input type="email" 
-                               wire:model="mail_from_address" 
+                               wire:model.live="mail_from_address" 
                                class="form-control" 
                                placeholder="e.g. noreply@hirely.edu.pk" 
                                style="font-size: 0.92rem; padding: 0.65rem 1rem;">
@@ -90,7 +131,7 @@
                             <span>Reply-To Email Address</span>
                         </label>
                         <input type="email" 
-                               wire:model="mail_reply_to" 
+                               wire:model.live="mail_reply_to" 
                                class="form-control" 
                                placeholder="e.g. support@hirely.edu.pk" 
                                style="font-size: 0.92rem; padding: 0.65rem 1rem;">
@@ -103,7 +144,7 @@
             <!-- ========================================================================= -->
             <!-- 2. SMTP PROTOCOL & GATEWAY CREDENTIALS                                    -->
             <!-- ========================================================================= -->
-            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem;">
+            <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem;">
                 <h3 style="font-size: 1rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
                     <span>⚙️ Mail Protocol &amp; Server Connection</span>
                 </h3>
@@ -133,7 +174,7 @@
                                 <span style="color: var(--danger);">*</span>
                             </label>
                             <input type="text" 
-                                   wire:model="mail_host" 
+                                   wire:model.live="mail_host" 
                                    class="form-control" 
                                    placeholder="e.g. smtp.gmail.com" 
                                    style="font-size: 0.90rem; padding: 0.65rem 1rem;">
@@ -147,7 +188,7 @@
                                 <span style="color: var(--danger);">*</span>
                             </label>
                             <input type="number" 
-                                   wire:model="mail_port" 
+                                   wire:model.live="mail_port" 
                                    class="form-control" 
                                    placeholder="587" 
                                    style="font-size: 0.90rem; padding: 0.65rem 1rem;">
@@ -159,7 +200,7 @@
                             <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
                                 <span>Security Encryption</span>
                             </label>
-                            <select wire:model="mail_encryption" class="form-control form-select" style="font-size: 0.90rem; padding: 0.65rem 1rem;">
+                            <select wire:model.live="mail_encryption" class="form-control form-select" style="font-size: 0.90rem; padding: 0.65rem 1rem;">
                                 <option value="tls">TLS (Standard - Port 587)</option>
                                 <option value="ssl">SSL (Implicit - Port 465)</option>
                                 <option value="none">None (Plaintext - Port 25 / Internal)</option>
@@ -172,7 +213,7 @@
                                 <span>SMTP Username / API Key</span>
                             </label>
                             <input type="text" 
-                                   wire:model="mail_username" 
+                                   wire:model.live="mail_username" 
                                    class="form-control" 
                                    placeholder="e.g. postmaster@yourdomain.com" 
                                    style="font-size: 0.90rem; padding: 0.65rem 1rem;">
@@ -188,7 +229,7 @@
                                 </button>
                             </label>
                             <input type="{{ $showPassword ? 'text' : 'password' }}" 
-                                   wire:model="mail_password" 
+                                   wire:model.live="mail_password" 
                                    class="form-control" 
                                    placeholder="••••••••••••" 
                                    style="font-size: 0.90rem; padding: 0.65rem 1rem;">
@@ -201,7 +242,7 @@
             <!-- ========================================================================= -->
             <!-- 3. LIVE EMAIL GATEWAY DIAGNOSTICS & TEST TOOL                             -->
             <!-- ========================================================================= -->
-            <div style="background: var(--bg-surface); border: 1.5px dashed var(--border-color); border-radius: 8px; padding: 1.5rem;">
+            <div style="background: var(--bg-surface); border: 1.5px dashed var(--border-color); border-radius: var(--radius-md); padding: 1.5rem;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
                     <div>
                         <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--color-text-primary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
@@ -236,14 +277,34 @@
                 @if(session()->has('test_email_status'))
                     @php $testStatus = session('test_email_status'); @endphp
                     <div style="margin-top: 1rem; padding: 0.85rem 1.25rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.75rem;
-                        @if($testStatus['type'] === 'success') background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0;
-                        @else background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; @endif">
+                        @if($testStatus['type'] === 'success') background: rgba(16, 185, 129, 0.12); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3);
+                        @else background: rgba(239, 68, 68, 0.12); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); @endif">
                         <span>{{ $testStatus['type'] === 'success' ? '✅' : '❌' }}</span>
                         <span>{{ $testStatus['message'] }}</span>
                     </div>
                 @endif
             </div>
 
+        </div>
+
+        <div style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+            @can('manage-settings')
+            <button type="button" 
+                    wire:click="resetEmailToDefault" 
+                    wire:confirm="Reset email settings to system defaults (log driver, Hirely sender)?"
+                    class="btn btn-secondary btn-sm" 
+                    style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                <span>Reset SMTP Defaults</span>
+            </button>
+
+            <button type="submit" 
+                    class="btn btn-primary" 
+                    style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.75rem; font-weight: 800; font-size: 0.92rem; box-shadow: 0 4px 14px var(--primary-glow);">
+                <span wire:loading.remove wire:target="saveEmailSettings">Save Email Settings</span>
+                <span wire:loading wire:target="saveEmailSettings">Saving Email Settings...</span>
+            </button>
+            @endcan
         </div>
     </form>
 </div>

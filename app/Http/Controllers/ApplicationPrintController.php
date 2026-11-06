@@ -57,7 +57,7 @@ class ApplicationPrintController extends Controller
         $requestedView = $request->query('view', $isStaff ? 'admin' : 'candidate');
         $viewMode = ($isStaff && $requestedView === 'admin') ? 'admin' : 'candidate';
 
-        $orgName = SystemSetting::get('org_name', 'Hirely Higher Education & Recruitment Commission');
+        $orgName = SystemSetting::getOrgName();
         $currency = SystemSetting::get('currency_symbol', 'PKR');
 
         // Detailed Printing / Downloading User Metadata
@@ -95,6 +95,9 @@ class ApplicationPrintController extends Controller
             'viewMode' => $viewMode,
             'isStaff' => $isStaff,
             'orgName' => $orgName,
+            'orgShortName' => SystemSetting::getOrgShortName(),
+            'letterhead' => SystemSetting::getLetterheadDetails(),
+            'letterFooter' => SystemSetting::getLetterFooter(),
             'appName' => SystemSetting::getAppName(),
             'appLogo' => SystemSetting::getAppLogo(),
             'currency' => $currency,

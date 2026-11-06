@@ -309,6 +309,309 @@ class SystemSetting extends Model
     }
 
     /**
+     * Get dynamic organization full name or fallback.
+     */
+    public static function getOrgName(): string
+    {
+        return (string) self::get('org_name', 'Abdul Wali Khan University Mardan');
+    }
+
+    /**
+     * Get dynamic organization short name / acronym (e.g. AWKUM) or fallback.
+     */
+    public static function getOrgShortName(): string
+    {
+        return (string) self::get('org_short_name', 'AWKUM');
+    }
+
+    /**
+     * Get dynamic official letterhead logo asset URL or fallback.
+     */
+    public static function getLetterheadLogo(): string
+    {
+        $logo = self::get('letterhead_logo');
+        if (!empty($logo)) {
+            if (str_starts_with($logo, 'http://') || str_starts_with($logo, 'https://') || str_starts_with($logo, '/')) {
+                return $logo;
+            }
+            return asset('storage/' . $logo);
+        }
+        return self::getAppLogo();
+    }
+
+    /**
+     * Get consolidated letterhead configuration.
+     */
+    public static function getLetterheadDetails(): array
+    {
+        $orgName = self::getOrgName();
+        $location = (string) self::get('org_location', 'Khyber Pakhtunkhwa, Pakistan');
+        $office = (string) self::get('org_office_title', 'Office of the Registrar');
+
+        return [
+            'heading' => (string) self::get('letterhead_heading', $orgName),
+            'subheading' => (string) self::get('letterhead_subheading', $location),
+            'office' => (string) self::get('letterhead_office', $office),
+            'logo' => self::getLetterheadLogo(),
+            'custom_details' => (string) self::get('letterhead_custom_details', "Main Campus, Toru Road, Mardan, Khyber Pakhtunkhwa, Pakistan\nPhone: +92-937-9230611 • Fax: +92-937-9230612 • Web: www.awkum.edu.pk"),
+            'layout' => (string) self::get('letterhead_layout', 'classic_left'),
+        ];
+    }
+
+    /**
+     * Get dynamic portal-specific footer message.
+     */
+    public static function getPortalFooter(string $portal = 'global'): string
+    {
+        $orgName = self::getOrgName();
+        $orgShort = self::getOrgShortName();
+
+        return match ($portal) {
+            'candidate', 'applicant' => (string) self::get(
+                'footer_candidate_text',
+                'Candidate Facilitation Desk: For application guidance or voucher verification, contact ' . self::get('support_email', 'support@hirely.edu.pk') . ' or helpline ' . self::get('support_phone', '+92-51-9250000') . '.'
+            ),
+            'admin', 'registrar' => (string) self::get(
+                'footer_admin_text',
+                "Official Administrative Desk • {$orgName} ({$orgShort}) • System Access Audited & Recorded."
+            ),
+            'board', 'scrutiny' => (string) self::get(
+                'footer_board_text',
+                "Statutory Selection Board Secretariat • {$orgName} • Strictly Confidential Under University Act."
+            ),
+            'reviewer', 'peer_review' => (string) self::get(
+                'footer_reviewer_text',
+                "Academic Peer Evaluation Desk • External Referee Integrity • Blind Review Protocols Active."
+            ),
+            default => (string) self::get(
+                'footer_copyright_text',
+                '© ' . date('Y') . " {$orgName} ({$orgShort}). All rights reserved."
+            ),
+        };
+    }
+
+    /**
+     * Get consolidated letter / printed document footer details.
+     */
+    public static function getLetterFooter(): array
+    {
+        $orgName = self::getOrgName();
+        $orgShort = self::getOrgShortName();
+
+        return [
+            'disclaimer' => (string) self::get(
+                'letter_footer_text',
+                "This is an official computer-generated document issued under the seal and authority of {$orgName} ({$orgShort}). Any alteration, erasure, or unauthorized tampering renders this document null and void."
+            ),
+            'contact' => (string) self::get(
+                'letter_footer_contact',
+                (string) self::get('org_office_title', 'Office of the Registrar') . ", {$orgShort} • Web: " . self::get('org_website', 'https://hirely.edu.pk')
+            ),
+            'show_audit' => (bool) self::get('letter_show_audit_trail', true),
+            'show_verify_ref' => (bool) self::get('letter_show_verify_ref', true),
+        ];
+    }
+
+    /**
+     * Convert hexadecimal color code to RGBA format.
+     */
+    public static function hexToRgba(string $hex, float $alpha = 1.0): string
+    {
+        $hex = ltrim($hex, '#');
+        if (strlen($hex) === 3) {
+            $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
+        }
+        if (strlen($hex) !== 6) {
+            return "rgba(79, 70, 229, {$alpha})";
+        }
+        $r = hexdec(substr($hex, 0, 2));
+        $g = hexdec(substr($hex, 2, 2));
+        $b = hexdec(substr($hex, 4, 2));
+        return "rgba({$r}, {$g}, {$b}, {$alpha})";
+    }
+
+    /**
+     * Adjust color brightness for hover or border states.
+     */
+    public static function adjustHexBrightness(string $hex, int $percent): string
+    {
+        $hex = ltrim($hex, '#');
+        if (strlen($hex) === 3) {
+            $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
+        }
+        if (strlen($hex) !== 6) {
+            return '#4338ca';
+        }
+        $r = max(0, min(255, (int)(hexdec(substr($hex, 0, 2)) * (1 + $percent / 100))));
+        $g = max(0, min(255, (int)(hexdec(substr($hex, 2, 2)) * (1 + $percent / 100))));
+        $b = max(0, min(255, (int)(hexdec(substr($hex, 4, 2)) * (1 + $percent / 100))));
+        return sprintf('#%02x%02x%02x', $r, $g, $b);
+    }
+
+    /**
+     * Get consolidated theme variables dictionary.
+     */
+    public static function getThemeVariables(): array
+    {
+        $primary = (string) self::get('theme_accent_color', '#4f46e5');
+        $secondary = (string) self::get('theme_secondary_color', '#06b6d4');
+        $radiusStyle = (string) self::get('theme_radius_style', 'modern');
+        $fontFamily = (string) self::get('theme_font_family', 'jakarta');
+        $elevation = (string) self::get('theme_card_elevation', 'bordered');
+        $sidebarStyle = (string) self::get('theme_sidebar_style', 'glass-dark');
+        $loginLayout = (string) self::get('theme_login_layout', 'split-modern');
+        $glassmorphism = (bool) self::get('ui_glassmorphism_enabled', true);
+        $animations = (bool) self::get('ui_animations_enabled', true);
+        $density = (string) self::get('ui_table_density', 'comfortable');
+
+        return compact(
+            'primary', 'secondary', 'radiusStyle', 'fontFamily', 'elevation',
+            'sidebarStyle', 'loginLayout', 'glassmorphism', 'animations', 'density'
+        );
+    }
+
+    /**
+     * Render dynamic institutional theme styles for inclusion in layout headers.
+     */
+    public static function renderThemeCss(): string
+    {
+        $vars = self::getThemeVariables();
+        $primary = $vars['primary'];
+        $secondary = $vars['secondary'];
+        $primaryHover = self::adjustHexBrightness($primary, -12);
+        $primaryLight = self::hexToRgba($primary, 0.12);
+        $primaryGlow = self::hexToRgba($primary, 0.35);
+
+        $secondaryHover = self::adjustHexBrightness($secondary, -12);
+        $secondaryLight = self::hexToRgba($secondary, 0.12);
+        $secondaryGlow = self::hexToRgba($secondary, 0.30);
+
+        // Radius mapping
+        $radii = match($vars['radiusStyle']) {
+            'compact' => [
+                'xs' => '3px',
+                'sm' => '5px',
+                'md' => '8px',
+                'lg' => '12px',
+                'xl' => '16px',
+            ],
+            'pill' => [
+                'xs' => '10px',
+                'sm' => '16px',
+                'md' => '24px',
+                'lg' => '32px',
+                'xl' => '44px',
+            ],
+            'sharp' => [
+                'xs' => '1px',
+                'sm' => '2px',
+                'md' => '3px',
+                'lg' => '4px',
+                'xl' => '6px',
+            ],
+            default => [ // modern
+                'xs' => '6px',
+                'sm' => '8px',
+                'md' => '14px',
+                'lg' => '20px',
+                'xl' => '28px',
+            ],
+        };
+
+        // Typography mapping
+        $fontCss = match($vars['fontFamily']) {
+            'inter' => "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+            'outfit' => "'Outfit', 'Plus Jakarta Sans', sans-serif",
+            'system' => "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+            'academic' => "'Playfair Display', Georgia, 'Plus Jakarta Sans', serif",
+            default => "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        };
+
+        $css = "<style id=\"dynamic-theme-overrides\">\n";
+        $css .= ":root {\n";
+        $css .= "    --primary: {$primary} !important;\n";
+        $css .= "    --primary-hover: {$primaryHover} !important;\n";
+        $css .= "    --primary-light: {$primaryLight} !important;\n";
+        $css .= "    --primary-glow: {$primaryGlow} !important;\n";
+        $css .= "    --secondary: {$secondary} !important;\n";
+        $css .= "    --secondary-hover: {$secondaryHover} !important;\n";
+        $css .= "    --secondary-light: {$secondaryLight} !important;\n";
+        $css .= "    --secondary-glow: {$secondaryGlow} !important;\n";
+        $css .= "    --radius-xs: {$radii['xs']} !important;\n";
+        $css .= "    --radius-sm: {$radii['sm']} !important;\n";
+        $css .= "    --radius-md: {$radii['md']} !important;\n";
+        $css .= "    --radius-lg: {$radii['lg']} !important;\n";
+        $css .= "    --radius-xl: {$radii['xl']} !important;\n";
+        $css .= "    --font-sans: {$fontCss} !important;\n";
+
+        if ($vars['elevation'] === 'floating') {
+            $css .= "    --shadow-sm: 0 4px 12px -2px rgba(0, 0, 0, 0.4) !important;\n";
+            $css .= "    --shadow-md: 0 14px 34px -6px rgba(0, 0, 0, 0.5), 0 0 1px 1px rgba(255, 255, 255, 0.08) !important;\n";
+            $css .= "    --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.65), 0 0 20px {$primaryGlow} !important;\n";
+        } elseif ($vars['elevation'] === 'minimal') {
+            $css .= "    --shadow-sm: none !important;\n";
+            $css .= "    --shadow-md: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;\n";
+            $css .= "    --shadow-lg: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;\n";
+            $css .= "    --shadow-glow: none !important;\n";
+        }
+
+        if (!$vars['glassmorphism']) {
+            $css .= "    --glass-blur: 0px !important;\n";
+            $css .= "    --bg-card: var(--bg-card-solid) !important;\n";
+            $css .= "    backdrop-filter: none !important;\n";
+            $css .= "    -webkit-backdrop-filter: none !important;\n";
+        }
+
+        if ($vars['sidebarStyle'] === 'light-solid') {
+            $css .= "    --bg-sidebar: #0f172a;\n";
+        } elseif ($vars['sidebarStyle'] === 'accent-tint') {
+            $tint = self::hexToRgba($primary, 0.08);
+            $css .= "    --bg-sidebar: linear-gradient(180deg, {$tint} 0%, rgba(10, 15, 26, 0.98) 100%) !important;\n";
+        }
+
+        $css .= "}\n";
+
+        // Light mode specifics
+        $css .= "html.light {\n";
+        $css .= "    --primary: {$primary} !important;\n";
+        $css .= "    --primary-hover: {$primaryHover} !important;\n";
+        $css .= "    --primary-light: {$primaryLight} !important;\n";
+        $css .= "    --primary-glow: {$primaryGlow} !important;\n";
+        $css .= "    --secondary: {$secondary} !important;\n";
+        $css .= "    --secondary-hover: {$secondaryHover} !important;\n";
+        $css .= "    --secondary-light: {$secondaryLight} !important;\n";
+        $css .= "    --secondary-glow: {$secondaryGlow} !important;\n";
+        if ($vars['sidebarStyle'] === 'light-solid') {
+            $css .= "    --bg-sidebar: #ffffff !important;\n";
+            $css .= "    --sidebar-link-active: {$primaryLight} !important;\n";
+            $css .= "    --sidebar-link-hover: rgba(0, 0, 0, 0.04) !important;\n";
+        } elseif ($vars['sidebarStyle'] === 'accent-tint') {
+            $tintLight = self::hexToRgba($primary, 0.06);
+            $css .= "    --bg-sidebar: linear-gradient(180deg, {$tintLight} 0%, #f8fafc 100%) !important;\n";
+        }
+        $css .= "}\n";
+
+        // Global font application
+        $css .= "body, button, input, select, textarea { font-family: {$fontCss}; }\n";
+
+        // Animation disabling if turned off
+        if (!$vars['animations']) {
+            $css .= "*, *::before, *::after { transition-duration: 0.0001ms !important; animation-duration: 0.0001ms !important; }\n";
+        }
+
+        // Table density overrides
+        if ($vars['density'] === 'compact') {
+            $css .= ".table th, .table td { padding: 0.45rem 0.65rem !important; font-size: 0.8rem !important; }\n";
+        } elseif ($vars['density'] === 'spacious') {
+            $css .= ".table th, .table td { padding: 1rem 1.25rem !important; font-size: 0.88rem !important; }\n";
+        }
+
+        $css .= "</style>\n";
+
+        return $css;
+    }
+
+    /**
      * Populate standard system default settings.
      */
     public static function seedDefaultSettings(): void
@@ -380,6 +683,78 @@ class SystemSetting extends Model
                 'description' => 'Hexadecimal color code used for buttons, badges, and brand highlights across the UI.',
             ],
             [
+                'key' => 'theme_secondary_color',
+                'value' => '#06b6d4',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Theme Secondary Highlight Color',
+                'description' => 'Secondary accent color for badges, gradients, and subtle UI highlights.',
+            ],
+            [
+                'key' => 'theme_radius_style',
+                'value' => 'modern',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'UI Corner Radius Style',
+                'description' => 'Global border radius style: modern (14px), compact (8px), pill (24px), or sharp (2px).',
+            ],
+            [
+                'key' => 'theme_font_family',
+                'value' => 'jakarta',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Platform Typography Family',
+                'description' => 'Global font family preset: jakarta (Plus Jakarta Sans), inter (Inter UI), outfit (Outfit Geometric), system (Native OS), or academic (Playfair & Jakarta).',
+            ],
+            [
+                'key' => 'theme_card_elevation',
+                'value' => 'bordered',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Card Elevation & Shadows',
+                'description' => 'Shadow depth and border style for cards, modals, and panel containers: bordered, floating, or minimal.',
+            ],
+            [
+                'key' => 'theme_sidebar_style',
+                'value' => 'glass-dark',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Sidebar Visual Appearance',
+                'description' => 'Visual style for the navigation sidebar: glass-dark (Obsidian Glass), light-solid (Pure White), or accent-tint (Subtle Brand Tint).',
+            ],
+            [
+                'key' => 'theme_login_layout',
+                'value' => 'split-modern',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Login Portal Layout',
+                'description' => 'Public user portal layout: split-modern (Hero Left & Drawer Right), center-glass (Frosted Glass Center), or minimalist (Focused Center Card).',
+            ],
+            [
+                'key' => 'ui_glassmorphism_enabled',
+                'value' => '1',
+                'group' => 'branding',
+                'type' => 'boolean',
+                'label' => 'Glassmorphic Backdrop Blur',
+                'description' => 'Enables translucent frosted-glass blur effects on cards, modals, and navigation elements.',
+            ],
+            [
+                'key' => 'ui_animations_enabled',
+                'value' => '1',
+                'group' => 'branding',
+                'type' => 'boolean',
+                'label' => 'Micro-Interactions & Transitions',
+                'description' => 'Enables smooth hover animations, badge scaling, and dialog transitions across the portal.',
+            ],
+            [
+                'key' => 'ui_table_density',
+                'value' => 'comfortable',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Data Table Density',
+                'description' => 'Spacing and padding inside listings, tables, and data grids: compact, comfortable, or spacious.',
+            ],
+            [
                 'key' => 'portal_announcement_enabled',
                 'value' => '0',
                 'group' => 'branding',
@@ -405,11 +780,75 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'footer_copyright_text',
-                'value' => '© 2026 Hirely OS. All rights reserved.',
+                'value' => '© ' . date('Y') . ' Abdul Wali Khan University Mardan (AWKUM). All rights reserved.',
                 'group' => 'branding',
                 'type' => 'string',
                 'label' => 'Portal Footer Copyright Notice',
                 'description' => 'Legal and copyright text displayed at the bottom of candidate and public pages.',
+            ],
+            [
+                'key' => 'footer_candidate_text',
+                'value' => 'Candidate Facilitation Desk: For application guidance or voucher verification, contact support@hirely.edu.pk or helpline +92-51-9250000.',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Candidate Portal Footer Notice',
+                'description' => 'Helpdesk note and guidance displayed in the candidate portal workspace.',
+            ],
+            [
+                'key' => 'footer_admin_text',
+                'value' => 'Official Administrative Desk • Abdul Wali Khan University Mardan (AWKUM) • System Access Audited & Recorded.',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Admin & Registrar Portal Footer Notice',
+                'description' => 'Audit and governance note displayed in administrative workspaces.',
+            ],
+            [
+                'key' => 'footer_board_text',
+                'value' => 'Statutory Selection Board Secretariat • Abdul Wali Khan University Mardan • Strictly Confidential Under University Act.',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Selection Board & Scrutiny Portal Footer Notice',
+                'description' => 'Statutory non-disclosure notice displayed on scrutiny and selection board panels.',
+            ],
+            [
+                'key' => 'footer_reviewer_text',
+                'value' => 'Academic Peer Evaluation Desk • External Referee Integrity • Blind Review Protocols Active.',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Peer Review Portal Footer Notice',
+                'description' => 'Confidentiality note displayed to external academic referees.',
+            ],
+            [
+                'key' => 'letter_footer_text',
+                'value' => 'This is an official computer-generated document issued under the seal and authority of Abdul Wali Khan University Mardan (AWKUM). Any alteration, erasure, or unauthorized tampering renders this document null and void.',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Printed Document Statutory Disclaimer',
+                'description' => 'Legal and provenance disclaimer printed at the bottom of candidate dossiers, gazettes, and letters.',
+            ],
+            [
+                'key' => 'letter_footer_contact',
+                'value' => 'Office of the Registrar, AWKUM • Tel: +92-937-9230611 • Web: www.awkum.edu.pk',
+                'group' => 'branding',
+                'type' => 'string',
+                'label' => 'Printed Document Footer Contact Line',
+                'description' => 'Contact details printed beneath the legal disclaimer on official documents.',
+            ],
+            [
+                'key' => 'letter_show_audit_trail',
+                'value' => '1',
+                'group' => 'branding',
+                'type' => 'boolean',
+                'label' => 'Print Document User Audit Trail',
+                'description' => 'Whether to print "Printed / Downloaded by [Name] ([Username]) - [Role] on [Date Time]" on documents.',
+            ],
+            [
+                'key' => 'letter_show_verify_ref',
+                'value' => '1',
+                'group' => 'branding',
+                'type' => 'boolean',
+                'label' => 'Print Cryptographic Verification Reference',
+                'description' => 'Whether to print the SHA-256 verification reference code at the bottom of documents.',
             ],
 
             // 📞 Contact & Helpdesk Channels
@@ -546,11 +985,83 @@ class SystemSetting extends Model
             // 🏢 Organization & Sector Profile
             [
                 'key' => 'org_name',
-                'value' => 'Hirely Recruitment Management System',
+                'value' => 'Abdul Wali Khan University Mardan',
                 'group' => 'organization',
                 'type' => 'string',
-                'label' => 'Organization / Institution Name',
-                'description' => 'The official name of the hiring entity, university, corporate enterprise, or public sector agency.',
+                'label' => 'Organization / University Full Legal Name',
+                'description' => 'The full official name of the hiring entity or university used in wide headers, login banners, and official documents.',
+            ],
+            [
+                'key' => 'org_short_name',
+                'value' => 'AWKUM',
+                'group' => 'organization',
+                'type' => 'string',
+                'label' => 'Organization Short Name / Acronym',
+                'description' => 'Compact abbreviation used in sidebar navigation, mobile headers, and constrained space menus (e.g. AWKUM).',
+            ],
+            [
+                'key' => 'org_location',
+                'value' => 'Khyber Pakhtunkhwa, Pakistan',
+                'group' => 'organization',
+                'type' => 'string',
+                'label' => 'Institutional Jurisdiction / Location',
+                'description' => 'State, province, or territory displayed on letterheads and official notices.',
+            ],
+            [
+                'key' => 'org_office_title',
+                'value' => 'Office of the Registrar',
+                'group' => 'organization',
+                'type' => 'string',
+                'label' => 'Executing Directorate / Office Name',
+                'description' => 'The administrative secretariat issuing advertisements and dossiers (e.g. Office of the Registrar).',
+            ],
+            [
+                'key' => 'letterhead_heading',
+                'value' => 'Abdul Wali Khan University Mardan',
+                'group' => 'organization',
+                'type' => 'string',
+                'label' => 'Primary Letterhead Title / Heading',
+                'description' => 'Top heading printed on candidate dossiers, merit gazettes, appointment orders, and external letters.',
+            ],
+            [
+                'key' => 'letterhead_subheading',
+                'value' => 'Khyber Pakhtunkhwa, Pakistan',
+                'group' => 'organization',
+                'type' => 'string',
+                'label' => 'Letterhead Sub-Heading / Region',
+                'description' => 'Secondary title displayed below the main heading on official letterheads.',
+            ],
+            [
+                'key' => 'letterhead_office',
+                'value' => 'Office of the Registrar',
+                'group' => 'organization',
+                'type' => 'string',
+                'label' => 'Letterhead Office / Directorate',
+                'description' => 'Executing office printed on the official document header.',
+            ],
+            [
+                'key' => 'letterhead_logo',
+                'value' => '/images/logo-icon.svg',
+                'group' => 'organization',
+                'type' => 'string',
+                'label' => 'Letterhead Crest / Official Logo',
+                'description' => 'Emblem image printed in the letterhead header box on official documents.',
+            ],
+            [
+                'key' => 'letterhead_custom_details',
+                'value' => "Main Campus, Toru Road, Mardan, Khyber Pakhtunkhwa, Pakistan\nPhone: +92-937-9230611 • Fax: +92-937-9230612 • Web: www.awkum.edu.pk",
+                'group' => 'organization',
+                'type' => 'string',
+                'label' => 'Letterhead Rich Details / Contact Block',
+                'description' => 'Rich / multi-line details such as address, telephone, email, and statutory registration numbers.',
+            ],
+            [
+                'key' => 'letterhead_layout',
+                'value' => 'classic_left',
+                'group' => 'organization',
+                'type' => 'string',
+                'label' => 'Letterhead Header Layout Style',
+                'description' => 'Visual layout: classic_left (left logo, right photo), crest_center (centered emblem), or modern_clean.',
             ],
             [
                 'key' => 'org_type',

@@ -1,5 +1,7 @@
 @php
     $sysAppName = \App\Models\SystemSetting::getAppName();
+    $sysOrgName = \App\Models\SystemSetting::getOrgName();
+    $sysOrgShortName = \App\Models\SystemSetting::getOrgShortName();
     $sysAppLogo = \App\Models\SystemSetting::getAppLogo();
     $sysAppFavicon = \App\Models\SystemSetting::getAppFavicon();
     $sysAppVersion = \App\Models\SystemSetting::get('app_version', 'v2.4 Enterprise OS');
@@ -7,7 +9,7 @@
     $announcementActive = (bool) \App\Models\SystemSetting::get('portal_announcement_enabled', false);
     $announcementType = \App\Models\SystemSetting::get('portal_announcement_type', 'info');
     $announcementMsg = \App\Models\SystemSetting::get('portal_announcement_message', '');
-    $footerCopyright = \App\Models\SystemSetting::get('footer_copyright_text', '© ' . date('Y') . ' ' . $sysAppName . '. All rights reserved.');
+    $footerCopyright = \App\Models\SystemSetting::get('footer_copyright_text', '© ' . date('Y') . ' ' . $sysOrgName . ' (' . $sysOrgShortName . '). All rights reserved.');
     $supportEmail = \App\Models\SystemSetting::get('support_email');
     $supportPhone = \App\Models\SystemSetting::get('support_phone');
 @endphp
@@ -25,20 +27,14 @@
     <link rel="shortcut icon" href="{{ $sysAppFavicon }}">
     <link rel="manifest" href="/site.webmanifest">
     <meta name="theme-color" content="{{ $sysAccentColor }}">
-    @if($sysAccentColor && $sysAccentColor !== '#4f46e5')
-    <style>
-        :root {
-            --primary: {{ $sysAccentColor }};
-            --primary-hover: {{ $sysAccentColor }}dd;
-            --primary-glow: {{ $sysAccentColor }}33;
-        }
-    </style>
-    @endif
+    
+    {{-- Dynamic Institutional Theme Variables (Primary, Secondary, Radius, Fonts, Shadows, Density) --}}
+    {!! \App\Models\SystemSetting::renderThemeCss() !!}
 
     <!-- Modern Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="/css/app.css?v={{ @filemtime(public_path('css/app.css')) ?: time() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -54,18 +50,21 @@
         })();
     </script>
 </head>
-<body>
+@php
+    $themeVars = \App\Models\SystemSetting::getThemeVariables();
+@endphp
+<body class="theme-density-{{ $themeVars['density'] }} theme-radius-{{ $themeVars['radiusStyle'] }} theme-elevation-{{ $themeVars['elevation'] }}">
     <div class="app-layout">
         <!-- Sidebar Navigation Drawer -->
-        <aside class="sidebar" id="appSidebar">
+        <aside class="sidebar sidebar-{{ $themeVars['sidebarStyle'] }}" id="appSidebar">
             <!-- Brand Logo -->
-            <a href="/" class="sidebar-brand-wrapper">
+            <a href="/" class="sidebar-brand-wrapper" title="{{ $sysOrgName }}">
                 <div class="brand-icon-box" style="padding: 0; background: transparent; box-shadow: none; overflow: hidden; display: flex; align-items: center; justify-content: center;">
-                    <img src="{{ $sysAppLogo }}" alt="{{ $sysAppName }}" width="34" height="34" style="border-radius: 9px; display: block; box-shadow: 0 4px 14px var(--primary-glow); object-fit: contain;">
+                    <img src="{{ $sysAppLogo }}" alt="{{ $sysOrgShortName }}" width="34" height="34" style="border-radius: 9px; display: block; box-shadow: 0 4px 14px var(--primary-glow); object-fit: contain;">
                 </div>
-                <div>
-                    <div class="brand-title">{{ strtoupper($sysAppName) }}</div>
-                    <div class="brand-badge"><span class="badge-dot" style="background: currentColor;"></span> {{ $sysAppVersion }}</div>
+                <div style="overflow: hidden; min-width: 0;">
+                    <div class="brand-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $sysOrgName }}">{{ strtoupper($sysAppName) }}</div>
+                    <div class="brand-badge" style="white-space: nowrap;"><span class="badge-dot" style="background: currentColor;"></span> {{ $sysAppVersion }}</div>
                 </div>
             </a>
             
@@ -415,19 +414,19 @@
                     <div class="topbar-breadcrumbs">
                         <div class="topbar-workspace-pill">
                             @if(request()->is('admin*') || request()->is('registrar*'))
-                                <span>🏛️ Admin Desk</span>
+                                <span>🏛️ {{ $sysOrgShortName }} Admin</span>
                             @elseif(request()->is('scrutiny*'))
-                                <span>🔍 Scrutiny Desk</span>
+                                <span>🔍 {{ $sysOrgShortName }} Scrutiny</span>
                             @elseif(request()->is('board*'))
-                                <span>⚖️ Statutory Board</span>
+                                <span>⚖️ {{ $sysOrgShortName }} Board</span>
                             @elseif(request()->is('appellate*'))
-                                <span>🛡️ Grievance Desk</span>
+                                <span>🛡️ {{ $sysOrgShortName }} Grievance</span>
                             @elseif(request()->is('reviewer*'))
-                                <span>🔬 Peer Review</span>
+                                <span>🔬 {{ $sysOrgShortName }} Peer Review</span>
                             @elseif(request()->is('applicant*'))
-                                <span>👤 Candidate Space</span>
+                                <span>👤 {{ $sysOrgShortName }} Candidate</span>
                             @else
-                                <span>⚡ Recruitment OS</span>
+                                <span>⚡ {{ $sysOrgShortName }}</span>
                             @endif
                         </div>
                         <span style="opacity: 0.35;">/</span>
@@ -581,21 +580,41 @@
 
                 {{ $slot }}
 
-                <footer style="margin-top: 3.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; font-size: 0.82rem; color: var(--color-text-muted);">
-                    <div>
-                        {{ $footerCopyright }}
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 1.25rem;">
-                        @if(!empty($supportEmail))
-                            <a href="mailto:{{ $supportEmail }}" style="color: var(--color-text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
-                                <span>📧</span> {{ $supportEmail }}
-                            </a>
-                        @endif
-                        @if(!empty($supportPhone))
-                            <a href="tel:{{ $supportPhone }}" style="color: var(--color-text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
-                                <span>📞</span> {{ $supportPhone }}
-                            </a>
-                        @endif
+                @php
+                    $activePortal = 'global';
+                    if (request()->is('applicant*')) {
+                        $activePortal = 'candidate';
+                    } elseif (request()->is('scrutiny*') || request()->is('board*') || request()->is('appellate*')) {
+                        $activePortal = 'board';
+                    } elseif (request()->is('reviewer*')) {
+                        $activePortal = 'reviewer';
+                    } elseif (request()->is('admin*') || request()->is('registrar*')) {
+                        $activePortal = 'admin';
+                    }
+                    $portalFooterNote = \App\Models\SystemSetting::getPortalFooter($activePortal);
+                @endphp
+                <footer style="margin-top: 3.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.82rem; color: var(--color-text-muted);">
+                    @if(!empty($portalFooterNote))
+                        <div style="font-size: 0.80rem; color: var(--color-text-secondary); line-height: 1.45; background: var(--bg-surface); padding: 0.55rem 0.95rem; border-radius: var(--radius-sm); border-left: 3px solid var(--primary);">
+                            {{ $portalFooterNote }}
+                        </div>
+                    @endif
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            {{ $footerCopyright }}
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 1.25rem;">
+                            @if(!empty($supportEmail))
+                                <a href="mailto:{{ $supportEmail }}" style="color: var(--color-text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                    <span>📧</span> {{ $supportEmail }}
+                                </a>
+                            @endif
+                            @if(!empty($supportPhone))
+                                <a href="tel:{{ $supportPhone }}" style="color: var(--color-text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                    <span>📞</span> {{ $supportPhone }}
+                                </a>
+                            @endif
+                        </div>
                     </div>
                 </footer>
             </main>

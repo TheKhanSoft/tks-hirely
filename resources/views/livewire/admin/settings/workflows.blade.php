@@ -5,29 +5,42 @@
             <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
                 <span class="badge badge-indigo" style="font-size: 0.72rem; font-weight: 800;">STATUTORY ENGINE</span>
                 <span class="badge badge-slate" style="font-size: 0.72rem;">PIPELINE GATING</span>
+                <span class="badge badge-cyan" style="font-size: 0.72rem; font-weight: 700;">6-STAGE LIFECYCLE</span>
             </div>
             <h2 class="card-title" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--color-text-primary);">
                 Workflow Pipeline Stages & Milestone Control
             </h2>
             <p class="card-subtitle" style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--color-text-secondary);">
-                Enable or bypass recruitment evaluation milestones according to institutional governance policies and statutory acts.
+                Enable, sequence, or bypass recruitment evaluation milestones according to institutional governance policies and statutory acts.
             </p>
         </div>
 
-        @can('manage-settings')
-        <button type="button" 
-                wire:click="savePipelineSettings" 
-                class="btn btn-primary" 
-                style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.4rem; font-weight: 800; font-size: 0.88rem; box-shadow: 0 4px 14px var(--primary-glow);">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                <polyline points="17 21 17 13 7 13 7 21"/>
-                <polyline points="7 3 7 8 15 8"/>
-            </svg>
-            <span wire:loading.remove wire:target="savePipelineSettings">Save Pipeline Settings</span>
-            <span wire:loading wire:target="savePipelineSettings">Saving...</span>
-        </button>
-        @endcan
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            @can('manage-settings')
+            <button type="button" 
+                    wire:click="resetPipelineToDefault" 
+                    wire:confirm="Reset recruitment workflow pipeline stages to system defaults (all stages enabled)?"
+                    class="btn btn-secondary btn-sm" 
+                    style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.55rem 0.95rem; font-weight: 700; font-size: 0.82rem;"
+                    title="Restore pipeline settings to standard university defaults">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                <span>Reset to Defaults</span>
+            </button>
+
+            <button type="button" 
+                    wire:click="savePipelineSettings" 
+                    class="btn btn-primary" 
+                    style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.4rem; font-weight: 800; font-size: 0.88rem; box-shadow: 0 4px 14px var(--primary-glow);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                <span wire:loading.remove wire:target="savePipelineSettings">Save Pipeline Settings</span>
+                <span wire:loading wire:target="savePipelineSettings">Saving...</span>
+            </button>
+            @endcan
+        </div>
     </div>
 
     {{-- System Help Callout Banner --}}
@@ -35,16 +48,81 @@
         These settings govern the mandatory sequence of candidate progression. Turning off a stage removes that gating requirement system-wide, permitting applications to automatically route to the subsequent statutory body without holding for committee clearance.
     </x-help-hint>
 
-    <form wire:submit.prevent="savePipelineSettings" style="margin-top: 1.5rem;">
+    {{-- VISUAL PIPELINE PROGRESSION STEPPER --}}
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; margin-top: 1.25rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="font-size: 0.8rem; font-weight: 800; text-transform: uppercase; color: var(--secondary); letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.4rem;">
+                <span>🔄 Visual Candidate Lifecycle Pipeline Flow</span>
+            </div>
+            <span class="badge badge-slate" style="font-size: 0.7rem;">Automated Decision Progression</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; position: relative;">
+            <!-- Step 1: Intake -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem; text-align: center; border-top: 3px solid var(--primary);">
+                <div style="font-size: 0.65rem; font-weight: 800; color: var(--primary); text-transform: uppercase;">Step 1</div>
+                <div style="font-size: 0.85rem; font-weight: 800; color: var(--color-text-primary); margin: 0.2rem 0;">Intake & Fee</div>
+                <span class="badge badge-emerald" style="font-size: 0.65rem; font-weight: 800;">ACTIVE</span>
+            </div>
+
+            <!-- Step 2: Scrutiny -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem; text-align: center; border-top: 3px solid {{ $enable_scrutiny_step ? 'var(--primary)' : 'var(--color-text-dim)' }}; opacity: {{ $enable_scrutiny_step ? '1' : '0.6' }};">
+                <div style="font-size: 0.65rem; font-weight: 800; color: {{ $enable_scrutiny_step ? 'var(--primary)' : 'var(--color-text-muted)' }}; text-transform: uppercase;">Step 2</div>
+                <div style="font-size: 0.85rem; font-weight: 800; color: var(--color-text-primary); margin: 0.2rem 0;">Scrutiny Vetting</div>
+                <span class="badge {{ $enable_scrutiny_step ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">
+                    {{ $enable_scrutiny_step ? 'ACTIVE' : 'BYPASSED' }}
+                </span>
+            </div>
+
+            <!-- Step 3: Peer Review -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem; text-align: center; border-top: 3px solid {{ $enable_peer_review_step ? 'var(--secondary)' : 'var(--color-text-dim)' }}; opacity: {{ $enable_peer_review_step ? '1' : '0.6' }};">
+                <div style="font-size: 0.65rem; font-weight: 800; color: {{ $enable_peer_review_step ? 'var(--secondary)' : 'var(--color-text-muted)' }}; text-transform: uppercase;">Step 3</div>
+                <div style="font-size: 0.85rem; font-weight: 800; color: var(--color-text-primary); margin: 0.2rem 0;">Peer Review</div>
+                <span class="badge {{ $enable_peer_review_step ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">
+                    {{ $enable_peer_review_step ? 'ACTIVE' : 'BYPASSED' }}
+                </span>
+            </div>
+
+            <!-- Step 4: Selection Board -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem; text-align: center; border-top: 3px solid {{ $enable_board_interview_step ? 'var(--accent)' : 'var(--color-text-dim)' }}; opacity: {{ $enable_board_interview_step ? '1' : '0.6' }};">
+                <div style="font-size: 0.65rem; font-weight: 800; color: {{ $enable_board_interview_step ? 'var(--accent)' : 'var(--color-text-muted)' }}; text-transform: uppercase;">Step 4</div>
+                <div style="font-size: 0.85rem; font-weight: 800; color: var(--color-text-primary); margin: 0.2rem 0;">Selection Board</div>
+                <span class="badge {{ $enable_board_interview_step ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">
+                    {{ $enable_board_interview_step ? 'ACTIVE' : 'BYPASSED' }}
+                </span>
+            </div>
+
+            <!-- Step 5: Syndicate -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem; text-align: center; border-top: 3px solid var(--success);">
+                <div style="font-size: 0.65rem; font-weight: 800; color: var(--success); text-transform: uppercase;">Step 5</div>
+                <div style="font-size: 0.85rem; font-weight: 800; color: var(--color-text-primary); margin: 0.2rem 0;">Syndicate Final</div>
+                <span class="badge badge-emerald" style="font-size: 0.65rem; font-weight: 800;">ACTIVE</span>
+            </div>
+
+            <!-- Step 6: Appellate -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem; text-align: center; border-top: 3px solid {{ $enable_appellate_step ? 'var(--warning)' : 'var(--color-text-dim)' }}; opacity: {{ $enable_appellate_step ? '1' : '0.6' }};">
+                <div style="font-size: 0.65rem; font-weight: 800; color: {{ $enable_appellate_step ? 'var(--warning)' : 'var(--color-text-muted)' }}; text-transform: uppercase;">Step 6</div>
+                <div style="font-size: 0.85rem; font-weight: 800; color: var(--color-text-primary); margin: 0.2rem 0;">Appellate Tribunal</div>
+                <span class="badge {{ $enable_appellate_step ? 'badge-amber' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">
+                    {{ $enable_appellate_step ? 'ACTIVE' : 'BYPASSED' }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <form wire:submit.prevent="savePipelineSettings" style="margin-top: 1rem;">
         <div style="display: flex; flex-direction: column; gap: 1rem;">
             
             <!-- 1. Scrutiny Committee Verification Milestone -->
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); transition: var(--transition-fast);">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $enable_scrutiny_step ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
                 <div style="max-width: 80%;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                        <span style="font-size: 1.1rem;">📑</span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                        <span style="font-size: 1.15rem;">📑</span>
                         <span style="font-size: 0.98rem; font-weight: 800; color: var(--color-text-primary);">
                             Scrutiny Committee Dossier Vetting Stage
+                        </span>
+                        <span class="badge {{ $enable_scrutiny_step ? 'badge-indigo' : 'badge-slate' }}" style="font-size: 0.68rem; font-weight: 800;">
+                            {{ $enable_scrutiny_step ? 'STAGE 2: ACTIVE' : 'STAGE 2: BYPASSED' }}
                         </span>
                         <x-help-hint type="inline" 
                                      variant="statutory"
@@ -58,7 +136,7 @@
                 </div>
                 <div>
                     <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
-                        <input type="checkbox" wire:model="enable_scrutiny_step" style="opacity: 0; width: 0; height: 0;">
+                        <input type="checkbox" wire:model.live="enable_scrutiny_step" style="opacity: 0; width: 0; height: 0;">
                         <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $enable_scrutiny_step ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $enable_scrutiny_step ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
                             <span style="position: absolute; content: ''; height: 20px; width: 20px; left: {{ $enable_scrutiny_step ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
                         </span>
@@ -67,12 +145,15 @@
             </div>
 
             <!-- 2. Academic Peer Review Milestone -->
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); transition: var(--transition-fast);">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $enable_peer_review_step ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
                 <div style="max-width: 80%;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                        <span style="font-size: 1.1rem;">🔬</span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                        <span style="font-size: 1.15rem;">🔬</span>
                         <span style="font-size: 0.98rem; font-weight: 800; color: var(--color-text-primary);">
                             External Subject & Academic Peer Review Stage
+                        </span>
+                        <span class="badge {{ $enable_peer_review_step ? 'badge-purple' : 'badge-slate' }}" style="font-size: 0.68rem; font-weight: 800;">
+                            {{ $enable_peer_review_step ? 'STAGE 3: ACTIVE' : 'STAGE 3: BYPASSED' }}
                         </span>
                         <x-help-hint type="inline" 
                                      variant="statutory"
@@ -87,7 +168,7 @@
                 </div>
                 <div>
                     <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
-                        <input type="checkbox" wire:model="enable_peer_review_step" style="opacity: 0; width: 0; height: 0;">
+                        <input type="checkbox" wire:model.live="enable_peer_review_step" style="opacity: 0; width: 0; height: 0;">
                         <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $enable_peer_review_step ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $enable_peer_review_step ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
                             <span style="position: absolute; content: ''; height: 20px; width: 20px; left: {{ $enable_peer_review_step ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
                         </span>
@@ -96,12 +177,15 @@
             </div>
 
             <!-- 3. Selection Board Milestone -->
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); transition: var(--transition-fast);">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $enable_board_interview_step ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
                 <div style="max-width: 80%;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                        <span style="font-size: 1.1rem;">👥</span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                        <span style="font-size: 1.15rem;">👥</span>
                         <span style="font-size: 0.98rem; font-weight: 800; color: var(--color-text-primary);">
                             Statutory Selection Board Interview & Viva Stage
+                        </span>
+                        <span class="badge {{ $enable_board_interview_step ? 'badge-cyan' : 'badge-slate' }}" style="font-size: 0.68rem; font-weight: 800;">
+                            {{ $enable_board_interview_step ? 'STAGE 4: ACTIVE' : 'STAGE 4: BYPASSED' }}
                         </span>
                         <x-help-hint type="inline" 
                                      variant="info"
@@ -114,7 +198,7 @@
                 </div>
                 <div>
                     <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
-                        <input type="checkbox" wire:model="enable_board_interview_step" style="opacity: 0; width: 0; height: 0;">
+                        <input type="checkbox" wire:model.live="enable_board_interview_step" style="opacity: 0; width: 0; height: 0;">
                         <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $enable_board_interview_step ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $enable_board_interview_step ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
                             <span style="position: absolute; content: ''; height: 20px; width: 20px; left: {{ $enable_board_interview_step ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
                         </span>
@@ -123,12 +207,15 @@
             </div>
 
             <!-- 4. Appellate Committee Milestone -->
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); transition: var(--transition-fast);">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $enable_appellate_step ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
                 <div style="max-width: 80%;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                        <span style="font-size: 1.1rem;">⚖️</span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                        <span style="font-size: 1.15rem;">⚖️</span>
                         <span style="font-size: 0.98rem; font-weight: 800; color: var(--color-text-primary);">
                             Appellate Grievance & Representation Tribunal
+                        </span>
+                        <span class="badge {{ $enable_appellate_step ? 'badge-amber' : 'badge-slate' }}" style="font-size: 0.68rem; font-weight: 800;">
+                            {{ $enable_appellate_step ? 'STAGE 6: ACTIVE' : 'STAGE 6: BYPASSED' }}
                         </span>
                         <x-help-hint type="inline" 
                                      variant="statutory"
@@ -142,7 +229,7 @@
                 </div>
                 <div>
                     <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
-                        <input type="checkbox" wire:model="enable_appellate_step" style="opacity: 0; width: 0; height: 0;">
+                        <input type="checkbox" wire:model.live="enable_appellate_step" style="opacity: 0; width: 0; height: 0;">
                         <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $enable_appellate_step ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $enable_appellate_step ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
                             <span style="position: absolute; content: ''; height: 20px; width: 20px; left: {{ $enable_appellate_step ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
                         </span>
@@ -166,8 +253,8 @@
             <!-- 5. Committee Strict Quorum Toggle -->
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
                 <div style="max-width: 80%;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                        <span style="font-size: 1.1rem;">🏛️</span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                        <span style="font-size: 1.15rem;">🏛️</span>
                         <span style="font-size: 0.98rem; font-weight: 800; color: var(--color-text-primary);">
                             Enforce Strict Committee & Board Quorum
                         </span>
@@ -182,7 +269,7 @@
                 </div>
                 <div>
                     <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
-                        <input type="checkbox" wire:model="enforce_strict_committee_quorum" style="opacity: 0; width: 0; height: 0;">
+                        <input type="checkbox" wire:model.live="enforce_strict_committee_quorum" style="opacity: 0; width: 0; height: 0;">
                         <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $enforce_strict_committee_quorum ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $enforce_strict_committee_quorum ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
                             <span style="position: absolute; content: ''; height: 20px; width: 20px; left: {{ $enforce_strict_committee_quorum ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
                         </span>
@@ -193,8 +280,8 @@
             <!-- 6. Peer Review Strict Quorum Toggle -->
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
                 <div style="max-width: 80%;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                        <span style="font-size: 1.1rem;">📊</span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                        <span style="font-size: 1.15rem;">📊</span>
                         <span style="font-size: 0.98rem; font-weight: 800; color: var(--color-text-primary);">
                             Enforce Strict External Peer Review Score Threshold
                         </span>
@@ -209,7 +296,7 @@
                 </div>
                 <div>
                     <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
-                        <input type="checkbox" wire:model="enforce_strict_peer_review_quorum" style="opacity: 0; width: 0; height: 0;">
+                        <input type="checkbox" wire:model.live="enforce_strict_peer_review_quorum" style="opacity: 0; width: 0; height: 0;">
                         <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $enforce_strict_peer_review_quorum ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $enforce_strict_peer_review_quorum ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
                             <span style="position: absolute; content: ''; height: 20px; width: 20px; left: {{ $enforce_strict_peer_review_quorum ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
                         </span>
@@ -236,13 +323,24 @@
             </div>
         </x-help-hint>
 
-        <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+        <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+            @can('manage-settings')
+            <button type="button" 
+                    wire:click="resetPipelineToDefault" 
+                    wire:confirm="Reset recruitment workflow pipeline stages to system defaults (all stages enabled)?"
+                    class="btn btn-secondary btn-sm" 
+                    style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                <span>Reset Pipeline to Defaults</span>
+            </button>
+
             <button type="submit" 
                     class="btn btn-primary" 
                     style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.75rem; font-weight: 800; font-size: 0.92rem; box-shadow: 0 4px 14px var(--primary-glow);">
                 <span wire:loading.remove wire:target="savePipelineSettings">Save Workflow Pipeline Settings</span>
                 <span wire:loading wire:target="savePipelineSettings">Saving Settings...</span>
             </button>
+            @endcan
         </div>
     </form>
 </div>

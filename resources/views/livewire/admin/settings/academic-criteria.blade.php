@@ -5,6 +5,7 @@
             <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
                 <span class="badge badge-indigo" style="font-size: 0.72rem; font-weight: 800;">STATUTORY BENCHMARKS</span>
                 <span class="badge badge-purple" style="font-size: 0.72rem; font-weight: 800;">HEC CRITERIA COMPLIANT</span>
+                <span class="badge badge-emerald" style="font-size: 0.72rem; font-weight: 700;">SCRUTINY ENGINE</span>
             </div>
             <h2 class="card-title" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--color-text-primary);">
                 Academic Division Criteria, Minimum CGPA & Peer Review Quotas
@@ -14,26 +15,87 @@
             </p>
         </div>
 
-        @can('manage-settings')
-        <button type="button" 
-                wire:click="saveAcademicCriteriaSettings" 
-                class="btn btn-primary" 
-                style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.4rem; font-weight: 800; font-size: 0.88rem; box-shadow: 0 4px 14px var(--primary-glow);">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                <polyline points="17 21 17 13 7 13 7 21"/>
-                <polyline points="7 3 7 8 15 8"/>
-            </svg>
-            <span wire:loading.remove wire:target="saveAcademicCriteriaSettings">Save Academic Benchmarks</span>
-            <span wire:loading wire:target="saveAcademicCriteriaSettings">Saving...</span>
-        </button>
-        @endcan
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            @can('manage-settings')
+            <button type="button" 
+                    wire:click="resetAcademicCriteriaToDefault" 
+                    wire:confirm="Reset academic criteria and peer review quotas to HEC benchmark defaults?"
+                    class="btn btn-secondary btn-sm" 
+                    style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.55rem 0.95rem; font-weight: 700; font-size: 0.82rem;"
+                    title="Restore academic criteria to standard HEC defaults">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                <span>Reset HEC Criteria</span>
+            </button>
+
+            <button type="button" 
+                    wire:click="saveAcademicCriteriaSettings" 
+                    class="btn btn-primary" 
+                    style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.4rem; font-weight: 800; font-size: 0.88rem; box-shadow: 0 4px 14px var(--primary-glow);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                <span wire:loading.remove wire:target="saveAcademicCriteriaSettings">Save Academic Benchmarks</span>
+                <span wire:loading wire:target="saveAcademicCriteriaSettings">Saving...</span>
+            </button>
+            @endcan
+        </div>
     </div>
 
     {{-- Statutory Callout --}}
     <x-help-hint type="callout" variant="statutory" statute="HEC Statutory Minimum Criteria" title="Automated Academic Dossier Eligibility Vetting">
         These rules run automatically inside the Scrutiny Engine when screening candidate transcripts. Candidates failing to satisfy these criteria are automatically flagged as ineligible with precise statutory justifications documented in the candidate summary dossier.
     </x-help-hint>
+
+    {{-- VISUAL QUALIFICATION MATRIX STRIP --}}
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; margin-top: 1.25rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="font-size: 0.8rem; font-weight: 800; text-transform: uppercase; color: var(--secondary); letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.4rem;">
+                <span>📊 HEC Academic Division Classification & Cutoff Matrix</span>
+            </div>
+            <span class="badge badge-slate" style="font-size: 0.7rem;">Automated Dossier Vetting Rules</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.75rem;">
+            <!-- 1st Division Card -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem 1rem; border-left: 3px solid var(--success);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 800; font-size: 0.85rem; color: var(--color-text-primary);">1st Division</span>
+                    <span class="badge badge-emerald" style="font-size: 0.65rem; font-weight: 800;">PASS / REQUIRED</span>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--color-text-secondary); margin-top: 0.35rem;">
+                    &ge; 60.0% Marks or &ge; 3.00 / 4.00 CGPA
+                </div>
+            </div>
+
+            <!-- 2nd Division Card -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem 1rem; border-left: 3px solid var(--warning);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 800; font-size: 0.85rem; color: var(--color-text-primary);">2nd Division</span>
+                    <span class="badge {{ $global_disallow_two_second_divisions ? 'badge-amber' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">
+                        {{ $global_disallow_two_second_divisions ? 'MAX 1 ALLOWED' : 'PERMITTED' }}
+                    </span>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--color-text-secondary); margin-top: 0.35rem;">
+                    45.0% &ndash; 59.9% Marks or 2.50 &ndash; 2.99 CGPA
+                </div>
+            </div>
+
+            <!-- 3rd Division Card -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem 1rem; border-left: 3px solid var(--danger);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 800; font-size: 0.85rem; color: var(--color-text-primary);">3rd Division</span>
+                    <span class="badge {{ $global_disallow_third_division ? 'badge-rose' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">
+                        {{ $global_disallow_third_division ? 'ZERO TOLERANCE' : ($global_max_allowed_third_divisions !== null && $global_max_allowed_third_divisions !== '' ? 'CAP: '.$global_max_allowed_third_divisions : 'CONDITIONAL') }}
+                    </span>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--color-text-secondary); margin-top: 0.35rem;">
+                    &lt; 45.0% Marks or &lt; 2.50 CGPA (Terminal Disallowed)
+                </div>
+            </div>
+        </div>
+    </div>
 
     <form wire:submit.prevent="saveAcademicCriteriaSettings" style="margin-top: 1.5rem;">
         
@@ -49,11 +111,14 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1rem;">
                 
                 <!-- 1. Disallow Third Division Across Career -->
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem; background: var(--bg-surface); border: 1px solid {{ $global_disallow_third_division ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
                     <div style="max-width: 80%;">
-                        <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem;">
+                        <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
                             <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
                                 Zero 3rd Division Allowed in Academic Career
+                            </span>
+                            <span class="badge {{ $global_disallow_third_division ? 'badge-rose' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">
+                                {{ $global_disallow_third_division ? 'ZERO TOLERANCE' : 'PERMITTED' }}
                             </span>
                             <x-help-hint type="inline" 
                                          variant="danger" 
@@ -67,7 +132,7 @@
                     </div>
                     <div>
                         <label style="position: relative; display: inline-block; width: 50px; height: 26px; cursor: pointer;">
-                            <input type="checkbox" wire:model="global_disallow_third_division" style="opacity: 0; width: 0; height: 0;">
+                            <input type="checkbox" wire:model.live="global_disallow_third_division" style="opacity: 0; width: 0; height: 0;">
                             <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $global_disallow_third_division ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $global_disallow_third_division ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
                                 <span style="position: absolute; content: ''; height: 18px; width: 18px; left: {{ $global_disallow_third_division ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%;"></span>
                             </span>
@@ -76,11 +141,14 @@
                 </div>
 
                 <!-- 2. Disallow Third Division in Terminal / Highest Degree -->
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem; background: var(--bg-surface); border: 1px solid {{ $global_disallow_third_in_terminal ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
                     <div style="max-width: 80%;">
-                        <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem;">
+                        <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
                             <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
                                 Disallow 3rd Division in Terminal Degree
+                            </span>
+                            <span class="badge {{ $global_disallow_third_in_terminal ? 'badge-rose' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">
+                                {{ $global_disallow_third_in_terminal ? 'TERMINAL BAR ON' : 'PERMITTED' }}
                             </span>
                             <x-help-hint type="inline" 
                                          variant="statutory" 
@@ -94,7 +162,7 @@
                     </div>
                     <div>
                         <label style="position: relative; display: inline-block; width: 50px; height: 26px; cursor: pointer;">
-                            <input type="checkbox" wire:model="global_disallow_third_in_terminal" style="opacity: 0; width: 0; height: 0;">
+                            <input type="checkbox" wire:model.live="global_disallow_third_in_terminal" style="opacity: 0; width: 0; height: 0;">
                             <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $global_disallow_third_in_terminal ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $global_disallow_third_in_terminal ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
                                 <span style="position: absolute; content: ''; height: 18px; width: 18px; left: {{ $global_disallow_third_in_terminal ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%;"></span>
                             </span>
@@ -117,7 +185,7 @@
                         Upper limit on total third divisions permitted in an applicant's academic trajectory.
                     </div>
                     <input type="number" 
-                           wire:model="global_max_allowed_third_divisions" 
+                           wire:model.live="global_max_allowed_third_divisions" 
                            min="0" 
                            max="5" 
                            placeholder="Leave empty for unconstrained" 
@@ -126,11 +194,14 @@
                 </div>
 
                 <!-- 4. Disallow Multiple 2nd Divisions -->
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem; background: var(--bg-surface); border: 1px solid {{ $global_disallow_two_second_divisions ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
                     <div style="max-width: 80%;">
-                        <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem;">
+                        <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
                             <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
                                 Disallow Two or More 2nd Divisions
+                            </span>
+                            <span class="badge {{ $global_disallow_two_second_divisions ? 'badge-amber' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">
+                                {{ $global_disallow_two_second_divisions ? 'MAX 1 2ND DIV' : 'MULTIPLE ALLOWED' }}
                             </span>
                             <x-help-hint type="inline" 
                                          variant="warning" 
@@ -144,7 +215,7 @@
                     </div>
                     <div>
                         <label style="position: relative; display: inline-block; width: 50px; height: 26px; cursor: pointer;">
-                            <input type="checkbox" wire:model="global_disallow_two_second_divisions" style="opacity: 0; width: 0; height: 0;">
+                            <input type="checkbox" wire:model.live="global_disallow_two_second_divisions" style="opacity: 0; width: 0; height: 0;">
                             <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $global_disallow_two_second_divisions ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $global_disallow_two_second_divisions ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
                                 <span style="position: absolute; content: ''; height: 18px; width: 18px; left: {{ $global_disallow_two_second_divisions ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%;"></span>
                             </span>
@@ -184,7 +255,7 @@
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                         <input type="number" 
                                step="0.1" 
-                               wire:model="global_min_marks_percentage" 
+                               wire:model.live="global_min_marks_percentage" 
                                placeholder="e.g. 60.0" 
                                class="form-control" 
                                style="font-size: 0.92rem; padding: 0.45rem 0.75rem;">
@@ -210,7 +281,7 @@
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                         <input type="number" 
                                step="0.1" 
-                               wire:model="global_min_terminal_percentage" 
+                               wire:model.live="global_min_terminal_percentage" 
                                placeholder="e.g. 65.0" 
                                class="form-control" 
                                style="font-size: 0.92rem; padding: 0.45rem 0.75rem;">
@@ -237,7 +308,7 @@
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                         <input type="number" 
                                step="0.01" 
-                               wire:model="global_min_terminal_cgpa" 
+                               wire:model.live="global_min_terminal_cgpa" 
                                placeholder="e.g. 3.00" 
                                class="form-control" 
                                style="font-size: 0.92rem; padding: 0.45rem 0.75rem;">
@@ -277,7 +348,7 @@
                     </div>
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                         <input type="number" 
-                               wire:model="asst_prof_required_peer_reviewers" 
+                               wire:model.live="asst_prof_required_peer_reviewers" 
                                min="1" 
                                max="10" 
                                class="form-control" 
@@ -304,7 +375,7 @@
                     </div>
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                         <input type="number" 
-                               wire:model="prof_required_peer_reviewers" 
+                               wire:model.live="prof_required_peer_reviewers" 
                                min="1" 
                                max="10" 
                                class="form-control" 
@@ -330,7 +401,7 @@
                     </div>
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                         <input type="number" 
-                               wire:model="lecturer_required_peer_reviewers" 
+                               wire:model.live="lecturer_required_peer_reviewers" 
                                min="0" 
                                max="10" 
                                class="form-control" 
@@ -342,13 +413,24 @@
             </div>
         </div>
 
-        <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+        <div style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+            @can('manage-settings')
+            <button type="button" 
+                    wire:click="resetAcademicCriteriaToDefault" 
+                    wire:confirm="Reset academic criteria and peer review quotas to HEC benchmark defaults?"
+                    class="btn btn-secondary btn-sm" 
+                    style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                <span>Reset HEC Criteria</span>
+            </button>
+
             <button type="submit" 
                     class="btn btn-primary" 
                     style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.75rem; font-weight: 800; font-size: 0.92rem; box-shadow: 0 4px 14px var(--primary-glow);">
                 <span wire:loading.remove wire:target="saveAcademicCriteriaSettings">Save Statutory Academic Benchmarks</span>
                 <span wire:loading wire:target="saveAcademicCriteriaSettings">Saving Academic Benchmarks...</span>
             </button>
+            @endcan
         </div>
     </form>
 </div>

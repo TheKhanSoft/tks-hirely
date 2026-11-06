@@ -3,55 +3,389 @@
     <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border-color); padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
         <div>
             <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
-                <span class="badge badge-indigo" style="font-size: 0.72rem; font-weight: 800;">PLATFORM BRANDING</span>
-                <span class="badge badge-slate" style="font-size: 0.72rem;">LOGOS &amp; ASSETS</span>
+                <span class="badge badge-indigo" style="font-size: 0.72rem; font-weight: 800;">PLATFORM THEME &amp; DESIGN SYSTEM</span>
+                <span class="badge badge-slate" style="font-size: 0.72rem;">MULTI-PORTAL STYLING</span>
             </div>
-            <h2 class="card-title" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--color-text-primary);">
-                Application Identity, Logos, Favicon &amp; Portal Announcements
+            <h2 class="card-title" style="margin: 0; font-size: 1.3rem; font-weight: 900; color: var(--color-text-primary);">
+                Theme Studio, Branding, Logos &amp; UI/UX Customizer
             </h2>
             <p class="card-subtitle" style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--color-text-secondary);">
-                Configure custom application naming, brand logos, browser favicons, visual theme accent colors, and candidate broadcast banners.
+                Customize primary brand accents, secondary highlights, corner radius, typography, card elevation, login layout, and visual assets linked across all portals.
             </p>
         </div>
 
-        @can('manage-settings')
-        <button type="button" 
-                wire:click="saveBrandingSettings" 
-                class="btn btn-primary" 
-                style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.4rem; font-weight: 800; font-size: 0.88rem; box-shadow: 0 4px 14px var(--primary-glow);">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                <polyline points="17 21 17 13 7 13 7 21"/>
-                <polyline points="7 3 7 8 15 8"/>
-            </svg>
-            <span wire:loading.remove wire:target="saveBrandingSettings">Save Branding Settings</span>
-            <span wire:loading wire:target="saveBrandingSettings">Saving...</span>
-        </button>
-        @endcan
+        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            @can('manage-settings')
+            <button type="button" 
+                    wire:click="resetThemeToDefault" 
+                    wire:confirm="Reset all theme styling, colors, typography, and layout settings to system default?"
+                    class="btn btn-secondary btn-sm" 
+                    style="display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 700; padding: 0.55rem 0.95rem;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                <span>Reset Theme Defaults</span>
+            </button>
+
+            <button type="button" 
+                    wire:click="saveBrandingSettings" 
+                    class="btn btn-primary btn-sm" 
+                    style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.55rem 1.25rem; font-weight: 800; box-shadow: 0 4px 14px var(--primary-glow);">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                <span wire:loading.remove wire:target="saveBrandingSettings">Save Theme &amp; Branding</span>
+                <span wire:loading wire:target="saveBrandingSettings">Saving...</span>
+            </button>
+            @endcan
+        </div>
     </div>
 
     @if(session()->has('message'))
-        <div class="alert alert-success" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+        <div class="alert alert-success" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: var(--success); padding: 0.85rem 1.25rem; border-radius: var(--radius-md);">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            <span>{{ session('message') }}</span>
+            <span style="font-weight: 700;">{{ session('message') }}</span>
         </div>
     @endif
 
     {{-- System Help Callout --}}
-    <x-help-hint type="callout" variant="info" title="Application Identity &amp; Multi-Brand Adaptation">
-        Changes to application name, logos, and favicon take effect across the candidate experience, administrative sidebars, browser page titles, and outgoing transaction emails.
+    <x-help-hint type="callout" variant="info" title="Global Dynamic Design System Architecture">
+        Settings modified here are dynamically rendered via CSS custom properties across the whole application. Changing the primary color, corner radius, typography, or card elevation immediately transforms the login page, candidate portal, scrutiny desk, selection board, and administrative consoles.
     </x-help-hint>
 
     <form wire:submit.prevent="saveBrandingSettings" style="margin-top: 1.5rem;">
         <div style="display: flex; flex-direction: column; gap: 2rem;">
 
             <!-- ========================================================================= -->
-            <!-- 1. CORE APPLICATION IDENTIFIERS                                            -->
+            <!-- 1. ONE-CLICK INSTITUTIONAL THEME PRESETS                                   -->
             <!-- ========================================================================= -->
-            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem;">
-                <h3 style="font-size: 1rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
-                    <span>🏷️ Application Brand Identity</span>
+            <div style="background: var(--bg-card); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                    <div>
+                        <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                            <span>✨ Institutional Theme Presets (1-Click Palette Apply)</span>
+                        </h3>
+                        <p style="font-size: 0.8rem; color: var(--color-text-secondary); margin: 0.2rem 0 0 0;">
+                            Select a verified institutional color and typography palette to style every portal instantly.
+                        </p>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.85rem;">
+                    <!-- Preset 1: Oxford Indigo -->
+                    <button type="button" 
+                            wire:click="applyThemePreset('oxford_indigo')"
+                            class="card" 
+                            style="cursor: pointer; text-align: left; padding: 1rem; border: 1.5px solid {{ $theme_accent_color === '#4f46e5' ? 'var(--primary)' : 'var(--border-color)' }}; background: {{ $theme_accent_color === '#4f46e5' ? 'var(--primary-light)' : 'var(--bg-surface)' }}; transition: var(--transition-fast);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.65rem;">
+                            <div style="display: flex; gap: 0.35rem;">
+                                <span style="display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #4f46e5; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></span>
+                                <span style="display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #06b6d4; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); margin-left: -8px;"></span>
+                            </div>
+                            @if($theme_accent_color === '#4f46e5')
+                                <span class="badge badge-indigo" style="font-size: 0.65rem; font-weight: 800;">ACTIVE</span>
+                            @endif
+                        </div>
+                        <strong style="font-size: 0.88rem; color: var(--color-text-primary); display: block;">Royal Oxford Indigo</strong>
+                        <span style="font-size: 0.74rem; color: var(--color-text-secondary);">Indigo Primary • Cyan Highlight • Modern Radius</span>
+                    </button>
+
+                    <!-- Preset 2: Cambridge Emerald -->
+                    <button type="button" 
+                            wire:click="applyThemePreset('cambridge_emerald')"
+                            class="card" 
+                            style="cursor: pointer; text-align: left; padding: 1rem; border: 1.5px solid {{ $theme_accent_color === '#059669' ? 'var(--primary)' : 'var(--border-color)' }}; background: {{ $theme_accent_color === '#059669' ? 'var(--primary-light)' : 'var(--bg-surface)' }}; transition: var(--transition-fast);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.65rem;">
+                            <div style="display: flex; gap: 0.35rem;">
+                                <span style="display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #059669; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></span>
+                                <span style="display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #0d9488; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); margin-left: -8px;"></span>
+                            </div>
+                            @if($theme_accent_color === '#059669')
+                                <span class="badge badge-emerald" style="font-size: 0.65rem; font-weight: 800;">ACTIVE</span>
+                            @endif
+                        </div>
+                        <strong style="font-size: 0.88rem; color: var(--color-text-primary); display: block;">Cambridge Emerald</strong>
+                        <span style="font-size: 0.74rem; color: var(--color-text-secondary);">Emerald Primary • Teal Highlight • Floating Elevation</span>
+                    </button>
+
+                    <!-- Preset 3: Harvard Crimson -->
+                    <button type="button" 
+                            wire:click="applyThemePreset('harvard_crimson')"
+                            class="card" 
+                            style="cursor: pointer; text-align: left; padding: 1rem; border: 1.5px solid {{ $theme_accent_color === '#be123c' ? 'var(--primary)' : 'var(--border-color)' }}; background: {{ $theme_accent_color === '#be123c' ? 'var(--primary-light)' : 'var(--bg-surface)' }}; transition: var(--transition-fast);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.65rem;">
+                            <div style="display: flex; gap: 0.35rem;">
+                                <span style="display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #be123c; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></span>
+                                <span style="display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #f59e0b; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); margin-left: -8px;"></span>
+                            </div>
+                            @if($theme_accent_color === '#be123c')
+                                <span class="badge badge-rose" style="font-size: 0.65rem; font-weight: 800;">ACTIVE</span>
+                            @endif
+                        </div>
+                        <strong style="font-size: 0.88rem; color: var(--color-text-primary); display: block;">Harvard Crimson</strong>
+                        <span style="font-size: 0.74rem; color: var(--color-text-secondary);">Crimson Primary • Amber Highlight • Academic Serif</span>
+                    </button>
+
+                    <!-- Preset 4: MIT Sapphire -->
+                    <button type="button" 
+                            wire:click="applyThemePreset('mit_sapphire')"
+                            class="card" 
+                            style="cursor: pointer; text-align: left; padding: 1rem; border: 1.5px solid {{ $theme_accent_color === '#0284c7' ? 'var(--primary)' : 'var(--border-color)' }}; background: {{ $theme_accent_color === '#0284c7' ? 'var(--primary-light)' : 'var(--bg-surface)' }}; transition: var(--transition-fast);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.65rem;">
+                            <div style="display: flex; gap: 0.35rem;">
+                                <span style="display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #0284c7; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></span>
+                                <span style="display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #6366f1; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); margin-left: -8px;"></span>
+                            </div>
+                            @if($theme_accent_color === '#0284c7')
+                                <span class="badge badge-cyan" style="font-size: 0.65rem; font-weight: 800;">ACTIVE</span>
+                            @endif
+                        </div>
+                        <strong style="font-size: 0.88rem; color: var(--color-text-primary); display: block;">MIT Tech Sapphire</strong>
+                        <span style="font-size: 0.74rem; color: var(--color-text-secondary);">Sky Sapphire • Indigo • Outfit Geometric</span>
+                    </button>
+
+                    <!-- Preset 5: Imperial Purple -->
+                    <button type="button" 
+                            wire:click="applyThemePreset('imperial_purple')"
+                            class="card" 
+                            style="cursor: pointer; text-align: left; padding: 1rem; border: 1.5px solid {{ $theme_accent_color === '#7c3aed' ? 'var(--primary)' : 'var(--border-color)' }}; background: {{ $theme_accent_color === '#7c3aed' ? 'var(--primary-light)' : 'var(--bg-surface)' }}; transition: var(--transition-fast);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.65rem;">
+                            <div style="display: flex; gap: 0.35rem;">
+                                <span style="display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #7c3aed; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></span>
+                                <span style="display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #ec4899; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); margin-left: -8px;"></span>
+                            </div>
+                            @if($theme_accent_color === '#7c3aed')
+                                <span class="badge badge-purple" style="font-size: 0.65rem; font-weight: 800;">ACTIVE</span>
+                            @endif
+                        </div>
+                        <strong style="font-size: 0.88rem; color: var(--color-text-primary); display: block;">Imperial Purple</strong>
+                        <span style="font-size: 0.74rem; color: var(--color-text-secondary);">Royal Violet • Pink Rose • Organic Pill</span>
+                    </button>
+
+                    <!-- Preset 6: Slate Minimalist -->
+                    <button type="button" 
+                            wire:click="applyThemePreset('slate_minimalist')"
+                            class="card" 
+                            style="cursor: pointer; text-align: left; padding: 1rem; border: 1.5px solid {{ $theme_accent_color === '#1e293b' ? 'var(--primary)' : 'var(--border-color)' }}; background: {{ $theme_accent_color === '#1e293b' ? 'var(--primary-light)' : 'var(--bg-surface)' }}; transition: var(--transition-fast);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.65rem;">
+                            <div style="display: flex; gap: 0.35rem;">
+                                <span style="display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #1e293b; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></span>
+                                <span style="display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #64748b; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); margin-left: -8px;"></span>
+                            </div>
+                            @if($theme_accent_color === '#1e293b')
+                                <span class="badge badge-slate" style="font-size: 0.65rem; font-weight: 800;">ACTIVE</span>
+                            @endif
+                        </div>
+                        <strong style="font-size: 0.88rem; color: var(--color-text-primary); display: block;">Executive Charcoal</strong>
+                        <span style="font-size: 0.74rem; color: var(--color-text-secondary);">Obsidian Slate • Steel Gray • Compact Razor</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ========================================================================= -->
+            <!-- 2. CUSTOM COLOR PICKERS & LIVE MOCKUP PREVIEW                             -->
+            <!-- ========================================================================= -->
+            <div style="background: var(--bg-card); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem;">
+                <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <span>🎨 Custom Brand Colors &amp; Live Component Preview</span>
                 </h3>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; align-items: start;">
+                    <!-- Controls Left -->
+                    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                        <!-- Primary Accent -->
+                        <div>
+                            <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                                <span>Primary Brand Accent Color</span>
+                            </label>
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <input type="color" wire:model.live="theme_accent_color" style="width: 44px; height: 44px; padding: 2px; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; background: transparent;">
+                                <input type="text" wire:model.live="theme_accent_color" class="form-control" style="font-family: 'JetBrains Mono', monospace; font-size: 0.90rem; font-weight: 700; max-width: 140px;">
+                            </div>
+                            <small style="color: var(--color-text-secondary); font-size: 0.76rem; display: block; margin-top: 0.3rem;">Drives main action buttons, primary badges, focused borders, and brand glows.</small>
+                        </div>
+
+                        <!-- Secondary Highlight -->
+                        <div>
+                            <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                                <span>Secondary Highlight Color</span>
+                            </label>
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <input type="color" wire:model.live="theme_secondary_color" style="width: 44px; height: 44px; padding: 2px; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; background: transparent;">
+                                <input type="text" wire:model.live="theme_secondary_color" class="form-control" style="font-family: 'JetBrains Mono', monospace; font-size: 0.90rem; font-weight: 700; max-width: 140px;">
+                            </div>
+                            <small style="color: var(--color-text-secondary); font-size: 0.76rem; display: block; margin-top: 0.3rem;">Used for status pills, subtle gradients, and secondary highlights.</small>
+                        </div>
+                    </div>
+
+                    <!-- Live Interactive Component Preview Card -->
+                    <div class="card" style="padding: 1.25rem; background: var(--bg-surface); border: 1.5px solid var(--border-color); border-radius: var(--radius-md);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
+                            <span style="font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: var(--color-text-muted); letter-spacing: 0.05em;">Live Preview Component Strip</span>
+                            <span class="badge badge-emerald" style="font-size: 0.68rem; font-weight: 800;">REALTIME</span>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                            <!-- Sample Button Strip -->
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <button type="button" class="btn" style="background: {{ $theme_accent_color }}; color: #ffffff; padding: 0.45rem 1rem; font-weight: 800; font-size: 0.82rem; border-radius: var(--radius-sm); border: none; box-shadow: 0 4px 12px {{ $theme_accent_color }}55;">
+                                    Primary Action
+                                </button>
+                                <button type="button" class="btn" style="background: transparent; color: {{ $theme_accent_color }}; border: 1.5px solid {{ $theme_accent_color }}; padding: 0.45rem 0.9rem; font-weight: 700; font-size: 0.82rem; border-radius: var(--radius-sm);">
+                                    Outline Button
+                                </button>
+                            </div>
+
+                            <!-- Sample Badges -->
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <span class="badge" style="background: {{ $theme_accent_color }}22; color: {{ $theme_accent_color }}; border: 1px solid {{ $theme_accent_color }}44; font-weight: 800; font-size: 0.75rem; padding: 0.2rem 0.6rem;">
+                                    Primary Badge
+                                </span>
+                                <span class="badge" style="background: {{ $theme_secondary_color }}22; color: {{ $theme_secondary_color }}; border: 1px solid {{ $theme_secondary_color }}44; font-weight: 800; font-size: 0.75rem; padding: 0.2rem 0.6rem;">
+                                    Secondary Highlight
+                                </span>
+                            </div>
+
+                            <!-- Sample Input with Brand Focus -->
+                            <div>
+                                <input type="text" class="form-control" readonly value="Sample Focused Input Field" style="border-color: {{ $theme_accent_color }}; box-shadow: 0 0 0 3px {{ $theme_accent_color }}33; font-size: 0.82rem; padding: 0.45rem 0.75rem;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================================================= -->
+            <!-- 3. TYPOGRAPHY, CORNER RADIUS & CARD ELEVATION                              -->
+            <!-- ========================================================================= -->
+            <div style="background: var(--bg-card); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem;">
+                <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <span>📐 Typography, Geometry, Shadows &amp; Density</span>
+                </h3>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem;">
+                    
+                    <!-- Corner Radius Style -->
+                    <div>
+                        <label style="font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); display: block; margin-bottom: 0.35rem;">
+                            UI Corner Radius Style
+                        </label>
+                        <select wire:model.live="theme_radius_style" class="form-control form-select" style="font-size: 0.88rem; font-weight: 700;">
+                            <option value="modern">Rounded Modern (14px default — Balanced SaaS)</option>
+                            <option value="compact">Compact Crisp (8px — Dense Technical View)</option>
+                            <option value="pill">Organic Pill (24px — Ultra Soft Curves)</option>
+                            <option value="sharp">Sharp Architectural (2px — Executive Formal)</option>
+                        </select>
+                        <small style="color: var(--color-text-secondary); font-size: 0.75rem; display: block; margin-top: 0.25rem;">Adjusts curves on buttons, cards, modals, and input fields.</small>
+                    </div>
+
+                    <!-- Typography Font Family -->
+                    <div>
+                        <label style="font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); display: block; margin-bottom: 0.35rem;">
+                            Platform Font Family Preset
+                        </label>
+                        <select wire:model.live="theme_font_family" class="form-control form-select" style="font-size: 0.88rem; font-weight: 700;">
+                            <option value="jakarta">Plus Jakarta Sans &amp; Outfit (Modern Tech Academic)</option>
+                            <option value="inter">Inter UI (Scandinavian Clean Enterprise)</option>
+                            <option value="outfit">Outfit Geometric (Bold Futuristic Authority)</option>
+                            <option value="system">Native System (Segoe UI / San Francisco / Roboto)</option>
+                            <option value="academic">Playfair Display &amp; Jakarta (Classical Scholarly)</option>
+                        </select>
+                        <small style="color: var(--color-text-secondary); font-size: 0.75rem; display: block; margin-top: 0.25rem;">Applied across headings, body copy, tables, and data values.</small>
+                    </div>
+
+                    <!-- Card Elevation & Shadow Depth -->
+                    <div>
+                        <label style="font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); display: block; margin-bottom: 0.35rem;">
+                            Card Elevation &amp; Shadows
+                        </label>
+                        <select wire:model.live="theme_card_elevation" class="form-control form-select" style="font-size: 0.88rem; font-weight: 700;">
+                            <option value="bordered">Crisp Bordered (Default — Clean subtle border &amp; shadow)</option>
+                            <option value="floating">Floating Deep (Layered rich shadows with ambient glow)</option>
+                            <option value="minimal">Minimal Flat (Hairline borders, no deep shadows)</option>
+                        </select>
+                        <small style="color: var(--color-text-secondary); font-size: 0.75rem; display: block; margin-top: 0.25rem;">Governs visual depth of cards, stats, and dialogs.</small>
+                    </div>
+
+                    <!-- Sidebar Visual Theme -->
+                    <div>
+                        <label style="font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); display: block; margin-bottom: 0.35rem;">
+                            Sidebar Visual Appearance
+                        </label>
+                        <select wire:model.live="theme_sidebar_style" class="form-control form-select" style="font-size: 0.88rem; font-weight: 700;">
+                            <option value="glass-dark">Obsidian Dark Glass (Default High-Contrast Dark)</option>
+                            <option value="light-solid">Pure Solid White (In Light Mode) / Slate</option>
+                            <option value="accent-tint">Subtle Brand Color Tint</option>
+                        </select>
+                        <small style="color: var(--color-text-secondary); font-size: 0.75rem; display: block; margin-top: 0.25rem;">Sets navigation sidebar backdrop texture and active item contrast.</small>
+                    </div>
+
+                    <!-- Login Portal Layout -->
+                    <div>
+                        <label style="font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); display: block; margin-bottom: 0.35rem;">
+                            Public Login Portal Layout
+                        </label>
+                        <select wire:model.live="theme_login_layout" class="form-control form-select" style="font-size: 0.88rem; font-weight: 700;">
+                            <option value="split-modern">Split Modern (Executive Left Hero + Sign-in Right)</option>
+                            <option value="center-glass">Center Frosted Glass (Centered with Ambient Mesh)</option>
+                            <option value="minimalist">Minimalist Focused (Distraction-Free Card)</option>
+                        </select>
+                        <small style="color: var(--color-text-secondary); font-size: 0.75rem; display: block; margin-top: 0.25rem;">Alters the public candidate and officer authentication screen structure.</small>
+                    </div>
+
+                    <!-- Data Table Density -->
+                    <div>
+                        <label style="font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); display: block; margin-bottom: 0.35rem;">
+                            Listing &amp; Table Density
+                        </label>
+                        <select wire:model.live="ui_table_density" class="form-control form-select" style="font-size: 0.88rem; font-weight: 700;">
+                            <option value="compact">Compact (High Information Density — Data Rich)</option>
+                            <option value="comfortable">Comfortable (Default Balanced Spacing)</option>
+                            <option value="spacious">Spacious (Relaxed Touch-Friendly Spacing)</option>
+                        </select>
+                        <small style="color: var(--color-text-secondary); font-size: 0.75rem; display: block; margin-top: 0.25rem;">Adjusts table row padding across candidate lists and applications.</small>
+                    </div>
+
+                </div>
+
+                <!-- Toggles for Glassmorphism & Animations -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color);">
+                    <label style="display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); cursor: pointer;">
+                        <div>
+                            <div style="font-weight: 800; font-size: 0.85rem; color: var(--color-text-primary);">Glassmorphic Backdrop Blur</div>
+                            <div style="font-size: 0.75rem; color: var(--color-text-secondary);">Enables translucent glass effects on cards and modals</div>
+                        </div>
+                        <input type="checkbox" wire:model.live="ui_glassmorphism_enabled" style="width: 18px; height: 18px; accent-color: var(--primary);">
+                    </label>
+
+                    <label style="display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); cursor: pointer;">
+                        <div>
+                            <div style="font-weight: 800; font-size: 0.85rem; color: var(--color-text-primary);">Micro-Interactions &amp; Transitions</div>
+                            <div style="font-size: 0.75rem; color: var(--color-text-secondary);">Enables smooth scaling, hover effects, and spring easing</div>
+                        </div>
+                        <input type="checkbox" wire:model.live="ui_animations_enabled" style="width: 18px; height: 18px; accent-color: var(--primary);">
+                    </label>
+                </div>
+            </div>
+
+            <!-- ========================================================================= -->
+            <!-- 4. CORE APPLICATION IDENTIFIERS                                            -->
+            <!-- ========================================================================= -->
+            <div style="background: var(--bg-card); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
+                    <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>🏷️ Application Brand Identity</span>
+                    </h3>
+                    @can('manage-settings')
+                    <button type="button" 
+                            wire:click="resetBrandingToDefault" 
+                            wire:confirm="Reset application name, taglines, description, and SVG brand assets to defaults?"
+                            class="btn btn-secondary btn-sm" 
+                            style="font-size: 0.76rem; padding: 0.35rem 0.75rem;">
+                        Reset Brand Identity Defaults
+                    </button>
+                    @endcan
+                </div>
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
                     <!-- App Name -->
@@ -114,12 +448,12 @@
             </div>
 
             <!-- ========================================================================= -->
-            <!-- 2. BRAND LOGOS & FAVICON ASSETS                                           -->
+            <!-- 5. BRAND LOGOS & FAVICON ASSETS                                           -->
             <!-- ========================================================================= -->
-            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem;">
+            <div style="background: var(--bg-card); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
-                    <h3 style="font-size: 1rem; font-weight: 800; color: var(--color-text-primary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-                        <span>🖼️ Brand Logo &amp; Favicon Assets</span>
+                    <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>🖼️ Application Identity, Logos, Favicon &amp; Brand Assets</span>
                     </h3>
                     @can('manage-settings')
                     <div style="display: flex; gap: 0.5rem;">
@@ -136,7 +470,7 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
                     
                     <!-- Light Mode Logo -->
-                    <div style="border: 1px solid var(--border-color); border-radius: 6px; padding: 1.25rem; background: var(--bg-surface);">
+                    <div style="border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1.25rem; background: var(--bg-surface);">
                         <div style="font-size: 0.85rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.75rem;">
                             Primary Brand Logo (Light Mode)
                         </div>
@@ -167,7 +501,7 @@
                     </div>
 
                     <!-- Dark Mode Logo -->
-                    <div style="border: 1px solid var(--border-color); border-radius: 6px; padding: 1.25rem; background: var(--bg-surface);">
+                    <div style="border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1.25rem; background: var(--bg-surface);">
                         <div style="font-size: 0.85rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.75rem;">
                             Secondary Brand Logo (Dark Mode)
                         </div>
@@ -198,7 +532,7 @@
                     </div>
 
                     <!-- Browser Favicon -->
-                    <div style="border: 1px solid var(--border-color); border-radius: 6px; padding: 1.25rem; background: var(--bg-surface);">
+                    <div style="border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1.25rem; background: var(--bg-surface);">
                         <div style="font-size: 0.85rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.75rem;">
                             Browser Tab Favicon
                         </div>
@@ -245,54 +579,12 @@
             </div>
 
             <!-- ========================================================================= -->
-            <!-- 3. THEME ACCENT & FOOTER NOTICE                                           -->
+            <!-- 6. PORTAL BROADCAST ANNOUNCEMENT BANNER & FOOTER NOTICE                   -->
             <!-- ========================================================================= -->
-            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem;">
-                <h3 style="font-size: 1rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
-                    <span>🎨 Visual Theme Accent &amp; Footer Copyright</span>
-                </h3>
-
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
-                    <!-- Theme Accent Color -->
-                    <div>
-                        <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
-                            <span>Brand Primary Accent Color</span>
-                        </label>
-                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.65rem;">
-                            <input type="color" wire:model.live="theme_accent_color" style="width: 44px; height: 44px; padding: 2px; border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; background: transparent;">
-                            <input type="text" wire:model.live="theme_accent_color" class="form-control" style="font-family: 'JetBrains Mono', monospace; font-size: 0.90rem; font-weight: 700; max-width: 140px;">
-                        </div>
-                        <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
-                            <button type="button" wire:click="$set('theme_accent_color', '#4f46e5')" class="badge" style="background: #4f46e5; color: #fff; cursor: pointer; border: none; padding: 0.3rem 0.6rem;">Indigo</button>
-                            <button type="button" wire:click="$set('theme_accent_color', '#2563eb')" class="badge" style="background: #2563eb; color: #fff; cursor: pointer; border: none; padding: 0.3rem 0.6rem;">Blue</button>
-                            <button type="button" wire:click="$set('theme_accent_color', '#059669')" class="badge" style="background: #059669; color: #fff; cursor: pointer; border: none; padding: 0.3rem 0.6rem;">Emerald</button>
-                            <button type="button" wire:click="$set('theme_accent_color', '#7c3aed')" class="badge" style="background: #7c3aed; color: #fff; cursor: pointer; border: none; padding: 0.3rem 0.6rem;">Purple</button>
-                            <button type="button" wire:click="$set('theme_accent_color', '#e11d48')" class="badge" style="background: #e11d48; color: #fff; cursor: pointer; border: none; padding: 0.3rem 0.6rem;">Rose</button>
-                        </div>
-                    </div>
-
-                    <!-- Footer Copyright Text -->
-                    <div>
-                        <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
-                            <span>Portal Footer Copyright Text</span>
-                        </label>
-                        <input type="text" 
-                               wire:model="footer_copyright_text" 
-                               class="form-control" 
-                               placeholder="e.g. &copy; 2026 Hirely OS. All rights reserved." 
-                               style="font-size: 0.90rem; padding: 0.65rem 1rem;">
-                        <small style="color: var(--color-text-secondary); font-size: 0.78rem; display: block; margin-top: 0.25rem;">Displayed at the bottom of public candidate and login pages.</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ========================================================================= -->
-            <!-- 4. PORTAL BROADCAST ANNOUNCEMENT BANNER                                   -->
-            <!-- ========================================================================= -->
-            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem;">
+            <div style="background: var(--bg-card); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
                     <div>
-                        <h3 style="font-size: 1rem; font-weight: 800; color: var(--color-text-primary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                        <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
                             <span>📢 Candidate Portal Broadcast &amp; Announcement Banner</span>
                         </h3>
                         <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin: 0.25rem 0 0 0;">
@@ -318,45 +610,46 @@
                             </label>
                             <select wire:model.live="portal_announcement_type" class="form-control form-select" style="font-size: 0.88rem;">
                                 <option value="info">🔵 Informational (Blue)</option>
-                                <option value="warning">🟡 Warning / Deadline (Amber)</option>
-                                <option value="danger">🔴 Urgent Alert (Red)</option>
-                                <option value="success">🟢 Good News / Clearance (Green)</option>
+                                <option value="warning">🟡 Attention / Warning (Amber)</option>
+                                <option value="danger">🔴 Urgent / Critical (Red)</option>
+                                <option value="success">🟢 Milestone / Update (Green)</option>
                             </select>
                         </div>
 
                         <!-- Message -->
                         <div>
                             <label style="font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary); display: block; margin-bottom: 0.35rem;">
-                                Announcement Message Text
+                                Broadcast Announcement Text
                             </label>
-                            <textarea wire:model.live="portal_announcement_message" 
-                                      rows="2" 
-                                      class="form-control" 
-                                      placeholder="e.g. Mandatory Notice: Candidates must upload original HEC equivalence certificates before the statutory deadline." 
-                                      style="font-size: 0.90rem; padding: 0.6rem 0.85rem;"></textarea>
+                            <input type="text" 
+                                   wire:model="portal_announcement_message" 
+                                   class="form-control" 
+                                   placeholder="e.g. Challan payment verification deadline for Ad No. 58/2026 is extended till 15 November 2026." 
+                                   style="font-size: 0.88rem; padding: 0.65rem 1rem;">
                         </div>
                     </div>
-
-                    <!-- Live Preview -->
-                    @if(!empty($portal_announcement_message))
-                        <div style="margin-top: 1.25rem; padding: 0.85rem 1.25rem; border-radius: 6px; font-size: 0.88rem; font-weight: 600; display: flex; align-items: center; gap: 0.75rem; 
-                            @if($portal_announcement_type === 'warning') background: #fffbeb; color: #92400e; border: 1.5px solid #fde68a;
-                            @elseif($portal_announcement_type === 'danger') background: #fef2f2; color: #991b1b; border: 1.5px solid #fecaca;
-                            @elseif($portal_announcement_type === 'success') background: #ecfdf5; color: #065f46; border: 1.5px solid #a7f3d0;
-                            @else background: #eff6ff; color: #1e40af; border: 1.5px solid #bfdbfe; @endif">
-                            <span style="font-size: 1.2rem;">
-                                @if($portal_announcement_type === 'warning') ⚠️
-                                @elseif($portal_announcement_type === 'danger') 🚨
-                                @elseif($portal_announcement_type === 'success') ✅
-                                @else 📢 @endif
-                            </span>
-                            <div style="flex: 1;">
-                                <strong style="text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; display: block; opacity: 0.85;">Live Candidate View Preview</strong>
-                                {{ $portal_announcement_message }}
-                            </div>
-                        </div>
-                    @endif
                 @endif
+
+                <!-- Footer Copyright Text -->
+                <div style="margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color);">
+                    <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                        <span>Portal Footer Copyright Text</span>
+                    </label>
+                    <input type="text" 
+                           wire:model="footer_copyright_text" 
+                           class="form-control" 
+                           placeholder="e.g. &copy; 2026 Hirely OS. All rights reserved." 
+                           style="font-size: 0.90rem; padding: 0.65rem 1rem;">
+                    <small style="color: var(--color-text-secondary); font-size: 0.78rem; display: block; margin-top: 0.25rem;">Displayed at the bottom of public candidate, login, and application printing dossiers.</small>
+                </div>
+            </div>
+
+            <!-- Action Save Bar at bottom -->
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <button type="submit" class="btn btn-primary" style="padding: 0.65rem 1.6rem; font-weight: 800; font-size: 0.92rem; box-shadow: 0 4px 14px var(--primary-glow);">
+                    <span wire:loading.remove wire:target="saveBrandingSettings">Save Theme &amp; Branding</span>
+                    <span wire:loading wire:target="saveBrandingSettings">Saving...</span>
+                </button>
             </div>
 
         </div>
