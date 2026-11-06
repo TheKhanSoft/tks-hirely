@@ -630,26 +630,140 @@
                     </div>
                 @endif
 
-                <!-- Footer Copyright Text -->
-                <div style="margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color);">
-                    <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
-                        <span>Portal Footer Copyright Text</span>
-                    </label>
-                    <input type="text" 
-                           wire:model="footer_copyright_text" 
-                           class="form-control" 
-                           placeholder="e.g. &copy; 2026 Hirely OS. All rights reserved." 
-                           style="font-size: 0.90rem; padding: 0.65rem 1rem;">
-                    <small style="color: var(--color-text-secondary); font-size: 0.78rem; display: block; margin-top: 0.25rem;">Displayed at the bottom of public candidate, login, and application printing dossiers.</small>
+                <!-- Multi-Portal Footers & Letter Endorsement Customizer -->
+                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                        <span class="badge badge-indigo" style="font-size: 0.7rem; font-weight: 800;">MULTI-PORTAL FOOTERS</span>
+                        <span class="badge badge-cyan" style="font-size: 0.7rem; font-weight: 800;">PRINT ENDORSEMENTS</span>
+                    </div>
+                    <h4 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary);">
+                        Portal-Specific Footers & Printed Document Disclaimers
+                    </h4>
+                    <p style="margin: 0.2rem 0 1.25rem 0; font-size: 0.82rem; color: var(--color-text-secondary);">
+                        Configure distinct footer notices for each portal workspace, plus the legal endorsement disclaimer printed on candidate dossiers and letters.
+                    </p>
+
+                    <!-- Universal Copyright -->
+                    <div style="margin-bottom: 1.25rem;">
+                        <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                            <span>Universal Platform Copyright Notice</span>
+                        </label>
+                        <input type="text" 
+                               wire:model="footer_copyright_text" 
+                               class="form-control" 
+                               placeholder="e.g. &copy; 2026 Abdul Wali Khan University Mardan (AWKUM). All rights reserved." 
+                               style="font-size: 0.90rem; padding: 0.65rem 1rem;">
+                        <small style="color: var(--color-text-secondary); font-size: 0.76rem; display: block; margin-top: 0.25rem;">Displayed at the bottom of public candidate, login, and application workspaces.</small>
+                    </div>
+
+                    <!-- 2x2 Grid for Portal Footers -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+                        <!-- Candidate Portal Footer -->
+                        <div>
+                            <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                                <span>Candidate Portal Footer Notice</span>
+                                <x-help-hint type="inline" variant="info" title="Candidate Footer" text="Helpdesk and fee verification guidelines rendered on candidate dashboards." />
+                            </label>
+                            <textarea wire:model="footer_candidate_text" 
+                                      rows="2" 
+                                      class="form-control" 
+                                      style="font-size: 0.85rem; padding: 0.6rem 0.85rem;" 
+                                      placeholder="e.g. Candidate Facilitation Desk: For application guidance or voucher verification, contact..."></textarea>
+                        </div>
+
+                        <!-- Admin & Registrar Portal Footer -->
+                        <div>
+                            <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                                <span>Administrative Portal Footer Notice</span>
+                                <x-help-hint type="inline" variant="info" title="Admin Footer" text="Governance, audit, and official compliance notice displayed in administrative workspaces." />
+                            </label>
+                            <textarea wire:model="footer_admin_text" 
+                                      rows="2" 
+                                      class="form-control" 
+                                      style="font-size: 0.85rem; padding: 0.6rem 0.85rem;" 
+                                      placeholder="e.g. Official Administrative Desk • Abdul Wali Khan University Mardan • System Access Audited & Recorded."></textarea>
+                        </div>
+
+                        <!-- Selection Board & Scrutiny Footer -->
+                        <div>
+                            <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                                <span>Selection Board &amp; Scrutiny Desk Footer</span>
+                                <x-help-hint type="inline" variant="info" title="Board Footer" text="Statutory confidentiality notice displayed on selection committee desks." />
+                            </label>
+                            <textarea wire:model="footer_board_text" 
+                                      rows="2" 
+                                      class="form-control" 
+                                      style="font-size: 0.85rem; padding: 0.6rem 0.85rem;" 
+                                      placeholder="e.g. Statutory Selection Board Secretariat • Strictly Confidential Under University Act."></textarea>
+                        </div>
+
+                        <!-- Peer Review Portal Footer -->
+                        <div>
+                            <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                                <span>Academic Peer Review Footer Notice</span>
+                                <x-help-hint type="inline" variant="info" title="Reviewer Footer" text="Confidentiality and evaluation protocol note displayed to external academic referees." />
+                            </label>
+                            <textarea wire:model="footer_reviewer_text" 
+                                      rows="2" 
+                                      class="form-control" 
+                                      style="font-size: 0.85rem; padding: 0.6rem 0.85rem;" 
+                                      placeholder="e.g. Academic Peer Evaluation Desk • External Referee Integrity • Blind Review Protocols Active."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Printed Document & Letter Endorsement Section -->
+                    <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1.25rem;">
+                        <div style="font-size: 0.82rem; font-weight: 800; text-transform: uppercase; color: var(--secondary); margin-bottom: 0.85rem; display: flex; align-items: center; gap: 0.4rem;">
+                            <span>🖨️ Printed Letter &amp; Candidate Dossier Footer Endorsements</span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 1.25rem; margin-bottom: 1rem;">
+                            <div>
+                                <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.3rem;">
+                                    Printed Document Legal Endorsement &amp; Disclaimer
+                                </label>
+                                <textarea wire:model="letter_footer_text" 
+                                          rows="3" 
+                                          class="form-control" 
+                                          style="font-size: 0.84rem; padding: 0.6rem 0.85rem;" 
+                                          placeholder="e.g. This is an official computer-generated document issued under the seal and authority of Abdul Wali Khan University Mardan..."></textarea>
+                            </div>
+
+                            <div>
+                                <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.3rem;">
+                                    Printed Document Official Footer Contact
+                                </label>
+                                <textarea wire:model="letter_footer_contact" 
+                                          rows="3" 
+                                          class="form-control" 
+                                          style="font-size: 0.84rem; padding: 0.6rem 0.85rem;" 
+                                          placeholder="e.g. Office of the Registrar, AWKUM • Tel: +92-937-9230611 • Web: www.awkum.edu.pk"></textarea>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 2rem; flex-wrap: wrap; border-top: 1px dashed var(--border-color); padding-top: 0.85rem;">
+                            <label style="display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary);">
+                                <input type="checkbox" wire:model="letter_show_audit_trail" style="accent-color: var(--primary); width: 16px; height: 16px;">
+                                <span>Print User Audit Trail ("Printed by Full Name (Username) - Role &amp; Date")</span>
+                            </label>
+
+                            <label style="display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary);">
+                                <input type="checkbox" wire:model="letter_show_verify_ref" style="accent-color: var(--primary); width: 16px; height: 16px;">
+                                <span>Print Cryptographic Verification Reference (SHA-256 Hash)</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Action Save Bar at bottom -->
             <div style="display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                @can('manage-settings')
                 <button type="submit" class="btn btn-primary" style="padding: 0.65rem 1.6rem; font-weight: 800; font-size: 0.92rem; box-shadow: 0 4px 14px var(--primary-glow);">
                     <span wire:loading.remove wire:target="saveBrandingSettings">Save Theme &amp; Branding</span>
                     <span wire:loading wire:target="saveBrandingSettings">Saving...</span>
                 </button>
+                @endcan
             </div>
 
         </div>
