@@ -48,31 +48,50 @@ class EmailTemplatesAndTriggerGovernanceTest extends TestCase
     public function test_default_email_templates_seeded_with_all_stakeholder_categories(): void
     {
         $expectedSlugs = [
-            // Security & Auth
+            // 1. Security & Auth
             'account-created',
             'password-reset',
             'password-changed',
-            // Candidate Lifecycle
+            'two-factor-auth-code',
+            'profile-updated-security-notice',
+
+            // 2. Candidate Lifecycle
             'candidate-application-submitted',
+            'candidate-application-draft-reminder',
             'candidate-voucher-generated',
             'candidate-payment-settled',
+            'candidate-document-deficiency-notice',
             'candidate-scrutiny-status-updated',
+            'candidate-scrutiny-eligible',
+            'candidate-scrutiny-ineligible-appeal',
+            'candidate-appeal-submitted',
             'candidate-appeal-decision',
+            'candidate-test-call-letter',
             'candidate-interview-call',
+            'candidate-merit-list-published',
             'candidate-appointment-offer',
-            // Reviewers & Referees
+
+            // 3. Reviewers & Referees
             'reviewer-invitation',
             'reviewer-dossier-assigned',
             'reviewer-reminder',
+            'reviewer-deadline-warning',
             'reviewer-report-acknowledged',
-            // Statutory Selection Board & Committees
+            'reviewer-evaluation-completed',
+
+            // 4. Statutory Selection Board & Committees
             'board-meeting-scheduled',
             'board-roster-assigned',
-            // Custom Bespoke Dispatch
+            'board-scores-submitted-receipt',
+            'candidate-final-selection-regret',
+            'syndicate-approval-concurrence',
+
+            // 5. General & Bespoke Dispatch
+            'job-advertisement-announcement',
             'admin-custom-dispatch',
         ];
 
-        $this->assertGreaterThanOrEqual(17, EmailTemplate::count());
+        $this->assertGreaterThanOrEqual(32, EmailTemplate::count());
 
         foreach ($expectedSlugs as $slug) {
             $template = EmailTemplate::getBySlug($slug);
@@ -98,10 +117,10 @@ class EmailTemplatesAndTriggerGovernanceTest extends TestCase
             ->assertSee('Recruitment Fee Challan Voucher Issued')
             ->assertSee('Statutory Scrutiny Vetting Outcome Notice')
             ->assertSee('Selection Board Interview Call Letter')
-            ->assertSee('Provisional Recommendation & Appointment Offer')
-            ->assertSee('Invitation to Serve as Academic Peer Referee')
-            ->assertSee('Confidential Candidate Dossier Assigned for Review')
-            ->assertSee('Statutory Selection Board Meeting Notice')
+            ->assertSee('Provisional Recommendation & Statutory Appointment Offer')
+            ->assertSee('Formal Invitation to Serve as External Academic Referee')
+            ->assertSee('Confidential Candidate Dossier Assigned for Evaluation')
+            ->assertSee('Notice of Statutory Selection Board Meeting & Agenda')
             ->assertSee('Compose Custom Email');
     }
 
@@ -181,8 +200,8 @@ class EmailTemplatesAndTriggerGovernanceTest extends TestCase
         $component->call('openEditTemplateModal', $template->id)
             ->call('resetTemplateToDefault', $template->id);
 
-        $this->assertStringContainsString('Application Submitted Successfully', $template->fresh()->subject);
-        $this->assertStringContainsString('Application Dossier Lodged', $template->fresh()->body_html);
+        $this->assertStringContainsString('Application Received', $template->fresh()->subject);
+        $this->assertStringContainsString('Application Successfully Received', $template->fresh()->body_html);
     }
 
     public function test_admin_can_preview_template(): void
@@ -193,7 +212,11 @@ class EmailTemplatesAndTriggerGovernanceTest extends TestCase
         Livewire::test(SystemSettings::class, ['tab' => 'email-templates'])
             ->call('openPreviewModal', $template->id)
             ->assertSet('isPreviewModalOpen', true)
-            ->assertSee('Statutory Selection Board Call Letter')
+            ->assertSet('previewMode', 'sample')
+            ->assertSee('Selection Board Interview Call Letter')
+            ->assertSee('Dr. Tariq Mahmood Khan') // Dummy sample data
+            ->call('setPreviewMode', 'raw')
+            ->assertSet('previewMode', 'raw')
             ->call('closePreviewModal')
             ->assertSet('isPreviewModalOpen', false);
     }
@@ -260,7 +283,7 @@ class EmailTemplatesAndTriggerGovernanceTest extends TestCase
 
         Mail::assertSent(DynamicNotificationMail::class, function ($mail) {
             return $mail->hasTo('applicant.verified@gmail.com')
-                && str_contains($mail->mailSubject, 'Payment Confirmed & Verified')
+                && str_contains($mail->mailSubject, 'Payment Received & Verified')
                 && str_contains($mail->renderedHtml, 'Kamran Khan')
                 && str_contains($mail->renderedHtml, '1LINK-TXN-998822');
         });

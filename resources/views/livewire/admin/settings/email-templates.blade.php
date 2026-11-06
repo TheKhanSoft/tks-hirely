@@ -160,17 +160,31 @@
                     'REVIEWER' => 'badge-cyan',
                     'BOARD_EXPERT' => 'badge-purple',
                     'SECURITY_AUTH' => 'badge-rose',
-                    default => 'badge-slate',
+                    default => 'badge-emerald',
+                };
+                $groupBorderColor = match($tmpl->recipient_group) {
+                    'CANDIDATE' => '#4f46e5',
+                    'REVIEWER' => '#0284c7',
+                    'BOARD_EXPERT' => '#7c3aed',
+                    'SECURITY_AUTH' => '#e11d48',
+                    default => '#059669',
+                };
+                $groupIcon = match($tmpl->recipient_group) {
+                    'CANDIDATE' => '🎓',
+                    'REVIEWER' => '🔬',
+                    'BOARD_EXPERT' => '🏛️',
+                    'SECURITY_AUTH' => '🔐',
+                    default => '📢',
                 };
             @endphp
-            <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; transition: all 0.2s ease; box-shadow: var(--shadow-sm);"
+            <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-left: 4px solid {{ $groupBorderColor }}; border-radius: var(--radius-md); padding: 1.25rem 1.5rem; transition: all 0.2s ease; box-shadow: var(--shadow-sm);"
                  class="template-card-hover">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
                     <!-- Template Information -->
                     <div style="flex: 1; min-width: 280px;">
                         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; flex-wrap: wrap;">
                             <span class="badge {{ $groupBadgeColor }}" style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase;">
-                                {{ str_replace('_', ' ', $tmpl->recipient_group) }}
+                                {{ $groupIcon }} {{ str_replace('_', ' ', $tmpl->recipient_group) }}
                             </span>
                             <code style="font-size: 0.74rem; background: rgba(255,255,255,0.06); padding: 0.15rem 0.5rem; border-radius: 4px; color: var(--color-text-secondary); font-family: 'JetBrains Mono', monospace;">
                                 {{ $tmpl->slug }}
@@ -442,18 +456,77 @@
     <!-- ========================================================================= -->
     <!-- 2. LIVE EMAIL PREVIEW MODAL                                               -->
     <!-- ========================================================================= -->
-    <x-modal :show="$isPreviewModalOpen" title="Live Preview: {{ $previewTemplateName }}" closeAction="closePreviewModal" style="max-width: 720px; width: 95%;">
+    <x-modal :show="$isPreviewModalOpen" title="Email Inspection: {{ $previewTemplateName }}" closeAction="closePreviewModal" style="max-width: 820px; width: 95%;">
         @if($isPreviewModalOpen)
-            <div style="background: #0f172a; padding: 1.5rem; border-radius: var(--radius-sm); max-height: 580px; overflow-y: auto;">
-                <div style="margin-bottom: 0.85rem; color: #cbd5e1; font-size: 0.82rem; border-bottom: 1px solid #1e293b; padding-bottom: 0.5rem;">
-                    <strong>Subject Preview:</strong> <span style="color: #ffffff;">{{ $previewSubject }}</span>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                
+                <!-- Preview Toolbar & Inspection Mode -->
+                <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); padding: 0.65rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); flex-wrap: wrap; gap: 0.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-size: 0.78rem; font-weight: 700; color: var(--color-text-secondary); text-transform: uppercase;">Rendering Mode:</span>
+                        <div style="display: inline-flex; background: var(--bg-card); padding: 2px; border-radius: 6px; border: 1px solid var(--border-color);">
+                            <button type="button" 
+                                    wire:click="setPreviewMode('sample')"
+                                    class="btn btn-sm {{ $previewMode === 'sample' ? 'btn-primary' : 'btn-ghost' }}"
+                                    style="padding: 0.2rem 0.65rem; font-size: 0.75rem; font-weight: 700; border-radius: 4px;">
+                                ✓ Sample Data
+                            </button>
+                            <button type="button" 
+                                    wire:click="setPreviewMode('raw')"
+                                    class="btn btn-sm {{ $previewMode === 'raw' ? 'btn-primary' : 'btn-ghost' }}"
+                                    style="padding: 0.2rem 0.65rem; font-size: 0.75rem; font-weight: 700; border-radius: 4px;">
+                                { } Placeholders
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="font-size: 0.75rem; color: var(--color-text-muted);">
+                        @if($previewMode === 'sample')
+                            <span style="color: #10b981; font-weight: 700;">● Realistic Sample Values Loaded</span> (Candidate, Designation, Tracking, Dates)
+                        @else
+                            <span style="color: #6366f1; font-weight: 700;">● Raw Template Variables</span>
+                        @endif
+                    </div>
                 </div>
-                <div>
+
+                <!-- Simulated Email Client Envelope Strip -->
+                <div style="background: #090d16; border: 1px solid #1e293b; border-radius: 8px 8px 0 0; padding: 0.85rem 1.25rem; font-size: 0.8rem; color: #94a3b8; display: flex; flex-direction: column; gap: 0.35rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-weight: 700; color: #64748b; width: 60px;">From:</span>
+                        <span style="color: #cbd5e1;">Statutory Recruitment Directorate &lt;noreply@hirely.app&gt;</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-weight: 700; color: #64748b; width: 60px;">To:</span>
+                        <span style="color: #cbd5e1;">Dr. Tariq Mahmood Khan &lt;tariq.mahmood@example.edu.pk&gt;</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; border-top: 1px solid #1e293b; padding-top: 0.35rem; margin-top: 0.15rem;">
+                        <span style="font-weight: 700; color: #64748b; width: 60px;">Subject:</span>
+                        <span style="color: #ffffff; font-weight: 700;">{{ $previewSubject }}</span>
+                    </div>
+                </div>
+
+                <!-- Rendered Email Body in Master Branded Layout -->
+                <div style="background: #0b1120; border: 1px solid #1e293b; border-top: none; border-radius: 0 0 8px 8px; max-height: 560px; overflow-y: auto; padding: 1.5rem 0.75rem;">
                     {!! $previewHtml !!}
                 </div>
-            </div>
-            <div style="margin-top: 1rem; display: flex; justify-content: flex-end;">
-                <button type="button" wire:click="closePreviewModal" class="btn btn-secondary btn-sm">Close Preview</button>
+
+                <!-- Preview Actions -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+                    @can('manage-email-templates')
+                        @if($selectedTemplateId)
+                        <button type="button" 
+                                wire:click="sendTestTemplateEmail({{ $selectedTemplateId }})" 
+                                wire:confirm="Send a live test dispatch of this template to your admin email address?"
+                                class="btn btn-secondary btn-sm"
+                                style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                            <span>Send Live Test to My Email</span>
+                        </button>
+                        @endif
+                    @endcan
+
+                    <button type="button" wire:click="closePreviewModal" class="btn btn-primary btn-sm" style="font-weight: 700;">Close Preview</button>
+                </div>
             </div>
         @endif
     </x-modal>

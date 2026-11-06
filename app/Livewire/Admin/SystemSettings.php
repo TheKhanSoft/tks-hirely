@@ -189,6 +189,7 @@ class SystemSettings extends Component
     public $previewHtml = '';
     public $previewSubject = '';
     public $previewTemplateName = '';
+    public $previewMode = 'sample'; // 'sample' or 'raw'
 
     // Custom Email Composer
     public $isCustomEmailModalOpen = false;
@@ -1309,70 +1310,31 @@ class SystemSettings extends Component
     public function openPreviewModal($id)
     {
         $template = \App\Models\EmailTemplate::findOrFail($id);
+        $this->selectedTemplateId = $template->id;
         $this->previewTemplateName = $template->name;
-        $this->previewSubject = $template->renderSubject();
-        $this->previewHtml = $template->renderHtml([
-            '{recipient_name}' => 'Dr. Muhammad Bilal',
-            '{recipient_email}' => 'candidate.bilal@example.edu.pk',
-            '{temporary_password}' => 'SecuredPass!2026',
-            '{reset_url}' => url('/password/reset/sample-token'),
-            '{token_expiry}' => '60 minutes',
-            '{changed_at}' => now()->format('d M Y, h:i A T'),
-            '{reset_method}' => 'Self-Service Security Reset',
-            '{job_title}' => 'Assistant Professor - Computer Science',
-            '{job_code}' => 'CS-FAC-2026',
-            '{tracking_number}' => 'APP-2026-CS-0042',
-            '{department}' => 'Department of Computing & Data Science',
-            '{submission_date}' => now()->format('d M Y'),
-            '{dossier_url}' => url('/candidate/dashboard'),
-            '{consumer_id}' => '100088921004',
-            '{amount}' => '3,000',
-            '{currency}' => 'PKR',
-            '{due_date}' => now()->addDays(15)->format('d M Y'),
-            '{download_voucher_url}' => url('/vouchers/sample-download'),
-            '{transaction_id}' => '1BILL-99428-TXN',
-            '{amount_paid}' => 'PKR 3,000.00',
-            '{settled_at}' => now()->format('d M Y, h:i A'),
-            '{receipt_url}' => url('/candidate/dashboard'),
-            '{scrutiny_status}' => 'ELIGIBLE',
-            '{scrutiny_remarks}' => 'All academic degrees, PEC/HEC accreditations, and required research articles verified in HEC W-Category journals.',
-            '{appeal_deadline}' => now()->addDays(7)->format('d M Y'),
-            '{appeal_url}' => url('/candidate/appeals'),
-            '{appeal_outcome}' => 'APPEAL UPHELD — CANDIDATE ELIGIBLE',
-            '{appellate_remarks}' => 'Appellate Committee verified original HEC equivalence certificate dated 15 Jan 2026.',
-            '{decision_date}' => now()->format('d M Y'),
-            '{interview_date}' => now()->addDays(14)->format('l, d F Y'),
-            '{reporting_time}' => '09:00 AM PKT',
-            '{venue}' => 'Syndicate Conference Hall, Toru Road, Main Campus',
-            '{required_documents}' => 'All original degree transcripts, experience certificates, research papers, and CNIC',
-            '{call_letter_download_url}' => url('/candidate/call-letter/sample'),
-            '{basic_pay_scale}' => 'BPS-19',
-            '{offer_reference_no}' => 'AWKUM/REG/STAT-APPT/2026-88',
-            '{acceptance_deadline}' => now()->addDays(10)->format('d M Y'),
-            '{next_steps}' => 'Submit medical fitness certificate from Standing Medical Board within 10 days.',
-            '{reviewer_name}' => 'Prof. Dr. Sarah Connor',
-            '{reviewer_rank}' => 'Tenured Professor',
-            '{university}' => 'Massachusetts Institute of Technology (MIT)',
-            '{candidate_cadre}' => 'Professor of Computer Science (BPS-21 / TTS)',
-            '{honorarium_details}' => 'PKR 25,000 / USD $100 per vetted dossier',
-            '{portal_url}' => url('/reviewer/portal'),
-            '{dossier_code}' => 'DOSSIER-CS-04',
-            '{specialization}' => 'Artificial Intelligence & Large Scale Distributed Systems',
-            '{publications_count}' => '14',
-            '{days_remaining}' => '5 days',
-            '{review_desk_url}' => url('/reviewer/portal'),
-            '{submission_timestamp}' => now()->format('d M Y, h:i A T'),
-            '{member_name}' => 'Prof. Dr. Tariq Aziz',
-            '{meeting_date}' => now()->addDays(12)->format('d M Y'),
-            '{meeting_time}' => '10:00 AM PKT',
-            '{meeting_venue}' => 'Executive Syndicate Hall, Registrar Directorate',
-            '{meeting_agenda}' => 'Statutory Selection of Assistant Professors in Department of Computer Science',
-            '{candidate_dockets_url}' => url('/board/grading'),
-            '{committee_title}' => 'Statutory Qualification Scrutiny Board',
-            '{campaign_title}' => 'Assistant Professor - Computer Science',
-            '{statutory_role}' => 'Subject Specialist & Evaluator',
-        ]);
+        $this->previewMode = 'sample';
+        $dummyData = \App\Models\EmailTemplate::getDummySampleData();
+        $this->previewSubject = $template->renderSubject($dummyData);
+        $this->previewHtml = $template->renderHtml($dummyData);
         $this->isPreviewModalOpen = true;
+    }
+
+    public function setPreviewMode($mode)
+    {
+        $this->previewMode = in_array($mode, ['sample', 'raw']) ? $mode : 'sample';
+        if ($this->selectedTemplateId) {
+            $template = \App\Models\EmailTemplate::find($this->selectedTemplateId);
+            if ($template) {
+                if ($this->previewMode === 'sample') {
+                    $dummyData = \App\Models\EmailTemplate::getDummySampleData();
+                    $this->previewSubject = $template->renderSubject($dummyData);
+                    $this->previewHtml = $template->renderHtml($dummyData);
+                } else {
+                    $this->previewSubject = $template->subject;
+                    $this->previewHtml = $template->renderHtml([]);
+                }
+            }
+        }
     }
 
     public function closePreviewModal()
@@ -1466,69 +1428,24 @@ class SystemSettings extends Component
 
         $template = \App\Models\EmailTemplate::findOrFail($templateId);
         $testEmail = Auth::user()->email;
+        $dummyData = \App\Models\EmailTemplate::getDummySampleData();
+        $dummyData['{recipient_name}'] = Auth::user()->name ?? 'Administrator';
+        $dummyData['{recipient_email}'] = $testEmail;
+        $dummyData['{candidate_name}'] = Auth::user()->name ?? 'Administrator';
+        $dummyData['{candidate_email}'] = $testEmail;
 
         $result = \App\Services\MailNotificationService::sendTemplate(
             slug: $template->slug,
             recipientEmail: $testEmail,
-            variables: [
-                '{recipient_name}' => Auth::user()->name ?? 'Administrator',
-                '{candidate_name}' => 'Candidate Demo',
-                '{job_title}' => 'Assistant Professor - Computer Science',
-                '{tracking_number}' => 'APP-2026-TEST-01',
-                '{dossier_url}' => url('/candidate/dashboard'),
-                '{consumer_id}' => '100099881122',
-                '{amount}' => '3,000',
-                '{currency}' => 'PKR',
-                '{due_date}' => now()->addDays(14)->format('d M Y'),
-                '{download_voucher_url}' => url('/vouchers/test'),
-                '{transaction_id}' => 'TEST-TXN-12345',
-                '{amount_paid}' => 'PKR 3,000.00',
-                '{settled_at}' => now()->format('d M Y H:i'),
-                '{receipt_url}' => url('/candidate/dashboard'),
-                '{scrutiny_status}' => 'ELIGIBLE',
-                '{scrutiny_remarks}' => 'Test verification verified according to statutory rules.',
-                '{appeal_deadline}' => now()->addDays(7)->format('d M Y'),
-                '{appeal_url}' => url('/candidate/appeals'),
-                '{appeal_outcome}' => 'APPEAL UPHELD',
-                '{appellate_remarks}' => 'Test appellate review order verified.',
-                '{decision_date}' => now()->format('d M Y'),
-                '{interview_date}' => now()->addDays(10)->format('d M Y'),
-                '{reporting_time}' => '09:30 AM',
-                '{venue}' => 'Executive Syndicate Hall',
-                '{required_documents}' => 'Original degrees and credentials',
-                '{call_letter_download_url}' => url('/candidate/call-letter'),
-                '{basic_pay_scale}' => 'BPS-19',
-                '{offer_reference_no}' => 'TEST-REF-9988',
-                '{acceptance_deadline}' => now()->addDays(14)->format('d M Y'),
-                '{next_steps}' => 'Follow medical and appointment guidelines.',
-                '{reviewer_name}' => Auth::user()->name ?? 'Dr. Expert Referee',
-                '{reviewer_rank}' => 'Professor',
-                '{university}' => 'National University of Sciences & Technology',
-                '{candidate_cadre}' => 'Assistant Professor of Computer Science',
-                '{honorarium_details}' => 'PKR 25,000',
-                '{portal_url}' => url('/reviewer/portal'),
-                '{dossier_code}' => 'TEST-DOSSIER-01',
-                '{specialization}' => 'Computer Science & AI',
-                '{publications_count}' => '12',
-                '{days_remaining}' => '7 days',
-                '{review_desk_url}' => url('/reviewer/portal'),
-                '{submission_timestamp}' => now()->format('d M Y H:i T'),
-                '{member_name}' => Auth::user()->name ?? 'Board Member',
-                '{meeting_date}' => now()->addDays(7)->format('d M Y'),
-                '{meeting_time}' => '10:00 AM',
-                '{meeting_venue}' => 'Syndicate Room',
-                '{meeting_agenda}' => 'Statutory Faculty Selection',
-                '{candidate_dockets_url}' => url('/board/grading'),
-                '{committee_title}' => 'Selection Board Panel',
-                '{campaign_title}' => 'Assistant Professor - Computer Science',
-                '{statutory_role}' => 'Member',
-            ],
+            variables: $dummyData,
+            recipientName: Auth::user()->name ?? 'Administrator',
             recipientUser: Auth::user(),
-            senderUser: Auth::user()
+            senderUser: Auth::user(),
+            dispatchType: 'SYSTEM_AUTOMATED'
         );
 
         if ($result['status'] === 'sent') {
-            session()->flash('message', "✓ Test email for [{$template->name}] dispatched to your inbox ({$testEmail}).");
+            session()->flash('message', "✓ Test email for [{$template->name}] dispatched to your inbox ({$testEmail}) with realistic sample data.");
         } elseif ($result['status'] === 'skipped') {
             session()->flash('warning', "Notice: Trigger is currently disabled for this template. (Logged in email logs as skipped).");
         } else {

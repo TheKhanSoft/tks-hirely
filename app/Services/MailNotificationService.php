@@ -137,15 +137,17 @@ class MailNotificationService
             '{email_body}' => $bodyHtml,
         ], $extraVariables);
 
-        // Retrieve or fallback to admin custom template
-        $template = EmailTemplate::getBySlug('admin-custom-dispatch');
-        if ($template) {
-            $renderedSubject = $template->interpolateString($subject, $variables);
-            $renderedHtml = $template->renderHtml($variables);
-        } else {
-            $renderedSubject = $subject;
-            $renderedHtml = EmailTemplate::wrapInMasterLayout($bodyHtml, $subject, 'GENERAL', $variables);
+        $template = EmailTemplate::getBySlug('admin-custom-dispatch') ?? new EmailTemplate();
+        $renderedSubject = $template->interpolateString($subject, $variables);
+
+        // Include polite addressee greeting if not already typed in body
+        $bodyWithGreeting = $bodyHtml;
+        if (!empty($recipientName) && !str_contains($bodyHtml, $recipientName)) {
+            $bodyWithGreeting = "<p>Dear <strong>" . e($recipientName) . "</strong>,</p>\n" . $bodyHtml;
         }
+
+        $interpolatedBody = $template->interpolateString($bodyWithGreeting, $variables);
+        $renderedHtml = EmailTemplate::wrapInMasterLayout($interpolatedBody, $renderedSubject, 'GENERAL', $variables);
 
         try {
             Mail::to($recipientEmail)->send(new DynamicNotificationMail($renderedSubject, $renderedHtml));
