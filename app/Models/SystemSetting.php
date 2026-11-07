@@ -296,14 +296,19 @@ class SystemSetting extends Model
      */
     public static function getBrandDisplayName(): string
     {
-        $short = (string) self::get('org_short_name', '');
-        if (!empty($short) && strtolower($short) !== 'hirely') {
-            return $short;
-        }
         $appName = (string) self::get('app_name', '');
+        $short = (string) self::get('org_short_name', '');
+
+        // If app_name is explicitly customized (e.g. "EduHire Pakistan", not "Hirely"), respect it
         if (!empty($appName) && strtolower($appName) !== 'hirely') {
             return $appName;
         }
+
+        // Otherwise, prefer institutional acronym (e.g. "AWKUM") if available
+        if (!empty($short) && strtolower($short) !== 'hirely') {
+            return $short;
+        }
+
         return !empty($short) ? $short : ($appName ?: 'Hirely');
     }
 
@@ -1288,7 +1293,7 @@ class SystemSetting extends Model
             // 📑 Document Requests & Mandatory Uploads
             [
                 'key' => 'require_transcript_proof',
-                'value' => '1',
+                'value' => '0',
                 'group' => 'documents',
                 'type' => 'boolean',
                 'label' => 'Mandatory Degree Transcripts / Detailed Marks Certificates (DMC)',
@@ -1296,7 +1301,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'require_experience_proof',
-                'value' => '1',
+                'value' => '0',
                 'group' => 'documents',
                 'type' => 'boolean',
                 'label' => 'Mandatory Employment / Experience Certificates',
@@ -1304,7 +1309,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'require_cnic_upload',
-                'value' => '1',
+                'value' => '0',
                 'group' => 'documents',
                 'type' => 'boolean',
                 'label' => 'Mandatory CNIC / National Identity Card Proof',
@@ -1320,7 +1325,7 @@ class SystemSetting extends Model
             ],
             [
                 'key' => 'require_publications_academic',
-                'value' => '1',
+                'value' => '0',
                 'group' => 'documents',
                 'type' => 'boolean',
                 'label' => 'Mandatory Research Publications for Academic Roles',
@@ -1665,6 +1670,174 @@ class SystemSetting extends Model
                 'type' => 'integer',
                 'label' => 'Minimum Qualifying Aggregate Pass Marks (%)',
                 'description' => 'Minimum composite score threshold required to qualify for merit gazette recommendation (default 50%).',
+            ],
+
+            // 📥 Intake & Candidate Controls
+            [
+                'key' => 'submission_cutoff_time',
+                'value' => '23:59:59',
+                'group' => 'candidate_rules',
+                'type' => 'string',
+                'label' => 'Application Daily Closing Cutoff Time (PKT)',
+                'description' => 'Specific hour and minute when online application intake closes on the deadline date.',
+            ],
+            [
+                'key' => 'allow_late_fee_submission',
+                'value' => '0',
+                'group' => 'candidate_rules',
+                'type' => 'boolean',
+                'label' => 'Allow Late Application Submissions with Surcharge',
+                'description' => 'Permits candidates to submit applications during grace period upon paying statutory late fee.',
+            ],
+            [
+                'key' => 'late_fee_grace_days',
+                'value' => '3',
+                'group' => 'candidate_rules',
+                'type' => 'integer',
+                'label' => 'Late Fee Submission Grace Window (Days)',
+                'description' => 'Number of calendar days after closing date during which late applications are accepted.',
+            ],
+            [
+                'key' => 'late_fee_amount',
+                'value' => '1000',
+                'group' => 'candidate_rules',
+                'type' => 'integer',
+                'label' => 'Statutory Late Fee Surcharge Amount',
+                'description' => 'Additional surcharge fee added to bank challan for applications submitted past standard deadline.',
+            ],
+            [
+                'key' => 'max_upload_size_per_dossier_mb',
+                'value' => '50',
+                'group' => 'candidate_rules',
+                'type' => 'integer',
+                'label' => 'Maximum Aggregate Dossier Upload Ceiling (MB)',
+                'description' => 'Total cumulative upload limit across all candidate certificates, publications, and transcripts.',
+            ],
+            [
+                'key' => 'lock_dossier_after_submission',
+                'value' => '1',
+                'group' => 'candidate_rules',
+                'type' => 'boolean',
+                'label' => 'Strictly Lock Dossier Upon Final Submission',
+                'description' => 'Prohibits any modification or re-upload by candidates once application has been submitted.',
+            ],
+
+            // 🎓 Academic & HEC Standards
+            [
+                'key' => 'hec_minimum_phd_criteria_enabled',
+                'value' => '1',
+                'group' => 'academic_criteria',
+                'type' => 'boolean',
+                'label' => 'HEC 18-Year Terminal PhD Qualification Enforcement',
+                'description' => 'Enforces mandatory HEC PhD criteria for faculty tracks (Associate Professor and Professor).',
+            ],
+            [
+                'key' => 'foreign_degree_equivalence_mandatory',
+                'value' => '1',
+                'group' => 'academic_criteria',
+                'type' => 'boolean',
+                'label' => 'Mandatory HEC / IBCC Foreign Degree Equivalence',
+                'description' => 'Requires official Equivalence Certificate for all foreign undergraduate and postgraduate degrees.',
+            ],
+            [
+                'key' => 'publication_category_w_weight',
+                'value' => '5.0',
+                'group' => 'academic_criteria',
+                'type' => 'float',
+                'label' => 'HJRS Category W Journal Publication Marks',
+                'description' => 'Statutory evaluation marks per publication in HEC HJRS Category W (Impact Factor journals).',
+            ],
+            [
+                'key' => 'publication_category_x_weight',
+                'value' => '3.0',
+                'group' => 'academic_criteria',
+                'type' => 'float',
+                'label' => 'HJRS Category X Journal Publication Marks',
+                'description' => 'Statutory evaluation marks per publication in HEC HJRS Category X.',
+            ],
+            [
+                'key' => 'publication_category_y_weight',
+                'value' => '1.0',
+                'group' => 'academic_criteria',
+                'type' => 'float',
+                'label' => 'HJRS Category Y Journal Publication Marks',
+                'description' => 'Statutory evaluation marks per publication in HEC HJRS Category Y.',
+            ],
+            [
+                'key' => 'minimum_publications_asst_prof',
+                'value' => '0',
+                'group' => 'academic_criteria',
+                'type' => 'integer',
+                'label' => 'Assistant Professor: Minimum HEC Publications Required',
+                'description' => 'Baseline research papers required in HEC recognized journals for Assistant Professor (default 0 for entry PhD).',
+            ],
+            [
+                'key' => 'minimum_publications_assoc_prof',
+                'value' => '10',
+                'group' => 'academic_criteria',
+                'type' => 'integer',
+                'label' => 'Associate Professor: Minimum HEC Publications Required',
+                'description' => 'HEC statutory minimum of 10 research publications in recognized journals (with 4 in last 5 years).',
+            ],
+            [
+                'key' => 'minimum_publications_prof',
+                'value' => '15',
+                'group' => 'academic_criteria',
+                'type' => 'integer',
+                'label' => 'Professor: Minimum HEC Publications Required',
+                'description' => 'HEC statutory minimum of 15 research publications in recognized journals (with 5 in last 5 years).',
+            ],
+
+            // 🛡️ Security, Session & Audit Governance
+            [
+                'key' => 'session_ip_lock_enabled',
+                'value' => '1',
+                'group' => 'security',
+                'type' => 'boolean',
+                'label' => 'Strict Session IP Binding / Anti-Hijacking',
+                'description' => 'Binds user session cookie to IP address; terminates session immediately if IP shifts.',
+            ],
+            [
+                'key' => 'force_logout_on_password_change',
+                'value' => '1',
+                'group' => 'security',
+                'type' => 'boolean',
+                'label' => 'Invalidate Active Sessions on Password Change',
+                'description' => 'Terminates all sessions across browsers and devices when user or administrator changes credentials.',
+            ],
+            [
+                'key' => 'tamper_evident_dossier_hash',
+                'value' => '1',
+                'group' => 'security',
+                'type' => 'boolean',
+                'label' => 'Cryptographic SHA-256 Dossier Fingerprinting',
+                'description' => 'Generates an immutable cryptographic hash stamp on submission to guarantee non-repudiation.',
+            ],
+            [
+                'key' => 'watermark_text_custom',
+                'value' => 'CONFIDENTIAL • STATUTORY RECORD',
+                'group' => 'security',
+                'type' => 'string',
+                'label' => 'Document & Dossier Security Watermark',
+                'description' => 'Diagonal security watermark rendered across printable application forms and committee records.',
+            ],
+
+            // 💬 Multi-Channel & WhatsApp Governance
+            [
+                'key' => 'whatsapp_business_enabled',
+                'value' => '0',
+                'group' => 'email',
+                'type' => 'boolean',
+                'label' => 'Official WhatsApp Business Dispatch',
+                'description' => 'Enables automated transactional WhatsApp alerts for credential reset, interview calls, and notifications.',
+            ],
+            [
+                'key' => 'whatsapp_business_phone',
+                'value' => '+92-300-1234567',
+                'group' => 'email',
+                'type' => 'string',
+                'label' => 'Official WhatsApp Helpline / Dispatch Number',
+                'description' => 'Registered WhatsApp business account number displayed to candidates.',
             ],
         ];
 

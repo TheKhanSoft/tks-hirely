@@ -40,6 +40,12 @@ class SystemSettings extends Component
     public $max_active_applications_per_candidate = 5;
     public $max_upload_file_size_mb = 5;
     public $enable_online_challan_verification = true;
+    public $submission_cutoff_time = '23:59:59';
+    public $allow_late_fee_submission = false;
+    public $late_fee_grace_days = 3;
+    public $late_fee_amount = 1000;
+    public $max_upload_size_per_dossier_mb = 50;
+    public $lock_dossier_after_submission = true;
 
     // 🏢 Organization Profile
     public $org_name;
@@ -157,6 +163,16 @@ class SystemSettings extends Component
     public $merit_interview_weight = 20;
     public $merit_minimum_passing_aggregate = 50;
 
+    // Advanced Academic & HEC Standards
+    public $hec_minimum_phd_criteria_enabled = true;
+    public $foreign_degree_equivalence_mandatory = true;
+    public $publication_category_w_weight = 5.0;
+    public $publication_category_x_weight = 3.0;
+    public $publication_category_y_weight = 1.0;
+    public $minimum_publications_asst_prof = 0;
+    public $minimum_publications_assoc_prof = 10;
+    public $minimum_publications_prof = 15;
+
     // 🔒 Security, Access Governance & Session Policies
     public $auth_two_factor_policy = 'optional';
     public $auth_session_timeout_minutes = 60;
@@ -174,6 +190,12 @@ class SystemSettings extends Component
     public $max_upload_size_mb = 5;
     public $allowed_file_types = 'pdf, jpg, jpeg, png, docx';
 
+    // Advanced Security & Integrity Controls
+    public $session_ip_lock_enabled = true;
+    public $force_logout_on_password_change = true;
+    public $tamper_evident_dossier_hash = true;
+    public $watermark_text_custom = 'CONFIDENTIAL • STATUTORY RECORD';
+
     // ⚙️ System Health, Diagnostics & Maintenance
     public $system_maintenance_mode = false;
     public $maintenance_notice_heading = 'Scheduled Statutory System Maintenance';
@@ -190,6 +212,8 @@ class SystemSettings extends Component
     public $sms_trigger_scrutiny_deficiency = true;
     public $sms_trigger_interview_call = true;
     public $test_sms_recipient = '';
+    public $whatsapp_business_enabled = false;
+    public $whatsapp_business_phone = '+92-300-1234567';
 
     // ✉️ Email Templates & Custom Dispatch Desk
     public $templateRecipientFilter = 'ALL';
@@ -299,6 +323,12 @@ class SystemSettings extends Component
         $this->max_active_applications_per_candidate = (int) SystemSetting::get('max_active_applications_per_candidate', 5);
         $this->max_upload_file_size_mb = (int) SystemSetting::get('max_upload_file_size_mb', 5);
         $this->enable_online_challan_verification = (bool) SystemSetting::get('enable_online_challan_verification', true);
+        $this->submission_cutoff_time = (string) SystemSetting::get('submission_cutoff_time', '23:59:59');
+        $this->allow_late_fee_submission = (bool) SystemSetting::get('allow_late_fee_submission', false);
+        $this->late_fee_grace_days = (int) SystemSetting::get('late_fee_grace_days', 3);
+        $this->late_fee_amount = (int) SystemSetting::get('late_fee_amount', 1000);
+        $this->max_upload_size_per_dossier_mb = (int) SystemSetting::get('max_upload_size_per_dossier_mb', 50);
+        $this->lock_dossier_after_submission = (bool) SystemSetting::get('lock_dossier_after_submission', true);
 
         // Organization
         $this->org_name = SystemSetting::get('org_name', 'Hirely');
@@ -407,6 +437,16 @@ class SystemSettings extends Component
         $this->merit_interview_weight = (int) SystemSetting::get('merit_interview_weight', 20);
         $this->merit_minimum_passing_aggregate = (int) SystemSetting::get('merit_minimum_passing_aggregate', 50);
 
+        // Advanced Academic & HEC Standards
+        $this->hec_minimum_phd_criteria_enabled = (bool) SystemSetting::get('hec_minimum_phd_criteria_enabled', true);
+        $this->foreign_degree_equivalence_mandatory = (bool) SystemSetting::get('foreign_degree_equivalence_mandatory', true);
+        $this->publication_category_w_weight = (float) SystemSetting::get('publication_category_w_weight', 5.0);
+        $this->publication_category_x_weight = (float) SystemSetting::get('publication_category_x_weight', 3.0);
+        $this->publication_category_y_weight = (float) SystemSetting::get('publication_category_y_weight', 1.0);
+        $this->minimum_publications_asst_prof = (int) SystemSetting::get('minimum_publications_asst_prof', 0);
+        $this->minimum_publications_assoc_prof = (int) SystemSetting::get('minimum_publications_assoc_prof', 10);
+        $this->minimum_publications_prof = (int) SystemSetting::get('minimum_publications_prof', 15);
+
         // Security, Access Governance & Session Policies
         $this->auth_two_factor_policy = (string) SystemSetting::get('auth_two_factor_policy', 'optional');
         $this->auth_session_timeout_minutes = (int) SystemSetting::get('auth_session_timeout_minutes', 60);
@@ -424,6 +464,12 @@ class SystemSettings extends Component
         $this->max_upload_size_mb = (int) SystemSetting::get('max_upload_size_mb', 5);
         $this->allowed_file_types = (string) SystemSetting::get('allowed_file_types', 'pdf, jpg, jpeg, png, docx');
 
+        // Advanced Security & Integrity Controls
+        $this->session_ip_lock_enabled = (bool) SystemSetting::get('session_ip_lock_enabled', true);
+        $this->force_logout_on_password_change = (bool) SystemSetting::get('force_logout_on_password_change', true);
+        $this->tamper_evident_dossier_hash = (bool) SystemSetting::get('tamper_evident_dossier_hash', true);
+        $this->watermark_text_custom = (string) SystemSetting::get('watermark_text_custom', 'CONFIDENTIAL • STATUTORY RECORD');
+
         // System Health, Diagnostics & Maintenance
         $this->system_maintenance_mode = (bool) SystemSetting::get('system_maintenance_mode', false);
         $this->maintenance_notice_heading = (string) SystemSetting::get('maintenance_notice_heading', 'Scheduled Statutory System Maintenance');
@@ -439,6 +485,8 @@ class SystemSettings extends Component
         $this->sms_trigger_payment_verified = (bool) SystemSetting::get('sms_trigger_payment_verified', true);
         $this->sms_trigger_scrutiny_deficiency = (bool) SystemSetting::get('sms_trigger_scrutiny_deficiency', true);
         $this->sms_trigger_interview_call = (bool) SystemSetting::get('sms_trigger_interview_call', true);
+        $this->whatsapp_business_enabled = (bool) SystemSetting::get('whatsapp_business_enabled', false);
+        $this->whatsapp_business_phone = (string) SystemSetting::get('whatsapp_business_phone', '+92-300-1234567');
     }
 
     public function toggleSetting($key)
@@ -484,6 +532,10 @@ class SystemSettings extends Component
             'challan_grace_days' => 'required|integer|min:1|max:90',
             'max_active_applications_per_candidate' => 'required|integer|min:1|max:50',
             'max_upload_file_size_mb' => 'required|integer|min:1|max:50',
+            'submission_cutoff_time' => 'required|string',
+            'late_fee_grace_days' => 'required|integer|min:0|max:30',
+            'late_fee_amount' => 'required|integer|min:0|max:100000',
+            'max_upload_size_per_dossier_mb' => 'required|integer|min:5|max:200',
         ]);
 
         SystemSetting::set('allow_multiple_applications', $this->allow_multiple_applications, 'candidate_rules', 'boolean');
@@ -494,6 +546,12 @@ class SystemSettings extends Component
         SystemSetting::set('max_active_applications_per_candidate', $this->max_active_applications_per_candidate, 'candidate_rules', 'integer');
         SystemSetting::set('max_upload_file_size_mb', $this->max_upload_file_size_mb, 'candidate_rules', 'integer');
         SystemSetting::set('enable_online_challan_verification', $this->enable_online_challan_verification, 'candidate_rules', 'boolean');
+        SystemSetting::set('submission_cutoff_time', $this->submission_cutoff_time, 'candidate_rules', 'string');
+        SystemSetting::set('allow_late_fee_submission', (bool) $this->allow_late_fee_submission, 'candidate_rules', 'boolean');
+        SystemSetting::set('late_fee_grace_days', (int) $this->late_fee_grace_days, 'candidate_rules', 'integer');
+        SystemSetting::set('late_fee_amount', (int) $this->late_fee_amount, 'candidate_rules', 'integer');
+        SystemSetting::set('max_upload_size_per_dossier_mb', (int) $this->max_upload_size_per_dossier_mb, 'candidate_rules', 'integer');
+        SystemSetting::set('lock_dossier_after_submission', (bool) $this->lock_dossier_after_submission, 'candidate_rules', 'boolean');
 
         session()->flash('message', 'Candidate application, intake policies, and voucher settlement rules updated.');
     }
@@ -653,7 +711,17 @@ class SystemSettings extends Component
         SystemSetting::set('merit_interview_weight', (int)$this->merit_interview_weight, 'academic_criteria', 'integer');
         SystemSetting::set('merit_minimum_passing_aggregate', (int)$this->merit_minimum_passing_aggregate, 'academic_criteria', 'integer');
 
-        session()->flash('message', 'Global statutory academic division benchmarks and selection merit weights successfully updated.');
+        // Advanced Academic & HEC Standards
+        SystemSetting::set('hec_minimum_phd_criteria_enabled', (bool) $this->hec_minimum_phd_criteria_enabled, 'academic_criteria', 'boolean');
+        SystemSetting::set('foreign_degree_equivalence_mandatory', (bool) $this->foreign_degree_equivalence_mandatory, 'academic_criteria', 'boolean');
+        SystemSetting::set('publication_category_w_weight', (float) $this->publication_category_w_weight, 'academic_criteria', 'float');
+        SystemSetting::set('publication_category_x_weight', (float) $this->publication_category_x_weight, 'academic_criteria', 'float');
+        SystemSetting::set('publication_category_y_weight', (float) $this->publication_category_y_weight, 'academic_criteria', 'float');
+        SystemSetting::set('minimum_publications_asst_prof', (int) $this->minimum_publications_asst_prof, 'academic_criteria', 'integer');
+        SystemSetting::set('minimum_publications_assoc_prof', (int) $this->minimum_publications_assoc_prof, 'academic_criteria', 'integer');
+        SystemSetting::set('minimum_publications_prof', (int) $this->minimum_publications_prof, 'academic_criteria', 'integer');
+
+        session()->flash('message', 'Global statutory academic division benchmarks, HEC faculty criteria, and selection merit weights successfully updated.');
     }
 
     public function saveBrandingSettings()
@@ -1115,6 +1183,10 @@ class SystemSettings extends Component
         SystemSetting::set('enforce_strict_cnic_format', (bool) $this->enforce_strict_cnic_format, 'security', 'boolean');
         SystemSetting::set('max_upload_size_mb', (int) $this->max_upload_size_mb, 'security', 'integer');
         SystemSetting::set('allowed_file_types', $this->allowed_file_types, 'security', 'string');
+        SystemSetting::set('session_ip_lock_enabled', (bool) $this->session_ip_lock_enabled, 'security', 'boolean');
+        SystemSetting::set('force_logout_on_password_change', (bool) $this->force_logout_on_password_change, 'security', 'boolean');
+        SystemSetting::set('tamper_evident_dossier_hash', (bool) $this->tamper_evident_dossier_hash, 'security', 'boolean');
+        SystemSetting::set('watermark_text_custom', (string) $this->watermark_text_custom, 'security', 'string');
 
         session()->flash('message', 'Security governance, access policies, and authentication thresholds successfully saved.');
     }
@@ -1189,8 +1261,10 @@ class SystemSettings extends Component
         SystemSetting::set('sms_trigger_payment_verified', (bool) $this->sms_trigger_payment_verified, 'email', 'boolean');
         SystemSetting::set('sms_trigger_scrutiny_deficiency', (bool) $this->sms_trigger_scrutiny_deficiency, 'email', 'boolean');
         SystemSetting::set('sms_trigger_interview_call', (bool) $this->sms_trigger_interview_call, 'email', 'boolean');
+        SystemSetting::set('whatsapp_business_enabled', (bool) $this->whatsapp_business_enabled, 'email', 'boolean');
+        SystemSetting::set('whatsapp_business_phone', (string) $this->whatsapp_business_phone, 'email', 'string');
 
-        session()->flash('message', 'SMS notification gateway and candidate automated triggers saved.');
+        session()->flash('message', 'SMS & WhatsApp multi-channel notification gateways saved.');
     }
 
     public function resetSmsToDefault()

@@ -287,31 +287,119 @@
                 </div>
             </div>
 
-            <!-- 7. Candidate Online Challan Auto-Verification -->
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $enable_online_challan_verification ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
-                <div style="max-width: 80%;">
+            <!-- 8. Daily Application Closing Cutoff Time -->
+            <div id="setting-candidate-cutoff-time" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); flex-wrap: wrap; gap: 1rem;">
+                <div style="max-width: 75%;">
                     <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
-                        <span style="font-size: 1.15rem;">⚡</span>
+                        <span style="font-size: 1.15rem;">⏰</span>
                         <span style="font-size: 0.98rem; font-weight: 800; color: var(--color-text-primary);">
-                            Candidate Self-Service 1Link / 1Bill Voucher Verification
+                            Daily Application Closing Cutoff Time (PKT)
                         </span>
-                        <span class="badge {{ $enable_online_challan_verification ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">
-                            {{ $enable_online_challan_verification ? 'ACTIVE DESK' : 'ADMIN ONLY' }}
-                        </span>
+                        <span class="badge badge-purple" style="font-size: 0.65rem; font-weight: 800;">STATUTORY CLOSING</span>
                         <x-help-hint type="inline" 
-                                     variant="tip"
-                                     title="Payment Verification Trigger"
-                                     text="Allows candidates to click 'Verify Payment Status' from their portal to fetch live 1Link/Kuickpay settlement." />
+                                     variant="statutory"
+                                     title="Application Deadline Cutoff Time"
+                                     text="Precise time of day when campaign intake gates close on the published deadline date (standard: 23:59:59 PKT / Midnight)." />
                     </div>
                     <div style="font-size: 0.82rem; color: var(--color-text-secondary); line-height: 1.5;">
-                        Allows applicants to initiate instant real-time bank ledger reconciliation for their paid challans directly from the applicant dashboard.
+                        Controls the exact closing cutoff hour, minute, and second on the campaign closing date before the server rejects new application submissions.
+                    </div>
+                </div>
+                <div>
+                    <input type="text" 
+                           wire:model="submission_cutoff_time" 
+                           class="form-control" 
+                           placeholder="23:59:59"
+                           style="width: 140px; text-align: center; font-weight: 800; font-size: 1.05rem; font-family: monospace;">
+                    @error('submission_cutoff_time')
+                        <div style="color: var(--danger); font-size: 0.75rem; font-weight: 700; margin-top: 0.25rem;">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+
+            <!-- 9. Late Application Submission with Surcharge -->
+            <div id="setting-candidate-late-fee" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $allow_late_fee_submission ? 'rgba(245,158,11,0.45)' : 'var(--border-color)' }}; border-radius: var(--radius-md); flex-wrap: wrap; gap: 1rem;">
+                <div style="max-width: 65%;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                        <span style="font-size: 1.15rem;">⏳</span>
+                        <span style="font-size: 0.98rem; font-weight: 800; color: var(--color-text-primary);">
+                            Allow Late Applications During Post-Deadline Grace Window
+                        </span>
+                        <span class="badge {{ $allow_late_fee_submission ? 'badge-amber' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">
+                            {{ $allow_late_fee_submission ? 'GRACE ENABLED' : 'STRICT CLOSING' }}
+                        </span>
+                    </div>
+                    <div style="font-size: 0.82rem; color: var(--color-text-secondary); line-height: 1.5;">
+                        Permits applicants to submit dossiers within grace days following campaign closing upon payment of an institutional late surcharge.
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                    @if($allow_late_fee_submission)
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <input type="number" min="1" max="30" wire:model="late_fee_grace_days" class="form-control" style="width: 70px; text-align: center; font-weight: 800;">
+                        <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-secondary);">Grace Days</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-secondary);">+PKR</span>
+                        <input type="number" min="0" step="100" wire:model="late_fee_amount" class="form-control" style="width: 95px; text-align: center; font-weight: 800;">
+                        <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-secondary);">Surcharge</span>
+                    </div>
+                    @endif
+                    <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
+                        <input type="checkbox" wire:model.live="allow_late_fee_submission" style="opacity: 0; width: 0; height: 0;">
+                        <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $allow_late_fee_submission ? 'var(--warning)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $allow_late_fee_submission ? 'var(--warning)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
+                            <span style="position: absolute; content: ''; height: 20px; width: 20px; left: {{ $allow_late_fee_submission ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 10. Maximum Cumulative Dossier Upload Ceiling -->
+            <div id="setting-candidate-dossier-ceiling" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); flex-wrap: wrap; gap: 1rem;">
+                <div style="max-width: 75%;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                        <span style="font-size: 1.15rem;">📦</span>
+                        <span style="font-size: 0.98rem; font-weight: 800; color: var(--color-text-primary);">
+                            Aggregate Candidate Dossier Upload Ceiling (MB)
+                        </span>
+                        <span class="badge badge-cyan" style="font-size: 0.65rem; font-weight: 800;">STORAGE QUOTA</span>
+                    </div>
+                    <div style="font-size: 0.82rem; color: var(--color-text-secondary); line-height: 1.5;">
+                        Enforces an aggregate ceiling on total storage space consumed across all combined transcripts, books, patents, and certificates uploaded in a single candidate dossier.
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="number" 
+                           min="5" 
+                           max="200" 
+                           wire:model="max_upload_size_per_dossier_mb" 
+                           class="form-control" 
+                           style="width: 90px; text-align: center; font-weight: 800; font-size: 1.05rem;">
+                    <span style="font-size: 0.82rem; font-weight: 700; color: var(--color-text-secondary);">MB / Dossier</span>
+                </div>
+            </div>
+
+            <!-- 11. Lock Dossier Modification After Submission -->
+            <div id="setting-candidate-lock-dossier" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $lock_dossier_after_submission ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
+                <div style="max-width: 80%;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                        <span style="font-size: 1.15rem;">🔒</span>
+                        <span style="font-size: 0.98rem; font-weight: 800; color: var(--color-text-primary);">
+                            Strict Dossier & Profile Lock Upon Final Submission
+                        </span>
+                        <span class="badge {{ $lock_dossier_after_submission ? 'badge-emerald' : 'badge-amber' }}" style="font-size: 0.65rem; font-weight: 800;">
+                            {{ $lock_dossier_after_submission ? 'FROZEN / NON-REPUDIABLE' : 'MUTABLE' }}
+                        </span>
+                    </div>
+                    <div style="font-size: 0.82rem; color: var(--color-text-secondary); line-height: 1.5;">
+                        Freezes all candidate research publications, degree records, and basic information from modification once the application has been finalized and submitted to scrutiny.
                     </div>
                 </div>
                 <div>
                     <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
-                        <input type="checkbox" wire:model.live="enable_online_challan_verification" style="opacity: 0; width: 0; height: 0;">
-                        <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $enable_online_challan_verification ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $enable_online_challan_verification ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
-                            <span style="position: absolute; content: ''; height: 20px; width: 20px; left: {{ $enable_online_challan_verification ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
+                        <input type="checkbox" wire:model.live="lock_dossier_after_submission" style="opacity: 0; width: 0; height: 0;">
+                        <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $lock_dossier_after_submission ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $lock_dossier_after_submission ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
+                            <span style="position: absolute; content: ''; height: 20px; width: 20px; left: {{ $lock_dossier_after_submission ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
                         </span>
                     </label>
                 </div>

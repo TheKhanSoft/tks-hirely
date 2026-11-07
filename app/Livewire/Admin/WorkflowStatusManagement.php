@@ -136,6 +136,8 @@ class WorkflowStatusManagement extends Component
 
     public function toggleAllowedTransition($targetCode)
     {
+        abort_unless(Auth::user()->can('manage-statuses') || Auth::user()->can('manage-settings') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+
         if (in_array($targetCode, $this->allowed_transitions)) {
             $this->allowed_transitions = array_values(array_diff($this->allowed_transitions, [$targetCode]));
         } else {

@@ -143,6 +143,14 @@ class MeritListManagement extends Component
 
     public function openDetailModal($appId)
     {
+        abort_unless(Auth::check() && (
+            Auth::user()->can('view-board-roster') ||
+            Auth::user()->can('view-application') ||
+            Auth::user()->can('scrutinize-application') ||
+            Auth::user()->can('view-merit-list') ||
+            Auth::user()->hasAnyRole(['super-admin', 'registrar', 'selection-board-member'])
+        ), 403);
+
         $this->selectedApplication = Application::with([
             'user.basicInfo.degrees',
             'user.basicInfo.experiences',

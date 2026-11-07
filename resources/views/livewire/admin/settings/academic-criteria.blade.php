@@ -665,6 +665,133 @@
             </div>
         </div>
 
+        {{-- HEC FACULTY RECRUITMENT STANDARDS & HJRS JOURNAL SCORING --}}
+        <div id="setting-academic-hec-hjrs" style="margin-top: 2.25rem; border-top: 1px solid var(--border-color); padding-top: 1.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                        <span class="badge badge-amber" style="font-size: 0.72rem; font-weight: 800;">HEC STATUTES</span>
+                        <span class="badge badge-cyan" style="font-size: 0.72rem; font-weight: 700;">HJRS RECOGNITION</span>
+                    </div>
+                    <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--color-text-primary);">
+                        HEC Faculty Eligibility Criteria &amp; HJRS Publication Weights
+                    </h3>
+                    <p style="margin: 0.25rem 0 0 0; font-size: 0.83rem; color: var(--color-text-secondary);">
+                        Enforce mandatory 18-year terminal PhD standards, foreign equivalence vetting, and Higher Education Journal Recognition System (HJRS) category scoring.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Toggles Row: PhD Standard & Foreign Equivalence -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+                <!-- 1. Mandatory PhD for Faculty -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem; background: var(--bg-surface); border: 1px solid {{ $hec_minimum_phd_criteria_enabled ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-sm);">
+                    <div style="max-width: 75%;">
+                        <div style="font-weight: 800; font-size: 0.88rem; color: var(--color-text-primary);">
+                            Mandatory 18-Year Terminal PhD for Faculty
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--color-text-secondary); margin-top: 0.2rem;">
+                            Enforces HEC statutory requirement of earned PhD for Associate Professor and Professor appointments.
+                        </div>
+                    </div>
+                    <label style="position: relative; display: inline-block; width: 48px; height: 26px; cursor: pointer;">
+                        <input type="checkbox" wire:model.live="hec_minimum_phd_criteria_enabled" style="opacity: 0; width: 0; height: 0;">
+                        <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $hec_minimum_phd_criteria_enabled ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $hec_minimum_phd_criteria_enabled ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
+                            <span style="position: absolute; content: ''; height: 18px; width: 18px; left: {{ $hec_minimum_phd_criteria_enabled ? '24px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
+                        </span>
+                    </label>
+                </div>
+
+                <!-- 2. Foreign Degree Equivalence -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem; background: var(--bg-surface); border: 1px solid {{ $foreign_degree_equivalence_mandatory ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-sm);">
+                    <div style="max-width: 75%;">
+                        <div style="font-weight: 800; font-size: 0.88rem; color: var(--color-text-primary);">
+                            Mandatory HEC / IBCC Equivalence Certificate
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--color-text-secondary); margin-top: 0.2rem;">
+                            Disqualifies candidate at scrutiny if foreign degree lacks validated HEC equivalence document.
+                        </div>
+                    </div>
+                    <label style="position: relative; display: inline-block; width: 48px; height: 26px; cursor: pointer;">
+                        <input type="checkbox" wire:model.live="foreign_degree_equivalence_mandatory" style="opacity: 0; width: 0; height: 0;">
+                        <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $foreign_degree_equivalence_mandatory ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $foreign_degree_equivalence_mandatory ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
+                            <span style="position: absolute; content: ''; height: 18px; width: 18px; left: {{ $foreign_degree_equivalence_mandatory ? '24px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- HJRS Journal Category Scoring Weights -->
+            <div style="margin-bottom: 1.25rem;">
+                <div style="font-size: 0.82rem; font-weight: 800; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 0.65rem; letter-spacing: 0.05em;">
+                    HJRS Recognized Journal Publication Scoring Weights (Marks per Paper)
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem;">
+                    <div style="padding: 1rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); border-left: 3px solid #10b981;">
+                        <div style="font-weight: 800; font-size: 0.85rem; color: var(--color-text-primary);">Category W (Impact Factor)</div>
+                        <div style="font-size: 0.72rem; color: var(--color-text-secondary); margin-bottom: 0.5rem;">Highest Tier HEC Journal</div>
+                        <div style="display: flex; align-items: center; gap: 0.4rem;">
+                            <input type="number" step="0.5" min="0" max="20" wire:model="publication_category_w_weight" class="form-control" style="font-weight: 800; font-size: 1rem; text-align: center; width: 85px;">
+                            <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-secondary);">Marks/Paper</span>
+                        </div>
+                    </div>
+
+                    <div style="padding: 1rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); border-left: 3px solid #3b82f6;">
+                        <div style="font-weight: 800; font-size: 0.85rem; color: var(--color-text-primary);">Category X</div>
+                        <div style="font-size: 0.72rem; color: var(--color-text-secondary); margin-bottom: 0.5rem;">Mid-Tier Peer Reviewed</div>
+                        <div style="display: flex; align-items: center; gap: 0.4rem;">
+                            <input type="number" step="0.5" min="0" max="20" wire:model="publication_category_x_weight" class="form-control" style="font-weight: 800; font-size: 1rem; text-align: center; width: 85px;">
+                            <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-secondary);">Marks/Paper</span>
+                        </div>
+                    </div>
+
+                    <div style="padding: 1rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); border-left: 3px solid #f59e0b;">
+                        <div style="font-weight: 800; font-size: 0.85rem; color: var(--color-text-primary);">Category Y</div>
+                        <div style="font-size: 0.72rem; color: var(--color-text-secondary); margin-bottom: 0.5rem;">Standard Recognized Journal</div>
+                        <div style="display: flex; align-items: center; gap: 0.4rem;">
+                            <input type="number" step="0.5" min="0" max="20" wire:model="publication_category_y_weight" class="form-control" style="font-weight: 800; font-size: 1rem; text-align: center; width: 85px;">
+                            <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-secondary);">Marks/Paper</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Minimum Publication Thresholds by Cadre -->
+            <div>
+                <div style="font-size: 0.82rem; font-weight: 800; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 0.65rem; letter-spacing: 0.05em;">
+                    HEC Minimum Publication Thresholds by Academic Cadre
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem;">
+                    <div style="padding: 1rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+                        <div style="font-weight: 800; font-size: 0.85rem; color: var(--color-text-primary);">Assistant Professor</div>
+                        <div style="font-size: 0.72rem; color: var(--color-text-secondary); margin-bottom: 0.5rem;">HEC Minimum Threshold</div>
+                        <div style="display: flex; align-items: center; gap: 0.4rem;">
+                            <input type="number" min="0" max="50" wire:model="minimum_publications_asst_prof" class="form-control" style="font-weight: 800; font-size: 1rem; text-align: center; width: 85px;">
+                            <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-secondary);">Papers (0=Entry PhD)</span>
+                        </div>
+                    </div>
+
+                    <div style="padding: 1rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+                        <div style="font-weight: 800; font-size: 0.85rem; color: var(--color-text-primary);">Associate Professor</div>
+                        <div style="font-size: 0.72rem; color: var(--color-text-secondary); margin-bottom: 0.5rem;">Statutory Minimum (HEC)</div>
+                        <div style="display: flex; align-items: center; gap: 0.4rem;">
+                            <input type="number" min="0" max="50" wire:model="minimum_publications_assoc_prof" class="form-control" style="font-weight: 800; font-size: 1rem; text-align: center; width: 85px;">
+                            <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-secondary);">Papers Required</span>
+                        </div>
+                    </div>
+
+                    <div style="padding: 1rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+                        <div style="font-weight: 800; font-size: 0.85rem; color: var(--color-text-primary);">Full Professor</div>
+                        <div style="font-size: 0.72rem; color: var(--color-text-secondary); margin-bottom: 0.5rem;">Apex Chair Minimum (HEC)</div>
+                        <div style="display: flex; align-items: center; gap: 0.4rem;">
+                            <input type="number" min="0" max="100" wire:model="minimum_publications_prof" class="form-control" style="font-weight: 800; font-size: 1rem; text-align: center; width: 85px;">
+                            <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-secondary);">Papers Required</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
             @can('manage-settings')
             <button type="button" 

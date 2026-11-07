@@ -353,4 +353,61 @@ class ActionPermissionsCoverageTest extends TestCase
             ->call('exportCsv')
             ->assertFileDownloaded();
     }
+
+    public function test_application_management_actions_strictly_enforce_permissions()
+    {
+        $candidateUser = User::factory()->create();
+        $campaign = Campaign::create([
+            'job_code' => 'TEST-PERM-JOB',
+            'title' => 'Associate Professor',
+            'department' => 'Computer Science',
+            'opening_date' => now()->subDays(5),
+            'closing_date' => now()->addDays(20),
+            'application_fee' => 3000,
+            'is_active' => true,
+        ]);
+
+        $app = Application::create([
+            'user_id' => $candidateUser->id,
+            'campaign_id' => $campaign->id,
+            'status' => 'OFFER_EXTENDED',
+        ]);
+
+        $user = User::factory()->create();
+        $user->givePermissionTo('view-application');
+        $this->actingAs($user);
+
+        // Forbidden without change-application-status / edit-application
+        Livewire::test(\App\Livewire\Admin\ApplicationManagement::class)
+            ->call('openAppointmentLetterModal', $app->id)
+            ->assertForbidden();
+
+        // Forbidden without create-reviewer / manage-reviewers
+        Livewire::test(\App\Livewire\Admin\ApplicationManagement::class)
+            ->call('openEmpanelModal')
+            ->assertForbidden();
+
+        // Authorized with registrar role
+        $user->assignRole('registrar');
+        Livewire::test(\App\Livewire\Admin\ApplicationManagement::class)
+            ->call('openAppointmentLetterModal', $app->id)
+            ->assertSet('showAppointmentLetterModal', true);
+    }
+
+    public function test_workflow_status_desk_strictly_enforces_permissions()
+    {
+        $unauthorized = User::factory()->create();
+        $unauthorized->givePermissionTo('view-application');
+        $this->actingAs($unauthorized);
+
+        // Forbidden to mount workflow status desk without manage-statuses
+        Livewire::test(\App\Livewire\Admin\WorkflowStatusManagement::class)
+            ->assertForbidden();
+
+        $unauthorized->givePermissionTo('manage-statuses');
+        Livewire::test(\App\Livewire\Admin\WorkflowStatusManagement::class)
+            ->assertOk()
+            ->call('toggleAllowedTransition', 'ELIGIBLE')
+            ->assertHasNoErrors();
+    }
 }

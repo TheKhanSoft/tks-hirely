@@ -27,6 +27,7 @@ class MeritListPrintController extends Controller
             || $currentUser->hasRole('registrar')
             || $currentUser->hasRole('selection-board-member')
             || $currentUser->can('view-board-roster')
+            || $currentUser->can('view-merit-list')
             || $currentUser->can('view-application')
             || $currentUser->can('scrutinize-application');
 

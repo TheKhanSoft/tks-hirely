@@ -181,12 +181,19 @@
                { title: 'Terminal Degree Minimum Marks %', tab: 'academic_criteria', tabLabel: 'Academic Benchmarks', section: 'Marks Thresholds', target_id: 'setting-academic-terminal-pct', icon: '🎓', kw: 'terminal percentage marks 65 score highest degree' },
                { title: 'Terminal Degree Minimum CGPA (4.00 Scale)', tab: 'academic_criteria', tabLabel: 'Academic Benchmarks', section: 'CGPA Thresholds', target_id: 'setting-academic-cgpa', icon: '📊', kw: 'cgpa 3.00 4.00 terminal gpa semester transcript grade point hec' },
                { title: 'Statutory Peer Referee Quotas by Rank', tab: 'academic_criteria', tabLabel: 'Academic Benchmarks', section: 'Peer Review Quota', target_id: 'setting-academic-peer-quotas', icon: '👨‍🏫', kw: 'peer referee quota 3 experts assistant professor lecturer reports' },
+               { title: 'HEC Mandatory Terminal PhD Faculty Standard', tab: 'academic_criteria', tabLabel: 'Academic Benchmarks', section: 'HEC Standards', target_id: 'setting-academic-hec-hjrs', icon: '🎓', kw: 'phd terminal 18 years hec faculty associate professor professor qualification' },
+               { title: 'Mandatory Foreign Degree Equivalence Certificate', tab: 'academic_criteria', tabLabel: 'Academic Benchmarks', section: 'HEC Standards', target_id: 'setting-academic-hec-hjrs', icon: '📜', kw: 'foreign degree equivalence hec ibcc recognition abroad overseas' },
+               { title: 'HJRS Journal Category W/X/Y Scoring Weights', tab: 'academic_criteria', tabLabel: 'Academic Benchmarks', section: 'HJRS Publications', target_id: 'setting-academic-hec-hjrs', icon: '📑', kw: 'hjrs category w x y publication marks weight impact factor journal' },
 
                // 3. Candidate Policies & Intake
                { title: 'Allow Multiple Active Applications Across Posts', tab: 'candidate_rules', tabLabel: 'Candidate Policies', section: 'Intake Controls', target_id: 'setting-candidate-multi-app', icon: '🌐', kw: 'multiple applications multi-post active positions intake' },
                { title: 'Strict Duplicate Application Blocking', tab: 'candidate_rules', tabLabel: 'Candidate Policies', section: 'Fraud Prevention', target_id: 'setting-candidate-duplicate-block', icon: '🛡️', kw: 'duplicate block applications same position cnic fraud' },
                { title: 'Auto-Lock Profile on Voucher Generation', tab: 'candidate_rules', tabLabel: 'Candidate Policies', section: 'Tamper Protection', target_id: 'setting-candidate-profile-lock', icon: '🔒', kw: 'auto lock profile voucher tamper freeze degrees' },
                { title: 'Bank Fee Settlement Grace Window (Days)', tab: 'candidate_rules', tabLabel: 'Candidate Policies', section: 'Settlement Window', target_id: 'setting-candidate-grace-period', icon: '⏳', kw: 'grace period challan days 14 bank expiration window' },
+               { title: 'Daily Application Closing Cutoff Time (PKT)', tab: 'candidate_rules', tabLabel: 'Candidate Policies', section: 'Intake Controls', target_id: 'setting-candidate-cutoff-time', icon: '⏰', kw: 'cutoff time closing deadline midnight 23:59:59 pkt application hours' },
+               { title: 'Late Application Submissions with Surcharge', tab: 'candidate_rules', tabLabel: 'Candidate Policies', section: 'Late Fee & Grace', target_id: 'setting-candidate-late-fee', icon: '⏳', kw: 'late fee submission grace days surcharge amount penalty deadline extended' },
+               { title: 'Aggregate Dossier Upload Ceiling (MB)', tab: 'candidate_rules', tabLabel: 'Candidate Policies', section: 'Storage Quota', target_id: 'setting-candidate-dossier-ceiling', icon: '📦', kw: 'dossier upload limit ceiling aggregate megabytes mb storage size' },
+               { title: 'Strict Profile Lock Upon Final Submission', tab: 'candidate_rules', tabLabel: 'Candidate Policies', section: 'Tamper Protection', target_id: 'setting-candidate-lock-dossier', icon: '🔒', kw: 'lock freeze profile submission non repudiable tamper immutable' },
 
                // 4. Workflow Pipelines & Gating
                { title: 'Scrutiny Committee Dossier Vetting Gate', tab: 'pipeline', tabLabel: 'Workflow Pipelines', section: 'Stage Gating', target_id: 'setting-pipeline-scrutiny-gate', icon: '📑', kw: 'scrutiny gate stage committee verification pre-qualification' },
@@ -198,12 +205,16 @@
                { title: 'SMTP Server Host Server', tab: 'email', tabLabel: 'Email Delivery', section: 'SMTP Server', target_id: 'setting-email-host', icon: '🖥️', kw: 'host smtp mailpit localhost mail server 127.0.0.1' },
                { title: 'SMTP Port (1025 Mailpit / 587 TLS / 465 SSL)', tab: 'email', tabLabel: 'Email Delivery', section: 'SMTP Server', target_id: 'setting-email-port', icon: '🔌', kw: 'port 1025 587 465 mailpit smtp network tls ssl' },
                { title: 'SMTP Security Encryption (TLS / SSL / None)', tab: 'email', tabLabel: 'Email Delivery', section: 'SMTP Server', target_id: 'setting-email-encryption', icon: '🔒', kw: 'encryption tls ssl none starttls handshake' },
+               { title: 'WhatsApp Business Automated Alert Gateway', tab: 'email', tabLabel: 'Email Delivery', section: 'Multi-Channel', target_id: 'setting-email-whatsapp', icon: '💬', kw: 'whatsapp business alerts phone notifications credentials password dispatch' },
 
                // 6. Security Governance
                { title: 'Two-Factor Authentication (2FA) Policy', tab: 'security', tabLabel: 'Security & Access', section: '2FA Policy', target_id: 'setting-security-2fa', icon: '🔐', kw: '2fa two factor authentication otp mfa mandatory staff' },
                { title: 'Idle Session Inactivity Timeout (Minutes)', tab: 'security', tabLabel: 'Security & Access', section: 'Session Policy', target_id: 'setting-security-session-timeout', icon: '⏱️', kw: 'session timeout inactivity idle minutes logout' },
                { title: 'Max Consecutive Failed Login Attempts', tab: 'security', tabLabel: 'Security & Access', section: 'Brute Force', target_id: 'setting-security-failed-attempts', icon: '🛡️', kw: 'failed login attempts rate limit lockout brute force' },
                { title: 'Account Lockout Suspension Duration', tab: 'security', tabLabel: 'Security & Access', section: 'Lockout', target_id: 'setting-security-lockout-duration', icon: '⏳', kw: 'lockout duration suspension cooldown minutes' },
+               { title: 'Session IP Binding & Anti-Hijacking', tab: 'security', tabLabel: 'Security & Access', section: 'Hardening', target_id: 'setting-security-advanced-hardening', icon: '🛡️', kw: 'ip binding session hijacking cookie lock security network' },
+               { title: 'SHA-256 Tamper-Evident Dossier Fingerprinting', tab: 'security', tabLabel: 'Security & Access', section: 'Digital Integrity', target_id: 'setting-security-advanced-hardening', icon: '🔒', kw: 'sha 256 hash fingerprint tamper evident digital proof cryptographic' },
+               { title: 'Official Security Watermark Text', tab: 'security', tabLabel: 'Security & Access', section: 'Digital Integrity', target_id: 'setting-security-advanced-hardening', icon: '📄', kw: 'watermark print dossier security confidential official record' },
            ],
            get searchMatches() {
                if (!this.searchQuery || this.searchQuery.trim().length < 2) return [];

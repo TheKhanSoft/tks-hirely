@@ -334,6 +334,8 @@ class ConstitutionCriteriaManagement extends Component
      */
     public function addRule()
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+
         $this->rules[] = [
             'id' => 'rule_' . uniqid(),
             'name' => '',
@@ -348,6 +350,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function removeRule($index)
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+
         if (isset($this->rules[$index])) {
             unset($this->rules[$index]);
             $this->rules = array_values($this->rules);
@@ -356,6 +360,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function updateRuleCount($index, $delta)
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+
         if (isset($this->rules[$index])) {
             $current = (int)($this->rules[$index]['count'] ?? 1);
             $this->rules[$index]['count'] = max(1, min(50, $current + $delta));
@@ -364,6 +370,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function toggleMandatory($index)
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+
         if (isset($this->rules[$index])) {
             $this->rules[$index]['is_mandatory'] = !$this->rules[$index]['is_mandatory'];
         }
@@ -374,6 +382,8 @@ class ConstitutionCriteriaManagement extends Component
      */
     public function applyPreset($preset)
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+
         if ($preset === 'asst_prof') {
             $this->constitution_title = 'Statutory Selection Committee for Assistant Professor';
             $this->constitution_description = 'Statutory Criteria: 3 External Subject Experts for peer review. Selection Committee: Dean (Convener), Concerned Dept Head, 3 Internal Faculty from same institution, 1 External Professor from other institution.';
@@ -641,6 +651,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function addBoardRole()
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+
         $this->board_roles[] = [
             'id' => 'r_' . uniqid(),
             'name' => '',
@@ -655,6 +667,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function removeBoardRole($index)
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+
         if (isset($this->board_roles[$index])) {
             unset($this->board_roles[$index]);
             $this->board_roles = array_values($this->board_roles);
@@ -663,6 +677,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function addRoutingStep()
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+
         $nextStep = count($this->board_routing_flow) + 1;
         $this->board_routing_flow[] = [
             'step' => $nextStep,
@@ -676,6 +692,8 @@ class ConstitutionCriteriaManagement extends Component
 
     public function removeRoutingStep($index)
     {
+        abort_unless(Auth::user()->can('tune-constitution') || Auth::user()->can('manage-constitutions') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+
         if (isset($this->board_routing_flow[$index])) {
             unset($this->board_routing_flow[$index]);
             $this->board_routing_flow = array_values($this->board_routing_flow);

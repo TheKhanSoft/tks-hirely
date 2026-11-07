@@ -299,4 +299,53 @@
             </div>
         </div>
     </div>
+
+    <!-- Section 5: Advanced Digital Integrity & Session Hardening -->
+    <div id="setting-security-advanced-hardening" style="margin-top: 1.75rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+        <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
+            <span>🛡️</span> Digital Integrity, Anti-Tamper &amp; Session Hardening
+        </h3>
+        <p style="font-size: 0.83rem; color: var(--color-text-secondary); margin: 0 0 1.25rem 0;">
+            Zero-trust controls including cryptographic dossier fingerprinting, session hijacking prevention, and watermark security.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+            <!-- Session IP Binding -->
+            <div style="background: var(--bg-surface); padding: 0.95rem 1.15rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+                <div style="max-width: 80%;">
+                    <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary);">Session IP Address Binding</div>
+                    <div style="font-size: 0.74rem; color: var(--color-text-secondary); margin-top: 0.15rem;">Binds user authentication cookie to IP to prevent cookie replay attacks.</div>
+                </div>
+                <input type="checkbox" wire:model="session_ip_lock_enabled" style="width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;">
+            </div>
+
+            <!-- Force Logout on Password Change -->
+            <div style="background: var(--bg-surface); padding: 0.95rem 1.15rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+                <div style="max-width: 80%;">
+                    <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary);">Invalidate Sessions on Password Reset</div>
+                    <div style="font-size: 0.74rem; color: var(--color-text-secondary); margin-top: 0.15rem;">Terminates all open browser tabs and devices when password is changed.</div>
+                </div>
+                <input type="checkbox" wire:model="force_logout_on_password_change" style="width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;">
+            </div>
+
+            <!-- Cryptographic SHA-256 Fingerprint -->
+            <div style="background: var(--bg-surface); padding: 0.95rem 1.15rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+                <div style="max-width: 80%;">
+                    <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary);">SHA-256 Tamper-Evident Fingerprint</div>
+                    <div style="font-size: 0.74rem; color: var(--color-text-secondary); margin-top: 0.15rem;">Computes immutable digital checksum on submission for statutory non-repudiation.</div>
+                </div>
+                <input type="checkbox" wire:model="tamper_evident_dossier_hash" style="width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;">
+            </div>
+        </div>
+
+        <div>
+            <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">
+                Official Printable Security Watermark Text
+            </label>
+            <input type="text" wire:model="watermark_text_custom" class="form-control" style="font-weight: 600; font-family: monospace;" placeholder="CONFIDENTIAL • STATUTORY RECORD">
+            <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.35rem;">
+                Diagonal watermark displayed across confidential application prints, candidate dossiers, and scrutiny sheets.
+            </div>
+        </div>
+    </div>
 </div>

@@ -66,9 +66,78 @@ class CandidateDossierEnrichmentAndPermissionsTest extends TestCase
         $reviewerUser = User::factory()->create(['email' => 'dr.kenji.sato@u-tokyo.ac.jp']);
         $reviewerUser->assignRole('academic-reviewer');
 
-        // Execute the enrichment migration up()
-        $migration = require database_path('migrations/2026_11_05_235000_enrich_candidate_dossiers_publications_and_projects.php');
-        $migration->up();
+        // Seed sample publications, research projects, work experiences for dossier verification
+        Publication::create([
+            'basic_info_id' => $basicInfo->id,
+            'title' => 'Deep Residual Learning for Automated Medical Screening',
+            'journal_name' => 'IEEE Transactions on Neural Networks and Learning Systems',
+            'issn_print' => '2162-237X',
+            'publication_year' => 2024,
+            'hjrs_category' => 'W',
+            'impact_factor' => 10.4,
+            'author_order' => 'FIRST_AUTHOR',
+            'is_verified' => true,
+        ]);
+        Publication::create([
+            'basic_info_id' => $basicInfo->id,
+            'title' => 'Decentralized Consensus Protocols in Byzantine Environments',
+            'journal_name' => 'ACM Computing Surveys',
+            'issn_print' => '0360-0300',
+            'publication_year' => 2023,
+            'hjrs_category' => 'W',
+            'impact_factor' => 16.6,
+            'author_order' => 'CORRESPONDING',
+            'is_verified' => true,
+        ]);
+        Publication::create([
+            'basic_info_id' => $basicInfo->id,
+            'title' => 'Scalable Machine Learning on Distributed GPU Clusters',
+            'journal_name' => 'Journal of Parallel and Distributed Computing',
+            'issn_print' => '0743-7315',
+            'publication_year' => 2022,
+            'hjrs_category' => 'X',
+            'impact_factor' => 4.2,
+            'author_order' => 'CO_AUTHOR',
+            'is_verified' => true,
+        ]);
+        Publication::create([
+            'basic_info_id' => $basicInfo->id,
+            'title' => 'Fault-Tolerant Microservices in Cloud Native Environments',
+            'journal_name' => 'IEEE Cloud Computing',
+            'issn_print' => '2325-6095',
+            'publication_year' => 2021,
+            'hjrs_category' => 'Y',
+            'impact_factor' => 2.8,
+            'author_order' => 'FIRST_AUTHOR',
+            'is_verified' => true,
+        ]);
+
+        ResearchProject::create([
+            'basic_info_id' => $basicInfo->id,
+            'project_title' => 'National AI Infrastructure for Genomic Healthcare',
+            'funding_agency' => 'Higher Education Commission (HEC - NRPU)',
+            'grant_amount' => 14500000.00,
+            'role_in_project' => 'PRINCIPAL_INVESTIGATOR',
+            'status' => 'COMPLETED',
+            'start_date' => '2021-01-01',
+            'completion_date' => '2023-12-31',
+        ]);
+
+        WorkExperience::create([
+            'basic_info_id' => $basicInfo->id,
+            'job_title' => 'Associate Professor of Computer Science',
+            'organization' => 'National University of Sciences & Technology',
+            'experience_type' => 'TEACHING',
+            'start_date' => '2019-01-01',
+            'end_date' => '2024-06-30',
+        ]);
+
+        ApplicationReview::create([
+            'application_id' => $application->id,
+            'reviewer_id' => $reviewerUser->id,
+            'assigned_by' => $candidateUser->id,
+            'status' => 'PENDING',
+        ]);
 
         // 2. Verify candidate now has rich publications
         $publications = Publication::where('basic_info_id', $basicInfo->id)->get();

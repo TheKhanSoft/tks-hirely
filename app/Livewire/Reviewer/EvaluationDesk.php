@@ -40,6 +40,8 @@ class EvaluationDesk extends Component
 
     public function openEvalModal($reviewId)
     {
+        abort_unless(Auth::user()->can('evaluate-academic-dossier') || Auth::user()->hasAnyRole(['academic-reviewer', 'super-admin']), 403);
+
         $review = ApplicationReview::with([
             'application.campaign',
             'application.user.basicInfo.degrees',

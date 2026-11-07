@@ -7,36 +7,72 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Run the migrations for core recruitment tables, advertisements, campaigns,
+     * candidate profiles, dossiers, committees, evaluations, and reviewer management.
      */
     public function up(): void
     {
-        // 1. Campaigns
+        // 1. Advertisements
+        Schema::create('advertisements', function (Blueprint $table) {
+            $table->id();
+            $table->string('advertisement_no', 100)->index();
+            $table->string('title');
+            $table->integer('year')->default(date('Y'))->index();
+            $table->text('details')->nullable();
+            $table->dateTime('valid_from');
+            $table->dateTime('valid_to');
+            $table->string('newspaper_reference')->nullable();
+            $table->string('attachment_path')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamps();
+        });
+
+        // 2. Advertisement Date Tracking / Extension History
+        Schema::create('advertisement_date_tracks', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('advertisement_id')->constrained('advertisements')->cascadeOnDelete();
+            $table->dateTime('previous_valid_to');
+            $table->dateTime('extended_valid_to');
+            $table->string('corrigendum_no', 100)->nullable();
+            $table->text('reason')->nullable();
+            $table->dateTime('extended_at');
+            $table->foreignId('extended_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('attachment_path')->nullable();
+            $table->timestamps();
+        });
+
+        // 3. Campaigns (Recruitment Positions & Openings)
         Schema::create('campaigns', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('advertisement_id')->nullable()->constrained('advertisements')->nullOnDelete();
             $table->string('job_code', 50)->unique();
             $table->string('title', 255);
-            $table->enum('track_type', ['ACADEMIC', 'ADMINISTRATIVE', 'SUPPORT']);
+            $table->string('track_type', 50)->default('ACADEMIC'); // ACADEMIC, ADMINISTRATIVE, SUPPORT, EXECUTIVE, GOVERNMENT
+            $table->foreignId('constitution_id')->nullable()->constrained('committee_constitutions')->nullOnDelete();
+            $table->foreignId('process_flow_id')->nullable()->constrained('recruitment_process_flows')->nullOnDelete();
             $table->string('department', 150);
             $table->timestamp('opening_date')->useCurrent();
             $table->timestamp('closing_date')->useCurrent();
             $table->decimal('application_fee', 10, 2);
             $table->boolean('is_active')->default(true);
-            $table->json('scoring_rules')->nullable(); // For custom weights set by Registrar
+            $table->boolean('require_transcript_proof')->default(true);
+            $table->json('scoring_rules')->nullable(); // Custom weights and statutory constitution criteria
             $table->timestamps();
         });
 
-        // 2. Basic Infos
+        // 4. Candidate Basic Information & Demographics
         Schema::create('basic_infos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->enum('track_type', ['ACADEMIC', 'ADMINISTRATIVE', 'SUPPORT']);
+            $table->string('track_type', 50)->default('ACADEMIC');
+            $table->string('profile_picture', 500)->nullable();
             $table->string('first_name', 100);
             $table->string('last_name', 100)->nullable();
             $table->string('cnic_number', 15)->unique();
             $table->date('date_of_birth');
             $table->string('quota', 50)->default('General');
-            $table->enum('gender', ['Male', 'Female', 'Other'])->default('Male');
+            $table->string('gender', 20)->default('Male');
             $table->string('father_name', 150)->nullable();
             $table->string('phone_number', 20)->nullable();
             $table->string('secondary_phone', 20)->nullable();
@@ -54,7 +90,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 3. Academic Medals Ledger
+        // 5. Academic Medals Ledger
         Schema::create('academic_medals', function (Blueprint $table) {
             $table->id();
             $table->foreignId('basic_info_id')->constrained('basic_infos')->onDelete('cascade');
@@ -67,7 +103,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 4. Academic Publications
+        // 6. Academic Publications
         Schema::create('publications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('basic_info_id')->constrained('basic_infos')->onDelete('cascade');
@@ -89,7 +125,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 5. Seminars, Conferences and Workshops
+        // 7. Seminars, Conferences, and Workshops
         Schema::create('professional_events', function (Blueprint $table) {
             $table->id();
             $table->foreignId('basic_info_id')->constrained('basic_infos')->onDelete('cascade');
@@ -107,7 +143,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 6. Research Projects and Grants
+        // 8. Research Projects and Grants
         Schema::create('research_projects', function (Blueprint $table) {
             $table->id();
             $table->foreignId('basic_info_id')->constrained('basic_infos')->onDelete('cascade');
@@ -125,22 +161,27 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 7. Scrutiny Committees
+        // 9. Campaign Committees (Scrutiny, Selection Board, Appellate Panels)
         Schema::create('campaign_committees', function (Blueprint $table) {
             $table->id();
             $table->foreignId('campaign_id')->constrained('campaigns')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->boolean('is_appellate_panel')->default(false);
+            $table->string('member_category')->default('INTERNAL'); // INTERNAL, EXTERNAL, INTERNATIONAL, INDEPENDENT
+            $table->string('role_designation')->nullable();
+            $table->string('affiliation')->nullable();
+            $table->string('country')->nullable();
+            $table->foreignId('committee_constitution_id')->nullable()->constrained('committee_constitutions')->nullOnDelete();
             $table->timestamp('assigned_at')->useCurrent();
             $table->unique(['campaign_id', 'user_id', 'is_appellate_panel'], 'campaign_comm_unique');
         });
 
-        // 8. Applications
+        // 10. Candidate Applications
         Schema::create('applications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('campaign_id')->constrained('campaigns')->onDelete('restrict');
-            $table->string('status', 50)->default('DRAFT');
+            $table->string('status', 100)->default('DRAFT');
             $table->timestamp('submission_timestamp')->nullable();
             $table->text('disqualification_reason')->nullable(); // Structural code / administrative reference on eligibility failure
             $table->text('appeal_letter')->nullable(); // User's appeal text
@@ -148,7 +189,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 9. Billing Ledger
+        // 11. 1Link / Bank Challan Billing Ledger
         Schema::create('billing_ledger', function (Blueprint $table) {
             $table->id();
             $table->foreignId('application_id')->constrained('applications')->onDelete('cascade');
@@ -161,7 +202,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 10. Live Evaluations
+        // 12. Live Selection Board Evaluations & Interview Scoring
         Schema::create('live_evaluations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('application_id')->constrained('applications')->onDelete('cascade');
@@ -178,7 +219,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 11. Security Audit Logs
+        // 13. Security Audit Logs
         Schema::create('security_audit_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
@@ -191,7 +232,7 @@ return new class extends Migration
             $table->timestamp('logged_at')->useCurrent();
         });
 
-        // 12. Academic Degrees
+        // 14. Academic Degrees
         Schema::create('academic_degrees', function (Blueprint $table) {
             $table->id();
             $table->foreignId('basic_info_id')->constrained('basic_infos')->onDelete('cascade');
@@ -205,13 +246,13 @@ return new class extends Migration
             $table->string('major', 150);
             $table->string('board', 255);
             $table->string('division', 100);
-            $table->string('proof_path', 500);
+            $table->string('proof_path', 500)->nullable();
             $table->boolean('is_verified')->default(false);
             $table->foreignId('verified_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
         });
 
-        // 13. Work Experiences
+        // 15. Work Experiences
         Schema::create('work_experiences', function (Blueprint $table) {
             $table->id();
             $table->foreignId('basic_info_id')->constrained('basic_infos')->onDelete('cascade');
@@ -229,7 +270,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 14. Admin Milestones
+        // 16. Admin Milestones
         Schema::create('admin_milestones', function (Blueprint $table) {
             $table->id();
             $table->foreignId('basic_info_id')->constrained('basic_infos')->onDelete('cascade');
@@ -243,7 +284,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 15. Support Tools
+        // 17. Support Tools & Trade Certifications
         Schema::create('support_tools', function (Blueprint $table) {
             $table->id();
             $table->foreignId('basic_info_id')->constrained('basic_infos')->onDelete('cascade');
@@ -256,7 +297,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 16. Patents
+        // 18. Patents & Intellectual Property
         Schema::create('patents', function (Blueprint $table) {
             $table->id();
             $table->foreignId('basic_info_id')->constrained('basic_infos')->onDelete('cascade');
@@ -265,13 +306,13 @@ return new class extends Migration
             $table->string('country', 100)->default('Pakistan');
             $table->date('date_registered');
             $table->boolean('is_licensed')->default(false);
-            $table->string('proof_path', 500);
+            $table->string('proof_path', 500)->nullable();
             $table->boolean('is_verified')->default(false);
             $table->foreignId('verified_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
         });
 
-        // 17. Portfolio Items
+        // 19. Portfolio Items
         Schema::create('portfolio_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('basic_info_id')->constrained('basic_infos')->onDelete('cascade');
@@ -285,20 +326,20 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 18. Trainings
+        // 20. Professional Trainings & Certifications
         Schema::create('trainings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('basic_info_id')->constrained('basic_infos')->onDelete('cascade');
             $table->string('title', 255);
             $table->string('body', 255);
             $table->date('expiry_date')->nullable();
-            $table->string('proof_path', 500);
+            $table->string('proof_path', 500)->nullable();
             $table->boolean('is_verified')->default(false);
             $table->foreignId('verified_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
         });
 
-        // 19. Referees
+        // 21. Referees
         Schema::create('referees', function (Blueprint $table) {
             $table->id();
             $table->foreignId('basic_info_id')->constrained('basic_infos')->onDelete('cascade');
@@ -311,6 +352,42 @@ return new class extends Migration
             $table->string('address', 255)->nullable();
             $table->timestamps();
         });
+
+        // 22. Reviewer Profiles (External Experts / Referees)
+        Schema::create('reviewer_profiles', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('name');
+            $table->string('subject'); // e.g. Computer Science, Biotechnology, etc.
+            $table->string('academic_rank'); // e.g. Professor, Associate Professor, etc.
+            $table->string('university'); // e.g. Quaid-i-Azam University, NUST, etc.
+            $table->string('country')->default('Pakistan');
+            $table->string('phone')->nullable();
+            $table->text('specialization')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamps();
+        });
+
+        // 23. Application Reviews (External Academic Peer Review Assignments)
+        Schema::create('application_reviews', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('application_id')->constrained('applications')->onDelete('cascade');
+            $table->foreignId('reviewer_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('assigned_by')->constrained('users')->onDelete('cascade');
+            $table->timestamp('assigned_at')->useCurrent();
+            $table->date('due_date')->nullable();
+            $table->text('confidential_notes')->nullable();
+            $table->enum('status', ['PENDING', 'ACCEPTED', 'SUBMITTED', 'DECLINED'])->default('PENDING');
+            $table->enum('recommendation', ['STRONGLY_RECOMMENDED', 'RECOMMENDED', 'CONDITIONALLY_RECOMMENDED', 'NOT_RECOMMENDED'])->nullable();
+            $table->decimal('overall_score', 5, 2)->nullable();
+            $table->text('report_text')->nullable();
+            $table->string('evaluation_file_path')->nullable();
+            $table->timestamp('submitted_at')->nullable();
+            $table->timestamps();
+
+            $table->unique(['application_id', 'reviewer_id']);
+        });
     }
 
     /**
@@ -318,6 +395,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('application_reviews');
+        Schema::dropIfExists('reviewer_profiles');
         Schema::dropIfExists('referees');
         Schema::dropIfExists('trainings');
         Schema::dropIfExists('portfolio_items');
@@ -337,5 +416,7 @@ return new class extends Migration
         Schema::dropIfExists('academic_medals');
         Schema::dropIfExists('basic_infos');
         Schema::dropIfExists('campaigns');
+        Schema::dropIfExists('advertisement_date_tracks');
+        Schema::dropIfExists('advertisements');
     }
 };

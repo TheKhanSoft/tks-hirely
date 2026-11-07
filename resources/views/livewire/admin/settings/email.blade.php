@@ -436,5 +436,44 @@
                 </div>
             @endif
         </div>
+
+        <!-- Official WhatsApp Business Channel Section -->
+        <div id="setting-email-whatsapp" style="margin-top: 1.5rem; background: var(--bg-surface); border: 1.5px solid {{ $whatsapp_business_enabled ? 'rgba(37,211,102,0.45)' : 'var(--border-color)' }}; border-radius: var(--radius-md); padding: 1.25rem; transition: all 0.2s;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.65rem;">
+                    <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(37,211,102,0.15); color: #25D366; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                        💬
+                    </div>
+                    <div>
+                        <div style="font-weight: 800; font-size: 0.95rem; color: var(--color-text-primary);">
+                            Official WhatsApp Automated Alerts &amp; Password Dispatch
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--color-text-secondary);">
+                            Enables administrative password reset via WhatsApp and transactional candidate notifications.
+                        </div>
+                    </div>
+                </div>
+
+                <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
+                    <input type="checkbox" wire:model.live="whatsapp_business_enabled" style="opacity: 0; width: 0; height: 0;">
+                    <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $whatsapp_business_enabled ? '#25D366' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $whatsapp_business_enabled ? '#25D366' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
+                        <span style="position: absolute; content: ''; height: 20px; width: 20px; left: {{ $whatsapp_business_enabled ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
+                    </span>
+                </label>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 700; font-size: 0.82rem;">Official WhatsApp Dispatch / Business Phone</label>
+                <input type="text" wire:model="whatsapp_business_phone" class="form-control" style="max-width: 300px; font-weight: 700; font-family: monospace;" placeholder="+923001234567">
+                <div style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 0.25rem;">Country-code prefixed phone number registered with WhatsApp Business API.</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 1.25rem; display: flex; justify-content: flex-end;">
+            <button type="button" wire:click="saveSmsSettings" class="btn btn-primary" style="font-weight: 800; font-size: 0.88rem; padding: 0.55rem 1.4rem;">
+                <span wire:loading.remove wire:target="saveSmsSettings">Save Multi-Channel Settings</span>
+                <span wire:loading wire:target="saveSmsSettings">Saving...</span>
+            </button>
+        </div>
     </div>
 </div>

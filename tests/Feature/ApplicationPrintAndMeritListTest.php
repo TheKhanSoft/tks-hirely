@@ -213,7 +213,7 @@ class ApplicationPrintAndMeritListTest extends TestCase
         // Admin Master Dossier view
         $response = $this->get("/application/{$this->application1->id}/print?view=admin");
         $response->assertStatus(200);
-        $response->assertSee('Official Master Administrative Application Dossier');
+        $response->assertSee('Official Master Application Dossier');
         $response->assertSee('CONFIDENTIAL STATUTORY SCRUTINY');
         $response->assertSee('Statutory Scrutiny Committee Verification');
         $response->assertSee('Member / Incharge');
@@ -301,10 +301,10 @@ class ApplicationPrintAndMeritListTest extends TestCase
         $candidatePrint->assertStatus(200);
 
         // Check Requirement 1: User details (Full Name (Username) - Role & Printed/Downloaded on Date Time)
-        $candidatePrint->assertSee('Printed / Downloaded By');
+        $candidatePrint->assertSee('Printed / Downloaded by');
         $candidatePrint->assertSee('Turing Alan (candidate1@test.com)');
         $candidatePrint->assertSee('Applicant');
-        $candidatePrint->assertSee('Printed / Downloaded on Date Time');
+        $candidatePrint->assertSee('Printed / Downloaded on:');
 
         // Check Requirement 2: Publications, Research Projects, Patents, Medals, Events, Referees
         $candidatePrint->assertSee('Research Publications & Scholarly Output');
@@ -328,7 +328,7 @@ class ApplicationPrintAndMeritListTest extends TestCase
         // Check Admin details
         $adminPrint->assertSee('admin@hirely.test');
         $adminPrint->assertSee('Super Admin');
-        $adminPrint->assertSee('Printed / Downloaded on Date Time');
+        $adminPrint->assertSee('Printed / Downloaded on:');
         $adminPrint->assertSee('Quantum Neural Synthesis Framework');
         $adminPrint->assertSee('Adaptive Neuromorphic Turing Engine');
     }

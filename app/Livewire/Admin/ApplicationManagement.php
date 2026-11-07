@@ -133,6 +133,8 @@ class ApplicationManagement extends Component
 
     public function openAppointmentLetterModal($appId)
     {
+        abort_unless(Auth::user()->can('change-application-status') || Auth::user()->can('edit-application') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+
         $this->appointmentApplication = Application::with([
             'user.basicInfo.degrees',
             'campaign.advertisement',
@@ -406,6 +408,8 @@ class ApplicationManagement extends Component
 
     public function openEmpanelModal()
     {
+        abort_unless(Auth::user()->can('create-reviewer') || Auth::user()->can('manage-reviewers') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+
         $this->reset(['empanelName', 'empanelEmail', 'empanelUniversity', 'empanelPhone', 'empanelSpecialization']);
         $rawSubject = $this->dispatchApplication?->campaign?->department ?? '';
         $this->empanelSubject = AcademicDisciplineMatcher::normalizeDepartment($rawSubject);
