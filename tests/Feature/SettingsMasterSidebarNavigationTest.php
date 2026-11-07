@@ -1,0 +1,96 @@
+<?php
+
+namespace Tests\Feature;
+
+use Tests\TestCase;
+use App\Models\User;
+use App\Livewire\Admin\SystemSettings;
+use Livewire\Livewire;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+class SettingsMasterSidebarNavigationTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected User $admin;
+    protected User $registrar;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(\Database\Seeders\SpatieRoleAndPermissionSeeder::class);
+
+        $this->admin = User::factory()->create(['email' => 'superadmin@awkum.edu.pk']);
+        $this->admin->assignRole('super-admin');
+
+        $this->registrar = User::factory()->create(['email' => 'registrar@awkum.edu.pk']);
+        $this->registrar->assignRole('registrar');
+    }
+
+    public function test_sidebar_renders_with_institution_and_identity_at_the_top(): void
+    {
+        $this->actingAs($this->admin);
+
+        $response = $this->get('/admin/settings/organization');
+        $response->assertStatus(200);
+
+        $content = $response->getContent();
+
+        // 1. Verify "Institution & Identity" is at the top before "Recruitment & Academic Governance"
+        $posInstitution = strpos($content, 'Institution &amp; Identity');
+        if ($posInstitution === false) {
+            $posInstitution = strpos($content, 'Institution & Identity');
+        }
+        $posRecruitment = strpos($content, 'Recruitment &amp; Academic Governance');
+        if ($posRecruitment === false) {
+            $posRecruitment = strpos($content, 'Recruitment & Academic Governance');
+        }
+        $posComms = strpos($content, 'Communications &amp; Messaging');
+        if ($posComms === false) {
+            $posComms = strpos($content, 'Communications & Messaging');
+        }
+        $posGovernance = strpos($content, 'Platform &amp; Governance');
+        if ($posGovernance === false) {
+            $posGovernance = strpos($content, 'Platform & Governance');
+        }
+
+        $this->assertNotFalse($posInstitution, 'Institution & Identity header must exist');
+        $this->assertNotFalse($posRecruitment, 'Recruitment header must exist');
+        $this->assertNotFalse($posComms, 'Communications header must exist');
+        $this->assertNotFalse($posGovernance, 'Platform & Governance header must exist');
+
+        // Verify strictly chronological priority: Institution < Recruitment < Comms < Governance
+        $this->assertTrue($posInstitution < $posRecruitment, 'Institution & Identity must appear before Recruitment');
+        $this->assertTrue($posRecruitment < $posComms, 'Recruitment must appear before Communications');
+        $this->assertTrue($posComms < $posGovernance, 'Communications must appear before Platform Governance');
+
+        // 2. Verify Search Filter is rendered
+        $response->assertSee('Filter settings...');
+
+        // 3. Verify Active tab state for Organization
+        $response->assertSee('Institution Profile & Acronym');
+    }
+
+    public function test_switching_tabs_in_master_detail_sidebar(): void
+    {
+        $this->actingAs($this->admin);
+
+        Livewire::test(SystemSettings::class, ['tab' => 'organization'])
+            ->assertSet('activeTab', 'organization')
+            ->call('setTab', 'academic-criteria')
+            ->assertSet('activeTab', 'academic_criteria')
+            ->call('setTab', 'branding')
+            ->assertSet('activeTab', 'branding')
+            ->call('setTab', 'email-templates')
+            ->assertSet('activeTab', 'email_templates');
+    }
+
+    public function test_registrar_can_access_master_sidebar_settings(): void
+    {
+        $this->actingAs($this->registrar);
+
+        $response = $this->get('/registrar/settings/organization');
+        $response->assertStatus(200);
+        $response->assertSee('Institution Profile & Acronym');
+    }
+}
