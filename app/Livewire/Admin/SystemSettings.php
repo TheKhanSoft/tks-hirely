@@ -207,6 +207,8 @@ class SystemSettings extends Component
     public $sms_sender_id = 'HIRELY';
     public $sms_api_key = '';
     public $sms_api_url = '';
+    public $sms_api_secret = '';
+    public $sms_username = '';
     public $sms_trigger_app_submitted = true;
     public $sms_trigger_payment_verified = true;
     public $sms_trigger_scrutiny_deficiency = true;
@@ -481,6 +483,8 @@ class SystemSettings extends Component
         $this->sms_sender_id = (string) SystemSetting::get('sms_sender_id', 'AWKUM-HR');
         $this->sms_api_key = (string) SystemSetting::get('sms_api_key', '');
         $this->sms_api_url = (string) SystemSetting::get('sms_api_url', '');
+        $this->sms_api_secret = (string) SystemSetting::get('sms_api_secret', '');
+        $this->sms_username = (string) SystemSetting::get('sms_username', '');
         $this->sms_trigger_app_submitted = (bool) SystemSetting::get('sms_trigger_app_submitted', true);
         $this->sms_trigger_payment_verified = (bool) SystemSetting::get('sms_trigger_payment_verified', true);
         $this->sms_trigger_scrutiny_deficiency = (bool) SystemSetting::get('sms_trigger_scrutiny_deficiency', true);
@@ -1246,10 +1250,12 @@ class SystemSettings extends Component
     {
         abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('manage-sms-settings'), 403);
         $this->validate([
-            'sms_provider' => 'required|string|in:twilio,zong,telenor,generic_webhook',
+            'sms_provider' => 'required|string|in:twilio,zong,telenor,jazz,generic_rest,generic_webhook,log',
             'sms_sender_id' => 'required|string|max:20',
             'sms_api_key' => 'nullable|string|max:250',
             'sms_api_url' => 'nullable|string|max:250',
+            'sms_api_secret' => 'nullable|string|max:250',
+            'sms_username' => 'nullable|string|max:100',
         ]);
 
         SystemSetting::set('sms_enabled', (bool) $this->sms_enabled, 'email', 'boolean');
@@ -1257,6 +1263,8 @@ class SystemSettings extends Component
         SystemSetting::set('sms_sender_id', $this->sms_sender_id, 'email', 'string');
         SystemSetting::set('sms_api_key', $this->sms_api_key, 'email', 'string');
         SystemSetting::set('sms_api_url', $this->sms_api_url, 'email', 'string');
+        SystemSetting::set('sms_api_secret', $this->sms_api_secret, 'email', 'string');
+        SystemSetting::set('sms_username', $this->sms_username, 'email', 'string');
         SystemSetting::set('sms_trigger_app_submitted', (bool) $this->sms_trigger_app_submitted, 'email', 'boolean');
         SystemSetting::set('sms_trigger_payment_verified', (bool) $this->sms_trigger_payment_verified, 'email', 'boolean');
         SystemSetting::set('sms_trigger_scrutiny_deficiency', (bool) $this->sms_trigger_scrutiny_deficiency, 'email', 'boolean');
@@ -1275,6 +1283,8 @@ class SystemSettings extends Component
         $this->sms_sender_id = 'HIRELY';
         $this->sms_api_key = '';
         $this->sms_api_url = '';
+        $this->sms_api_secret = '';
+        $this->sms_username = '';
         $this->sms_trigger_app_submitted = true;
         $this->sms_trigger_payment_verified = true;
         $this->sms_trigger_scrutiny_deficiency = true;
@@ -1291,10 +1301,23 @@ class SystemSettings extends Component
             'test_sms_recipient' => 'required|string|min:10|max:20',
         ]);
 
-        session()->flash('test_sms_status', [
-            'type' => 'success',
-            'message' => "Simulated test SMS successfully dispatched to '{$this->test_sms_recipient}' using sender mask '{$this->sms_sender_id}'.",
-        ]);
+        $result = \App\Services\Sms\SmsGatewayService::send(
+            $this->test_sms_recipient,
+            "Hirely Recruitment: Test notification dispatched successfully via {$this->sms_provider} gateway (Sender: {$this->sms_sender_id}).",
+            $this->sms_sender_id
+        );
+
+        if ($result['success']) {
+            session()->flash('test_sms_status', [
+                'type' => 'success',
+                'message' => $result['detail'],
+            ]);
+        } else {
+            session()->flash('test_sms_status', [
+                'type' => 'error',
+                'message' => $result['detail'],
+            ]);
+        }
     }
 
     // 🖥️ Diagnostics & Cache Clearing Actions

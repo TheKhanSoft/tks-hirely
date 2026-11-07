@@ -155,6 +155,8 @@ class EmailTemplate extends Model
             '{support_email}' => $supportEmail,
             '{support_phone}' => $supportPhone,
             '{login_url}' => url('/login'),
+            '{portal_url}' => url('/applicant/dashboard'),
+            '{dossier_url}' => url('/application/1/print'),
             '{current_year}' => date('Y'),
 
             // Stakeholders & Security
@@ -175,6 +177,14 @@ class EmailTemplate extends Model
             '{otp_expiry}' => '10 minutes',
             '{profile_field_changed}' => 'Official Contact Email & Phone Number',
             '{changed_timestamp}' => '06 November 2026, 04:30 PM PKT',
+            '{lock_timestamp}' => '07 November 2026, 11:30 AM PKT',
+            '{dossier_hash}' => 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+            '{candidate_count}' => '18',
+            '{referee_name}' => 'Prof. Dr. Arshad Ali',
+            '{referee_title}' => 'Department Chair / Dean',
+            '{referee_institution}' => 'Quaid-i-Azam University, Islamabad',
+            '{referee_portal_url}' => url('/referee/recommendation/sample-token-99'),
+            '{reissue_url}' => url('/applicant/wizard?step=8'),
             '{ip_address}' => '103.102.158.29',
             '{device_info}' => 'Chrome on Windows 11 (Desktop)',
 
@@ -1913,6 +1923,191 @@ HTML
 
 <p style="margin: 28px 0; text-align: center;">
     <a href="{advertisement_link}" class="btn-action" style="background: linear-gradient(135deg, #10b981, #047857);">Explore Vacancies &amp; Apply Online &rarr;</a>
+</p>
+HTML
+            ],
+
+            [
+                'slug' => 'candidate-challan-expired-notice',
+                'name' => 'Recruitment Fee Challan Expired & Grace Period Notice',
+                'recipient_group' => 'CANDIDATE',
+                'trigger_event' => 'challan.expired',
+                'subject' => 'Notice: Recruitment Fee Challan Expired for {job_title} ({voucher_id})',
+                'preheader' => 'Your recruitment fee voucher payment window has expired.',
+                'description' => 'Sent to applicant when an unpaid recruitment fee challan voucher passes its statutory cutoff date.',
+                'is_trigger_enabled' => true,
+                'placeholders' => [
+                    '{candidate_name}' => 'Candidate Full Name',
+                    '{job_title}' => 'Applied Post Title',
+                    '{voucher_id}' => 'Kuickpay / 1Bill Consumer Number',
+                    '{amount}' => 'Fee Amount in PKR',
+                    '{due_date}' => 'Voucher Cutoff Date',
+                    '{reissue_url}' => 'Direct Reissue URL',
+                    '{org_name}' => 'Full Organization Name',
+                    '{support_email}' => 'Helpdesk Contact Email',
+                ],
+                'body_html' => <<<HTML
+<h2 style="margin-top: 0; color: #b91c1c; font-size: 21px; font-weight: 800; letter-spacing: -0.01em;">Recruitment Fee Voucher Expired</h2>
+<p>Dear <strong>{candidate_name}</strong>,</p>
+<p>This is an automated statutory notice from <strong>{org_name}</strong> informing you that the payment validity period for your recruitment fee challan voucher has lapsed without settlement.</p>
+
+<div class="data-table-container">
+    <table class="data-table">
+        <tr>
+            <td class="param-label">Target Position:</td>
+            <td class="param-val"><strong>{job_title}</strong></td>
+        </tr>
+        <tr>
+            <td class="param-label">Consumer Voucher ID:</td>
+            <td class="param-val" style="font-family: monospace; font-weight: 800; color: #b91c1c;">{voucher_id}</td>
+        </tr>
+        <tr>
+            <td class="param-label">Prescribed Amount:</td>
+            <td class="param-val">PKR {amount}</td>
+        </tr>
+        <tr>
+            <td class="param-label">Cutoff Expiry Date:</td>
+            <td class="param-val" style="color: #b91c1c; font-weight: 700;">{due_date}</td>
+        </tr>
+    </table>
+</div>
+
+<div class="callout-box" style="border-left-color: #f59e0b; background: #fffbeb;">
+    <p style="margin: 0; font-size: 14.5px; line-height: 1.6; color: #92400e;">
+        <strong>Important Action Required:</strong> In accordance with statutory recruitment policies, unverified applications cannot be forwarded to the Scrutiny Committee. If the advertisement validity remains active, you may regenerate a new voucher from your candidate portal.
+    </p>
+</div>
+
+<p style="margin: 28px 0; text-align: center;">
+    <a href="{reissue_url}" class="btn-action" style="background: linear-gradient(135deg, #4f46e5, #3730a3);">Regenerate Payment Voucher &rarr;</a>
+</p>
+HTML
+            ],
+
+            [
+                'slug' => 'candidate-profile-locked-confirmation',
+                'name' => 'Official Notice: Application Credentials Locked & Archived',
+                'recipient_group' => 'CANDIDATE',
+                'trigger_event' => 'candidate.profile_locked',
+                'subject' => 'Application Dossier Locked & Archived for Statutory Scrutiny: {job_title}',
+                'preheader' => 'Your qualification records have been locked for scrutiny integrity.',
+                'description' => 'Sent when candidate generates voucher or completes submission, locking credentials for scrutiny audit integrity.',
+                'is_trigger_enabled' => true,
+                'placeholders' => [
+                    '{candidate_name}' => 'Candidate Full Name',
+                    '{job_title}' => 'Applied Cadre / Position Title',
+                    '{tracking_number}' => 'Official Dossier Tracking Number',
+                    '{lock_timestamp}' => 'Dossier Lock Timestamp',
+                    '{dossier_hash}' => 'SHA-256 Tamper-Evident Fingerprint',
+                    '{org_name}' => 'Full Organization Name',
+                    '{dossier_url}' => 'Printable Dossier URL',
+                ],
+                'body_html' => <<<HTML
+<h2 style="margin-top: 0; color: #0f172a; font-size: 21px; font-weight: 800; letter-spacing: -0.01em;">Application Dossier Locked &amp; Archived</h2>
+<p>Dear <strong>{candidate_name}</strong>,</p>
+<p>Your candidate profile, educational qualifications, research publications, and employment credentials for <strong>{job_title}</strong> have been officially locked and cryptographically archived for statutory scrutiny vetting.</p>
+
+<div class="data-table-container">
+    <table class="data-table">
+        <tr>
+            <td class="param-label">Target Position:</td>
+            <td class="param-val"><strong>{job_title}</strong></td>
+        </tr>
+        <tr>
+            <td class="param-label">Dossier Reference ID:</td>
+            <td class="param-val" style="font-family: monospace; font-weight: 800; color: #4f46e5;">{tracking_number}</td>
+        </tr>
+        <tr>
+            <td class="param-label">Archival Timestamp:</td>
+            <td class="param-val">{lock_timestamp}</td>
+        </tr>
+        <tr>
+            <td class="param-label">Audit Fingerprint:</td>
+            <td class="param-val" style="font-family: monospace; font-size: 11px; word-break: break-all; color: #64748b;">{dossier_hash}</td>
+        </tr>
+    </table>
+</div>
+
+<p style="margin: 28px 0; text-align: center;">
+    <a href="{dossier_url}" class="btn-action">Download Master Application Dossier &rarr;</a>
+</p>
+HTML
+            ],
+
+            [
+                'slug' => 'referee-reference-request',
+                'name' => 'Confidential Letter of Recommendation Request for Candidate',
+                'recipient_group' => 'REVIEWER',
+                'trigger_event' => 'referee.recommendation_request',
+                'subject' => 'Confidential Reference Request: Candidacy of {candidate_name} for {job_title}',
+                'preheader' => 'Official request for statutory letter of recommendation.',
+                'description' => 'Dispatched to external academic and professional referees listed by the candidate in their dossier.',
+                'is_trigger_enabled' => true,
+                'placeholders' => [
+                    '{referee_name}' => 'Referee Full Name',
+                    '{candidate_name}' => 'Candidate Full Name',
+                    '{job_title}' => 'Candidate Applied Position',
+                    '{org_name}' => 'Full Organization Name',
+                    '{referee_portal_url}' => 'Secure Recommendation Link',
+                    '{support_email}' => 'Helpdesk Contact Email',
+                ],
+                'body_html' => <<<HTML
+<h2 style="margin-top: 0; color: #0f172a; font-size: 21px; font-weight: 800; letter-spacing: -0.01em;">Confidential Academic Reference Request</h2>
+<p>Dear <strong>{referee_name}</strong>,</p>
+<p><strong>{candidate_name}</strong> has applied for the statutory faculty/officer position of <strong>{job_title}</strong> at <strong>{org_name}</strong> and has nominated you as an official referee.</p>
+<p>Under our statutory selection regulations, the Selection Board requests your confidential assessment regarding the candidate's academic competence, scholarly integrity, research capability, and professional conduct.</p>
+
+<p style="margin: 28px 0; text-align: center;">
+    <a href="{referee_portal_url}" class="btn-action" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">Submit Confidential Reference &rarr;</a>
+</p>
+
+<p style="font-size: 13px; color: #64748b;">
+    All recommendations are strictly privileged and accessible only to the Statutory Selection Board members.
+</p>
+HTML
+            ],
+
+            [
+                'slug' => 'scrutiny-committee-dossier-batched',
+                'name' => 'Scrutiny Committee Dossier Batch Dispatched for Vetting',
+                'recipient_group' => 'BOARD_EXPERT',
+                'trigger_event' => 'scrutiny.batch_assigned',
+                'subject' => 'New Scrutiny Batch Forwarded: {candidate_count} Dossiers for {job_title}',
+                'preheader' => 'New candidate dossiers are ready for statutory credential auditing.',
+                'description' => 'Alert dispatched to scrutiny committee members when candidates clear fee verification and advance to scrutiny.',
+                'is_trigger_enabled' => true,
+                'placeholders' => [
+                    '{recipient_name}' => 'Scrutiny Committee Member Name',
+                    '{job_title}' => 'Target Recruitment Campaign Title',
+                    '{job_code}' => 'Campaign Job Code',
+                    '{candidate_count}' => 'Number of Dossiers in Batch',
+                    '{scrutiny_url}' => 'Scrutiny Queue URL',
+                    '{org_name}' => 'Full Organization Name',
+                ],
+                'body_html' => <<<HTML
+<h2 style="margin-top: 0; color: #0f172a; font-size: 21px; font-weight: 800; letter-spacing: -0.01em;">Scrutiny Queue Assignment</h2>
+<p>Dear <strong>{recipient_name}</strong>,</p>
+<p>A new cohort of candidate dossiers has cleared bank fee verification and has been forwarded to the <strong>Standing Scrutiny &amp; Equivalence Committee</strong> for credential vetting.</p>
+
+<div class="data-table-container">
+    <table class="data-table">
+        <tr>
+            <td class="param-label">Target Campaign:</td>
+            <td class="param-val"><strong>{job_title} ({job_code})</strong></td>
+        </tr>
+        <tr>
+            <td class="param-label">Pending Dossiers:</td>
+            <td class="param-val" style="font-weight: 800; color: #f59e0b;">{candidate_count} Candidates</td>
+        </tr>
+        <tr>
+            <td class="param-label">Governing Mandate:</td>
+            <td class="param-val">HEC Equivalence, Division Criteria &amp; Document Adequacy</td>
+        </tr>
+    </table>
+</div>
+
+<p style="margin: 28px 0; text-align: center;">
+    <a href="{scrutiny_url}" class="btn-action">Open Scrutiny Workstation &rarr;</a>
 </p>
 HTML
             ],

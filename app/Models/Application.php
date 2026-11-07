@@ -211,4 +211,138 @@ class Application extends Model
             'summary' => "{$positiveCount}/{$totalSubmitted} positive referee recommendations (Avg: {$avgScore}%). Required: at least {$minPositiveNeeded}/{$requiredCount} positive.",
         ];
     }
+
+    /**
+     * Get candidate visual application journey milestones (Pizza-Tracker UX).
+     */
+    public function getJourneyMilestonesAttribute(): array
+    {
+        $status = strtoupper($this->status ?? 'DRAFT');
+        $ledger = $this->billingLedger;
+        $consumerId = $ledger?->consumer_id ?? 'NOT-GENERATED';
+        $reason = $this->disqualification_reason ?: 'Criteria deficit identified during statutory scrutiny';
+
+        $steps = [];
+
+        // 1. Dossier Submission
+        $submitted = ($status !== 'DRAFT');
+        $steps[] = [
+            'index' => 1,
+            'key' => 'submission',
+            'title' => 'Dossier Submitted',
+            'subtitle' => 'Bio-Data & Credentials Logged',
+            'state' => $submitted ? 'completed' : 'active',
+            'timestamp' => $this->submission_timestamp?->format('d M Y, h:i A') ?: ($submitted ? 'Submitted' : 'In Draft'),
+            'description' => 'Candidate personal bio-data, academic degrees, medals and quota registration logged in recruitment repository.',
+            'badge' => $submitted ? 'COMPLETED' : 'IN DRAFT',
+            'color' => $submitted ? 'emerald' : 'indigo',
+        ];
+
+        // 2. 1Link Fee Voucher Settlement
+        $feePaid = in_array($status, ['PAID', 'ELIGIBLE', 'INELIGIBLE', 'APPEALED', 'UNDER_REVIEW', 'APPROVED', 'REJECTED']);
+        $feePending = ($status === 'SUBMITTED');
+        $steps[] = [
+            'index' => 2,
+            'key' => 'fee',
+            'title' => '1Link Fee Settled',
+            'subtitle' => $feePaid ? 'Payment Reconciled' : '1Link Consumer ID Ready',
+            'state' => $feePaid ? 'completed' : ($feePending ? 'active' : 'pending'),
+            'timestamp' => $feePaid ? ($ledger?->settled_at?->format('d M Y, h:i A') ?: '1Link Verified') : ($feePending ? 'Pending Payment' : 'Voucher Not Generated'),
+            'description' => $feePaid
+                ? "Fee voucher settled via 1Link Switch (Consumer ID: {$consumerId})."
+                : ($feePending ? "Awaiting online payment or bank branch deposit for Consumer ID: {$consumerId}." : 'Fee voucher will be generated upon dossier submission.'),
+            'badge' => $feePaid ? 'SETTLED' : ($feePending ? 'ACTION REQUIRED' : 'UPCOMING'),
+            'color' => $feePaid ? 'emerald' : ($feePending ? 'amber' : 'slate'),
+        ];
+
+        // 3. Statutory Scrutiny Vetting
+        $scrutinyDone = in_array($status, ['ELIGIBLE', 'INELIGIBLE', 'APPEALED', 'APPROVED']);
+        $scrutinyActive = in_array($status, ['PAID', 'UNDER_REVIEW']);
+        $steps[] = [
+            'index' => 3,
+            'key' => 'scrutiny',
+            'title' => 'Scrutiny Vetting',
+            'subtitle' => $scrutinyDone ? 'Vetting Concluded' : ($scrutinyActive ? 'Committee Review Active' : 'Queued for Scrutiny'),
+            'state' => $scrutinyDone ? 'completed' : ($scrutinyActive ? 'active' : 'pending'),
+            'timestamp' => $scrutinyDone ? 'Vetting Concluded' : ($scrutinyActive ? 'In Active Review' : 'Pending Fee Settlement'),
+            'description' => 'Statutory scrutiny committee audits academic degrees, divisions, HEC HJRS journal category compliance and experience equivalence.',
+            'badge' => $scrutinyDone ? 'SCRUTINIZED' : ($scrutinyActive ? 'IN SCRUTINY' : 'UPCOMING'),
+            'color' => $scrutinyDone ? 'emerald' : ($scrutinyActive ? 'indigo' : 'slate'),
+        ];
+
+        // 4. Academic Eligibility & Shortlist
+        $isEligible = in_array($status, ['ELIGIBLE', 'APPROVED']);
+        $isDisqualified = ($status === 'INELIGIBLE');
+        $isAppealed = ($status === 'APPEALED');
+        $steps[] = [
+            'index' => 4,
+            'key' => 'eligibility',
+            'title' => 'Eligibility & Shortlist',
+            'subtitle' => $isEligible ? 'Declared Eligible' : ($isDisqualified ? 'Disqualified (Appealable)' : ($isAppealed ? 'Appeal In Review' : 'Awaiting Verdict')),
+            'state' => $isEligible ? 'completed' : ($isDisqualified ? 'alert' : ($isAppealed ? 'active' : 'pending')),
+            'timestamp' => $isEligible ? 'Declared Eligible' : ($isDisqualified ? 'Disqualified' : ($isAppealed ? 'Appeal Queued' : 'Pending')),
+            'description' => $isEligible
+                ? 'Candidate cleared statutory eligibility benchmarks and shortlisted for Selection Board interview.'
+                : ($isDisqualified
+                    ? "Deficiency flagged: {$reason}. Candidate may lodge a formal grievance appeal."
+                    : ($isAppealed ? 'Formal grievance appeal submitted and under committee adjudication.' : 'Provisional eligibility determination based on scrutiny audit.')),
+            'badge' => $isEligible ? 'SHORTLISTED' : ($isDisqualified ? 'DEFICIENT / APPEALABLE' : ($isAppealed ? 'APPEAL PENDING' : 'UPCOMING')),
+            'color' => $isEligible ? 'emerald' : ($isDisqualified ? 'red' : ($isAppealed ? 'amber' : 'slate')),
+        ];
+
+        // 5. Selection Board Interview
+        $boardDone = ($status === 'APPROVED');
+        $boardActive = ($status === 'ELIGIBLE');
+        $steps[] = [
+            'index' => 5,
+            'key' => 'board',
+            'title' => 'Selection Board',
+            'subtitle' => $boardDone ? 'Grading Finalized' : ($boardActive ? 'Interview Stage' : 'Pending Clearance'),
+            'state' => $boardDone ? 'completed' : ($boardActive ? 'active' : ($status === 'REJECTED' ? 'alert' : 'pending')),
+            'timestamp' => $boardDone ? 'Grading Finalized' : ($boardActive ? 'Call Letter Active' : 'Upcoming'),
+            'description' => $boardDone
+                ? 'Selection Board live evaluation and composite merit scoring successfully concluded.'
+                : ($boardActive ? 'Candidate invited for formal interview assessment and technical grading.' : 'Conducted following publication of official scrutiny merit lists.'),
+            'badge' => $boardDone ? 'EVALUATED' : ($boardActive ? 'ACTIVE INTERVIEW' : 'UPCOMING'),
+            'color' => $boardDone ? 'emerald' : ($boardActive ? 'purple' : 'slate'),
+        ];
+
+        // 6. Syndicate Concurrence & Appointment
+        $syndicateDone = ($status === 'APPROVED');
+        $steps[] = [
+            'index' => 6,
+            'key' => 'syndicate',
+            'title' => 'Syndicate Concurrence',
+            'subtitle' => $syndicateDone ? 'Appointment Approved' : 'Statutory Ratification',
+            'state' => $syndicateDone ? 'completed' : 'pending',
+            'timestamp' => $syndicateDone ? 'Approved by Syndicate' : 'Pending Final Board',
+            'description' => $syndicateDone
+                ? 'Apex University Syndicate has concurred and confirmed the appointment offer.'
+                : 'Final statutory sanction by the University Syndicate and issuance of formal offer letter.',
+            'badge' => $syndicateDone ? 'APPOINTED' : 'UPCOMING',
+            'color' => $syndicateDone ? 'emerald' : 'slate',
+        ];
+
+        return $steps;
+    }
+
+    /**
+     * Compute current journey progress percentage (0 - 100) and active step index (1 - 6).
+     */
+    public function getJourneyProgressAttribute(): array
+    {
+        $status = strtoupper($this->status ?? 'DRAFT');
+
+        return match ($status) {
+            'DRAFT' => ['step' => 1, 'percent' => 10, 'label' => 'Application in Draft', 'type' => 'info'],
+            'SUBMITTED' => ['step' => 2, 'percent' => 25, 'label' => 'Pending 1Link Fee Payment', 'type' => 'warning'],
+            'PAID', 'UNDER_REVIEW' => ['step' => 3, 'percent' => 50, 'label' => 'Under Statutory Scrutiny', 'type' => 'primary'],
+            'APPEALED' => ['step' => 4, 'percent' => 60, 'label' => 'Grievance Appeal Under Review', 'type' => 'warning'],
+            'INELIGIBLE' => ['step' => 4, 'percent' => 60, 'label' => 'Deficiency Flagged / Disqualified', 'type' => 'danger'],
+            'ELIGIBLE' => ['step' => 5, 'percent' => 80, 'label' => 'Shortlisted for Selection Board', 'type' => 'secondary'],
+            'APPROVED' => ['step' => 6, 'percent' => 100, 'label' => 'Syndicate Concurrence Granted', 'type' => 'success'],
+            'REJECTED' => ['step' => 5, 'percent' => 80, 'label' => 'Selection Concluded', 'type' => 'danger'],
+            default => ['step' => 1, 'percent' => 15, 'label' => 'In Process', 'type' => 'info'],
+        };
+    }
 }

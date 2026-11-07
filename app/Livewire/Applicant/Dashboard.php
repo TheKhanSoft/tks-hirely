@@ -33,6 +33,14 @@ class Dashboard extends Component
     // Filter for applications table
     public $statusFilter = 'ALL';
 
+    // Active Application for Journey Tracker
+    public $activeJourneyAppId = null;
+
+    public function selectJourneyApp($appId)
+    {
+        $this->activeJourneyAppId = (int) $appId;
+    }
+
     public function setStatusFilter($filter)
     {
         $this->statusFilter = $filter;
@@ -301,10 +309,22 @@ class Dashboard extends Component
             }
         }
 
+        $activeJourneyApplication = null;
+        if ($allApplications->isNotEmpty()) {
+            if ($this->activeJourneyAppId) {
+                $activeJourneyApplication = $allApplications->firstWhere('id', $this->activeJourneyAppId);
+            }
+            if (!$activeJourneyApplication) {
+                $activeJourneyApplication = $allApplications->first();
+                $this->activeJourneyAppId = $activeJourneyApplication->id;
+            }
+        }
+
         return view('livewire.applicant.dashboard', [
             'basicInfo' => $basicInfo,
             'applications' => $filteredApplications,
             'allApplications' => $allApplications,
+            'activeJourneyApplication' => $activeJourneyApplication,
             'appliedCampaignIds' => $appliedCampaignIds,
             'availableCampaigns' => $availableCampaigns,
             'applicantYears' => $applicantYears,

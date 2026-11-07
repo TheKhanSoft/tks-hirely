@@ -47,6 +47,7 @@ class ApplicationVerification extends Component
         $this->applicationId = $id;
         $this->application = Application::with([
             'user.basicInfo.degrees',
+            'user.basicInfo.experiences',
             'user.basicInfo.medals',
             'user.basicInfo.publications',
             'user.basicInfo.events',
@@ -264,6 +265,15 @@ class ApplicationVerification extends Component
         return redirect()->to($redirectUrl);
     }
 
+    public function copyHecFindingsToRemarks()
+    {
+        abort_unless(Auth::user()->can('scrutinize-application') || Auth::user()->can('change-application-status'), 403);
+        $hecCompliance = \App\Services\HecStatutoryCalculatorService::evaluateCandidateCompliance($this->application);
+        $this->disqualification_reason = $hecCompliance['summary_text'];
+        $this->showDisqualificationModal = true;
+        session()->flash('hec_notice', 'HEC Scrutiny findings successfully populated into remarks.');
+    }
+
     public function render()
     {
         $academicEvaluation = \App\Services\AcademicEligibilityEvaluator::evaluateCandidate(
@@ -271,8 +281,13 @@ class ApplicationVerification extends Component
             $this->application->campaign
         );
 
+        $hecCompliance = \App\Services\HecStatutoryCalculatorService::evaluateCandidateCompliance(
+            $this->application
+        );
+
         return view('livewire.admin.application-verification', [
             'academicEvaluation' => $academicEvaluation,
+            'hecCompliance' => $hecCompliance,
         ])->layout('layouts.app');
     }
 }

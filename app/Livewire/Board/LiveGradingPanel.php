@@ -124,6 +124,19 @@ class LiveGradingPanel extends Component
         }
     }
 
+    public function adjustScore(float $delta)
+    {
+        $new = floatval($this->interview_score) + $delta;
+        $this->interview_score = max(0, min(50, round($new, 1)));
+        $this->checkOutlier();
+    }
+
+    public function setQuickScore(float $score)
+    {
+        $this->interview_score = max(0, min(50, round($score, 1)));
+        $this->checkOutlier();
+    }
+
     public function saveEvaluation()
     {
         abort_unless(Auth::user()->can('submit-board-score') || Auth::user()->can('evaluate-application'), 403);

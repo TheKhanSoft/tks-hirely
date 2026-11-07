@@ -317,78 +317,13 @@
             $hasEligible = $allApplications->whereIn('status', ['ELIGIBLE', 'APPROVED'])->count() > 0;
             $hasApproved = $allApplications->where('status', 'APPROVED')->count() > 0;
         @endphp
-        <div class="card">
-            <div class="flex justify-between align-center mb-2">
-                <div>
-                    <h3 class="card-title" style="font-size: 1.05rem;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"/>
-                            <polyline points="12 6 12 12 16 14"/>
-                        </svg>
-                        University Recruitment Lifecycle Pipeline
-                    </h3>
-                    <p class="card-subtitle">Transparent tracking of your candidacy through institutional scrutiny gates.</p>
-                </div>
-
-                <div class="flex align-center gap-2">
-                    <span class="status-beacon">
-                        <span class="beacon-dot"></span>
-                        Live Portal Status
-                    </span>
-                </div>
-            </div>
-
-            <div class="lifecycle-tracker">
-                <!-- Step 1: Dossier Setup -->
-                <div class="lifecycle-step completed">
-                    <div class="lifecycle-node">✓</div>
-                    <span class="lifecycle-label">1. Candidate Dossier</span>
-                </div>
-                <div class="lifecycle-connector filled"></div>
-
-                <!-- Step 2: Submission & Challan -->
-                <div class="lifecycle-step {{ $hasSubmitted ? 'completed' : 'active' }}">
-                    <div class="lifecycle-node">
-                        @if($hasSubmitted) ✓ @else 2 @endif
-                    </div>
-                    <span class="lifecycle-label">2. Campaign Voucher</span>
-                </div>
-                <div class="lifecycle-connector {{ $hasPaid ? 'filled' : '' }}"></div>
-
-                <!-- Step 3: 1Link Fee Settle -->
-                <div class="lifecycle-step {{ $hasPaid ? 'completed' : ($hasSubmitted ? 'active' : '') }}">
-                    <div class="lifecycle-node">
-                        @if($hasPaid) ✓ @else 3 @endif
-                    </div>
-                    <span class="lifecycle-label">3. 1Link Settlement</span>
-                </div>
-                <div class="lifecycle-connector {{ $hasEligible ? 'filled' : '' }}"></div>
-
-                <!-- Step 4: Scrutiny Committee -->
-                <div class="lifecycle-step {{ $hasEligible ? 'completed' : ($hasPaid ? 'active' : '') }}">
-                    <div class="lifecycle-node">
-                        @if($hasEligible) ✓ @else 4 @endif
-                    </div>
-                    <span class="lifecycle-label">4. Scrutiny Desk</span>
-                </div>
-                <div class="lifecycle-connector {{ $hasApproved ? 'filled' : '' }}"></div>
-
-                <!-- Step 5: Selection Board -->
-                <div class="lifecycle-step {{ $hasApproved ? 'completed' : ($hasEligible ? 'active' : '') }}">
-                    <div class="lifecycle-node">
-                        @if($hasApproved) ✓ @else 5 @endif
-                    </div>
-                    <span class="lifecycle-label">5. Selection Board</span>
-                </div>
-                <div class="lifecycle-connector {{ $hasApproved ? 'filled' : '' }}"></div>
-
-                <!-- Step 6: Final Merit & Appointment -->
-                <div class="lifecycle-step {{ $hasApproved ? 'active' : '' }}">
-                    <div class="lifecycle-node">6</div>
-                    <span class="lifecycle-label">6. Appointment</span>
-                </div>
-            </div>
-        </div>
+        @if($activeJourneyApplication)
+            <x-candidate-journey-tracker 
+                :application="$activeJourneyApplication" 
+                :allApplications="$allApplications" 
+                :currencySymbol="$currencySymbol" 
+            />
+        @endif
 
         <!-- ============================================================== -->
         <!-- ACTIVE APPLICATIONS & VOUCHERS TABLE                           -->
@@ -553,6 +488,18 @@
                                 </td>
                                 <td>
                                     <div class="flex gap-2 align-center">
+                                        <!-- Visual Journey Tracker Selector Button -->
+                                        <button type="button" 
+                                                class="btn {{ ($activeJourneyAppId == $app->id) ? 'btn-primary' : 'btn-secondary' }} btn-sm" 
+                                                wire:click="selectJourneyApp({{ $app->id }})" 
+                                                title="View Visual Milestone Journey for this Application">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <circle cx="12" cy="12" r="10"/>
+                                                <polyline points="12 6 12 12 16 14"/>
+                                            </svg>
+                                            <span>Track</span>
+                                        </button>
+
                                         <!-- Print Official Application Form Button -->
                                         <a href="{{ route('application.print', ['id' => $app->id, 'view' => 'candidate']) }}" 
                                            target="_blank" 

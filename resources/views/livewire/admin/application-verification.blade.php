@@ -63,6 +63,148 @@
             @endif
         </div>
 
+        <!-- ============================================================== -->
+        <!-- ⚡ HEC HJRS JOURNAL & STATUTORY EXPERIENCE CALCULATOR ASSISTANT -->
+        <!-- ============================================================== -->
+        @if(isset($hecCompliance))
+            <div class="card mb-4" style="border: 1.5px solid {{ $hecCompliance['is_compliant'] ? 'rgba(16,185,129,0.35)' : 'rgba(239,68,68,0.35)' }}; background: linear-gradient(135deg, var(--bg-card), {{ $hecCompliance['is_compliant'] ? 'rgba(16,185,129,0.04)' : 'rgba(239,68,68,0.04)' }}); padding: 1.35rem 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 0.65rem;">
+                        <span style="width: 32px; height: 32px; border-radius: 8px; background: {{ $hecCompliance['is_compliant'] ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)' }}; color: {{ $hecCompliance['is_compliant'] ? 'var(--success)' : 'var(--danger)' }}; display: flex; align-items: center; justify-content: center;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
+                                <path d="M6 6h10"/>
+                                <path d="M6 10h10"/>
+                            </svg>
+                        </span>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--color-text-primary); margin: 0;">
+                                    HEC Statutory Criteria &amp; Journal Calculator
+                                </h3>
+                                <span class="badge" style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: 0.72rem; font-weight: 800;">
+                                    {{ str_replace('_', ' ', $hecCompliance['target_rank']) }}
+                                </span>
+                            </div>
+                            <span style="font-size: 0.78rem; color: var(--color-text-secondary);">
+                                Automatic statutory pre-screening against Pakistan Higher Education Commission benchmarks.
+                            </span>
+                        </div>
+                    </div>
+
+                    <div>
+                        @if($hecCompliance['is_compliant'])
+                            <span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-size: 0.78rem; font-weight: 800; padding: 0.35rem 0.75rem;">
+                                ✓ STATUTORY COMPLIANT
+                            </span>
+                        @else
+                            <span class="badge" style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-size: 0.78rem; font-weight: 800; padding: 0.35rem 0.75rem;">
+                                ✕ CRITERIA DEFICIENT ({{ count($hecCompliance['deficiencies']) }})
+                            </span>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- 4 Statutory Metric Counter Cards -->
+                @php
+                    $pub = $hecCompliance['publication_metrics'];
+                    $exp = $hecCompliance['experience_metrics'];
+                @endphp
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; margin-bottom: 1.15rem;">
+                    <!-- HEC Recognized Publications -->
+                    <div style="background: var(--bg-card-solid); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem; text-align: center;">
+                        <span style="font-size: 0.68rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 700; letter-spacing: 0.04em;">HEC HJRS Journals</span>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; font-weight: 900; color: var(--primary); margin: 0.2rem 0 0.15rem;">
+                            {{ $pub['hec_recognized_total'] }}
+                        </div>
+                        <span style="font-size: 0.7rem; color: var(--color-text-secondary); font-weight: 600;">
+                            W: {{ $pub['w_category'] }} &bull; X: {{ $pub['x_category'] }} &bull; Y: {{ $pub['y_category'] }}
+                        </span>
+                    </div>
+
+                    <!-- 5-Year Publications -->
+                    <div style="background: var(--bg-card-solid); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem; text-align: center;">
+                        <span style="font-size: 0.68rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 700; letter-spacing: 0.04em;">Last 5 Years</span>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; font-weight: 900; color: var(--secondary); margin: 0.2rem 0 0.15rem;">
+                            {{ $pub['last_5_years'] }}
+                        </div>
+                        <span style="font-size: 0.7rem; color: var(--color-text-secondary); font-weight: 600;">
+                            Recent Papers
+                        </span>
+                    </div>
+
+                    <!-- Post-Terminal Experience -->
+                    <div style="background: var(--bg-card-solid); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem; text-align: center;">
+                        <span style="font-size: 0.68rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 700; letter-spacing: 0.04em;">Post-Terminal Exp</span>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; font-weight: 900; color: var(--warning); margin: 0.2rem 0 0.15rem;">
+                            {{ $exp['post_terminal_years'] }} <span style="font-size: 0.75rem;">Yrs</span>
+                        </div>
+                        <span style="font-size: 0.7rem; color: var(--color-text-secondary); font-weight: 600;">
+                            Total: {{ $exp['total_years'] }} Yrs
+                        </span>
+                    </div>
+
+                    <!-- Lead Author Papers -->
+                    <div style="background: var(--bg-card-solid); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem; text-align: center;">
+                        <span style="font-size: 0.68rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 700; letter-spacing: 0.04em;">Lead Authorships</span>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; font-weight: 900; color: #a855f7; margin: 0.2rem 0 0.15rem;">
+                            {{ $pub['first_or_corr_authors'] }}
+                        </div>
+                        <span style="font-size: 0.7rem; color: var(--color-text-secondary); font-weight: 600;">
+                            1st / Corr. Author
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Criteria Checklist Table -->
+                <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem 1rem; margin-bottom: 1rem;">
+                    <div style="font-size: 0.76rem; font-weight: 800; text-transform: uppercase; color: var(--color-text-muted); letter-spacing: 0.05em; margin-bottom: 0.6rem;">
+                        Statutory Benchmark Verification Audit:
+                    </div>
+                    <div class="flex-col gap-2">
+                        @foreach($hecCompliance['checks'] as $chk)
+                            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.84rem; gap: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 0.35rem;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    @if($chk['status'] === 'PASS')
+                                        <span style="color: var(--success); font-weight: 800; font-size: 0.95rem;">✓</span>
+                                    @else
+                                        <span style="color: var(--danger); font-weight: 800; font-size: 0.95rem;">✕</span>
+                                    @endif
+                                    <strong style="color: var(--color-text-primary);">{{ $chk['label'] }}:</strong>
+                                    <span style="color: var(--color-text-secondary);">{{ $chk['detail'] }}</span>
+                                </div>
+                                <span class="badge {{ $chk['status'] === 'PASS' ? 'badge-emerald' : 'badge-red' }}" style="font-size: 0.68rem; font-weight: 800; padding: 0.15rem 0.45rem;">
+                                    {{ $chk['status'] }}
+                                </span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- 1-Click Copy Action & Flash Feedback -->
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                    <div>
+                        @if(session()->has('hec_notice'))
+                            <span style="color: var(--success); font-size: 0.82rem; font-weight: 700;">
+                                ✓ {{ session('hec_notice') }}
+                            </span>
+                        @endif
+                    </div>
+
+                    <button type="button" 
+                            wire:click="copyHecFindingsToRemarks" 
+                            class="btn btn-secondary btn-sm"
+                            style="font-size: 0.8rem; font-weight: 800; display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.95rem; background: var(--bg-surface); border-color: var(--border-color);">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                        </svg>
+                        <span>Copy HEC Audit to Scrutiny Remarks</span>
+                    </button>
+                </div>
+            </div>
+        @endif
+
         <!-- 1. Bio-Data Checklist -->
         <div class="card mb-4">
             <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">

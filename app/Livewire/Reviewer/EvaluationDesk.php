@@ -72,6 +72,16 @@ class EvaluationDesk extends Component
         $this->resetErrorBag();
     }
 
+    public function setQuickScore(float $score)
+    {
+        $this->overall_score = max(0, min(100, round($score, 1)));
+    }
+
+    public function setQuickRecommendation(string $rec)
+    {
+        $this->recommendation = $rec;
+    }
+
     public function submitEvaluation()
     {
         abort_unless(Auth::user()->can('evaluate-academic-dossier') || Auth::user()->hasAnyRole(['academic-reviewer', 'reviewer', 'super-admin']), 403);

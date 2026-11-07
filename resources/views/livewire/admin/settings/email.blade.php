@@ -365,28 +365,40 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
             <div>
                 <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">SMS Gateway Provider</label>
-                <select wire:model="sms_provider" class="form-control" style="font-weight: 600;">
+                <select wire:model.live="sms_provider" class="form-control" style="font-weight: 600;">
                     <option value="twilio">Twilio Cloud Communications</option>
-                    <option value="zong">Zong Corporate Bulk SMS Gateway</option>
-                    <option value="telenor">Telenor Corporate Messaging</option>
-                    <option value="generic_webhook">Generic HTTP Webhook / REST API</option>
+                    <option value="telenor">Telenor Corporate Messaging (QuickSMS)</option>
+                    <option value="jazz">Jazz Business SMS Gateway</option>
+                    <option value="zong">Zong Corporate Bulk Gateway</option>
+                    <option value="generic_rest">Generic HTTP Webhook / REST API</option>
+                    <option value="log">Local Sandbox Logger (Testing / Dev)</option>
                 </select>
             </div>
 
             <div>
                 <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">Alphanumeric Sender ID / Mask</label>
                 <input type="text" wire:model="sms_sender_id" class="form-control" style="font-weight: 700;" placeholder="AWKUM-HR">
-                <div style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 0.25rem;">Max 11 chars PTA-registered brand mask</div>
+                <div style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 0.25rem;">Max 11 chars PTA-registered brand mask (or Twilio Phone Number)</div>
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">API Key / Authentication Secret</label>
-                <input type="password" wire:model="sms_api_key" class="form-control" placeholder="••••••••••••••••">
+                <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">API Key / Username / SID</label>
+                <input type="text" wire:model="sms_api_key" class="form-control" placeholder="API Key or Account SID">
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">Gateway Endpoint URL</label>
-                <input type="text" wire:model="sms_api_url" class="form-control" placeholder="https://api.gateway.com/v1/sms/send">
+                <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">API Secret / Auth Token / Password</label>
+                <input type="password" wire:model="sms_api_secret" class="form-control" placeholder="••••••••••••••••">
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">Account Username / Corporate ID</label>
+                <input type="text" wire:model="sms_username" class="form-control" placeholder="Corporate Account / Username">
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">Gateway Custom Endpoint URL</label>
+                <input type="text" wire:model="sms_api_url" class="form-control" placeholder="Leave blank for provider default endpoint">
             </div>
         </div>
 
@@ -431,8 +443,8 @@
             </div>
             @if(session()->has('test_sms_status'))
                 @php $smsStatus = session('test_sms_status'); @endphp
-                <div style="margin-top: 0.75rem; font-size: 0.82rem; font-weight: 700; color: var(--success);">
-                    ✅ {{ $smsStatus['message'] }}
+                <div style="margin-top: 0.75rem; font-size: 0.82rem; font-weight: 700; color: {{ ($smsStatus['type'] ?? 'success') === 'success' ? 'var(--success)' : 'var(--danger)' }};">
+                    {{ ($smsStatus['type'] ?? 'success') === 'success' ? '✅' : '❌' }} {{ $smsStatus['message'] }}
                 </div>
             @endif
         </div>

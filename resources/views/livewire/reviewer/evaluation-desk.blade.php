@@ -228,43 +228,68 @@
                     </div>
 
                     <!-- Reviewer Evaluation Form -->
-                    <div class="card" style="border-color: var(--secondary-glow); background: rgba(6, 182, 212, 0.04); padding: 1.5rem;">
+                    <div class="card eval-form-card" style="border-color: var(--secondary-glow); background: rgba(6, 182, 212, 0.04); padding: 1.5rem;">
                         <h4 style="color: var(--color-text-primary); font-size: 1.05rem; font-weight: 800; margin-bottom: 1rem;">
-                            📝 Your Confidential Peer Review & Recommendation
+                            📝 Your Confidential Peer Review &amp; Recommendation
                         </h4>
 
                         <form wire:submit.prevent="submitEvaluation">
-                            <div class="grid grid-cols-2 gap-4 mb-4">
-                                <x-input label="Overall Academic Suitability Score (0 - 100) *" :error="$errors->first('overall_score')">
-                                    <input type="number" step="0.1" min="0" max="100" class="form-control" wire:model="overall_score" placeholder="e.g. 85.0">
-                                </x-input>
+                            <div class="grid grid-cols-2 gap-4 mb-4 eval-grid-responsive">
+                                <div>
+                                    <x-input label="Overall Academic Suitability Score (0 - 100) *" :error="$errors->first('overall_score')">
+                                        <input type="number" step="0.1" min="0" max="100" class="form-control" wire:model="overall_score" placeholder="e.g. 85.0" style="font-size: 1.25rem; font-weight: 800; font-family: 'JetBrains Mono', monospace;">
+                                    </x-input>
 
-                                <x-select label="Final Expert Recommendation *" :error="$errors->first('recommendation')">
-                                    <select class="form-control form-select" wire:model="recommendation">
-                                        <option value="">-- Choose Recommendation --</option>
-                                        <option value="STRONGLY_RECOMMENDED">Strongly Recommended (Exceptional Credentials)</option>
-                                        <option value="RECOMMENDED">Recommended (Meets all Criteria)</option>
-                                        <option value="CONDITIONALLY_RECOMMENDED">Conditionally Recommended</option>
-                                        <option value="NOT_RECOMMENDED">Not Recommended (Criteria Deficit)</option>
-                                    </select>
-                                </x-select>
+                                    <!-- Quick Score Chips for Tablets & Phones -->
+                                    <div style="margin-top: 0.5rem;">
+                                        <span style="font-size: 0.7rem; color: var(--color-text-muted); font-weight: 700; text-transform: uppercase;">Quick Preset:</span>
+                                        <div style="display: flex; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.25rem;">
+                                            @foreach([60, 70, 75, 80, 85, 90, 95, 100] as $qScore)
+                                                <button type="button" 
+                                                        wire:click="setQuickScore({{ $qScore }})" 
+                                                        class="quick-eval-chip {{ (float)$overall_score == (float)$qScore ? 'active' : '' }}">
+                                                    {{ $qScore }}
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <x-select label="Final Expert Recommendation *" :error="$errors->first('recommendation')">
+                                        <select class="form-control form-select" wire:model="recommendation" style="font-weight: 700;">
+                                            <option value="">-- Choose Recommendation --</option>
+                                            <option value="STRONGLY_RECOMMENDED">Strongly Recommended (Exceptional)</option>
+                                            <option value="RECOMMENDED">Recommended (Meets Criteria)</option>
+                                            <option value="CONDITIONALLY_RECOMMENDED">Conditionally Recommended</option>
+                                            <option value="NOT_RECOMMENDED">Not Recommended (Criteria Deficit)</option>
+                                        </select>
+                                    </x-select>
+
+                                    <!-- Quick 1-Tap Recommendation Buttons for Mobile -->
+                                    <div style="margin-top: 0.5rem; display: flex; gap: 0.35rem; flex-wrap: wrap;">
+                                        <button type="button" wire:click="setQuickRecommendation('STRONGLY_RECOMMENDED')" class="btn btn-sm" style="font-size: 0.72rem; padding: 0.25rem 0.55rem; {{ $recommendation === 'STRONGLY_RECOMMENDED' ? 'background: #10b981; color: #fff; border-color: #10b981;' : 'background: var(--bg-surface); color: var(--color-text-secondary); border: 1px solid var(--border-color);' }}">Strongly Rec</button>
+                                        <button type="button" wire:click="setQuickRecommendation('RECOMMENDED')" class="btn btn-sm" style="font-size: 0.72rem; padding: 0.25rem 0.55rem; {{ $recommendation === 'RECOMMENDED' ? 'background: #06b6d4; color: #fff; border-color: #06b6d4;' : 'background: var(--bg-surface); color: var(--color-text-secondary); border: 1px solid var(--border-color);' }}">Recommend</button>
+                                        <button type="button" wire:click="setQuickRecommendation('NOT_RECOMMENDED')" class="btn btn-sm" style="font-size: 0.72rem; padding: 0.25rem 0.55rem; {{ $recommendation === 'NOT_RECOMMENDED' ? 'background: #ef4444; color: #fff; border-color: #ef4444;' : 'background: var(--bg-surface); color: var(--color-text-secondary); border: 1px solid var(--border-color);' }}">Not Rec</button>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="form-group mb-4">
-                                <label class="form-label">Qualitative Expert Evaluation Report * (Min 30 characters)</label>
-                                <textarea class="form-control" rows="5" wire:model="report_text" placeholder="Detail your evaluation of the candidate's research papers, citations, HEC journal compliance, originality, and overall suitability for the academic post..."></textarea>
+                                <label class="form-label" style="font-weight: 700;">Qualitative Expert Evaluation Report * (Min 30 characters)</label>
+                                <textarea class="form-control" rows="4" wire:model="report_text" placeholder="Detail your evaluation of the candidate's research papers, citations, HEC journal compliance, originality, and overall suitability for the academic post..."></textarea>
                                 @error('report_text') <span style="color: var(--danger); font-size: 0.82rem; margin-top: 0.35rem; display: block; font-weight: 500;">{{ $message }}</span> @enderror
                             </div>
 
                             <div class="form-group mb-4">
-                                <label class="form-label">Upload Signed Evaluation Sheet / Formal Letter (Optional, PDF max 5MB)</label>
+                                <label class="form-label" style="font-weight: 700;">Upload Signed Evaluation Sheet / Formal Letter (Optional, PDF max 5MB)</label>
                                 <input type="file" class="form-control" wire:model="evaluation_file">
                                 @error('evaluation_file') <span style="color: var(--danger); font-size: 0.82rem; margin-top: 0.35rem; display: block; font-weight: 500;">{{ $message }}</span> @enderror
                             </div>
 
-                            <div class="flex justify-between align-center" style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                            <div class="flex justify-between align-center" style="border-top: 1px solid var(--border-color); padding-top: 1rem; flex-wrap: wrap; gap: 0.75rem;">
                                 <button type="button" class="btn btn-secondary" wire:click="closeEvalModal">Cancel</button>
-                                <button type="submit" class="btn btn-primary" wire:loading.attr="disabled">
+                                <button type="submit" class="btn btn-primary" wire:loading.attr="disabled" style="font-weight: 800;">
                                     <span wire:loading.remove wire:target="submitEvaluation">Submit Confidential Evaluation Report</span>
                                     <span wire:loading wire:target="submitEvaluation">Transmitting Report...</span>
                                 </button>
@@ -276,3 +301,50 @@
         </div>
     @endif
 </div>
+
+<style>
+/* ==============================================================
+   REVIEWER EVALUATION DESK: MULTI-DEVICE RESPONSIVENESS
+   (PC, Laptop, iPad/Tablet, Smartphone)
+   ============================================================== */
+.quick-eval-chip {
+    padding: 0.25rem 0.55rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-surface);
+    color: var(--color-text-secondary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.quick-eval-chip:hover {
+    border-color: var(--secondary);
+    color: var(--secondary);
+}
+
+.quick-eval-chip.active {
+    background: var(--secondary);
+    color: #fff;
+    border-color: var(--secondary);
+}
+
+@media (max-width: 768px) {
+    .eval-grid-responsive {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    .eval-modal-backdrop {
+        padding: 0.5rem !important;
+    }
+
+    .eval-modal-container {
+        max-height: 98vh !important;
+        height: 98vh !important;
+        border-radius: var(--radius-md) !important;
+    }
+}
+</style>

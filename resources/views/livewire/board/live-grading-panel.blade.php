@@ -228,16 +228,58 @@
                 </div>
             </div>
 
-            <!-- 3. Interview Score -->
-            <div class="form-group mb-6">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                    <label class="form-label" style="margin-bottom: 0; font-size: 0.88rem; font-weight: 700; color: var(--color-text-primary);">
-                        3. Selection Board Interview Assessment Score
-                    </label>
-                    <span style="color: var(--color-text-muted); font-size: 0.78rem; font-weight: 600;">Max: 50 Marks</span>
+            <!-- 3. Interview Score (Multi-Device Touch & Stepper Enhanced) -->
+            <div class="form-group mb-6" style="background: var(--bg-surface); padding: 1.25rem 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                    <div>
+                        <label class="form-label" style="margin-bottom: 0; font-size: 0.95rem; font-weight: 800; color: var(--color-text-primary);">
+                            3. Selection Board Interview Assessment Score
+                        </label>
+                        <div style="font-size: 0.76rem; color: var(--color-text-secondary);">Touch increment buttons or preset chips for instant scoring during live board session</div>
+                    </div>
+                    <span class="badge badge-appealed" style="font-weight: 800; font-size: 0.78rem;">Max: 50.0 Marks</span>
                 </div>
-                <input type="number" step="0.1" class="form-control" wire:model.live="interview_score" style="font-size: 1.6rem; font-weight: 800; color: var(--secondary); font-family: 'JetBrains Mono', monospace;">
-                @error('interview_score') <span style="color: var(--danger); font-size: 0.82rem; margin-top: 0.25rem; display: block;">{{ $message }}</span> @enderror
+
+                <!-- Touch Increment Controls & Big Display -->
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 0.35rem;">
+                        <button type="button" class="btn btn-secondary stepper-btn" wire:click="adjustScore(-5)" title="Deduct 5 marks">-5</button>
+                        <button type="button" class="btn btn-secondary stepper-btn" wire:click="adjustScore(-1)" title="Deduct 1 mark">-1</button>
+                    </div>
+
+                    <div style="flex: 1; min-width: 140px;">
+                        <input type="number" 
+                               step="0.1" 
+                               min="0" 
+                               max="50" 
+                               class="form-control" 
+                               wire:model.live="interview_score" 
+                               style="font-size: 1.85rem; font-weight: 900; text-align: center; color: var(--secondary); font-family: 'JetBrains Mono', monospace; padding: 0.5rem; letter-spacing: -0.02em;">
+                    </div>
+
+                    <div style="display: flex; gap: 0.35rem;">
+                        <button type="button" class="btn btn-secondary stepper-btn" wire:click="adjustScore(1)" title="Add 1 mark">+1</button>
+                        <button type="button" class="btn btn-secondary stepper-btn" wire:click="adjustScore(5)" title="Add 5 marks">+5</button>
+                    </div>
+                </div>
+
+                <!-- Quick Preset Score Chips (Rapid 1-Tap Grading for Tablets & Phones) -->
+                <div>
+                    <span style="font-size: 0.72rem; color: var(--color-text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.4rem;">
+                        Quick Scoring Presets:
+                    </span>
+                    <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                        @foreach([25, 30, 35, 38, 40, 42, 45, 48, 50] as $preset)
+                            <button type="button" 
+                                    wire:click="setQuickScore({{ $preset }})"
+                                    class="quick-score-chip {{ (float)$interview_score == (float)$preset ? 'active' : '' }}">
+                                {{ $preset }}
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                @error('interview_score') <span style="color: var(--danger); font-size: 0.82rem; margin-top: 0.5rem; display: block; font-weight: 600;">{{ $message }}</span> @enderror
             </div>
 
             <!-- REAL-TIME OUTLIER ALERT SYSTEM -->
@@ -270,8 +312,8 @@
                 </div>
             @endif
 
-            <!-- Form Actions -->
-            <div class="flex gap-4" style="border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+            <!-- Form Actions (Desktop / Standard) -->
+            <div class="flex gap-4 desktop-action-bar" style="border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
                 <button type="submit" class="btn btn-success" style="flex: 1; padding: 0.85rem; font-size: 1rem; font-weight: 700;">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="20 6 9 17 4 12"/>
@@ -283,6 +325,96 @@
                 </a>
             </div>
 
+            <!-- Sticky Bottom Mobile & Tablet Action Bar -->
+            <div class="board-sticky-mobile-bar">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;">
+                    <div>
+                        <div style="font-size: 0.72rem; color: var(--color-text-muted); font-weight: 700; text-transform: uppercase;">Total Merit</div>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.25rem; font-weight: 900; color: var(--color-text-primary);">
+                            {{ number_format($totalCompositeScore, 1) }} <span style="font-size: 0.7rem; color: var(--color-text-muted);">/100</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success" style="padding: 0.65rem 1.25rem; font-weight: 800; font-size: 0.92rem; display: flex; align-items: center; gap: 0.4rem; box-shadow: 0 4px 12px rgba(16,185,129,0.35);">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        <span>Submit Grading</span>
+                    </button>
+                </div>
+            </div>
+
         </form>
     </div>
 </div>
+
+<style>
+/* ==============================================================
+   MULTI-DEVICE RESPONSIVENESS: SELECTION BOARD LIVE GRADING
+   (PC, Laptop, iPad/Tablet, Smartphone)
+   ============================================================== */
+.stepper-btn {
+    width: 48px;
+    height: 48px;
+    font-size: 1.05rem;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    padding: 0;
+}
+
+.quick-score-chip {
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card-solid);
+    color: var(--color-text-primary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 44px;
+    min-height: 38px;
+}
+
+.quick-score-chip:hover {
+    border-color: var(--secondary);
+    color: var(--secondary);
+}
+
+.quick-score-chip.active {
+    background: var(--secondary);
+    color: #fff;
+    border-color: var(--secondary);
+    box-shadow: 0 2px 8px rgba(6, 182, 212, 0.4);
+}
+
+.board-sticky-mobile-bar {
+    display: none;
+}
+
+/* Tablet & Mobile Screens (iPad Portrait & Smartphones <= 900px) */
+@media (max-width: 900px) {
+    .board-sticky-mobile-bar {
+        display: block;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--bg-card);
+        border-top: 2px solid var(--border-color);
+        padding: 0.75rem 1.25rem;
+        z-index: 999;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(12px);
+    }
+
+    body {
+        padding-bottom: 70px;
+    }
+}
+</style>
