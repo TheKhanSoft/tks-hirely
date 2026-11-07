@@ -21,6 +21,7 @@ use App\Models\PortfolioItem;
 use App\Models\Training;
 use App\Models\Referee;
 use App\Models\SystemSetting;
+use App\Services\MailNotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
@@ -1558,6 +1559,13 @@ class ProfileWizard extends Component
             'amount' => $campaign->application_fee,
             'status' => 'PENDING',
         ]);
+
+        // Dispatch Automated Email Notifications
+        MailNotificationService::triggerVoucherGenerated($application);
+        MailNotificationService::triggerApplicationSubmitted($application);
+        if ($autoLock) {
+            MailNotificationService::triggerProfileLockedConfirmation($application);
+        }
 
         $this->selectedAppId = $application->id;
         $this->challanGenerated = true;

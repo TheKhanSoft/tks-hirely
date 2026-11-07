@@ -12,6 +12,7 @@ use App\Models\ResearchProject;
 use App\Models\WorkExperience;
 use App\Models\Training;
 use App\Models\Patent;
+use App\Services\MailNotificationService;
 use Illuminate\Support\Facades\Auth;
 
 class ApplicationVerification extends Component
@@ -233,6 +234,8 @@ class ApplicationVerification extends Component
             'disqualification_reason' => null
         ]);
 
+        MailNotificationService::triggerScrutinyEligible($this->application);
+
         session()->flash('message', 'Candidate marked as ELIGIBLE successfully.');
         $redirectUrl = auth()->user()->hasRole('scrutiny-committee') ? '/scrutiny/dashboard' : '/admin/dashboard';
         return redirect()->to($redirectUrl);
@@ -258,6 +261,8 @@ class ApplicationVerification extends Component
             'status' => 'INELIGIBLE',
             'disqualification_reason' => $this->disqualification_reason
         ]);
+
+        MailNotificationService::triggerScrutinyIneligible($this->application, $this->disqualification_reason);
 
         session()->flash('message', 'Candidate disqualified and marked as INELIGIBLE. 7-day appellate window has opened.');
         $this->showDisqualificationModal = false;

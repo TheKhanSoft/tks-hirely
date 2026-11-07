@@ -16,6 +16,7 @@ use App\Services\AcademicDisciplineMatcher;
 use App\Services\CountryService;
 use App\Mail\ApplicationAssignedReviewerMail;
 use App\Mail\ReviewerCredentialsMail;
+use App\Services\MailNotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -531,7 +532,7 @@ class ApplicationManagement extends Component
                 ->exists();
 
             if (!$exists) {
-                ApplicationReview::create([
+                $review = ApplicationReview::create([
                     'application_id' => $application->id,
                     'reviewer_id' => $reviewerUserId,
                     'assigned_by' => Auth::id(),
@@ -554,6 +555,7 @@ class ApplicationManagement extends Component
                         $this->dispatchReviewNotes,
                         url('/reviewer/dashboard')
                     ));
+                    MailNotificationService::triggerReviewerDossierAssigned($review);
                 } catch (\Exception $e) {
                     Log::warning("Could not dispatch review assignment email: " . $e->getMessage());
                 }

@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\ApplicationReview;
 use App\Models\Application;
+use App\Services\MailNotificationService;
 use Illuminate\Support\Facades\Auth;
 
 class EvaluationDesk extends Component
@@ -103,6 +104,8 @@ class EvaluationDesk extends Component
             'status' => 'SUBMITTED',
             'submitted_at' => now(),
         ]);
+
+        MailNotificationService::triggerReviewReportAcknowledged($review);
 
         session()->flash('message', 'Confidential academic peer review report submitted successfully to the Registrar Secretariat.');
 

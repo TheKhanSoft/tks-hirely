@@ -7,6 +7,7 @@ use App\Livewire\Traits\WithDynamicListing;
 use App\Models\Application;
 use App\Models\Advertisement;
 use App\Models\Campaign;
+use App\Services\MailNotificationService;
 use Illuminate\Support\Facades\Auth;
 
 class AppellateReview extends Component
@@ -327,6 +328,12 @@ class AppellateReview extends Component
             'disqualification_reason' => null,
         ]);
 
+        MailNotificationService::triggerAppealDecision(
+            $this->selectedAppeal,
+            'APPROVED_RETURNED_TO_SCRUTINY',
+            'Appeal upheld by the Appellate Committee. Application returned to scrutiny pipeline.'
+        );
+
         session()->flash('message', 'Appeal approved. Candidate status reset to PAID and returned to Scrutiny Pipeline.');
         $this->selectedAppealId = null;
         $this->loadAppeals();
@@ -346,6 +353,12 @@ class AppellateReview extends Component
             'disqualification_reason' => null,
         ]);
 
+        MailNotificationService::triggerAppealDecision(
+            $this->selectedAppeal,
+            'APPROVED_DECLARED_ELIGIBLE',
+            'Appeal upheld by the Appellate Committee. Candidate declared directly ELIGIBLE.'
+        );
+
         session()->flash('message', 'Appeal approved. Candidate status upgraded directly to ELIGIBLE.');
         $this->selectedAppealId = null;
         $this->loadAppeals();
@@ -363,6 +376,12 @@ class AppellateReview extends Component
         $this->selectedAppeal->update([
             'status' => 'REJECTED',
         ]);
+
+        MailNotificationService::triggerAppealDecision(
+            $this->selectedAppeal,
+            'REJECTED',
+            'Appeal reviewed and dismissed by the Statutory Appellate Committee.'
+        );
 
         session()->flash('message', 'Appeal rejected. Candidate status permanently updated to REJECTED.');
         $this->selectedAppealId = null;

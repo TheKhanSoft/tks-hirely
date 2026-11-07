@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\BillingLedger;
 use App\Models\Application;
+use App\Services\MailNotificationService;
 use Illuminate\Support\Facades\Log;
 
 class KuickpayWebhookController extends Controller
@@ -56,6 +57,7 @@ class KuickpayWebhookController extends Controller
                     'status' => 'PAID'
                 ]);
                 Log::info("Application ID {$application->id} status updated to PAID via Webhook.");
+                MailNotificationService::triggerPaymentSettled($application, $ledger);
             }
 
             return response()->json([

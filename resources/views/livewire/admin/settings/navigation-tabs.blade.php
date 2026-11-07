@@ -73,7 +73,7 @@
             'slug' => 'email-templates',
             'url' => $basePrefix . '/settings/email-templates',
             'label' => 'Email Templates & Triggers',
-            'badge' => '32 Templates',
+            'badge' => '36 Templates',
             'subtitle' => 'Email templates & custom desk',
             'color' => '#8b5cf6',
             'bg' => 'rgba(139, 92, 246, 0.12)',
@@ -150,6 +150,34 @@
     </div>
 
     <div class="settings-hero-right">
+        {{-- View Mode Switcher: Bento Hub Grid vs Master Sidebar --}}
+        <div class="settings-view-mode-toggle" style="display: inline-flex; align-items: center; background: var(--bg-surface, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 9999px; padding: 3px; gap: 3px; margin-right: 0.25rem;">
+            <button type="button" 
+                    @click="setViewMode('bento')" 
+                    :class="viewMode === 'bento' ? 'active-view-btn' : 'inactive-view-btn'"
+                    class="view-mode-pill-btn"
+                    title="Bento Hub Grid View">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="7" height="7" x="3" y="3" rx="1.5"/>
+                    <rect width="7" height="7" x="14" y="3" rx="1.5"/>
+                    <rect width="7" height="7" x="14" y="14" rx="1.5"/>
+                    <rect width="7" height="7" x="3" y="14" rx="1.5"/>
+                </svg>
+                <span>Bento Hub</span>
+            </button>
+            <button type="button" 
+                    @click="setViewMode('sidebar')" 
+                    :class="viewMode === 'sidebar' ? 'active-view-btn' : 'inactive-view-btn'"
+                    class="view-mode-pill-btn"
+                    title="Master Sidebar View">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="18" height="18" x="3" y="3" rx="2"/>
+                    <path d="M9 3v18"/>
+                </svg>
+                <span>Master Sidebar</span>
+            </button>
+        </div>
+
         <div class="active-workspace-pill">
             <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: {{ $currentTabInfo['color'] ?? 'var(--primary)' }};"></span>
             <span style="font-size: 0.72rem; color: var(--color-text-muted); font-weight: 700; text-transform: uppercase;">Section:</span>

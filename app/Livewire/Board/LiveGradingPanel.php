@@ -5,6 +5,7 @@ namespace App\Livewire\Board;
 use Livewire\Component;
 use App\Models\Application;
 use App\Models\LiveEvaluation;
+use App\Services\MailNotificationService;
 use Illuminate\Support\Facades\Auth;
 
 class LiveGradingPanel extends Component
@@ -149,7 +150,7 @@ class LiveGradingPanel extends Component
             'outlier_justification.required' => 'As an outlier score (deviating > 25% from panel mean of ' . $this->otherAverage . '), you must provide a written justification.'
         ]);
 
-        LiveEvaluation::updateOrCreate(
+        $evaluation = LiveEvaluation::updateOrCreate(
             [
                 'application_id' => $this->applicationId,
                 'board_member_id' => Auth::id(),
@@ -165,6 +166,8 @@ class LiveGradingPanel extends Component
                 'outlier_justification' => $this->isOutlier ? $this->outlier_justification : null,
             ]
         );
+
+        MailNotificationService::triggerBoardScoresSubmitted($evaluation);
 
         session()->flash('message', 'Candidate evaluation marks submitted successfully.');
         $redirectUrl = auth()->user()->hasRole('selection-board-member') ? '/board/dashboard' : '/admin/dashboard';

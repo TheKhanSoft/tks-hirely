@@ -10,6 +10,7 @@ use App\Models\Application;
 use App\Models\ApplicationReview;
 use App\Mail\ReviewerCredentialsMail;
 use App\Mail\ApplicationAssignedReviewerMail;
+use App\Services\MailNotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -278,6 +279,7 @@ class ReviewerManagement extends Component
                 $profile->university,
                 $loginUrl
             ));
+            MailNotificationService::triggerReviewerInvitation($user, $plainPassword, $profile->subject);
             Log::info("Reviewer credentials email sent to {$user->email} for {$profile->name}");
         } catch (\Exception $e) {
             Log::warning("Could not dispatch reviewer credentials email via SMTP: " . $e->getMessage());
@@ -498,7 +500,7 @@ class ReviewerManagement extends Component
                 ->exists();
 
             if (!$exists) {
-                ApplicationReview::create([
+                $review = ApplicationReview::create([
                     'application_id' => $application->id,
                     'reviewer_id' => $reviewerUserId,
                     'assigned_by' => Auth::id(),
@@ -522,6 +524,7 @@ class ReviewerManagement extends Component
                         $this->reviewNotes,
                         $evalUrl
                     ));
+                    MailNotificationService::triggerReviewerDossierAssigned($review);
                     Log::info("Review assignment email sent to {$reviewerUser->email}");
                 } catch (\Exception $e) {
                     Log::warning("Could not dispatch review assignment email: " . $e->getMessage());

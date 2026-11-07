@@ -141,6 +141,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Universal name accessor alias for compatibility across services and notifications.
+     */
+    public function getNameAttribute(): string
+    {
+        return $this->display_name;
+    }
+
+    /**
      * Get contact or verified WhatsApp phone number across candidate/reviewer profiles.
      */
     public function getContactPhoneAttribute(): ?string

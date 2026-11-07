@@ -131,4 +131,41 @@ class SettingsMasterSidebarNavigationTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Institution Profile & Acronym');
     }
+
+    public function test_bento_hub_grid_and_view_mode_switcher_rendered_in_settings(): void
+    {
+        $this->actingAs($this->admin);
+
+        $response = $this->get('/admin/settings/organization');
+        $response->assertStatus(200);
+
+        // 1. View Mode Switcher Controls
+        $response->assertSee('Bento Hub');
+        $response->assertSee('Master Sidebar');
+        $response->assertSee('hirely_settings_view_mode');
+
+        // 2. Bento Grid 11 Cards
+        $response->assertSee('settingsBentoHub');
+        $response->assertSee('Workflow Pipelines');
+        $response->assertSee('Document Proofs');
+        $response->assertSee('Candidate Policies');
+        $response->assertSee('Academic Benchmarks');
+        $response->assertSee('Institution Profile & Acronym');
+        $response->assertSee('Theme Studio & Design System');
+        $response->assertSee('Contact & Helpdesk');
+        $response->assertSee('Email & Delivery');
+        $response->assertSee('Email Templates & Triggers');
+        $response->assertSee('Security & Access');
+        $response->assertSee('System & Health');
+
+        // 3. Badges
+        $response->assertSee('GATES &amp; QUORUM', false);
+        $response->assertSee('COMPLIANCE');
+        $response->assertSee('INTAKE CONTROLS');
+        $response->assertSee('HEC STANDARDS');
+        $response->assertSee('VISUAL IDENTITY');
+        $response->assertSee('SMTP PROTOCOL');
+        $response->assertSee('2FA &amp; SESSIONS', false);
+        $response->assertSee('DIAGNOSTICS');
+    }
 }

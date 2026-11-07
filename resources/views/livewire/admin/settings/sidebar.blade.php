@@ -92,7 +92,7 @@
                     'slug' => 'email-templates',
                     'url' => $basePrefix . '/settings/email-templates',
                     'label' => 'Email Templates & Triggers',
-                    'badge' => '32 Templates',
+                    'badge' => '36 Templates',
                     'subtitle' => 'Email templates & custom desk',
                     'color' => '#8b5cf6',
                     'bg' => 'rgba(139, 92, 246, 0.12)',

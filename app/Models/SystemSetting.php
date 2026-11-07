@@ -38,6 +38,14 @@ class SystemSetting extends Model
     }
 
     /**
+     * Alias for get() for API consistency.
+     */
+    public static function getValue(string $key, mixed $default = null): mixed
+    {
+        return self::get($key, $default);
+    }
+
+    /**
      * Set a setting value by key.
      */
     public static function set(string $key, mixed $value, ?string $group = null, ?string $type = null, ?string $label = null, ?string $description = null): self

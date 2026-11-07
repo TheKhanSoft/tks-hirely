@@ -7,6 +7,7 @@ use Livewire\Attributes\Url;
 use App\Models\BillingLedger;
 use App\Models\Application;
 use App\Models\Advertisement;
+use App\Services\MailNotificationService;
 use Illuminate\Support\Facades\Auth;
 use App\Livewire\Traits\WithDynamicListing;
 
@@ -218,6 +219,7 @@ class PaymentManagement extends Component
 
         if ($ledger->application) {
             $ledger->application->update(['status' => 'PAID']);
+            MailNotificationService::triggerPaymentSettled($ledger->application, $ledger);
         }
 
         session()->flash('message', "Voucher #{$ledger->consumer_id} marked as SETTLED. Application reconciled to PAID.");

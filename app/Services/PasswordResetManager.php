@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\SecurityAuditLog;
 use App\Mail\AdministrativePasswordResetMail;
+use App\Services\MailNotificationService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
@@ -167,6 +168,7 @@ class PasswordResetManager
                     $includePasswordInEmail
                 ));
                 $emailDispatched = true;
+                MailNotificationService::triggerPasswordReset($targetUser, $plainPassword, $method);
                 Log::info("Administrative password reset email dispatched to {$targetUser->email} via {$method}.");
             } catch (\Throwable $e) {
                 $emailError = $e->getMessage();
