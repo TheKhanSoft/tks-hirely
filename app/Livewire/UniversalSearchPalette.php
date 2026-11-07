@@ -107,6 +107,10 @@ class UniversalSearchPalette extends Component
             $categories['users'] = ['label' => 'User Accounts', 'icon' => 'shield'];
         }
 
+        if ($isSuperAdmin || $isRegistrar || $user->can('manage-settings')) {
+            $categories['settings'] = ['label' => 'Settings & Config', 'icon' => 'settings'];
+        }
+
         return $categories;
     }
 
@@ -870,6 +874,55 @@ class UniversalSearchPalette extends Component
                         'icon' => 'shield',
                         'meta' => 'ID #' . $u->id,
                     ];
+                }
+            }
+        }
+
+        // 10. Settings & Configuration Parameters
+        if ($this->activeCategory === 'all' || $this->activeCategory === 'settings') {
+            if ($isSuperAdmin || $isRegistrar || $user->can('manage-settings')) {
+                $settingsDefinitions = [
+                    ['title' => 'Organization Full Legal Name', 'tab' => 'organization', 'target_id' => 'setting-org-legal-name', 'badge' => 'AWKUM', 'desc' => 'Configure legal title displayed on printed candidate dossiers & official headers', 'kw' => 'name legal title university awkum mardan abdul wali khan'],
+                    ['title' => 'Short Name / Acronym (AWKUM)', 'tab' => 'organization', 'target_id' => 'setting-org-short-name', 'badge' => 'AWKUM', 'desc' => 'University abbreviation powering compact sidebars and breadcrumb pills', 'kw' => 'acronym short name abbreviation awkum branding'],
+                    ['title' => 'Institutional Jurisdiction & Location', 'tab' => 'organization', 'target_id' => 'setting-org-jurisdiction', 'badge' => 'Location', 'desc' => 'Geographic province and headquarters for official document footers', 'kw' => 'location province jurisdiction khyber pakhtunkhwa pakistan'],
+                    ['title' => 'Executing Directorate / Office Name', 'tab' => 'organization', 'target_id' => 'setting-org-directorate', 'badge' => 'Office', 'desc' => 'Administrative office issuing recruitment campaigns (Office of the Registrar)', 'kw' => 'office directorate registrar hr administration'],
+                    ['title' => 'System Currency Symbol & Code', 'tab' => 'organization', 'target_id' => 'setting-org-currency', 'badge' => 'PKR', 'desc' => 'Monetary symbol prefixed to fee vouchers and accounting ledgers', 'kw' => 'currency pkr rs symbol code fee money transaction'],
+                    ['title' => 'Baseline Application Intake Fee', 'tab' => 'organization', 'target_id' => 'setting-org-baseline-fee', 'badge' => 'Fee', 'desc' => 'Standard application challan fee charged per candidate post submission', 'kw' => 'fee baseline intake 3000 challan payment price voucher'],
+                    ['title' => 'Official Letterhead & Seal Studio', 'tab' => 'organization', 'target_id' => 'setting-org-letterhead-studio', 'badge' => 'Dossier', 'desc' => 'Printable header format, campus address, seal and watermark for candidate dossiers', 'kw' => 'letterhead seal logo header address watermark candidate dossier print'],
+                    ['title' => 'Zero 3rd Division Allowed in Career', 'tab' => 'academic-criteria', 'target_id' => 'setting-academic-disallow-3rd-career', 'badge' => 'HEC Rule', 'desc' => 'Disqualifies candidates who hold even a single 3rd Division from Matric to PhD', 'kw' => '3rd division third career zero tolerance matric fsc bs bar disqualify'],
+                    ['title' => 'Disallow 3rd Division in Terminal Degree', 'tab' => 'academic-criteria', 'target_id' => 'setting-academic-disallow-3rd-terminal', 'badge' => 'HEC Rule', 'desc' => 'Requires highest qualifying degree for applied post to be 1st or 2nd Division', 'kw' => 'terminal highest degree third 3rd division disqualify'],
+                    ['title' => 'Disallow Multiple 2nd Divisions', 'tab' => 'academic-criteria', 'target_id' => 'setting-academic-disallow-two-2nd', 'badge' => 'HEC Rule', 'desc' => 'Enforces maximum of one 2nd Division across entire candidate career', 'kw' => '2nd division second multiple one allowed only second divisions'],
+                    ['title' => 'Global Minimum Academic Aggregate %', 'tab' => 'academic-criteria', 'target_id' => 'setting-academic-aggregate-pct', 'badge' => 'Cutoff', 'desc' => 'Baseline marks threshold applied to career qualification records', 'kw' => 'aggregate marks percentage 60 cutoff career qualification'],
+                    ['title' => 'Terminal Degree Minimum CGPA (4.00 Scale)', 'tab' => 'academic-criteria', 'target_id' => 'setting-academic-cgpa', 'badge' => 'CGPA', 'desc' => 'Minimum grade point average on semester transcripts (e.g. 3.00 / 4.00)', 'kw' => 'cgpa 3.00 4.00 terminal gpa semester transcript grade point hec'],
+                    ['title' => 'Statutory Peer Referee Quotas', 'tab' => 'academic-criteria', 'target_id' => 'setting-academic-peer-quotas', 'badge' => 'Quotas', 'desc' => 'Mandatory external peer review dossier quotas by academic rank (TTS/BPS)', 'kw' => 'peer referee quota 3 experts assistant professor lecturer reports'],
+                    ['title' => 'Allow Multiple Applications Across Positions', 'tab' => 'candidate-rules', 'target_id' => 'setting-candidate-multi-app', 'badge' => 'Policy', 'desc' => 'Permits single candidate to apply to multiple distinct posts concurrently', 'kw' => 'multiple applications multi-post active positions intake'],
+                    ['title' => 'Strict Duplicate Application Blocking', 'tab' => 'candidate-rules', 'target_id' => 'setting-candidate-duplicate-block', 'badge' => 'Fraud', 'desc' => 'Hard database constraint blocking duplicate submissions for same job post', 'kw' => 'duplicate block applications same position cnic fraud'],
+                    ['title' => 'Auto-Lock Profile on Voucher Generation', 'tab' => 'candidate-rules', 'target_id' => 'setting-candidate-profile-lock', 'badge' => 'Security', 'desc' => 'Freezes basic info, degrees, and publications once fee voucher is generated', 'kw' => 'auto lock profile voucher tamper freeze degrees'],
+                    ['title' => 'Bank Challan Payment Grace Window (Days)', 'tab' => 'candidate-rules', 'target_id' => 'setting-candidate-grace-period', 'badge' => '1Link', 'desc' => 'Calendar days granted to complete voucher payment before automatic expiry', 'kw' => 'grace period challan days 14 bank expiration window'],
+                    ['title' => 'Scrutiny Committee Gating Stage', 'tab' => 'workflows', 'target_id' => 'setting-pipeline-scrutiny-gate', 'badge' => 'Pipeline', 'desc' => 'Mandatory pre-qualification credential verification before candidate advances', 'kw' => 'scrutiny gate stage committee verification pre-qualification'],
+                    ['title' => 'External Peer Review Stage Gating', 'tab' => 'workflows', 'target_id' => 'setting-pipeline-peer-step', 'badge' => 'Pipeline', 'desc' => 'Confidential research evaluation by external national/international referees', 'kw' => 'peer review external referee stage gating quota evaluation'],
+                    ['title' => 'SMTP Host Server (Mailpit / External)', 'tab' => 'email', 'target_id' => 'setting-email-host', 'badge' => 'SMTP', 'desc' => 'Outgoing mail server host (e.g. 127.0.0.1, mailpit, smtp.gmail.com)', 'kw' => 'host smtp mailpit localhost mail server 127.0.0.1'],
+                    ['title' => 'SMTP Port (1025 Mailpit / 587 TLS / 465 SSL)', 'tab' => 'email', 'target_id' => 'setting-email-port', 'badge' => 'Port', 'desc' => 'Transactional email transmission port for local Mailpit or production SMTP', 'kw' => 'port 1025 587 465 mailpit smtp network tls ssl'],
+                    ['title' => 'Two-Factor Authentication (2FA) Policy', 'tab' => 'security', 'target_id' => 'setting-security-2fa', 'badge' => '2FA', 'desc' => 'Enforce mandatory OTP / Authenticator code verification for staff or all users', 'kw' => '2fa two factor authentication otp mfa mandatory staff security'],
+                    ['title' => 'Idle Session Inactivity Timeout', 'tab' => 'security', 'target_id' => 'setting-security-session-timeout', 'badge' => 'Session', 'desc' => 'Auto-logout minutes for idle operator sessions (Default: 60 mins)', 'kw' => 'session timeout inactivity idle minutes logout'],
+                    ['title' => 'Max Failed Login Attempts (Brute Force)', 'tab' => 'security', 'target_id' => 'setting-security-failed-attempts', 'badge' => 'Brute Force', 'desc' => 'Rate limit threshold before temporary account suspension (Default: 5)', 'kw' => 'failed login attempts rate limit lockout brute force'],
+                ];
+
+                foreach ($settingsDefinitions as $idx => $sDef) {
+                    if (!$hasSearch || str_contains(strtolower($sDef['title'] . ' ' . $sDef['desc'] . ' ' . $sDef['kw']), strtolower($searchTerm))) {
+                        $results[] = [
+                            'id' => 'setting_opt_' . $idx,
+                            'title' => $sDef['title'],
+                            'subtitle' => $sDef['desc'],
+                            'url' => "$baseRoute/settings/{$sDef['tab']}#{$sDef['target_id']}",
+                            'category' => 'Settings & Configuration',
+                            'category_key' => 'settings',
+                            'badge' => $sDef['badge'],
+                            'badge_style' => 'badge-indigo',
+                            'icon' => 'settings',
+                            'meta' => ucfirst(str_replace('-', ' ', $sDef['tab'])),
+                        ];
+                    }
                 }
             }
         }

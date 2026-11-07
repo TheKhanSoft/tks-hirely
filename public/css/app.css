@@ -5149,3 +5149,263 @@ html.light .settings-nav-item.active {
         display: none;
     }
 }
+
+
+/* ==========================================================================
+   Modern Collapsible/Expandable Sidebar Rail & Floating Tooltips
+   ========================================================================== */
+.sidebar {
+    transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform var(--transition);
+}
+
+.main-content {
+    transition: margin-left 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.sidebar-collapsed .sidebar,
+html.sidebar-collapsed .sidebar {
+    width: 74px;
+    padding: 1.25rem 0.65rem;
+}
+
+body.sidebar-collapsed .main-content,
+html.sidebar-collapsed .main-content {
+    margin-left: 74px;
+}
+
+body.sidebar-collapsed .sidebar-brand-wrapper,
+html.sidebar-collapsed .sidebar-brand-wrapper {
+    justify-content: center;
+    padding: 0.45rem 0;
+    margin-bottom: 1.15rem;
+}
+
+body.sidebar-collapsed .sidebar-brand-wrapper > div:last-child,
+html.sidebar-collapsed .sidebar-brand-wrapper > div:last-child {
+    display: none !important;
+}
+
+body.sidebar-collapsed .sidebar-section-title,
+html.sidebar-collapsed .sidebar-section-title {
+    padding: 0.85rem 0 0.35rem;
+    justify-content: center;
+    font-size: 0;
+}
+
+body.sidebar-collapsed .sidebar-section-title::after,
+html.sidebar-collapsed .sidebar-section-title::after {
+    display: none;
+}
+
+body.sidebar-collapsed .sidebar-section-title::before,
+html.sidebar-collapsed .sidebar-section-title::before {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: var(--border-color);
+    border-radius: 9999px;
+}
+
+body.sidebar-collapsed .sidebar-link,
+html.sidebar-collapsed .sidebar-link {
+    justify-content: center;
+    padding: 0.65rem 0;
+    width: 44px;
+    margin: 0 auto;
+    position: relative;
+}
+
+body.sidebar-collapsed .sidebar-link span:not(.sidebar-badge),
+body.sidebar-collapsed .sidebar-link .sidebar-badge,
+html.sidebar-collapsed .sidebar-link span:not(.sidebar-badge),
+html.sidebar-collapsed .sidebar-link .sidebar-badge {
+    display: none !important;
+}
+
+/* Floating Tooltip in Collapsed Rail Mode */
+body.sidebar-collapsed .sidebar-link::after,
+html.sidebar-collapsed .sidebar-link::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: calc(100% + 14px);
+    top: 50%;
+    transform: translateY(-50%) scale(0.92);
+    background: #0f172a;
+    color: #ffffff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.45rem 0.85rem;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    z-index: 1000;
+}
+
+html.light body.sidebar-collapsed .sidebar-link::after,
+html.light.sidebar-collapsed .sidebar-link::after {
+    background: #1e293b;
+    color: #ffffff;
+    border-color: #334155;
+    box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.25);
+}
+
+body.sidebar-collapsed .sidebar-link:hover::after,
+html.sidebar-collapsed .sidebar-link:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) scale(1);
+}
+
+/* Beacon box when collapsed */
+body.sidebar-collapsed .sidebar-status-beacon-box,
+html.sidebar-collapsed .sidebar-status-beacon-box {
+    justify-content: center;
+    padding: 0.65rem 0;
+}
+
+body.sidebar-collapsed .sidebar-status-beacon-box .beacon-status-text,
+html.sidebar-collapsed .sidebar-status-beacon-box .beacon-status-text {
+    display: none !important;
+}
+
+/* Sidebar Collapse Toggle Button */
+.sidebar-collapse-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    color: var(--color-text-secondary);
+    font-size: 0.76rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 0.65rem;
+}
+
+.sidebar-collapse-toggle-btn:hover {
+    background: var(--sidebar-link-hover);
+    color: var(--color-text-primary);
+    border-color: var(--primary);
+}
+
+.sidebar-desktop-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.sidebar-desktop-toggle-btn:hover {
+    background: var(--sidebar-link-hover);
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+body.sidebar-collapsed .sidebar-desktop-toggle-btn svg,
+html.sidebar-collapsed .sidebar-desktop-toggle-btn svg {
+    transform: rotate(180deg);
+}
+
+body.sidebar-collapsed .sidebar-collapse-toggle-btn span,
+html.sidebar-collapsed .sidebar-collapse-toggle-btn span {
+    display: none;
+}
+
+body.sidebar-collapsed .sidebar-collapse-toggle-btn,
+html.sidebar-collapsed .sidebar-collapse-toggle-btn {
+    width: 44px;
+    margin: 0.65rem auto 0;
+    padding: 0.55rem 0;
+}
+
+body.sidebar-collapsed .toggle-icon-collapse,
+html.sidebar-collapsed .toggle-icon-collapse {
+    transform: rotate(180deg);
+}
+
+/* Settings Search Dropdown & Highlight Pulse */
+.settings-search-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+    z-index: 1050;
+    max-height: 380px;
+    overflow-y: auto;
+    padding: 0.45rem;
+}
+
+html.light .settings-search-dropdown {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+}
+
+.settings-search-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+}
+
+.settings-search-item:hover {
+    background: var(--bg-surface);
+    border-color: var(--border-color);
+    transform: translateX(2px);
+}
+
+html.light .settings-search-item:hover {
+    background: #f1f5f9;
+}
+
+@keyframes settingFocusGlow {
+    0% {
+        box-shadow: 0 0 0 0 var(--primary-glow);
+        border-color: var(--primary);
+        outline: 2px solid var(--primary);
+    }
+    50% {
+        box-shadow: 0 0 0 8px var(--primary-glow);
+        border-color: var(--primary);
+        outline: 3px solid var(--primary);
+    }
+    100% {
+        box-shadow: 0 0 0 0 transparent;
+        outline: 0px solid transparent;
+    }
+}
+
+.setting-focus-pulse {
+    animation: settingFocusGlow 1.2s ease-in-out 2 !important;
+    border-color: var(--primary) !important;
+}

@@ -114,7 +114,7 @@
         <div style="display: flex; flex-direction: column; gap: 1rem;">
             
             <!-- 1. Scrutiny Committee Verification Milestone -->
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $enable_scrutiny_step ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
+            <div id="setting-pipeline-scrutiny-gate" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $enable_scrutiny_step ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
                 <div style="max-width: 80%;">
                     <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
                         <span style="font-size: 1.15rem;">📑</span>
@@ -145,7 +145,7 @@
             </div>
 
             <!-- 2. Academic Peer Review Milestone -->
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $enable_peer_review_step ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
+            <div id="setting-pipeline-peer-step" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $enable_peer_review_step ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
                 <div style="max-width: 80%;">
                     <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
                         <span style="font-size: 1.15rem;">🔬</span>

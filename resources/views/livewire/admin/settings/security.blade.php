@@ -111,7 +111,7 @@
         </p>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
-            <div>
+            <div id="setting-security-2fa">
                 <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">
                     Two-Factor Authentication (2FA) Enforcement Policy
                 </label>
@@ -126,7 +126,7 @@
                 </div>
             </div>
 
-            <div>
+            <div id="setting-security-session-timeout">
                 <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">
                     Idle Session Inactivity Timeout (Minutes)
                 </label>
@@ -136,7 +136,7 @@
                 </div>
             </div>
 
-            <div>
+            <div id="setting-security-failed-attempts">
                 <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">
                     Max Consecutive Failed Login Attempts
                 </label>
@@ -146,7 +146,7 @@
                 </div>
             </div>
 
-            <div>
+            <div id="setting-security-lockout-duration">
                 <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">
                     Account Lockout Suspension Duration (Minutes)
                 </label>

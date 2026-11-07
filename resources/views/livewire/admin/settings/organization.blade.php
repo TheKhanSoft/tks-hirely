@@ -102,7 +102,7 @@
             <!-- Full Name & Short Name Grid -->
             <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem;">
                 <!-- 1. Full Legal Name -->
-                <div>
+                <div id="setting-org-legal-name">
                     <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
                         <span>Organization / University Full Legal Name</span>
                         <span style="color: var(--danger);">*</span>
@@ -124,7 +124,7 @@
                 </div>
 
                 <!-- 2. Short Name / Acronym -->
-                <div>
+                <div id="setting-org-short-name">
                     <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
                         <span>Short Name / Acronym</span>
                         <span style="color: var(--danger);">*</span>
@@ -149,7 +149,7 @@
             <!-- Two-Column Grid: Location & Office Title -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem;">
                 <!-- 3. Location / Jurisdiction -->
-                <div>
+                <div id="setting-org-jurisdiction">
                     <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
                         <span>Institutional Jurisdiction / Location</span>
                         <x-help-hint type="inline" 
@@ -169,7 +169,7 @@
                 </div>
 
                 <!-- 4. Directorate / Office Title -->
-                <div>
+                <div id="setting-org-directorate">
                     <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
                         <span>Executing Directorate / Office Name</span>
                         <x-help-hint type="inline" 
@@ -192,7 +192,7 @@
             <!-- Two-Column Grid: Org Type & Sector Label -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem;">
                 <!-- 5. Organizational Sector Structure -->
-                <div>
+                <div id="setting-org-sector-model">
                     <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
                         <span>Organizational Sector / Governance Model</span>
                         <span style="color: var(--danger);">*</span>
@@ -213,7 +213,7 @@
                 </div>
 
                 <!-- 6. Sector / Department Taxonomy Label -->
-                <div>
+                <div id="setting-org-taxonomy-label">
                     <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
                         <span>Academic / Departmental Taxonomy Label</span>
                         <span style="color: var(--danger);">*</span>
@@ -237,7 +237,7 @@
             <!-- Two-Column Grid: Currency Symbol & Default Fee -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem;">
                 <!-- 7. Currency Symbol -->
-                <div>
+                <div id="setting-org-currency">
                     <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
                         <span>System Currency Symbol & Code</span>
                         <span style="color: var(--danger);">*</span>
@@ -258,7 +258,7 @@
                 </div>
 
                 <!-- 8. Default Baseline Application Fee -->
-                <div>
+                <div id="setting-org-baseline-fee">
                     <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
                         <span>Default Baseline Application Intake Fee</span>
                         <span style="color: var(--danger);">*</span>
@@ -302,7 +302,7 @@
     <!-- ========================================================================= -->
     <!-- SECTION 2: OFFICIAL PRINTABLE LETTERHEAD & DOCUMENT HEADER STUDIO         -->
     <!-- ========================================================================= -->
-    <div style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid var(--border-color);">
+    <div id="setting-org-letterhead-studio" style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid var(--border-color);">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
             <div>
                 <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">

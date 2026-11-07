@@ -82,7 +82,7 @@
         <div style="display: flex; flex-direction: column; gap: 1.25rem;">
             
             <!-- 1. Multiple Applications Across Campaigns -->
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $allow_multiple_applications ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
+            <div id="setting-candidate-multi-app" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $allow_multiple_applications ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
                 <div style="max-width: 80%;">
                     <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
                         <span style="font-size: 1.15rem;">🌐</span>
@@ -112,7 +112,7 @@
             </div>
 
             <!-- 2. Prevent Duplicate Applications for Same Position -->
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $prevent_duplicate_campaign_applications ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
+            <div id="setting-candidate-duplicate-block" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $prevent_duplicate_campaign_applications ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
                 <div style="max-width: 80%;">
                     <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
                         <span style="font-size: 1.15rem;">🛡️</span>
@@ -142,7 +142,7 @@
             </div>
 
             <!-- 3. Profile Auto-Lock On Voucher Generation -->
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $auto_lock_profile_on_voucher ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
+            <div id="setting-candidate-profile-lock" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $auto_lock_profile_on_voucher ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
                 <div style="max-width: 80%;">
                     <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
                         <span style="font-size: 1.15rem;">🔒</span>
@@ -172,7 +172,7 @@
             </div>
 
             <!-- 4. Bank Challan Grace Period -->
-            <div style="padding: 1.25rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+            <div id="setting-candidate-grace-period" style="padding: 1.25rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
                     <div style="max-width: 70%;">
                         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">

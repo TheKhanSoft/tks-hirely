@@ -65,10 +65,48 @@ class SettingsMasterSidebarNavigationTest extends TestCase
         $this->assertTrue($posComms < $posGovernance, 'Communications must appear before Platform Governance');
 
         // 2. Verify Search Filter is rendered
-        $response->assertSee('Filter settings...');
+        $response->assertSee('Search settings, CGPA, AWKUM, fees...');
 
         // 3. Verify Active tab state for Organization
         $response->assertSee('Institution Profile & Acronym');
+    }
+
+    public function test_task_grouped_main_navbar_renders_with_collapsible_elements_and_tooltips(): void
+    {
+        $this->actingAs($this->admin);
+
+        $response = $this->get('/admin/dashboard');
+        $response->assertStatus(200);
+
+        // 1. Operational Task Groups
+        $response->assertSee('Campaigns &amp; Intake', false);
+        $response->assertSee('Candidacies &amp; Dossiers', false);
+        $response->assertSee('Statutory Governance', false);
+        $response->assertSee('Administration', false);
+
+        // 2. Collapsible rail toggle buttons
+        $response->assertSee('id="sidebarRailToggle"', false);
+        $response->assertSee('id="sidebarDesktopToggle"', false);
+
+        // 3. Floating Tooltips (data-tooltip)
+        $response->assertSee('data-tooltip="Operations Desk"', false);
+        $response->assertSee('data-tooltip="Candidate Profiles"', false);
+        $response->assertSee('data-tooltip="Academic Reviewers"', false);
+        $response->assertSee('data-tooltip="Settings &amp; Workflows"', false);
+    }
+
+    public function test_universal_search_palette_indexes_deep_settings(): void
+    {
+        $this->actingAs($this->admin);
+
+        Livewire::test(\App\Livewire\UniversalSearchPalette::class)
+            ->set('isOpen', true)
+            ->set('query', 'CGPA')
+            ->assertSee('Terminal Degree Minimum CGPA')
+            ->set('query', 'AWKUM')
+            ->assertSee('Short Name / Acronym (AWKUM)')
+            ->set('query', 'Mailpit')
+            ->assertSee('SMTP Port');
     }
 
     public function test_switching_tabs_in_master_detail_sidebar(): void

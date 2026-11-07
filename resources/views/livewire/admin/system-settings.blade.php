@@ -44,4 +44,26 @@
         </main>
     </div>
 
+    {{-- Hash Anchor Deep-Link Scroll & Highlight Handler --}}
+    <script>
+        (function() {
+            function checkAndHighlightSettingTarget() {
+                if (window.location.hash) {
+                    const targetId = window.location.hash.substring(1);
+                    const el = document.getElementById(targetId);
+                    if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        el.classList.add('setting-focus-pulse');
+                        setTimeout(() => el.classList.remove('setting-focus-pulse'), 2500);
+                    }
+                }
+            }
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                setTimeout(checkAndHighlightSettingTarget, 300);
+            } else {
+                window.addEventListener('DOMContentLoaded', () => setTimeout(checkAndHighlightSettingTarget, 350));
+            }
+            window.addEventListener('hashchange', checkAndHighlightSettingTarget);
+        })();
+    </script>
 </div>

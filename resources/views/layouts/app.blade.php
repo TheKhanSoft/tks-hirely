@@ -48,6 +48,9 @@
             } else {
                 document.documentElement.classList.add('light');
             }
+            if (localStorage.getItem('hirely_sidebar_collapsed') === 'true') {
+                document.documentElement.classList.add('sidebar-collapsed');
+            }
         })();
     </script>
 </head>
@@ -84,11 +87,13 @@
                         $baseRoute = $isRegistrar && !$isSuperAdmin ? '/registrar' : '/admin';
                     @endphp
 
-                    {{-- 1. Operations Menu: Visible based on granular permissions --}}
-                    @if($isSuperAdmin || $isRegistrar || $user->can('view-campaign') || $user->can('view-application') || $user->can('view-basic-info') || $user->can('view-payment') || $user->can('manage-reviewers') || $user->can('tune-constitution'))
-                        <div class="sidebar-section-title">Operations</div>
+                    {{-- 1. CAMPAIGNS & INTAKE --}}
+                    @if($isSuperAdmin || $isRegistrar || $user->can('view-campaign') || $user->can('view-advertisement'))
+                        <div class="sidebar-section-title">Campaigns &amp; Intake</div>
                         @if($isSuperAdmin || $isRegistrar)
-                            <a href="{{ $baseRoute }}/dashboard" class="sidebar-link {{ request()->is('admin/dashboard*') || request()->is('registrar/dashboard*') ? 'active' : '' }}">
+                            <a href="{{ $baseRoute }}/dashboard" 
+                               class="sidebar-link {{ request()->is('admin/dashboard*') || request()->is('registrar/dashboard*') ? 'active' : '' }}"
+                               data-tooltip="Operations Desk">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect width="7" height="9" x="3" y="3" rx="1"/>
                                     <rect width="7" height="5" x="14" y="3" rx="1"/>
@@ -100,7 +105,9 @@
                         @endif
 
                         @if($isSuperAdmin || $isRegistrar || $user->can('view-advertisement') || $user->can('view-campaign'))
-                            <a href="{{ $baseRoute }}/advertisements" class="sidebar-link {{ request()->is('admin/advertisements*') || request()->is('registrar/advertisements*') ? 'active' : '' }}">
+                            <a href="{{ $baseRoute }}/advertisements" 
+                               class="sidebar-link {{ request()->is('admin/advertisements*') || request()->is('registrar/advertisements*') ? 'active' : '' }}"
+                               data-tooltip="Advertisements">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect width="18" height="18" x="3" y="3" rx="2"/>
                                     <path d="M3 9h18"/>
@@ -111,7 +118,9 @@
                         @endif
 
                         @can('view-campaign')
-                            <a href="{{ $baseRoute }}/campaigns" class="sidebar-link {{ request()->is('admin/campaigns*') || request()->is('registrar/campaigns*') ? 'active' : '' }}">
+                            <a href="{{ $baseRoute }}/campaigns" 
+                               class="sidebar-link {{ request()->is('admin/campaigns*') || request()->is('registrar/campaigns*') ? 'active' : '' }}"
+                               data-tooltip="Job Campaigns">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="m3 11 18-5v12L3 14v-3z"/>
                                     <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
@@ -119,40 +128,15 @@
                                 <span>Job Campaigns</span>
                             </a>
                         @endcan
+                    @endif
 
-                        @can('tune-constitution')
-                            <a href="{{ $baseRoute }}/criteria" class="sidebar-link {{ request()->is('admin/criteria*') || request()->is('registrar/criteria*') || request()->is('*/constitutions*') ? 'active' : '' }}">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
-                                    <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
-                                    <path d="M7 21h10"/>
-                                    <path d="M12 3v18"/>
-                                    <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
-                                </svg>
-                                <span>Boards & Constitutions</span>
-                            </a>
-
-                            <a href="{{ $baseRoute }}/pipelines" class="sidebar-link {{ request()->is('*pipeline*') ? 'active' : '' }}">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <polygon points="12 2 2 7 12 12 22 7 12 2"/>
-                                    <polyline points="2 17 12 22 22 17"/>
-                                    <polyline points="2 12 12 17 22 12"/>
-                                </svg>
-                                <span>Recruitment Pipelines</span>
-                            </a>
-                        @endcan
-
-                        @if($isSuperAdmin || $isRegistrar || $user->can('manage-statuses') || $user->can('manage-settings'))
-                            <a href="{{ $baseRoute }}/statuses" class="sidebar-link {{ request()->is('admin/statuses*') || request()->is('registrar/statuses*') ? 'active' : '' }}">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-                                </svg>
-                                <span>Status Lifecycles</span>
-                            </a>
-                        @endif
-
+                    {{-- 2. CANDIDACIES & DOSSIERS --}}
+                    @if($isSuperAdmin || $isRegistrar || $user->can('view-application') || $user->can('view-basic-info') || $user->can('view-payment'))
+                        <div class="sidebar-section-title">Candidacies &amp; Dossiers</div>
                         @can('view-application')
-                            <a href="{{ $baseRoute }}/applications" class="sidebar-link {{ request()->is('admin/applications*') || request()->is('registrar/applications*') ? 'active' : '' }}">
+                            <a href="{{ $baseRoute }}/applications" 
+                               class="sidebar-link {{ request()->is('admin/applications*') || request()->is('registrar/applications*') ? 'active' : '' }}"
+                               data-tooltip="Applications Dossiers">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                                     <polyline points="14 2 14 8 20 8"/>
@@ -164,7 +148,9 @@
                         @endcan
 
                         @can('view-basic-info')
-                            <a href="{{ $baseRoute }}/candidates" class="sidebar-link {{ request()->is('admin/candidates*') || request()->is('registrar/candidates*') ? 'active' : '' }}">
+                            <a href="{{ $baseRoute }}/candidates" 
+                               class="sidebar-link {{ request()->is('admin/candidates*') || request()->is('registrar/candidates*') ? 'active' : '' }}"
+                               data-tooltip="Candidate Profiles">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                                     <circle cx="12" cy="7" r="4"/>
@@ -173,30 +159,10 @@
                             </a>
                         @endcan
 
-                        @can('view-payment')
-                            <a href="{{ $baseRoute }}/payments" class="sidebar-link {{ request()->is('admin/payments*') || request()->is('registrar/payments*') ? 'active' : '' }}">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect width="20" height="14" x="2" y="5" rx="2"/>
-                                    <line x1="2" x2="22" y1="10" y2="10"/>
-                                </svg>
-                                <span>Payments</span>
-                            </a>
-                        @endcan
-
-                        @if(($user->can('manage-reviewers') || $user->can('view-reviewer')) && \App\Models\SystemSetting::isPipelineStepEnabled('peer_review'))
-                            <a href="{{ $baseRoute }}/reviewers" class="sidebar-link {{ request()->is('admin/reviewers*') || request()->is('registrar/reviewers*') ? 'active' : '' }}">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                                    <circle cx="9" cy="7" r="4"/>
-                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                                </svg>
-                                <span>Academic Reviewers</span>
-                            </a>
-                        @endif
-
                         @if($isSuperAdmin || $isRegistrar || $user->can('view-board-roster') || $user->can('view-application'))
-                            <a href="{{ $baseRoute }}/merit-lists" class="sidebar-link {{ request()->is('admin/merit-lists*') || request()->is('registrar/merit-lists*') || request()->is('board/merit-lists*') ? 'active' : '' }}">
+                            <a href="{{ $baseRoute }}/merit-lists" 
+                               class="sidebar-link {{ request()->is('admin/merit-lists*') || request()->is('registrar/merit-lists*') || request()->is('board/merit-lists*') ? 'active' : '' }}"
+                               data-tooltip="Statutory Merit Lists">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
                                     <circle cx="9" cy="7" r="4"/>
@@ -207,13 +173,148 @@
                                 <span>Statutory Merit Lists</span>
                             </a>
                         @endif
+
+                        @can('view-payment')
+                            <a href="{{ $baseRoute }}/payments" 
+                               class="sidebar-link {{ request()->is('admin/payments*') || request()->is('registrar/payments*') ? 'active' : '' }}"
+                               data-tooltip="Fee Payments">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="20" height="14" x="2" y="5" rx="2"/>
+                                    <line x1="2" x2="22" y1="10" y2="10"/>
+                                </svg>
+                                <span>Payments</span>
+                            </a>
+                        @endcan
                     @endif
 
-                    {{-- Administration Menu --}}
-                    @if($isSuperAdmin || $isRegistrar || $user->can('view-user') || $user->can('view-role') || $user->can('view-permission') || $user->can('view-audit-log'))
+                    {{-- 3. STATUTORY GOVERNANCE --}}
+                    @if($isSuperAdmin || $isRegistrar || $user->can('tune-constitution') || $user->can('manage-statuses') || $user->can('manage-reviewers') || $user->can('view-reviewer'))
+                        <div class="sidebar-section-title">Statutory Governance</div>
+                        @can('tune-constitution')
+                            <a href="{{ $baseRoute }}/criteria" 
+                               class="sidebar-link {{ request()->is('admin/criteria*') || request()->is('registrar/criteria*') || request()->is('*/constitutions*') ? 'active' : '' }}"
+                               data-tooltip="Boards &amp; Constitutions">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+                                    <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+                                    <path d="M7 21h10"/>
+                                    <path d="M12 3v18"/>
+                                    <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+                                </svg>
+                                <span>Boards &amp; Constitutions</span>
+                            </a>
+
+                            <a href="{{ $baseRoute }}/pipelines" 
+                               class="sidebar-link {{ request()->is('*pipeline*') ? 'active' : '' }}"
+                               data-tooltip="Recruitment Pipelines">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                                    <polyline points="2 17 12 22 22 17"/>
+                                    <polyline points="2 12 12 17 22 12"/>
+                                </svg>
+                                <span>Recruitment Pipelines</span>
+                            </a>
+                        @endcan
+
+                        @if($isSuperAdmin || $isRegistrar || $user->can('manage-statuses') || $user->can('manage-settings'))
+                            <a href="{{ $baseRoute }}/statuses" 
+                               class="sidebar-link {{ request()->is('admin/statuses*') || request()->is('registrar/statuses*') ? 'active' : '' }}"
+                               data-tooltip="Status Lifecycles">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                                </svg>
+                                <span>Status Lifecycles</span>
+                            </a>
+                        @endif
+
+                        @if(($user->can('manage-reviewers') || $user->can('view-reviewer')) && \App\Models\SystemSetting::isPipelineStepEnabled('peer_review'))
+                            <a href="{{ $baseRoute }}/reviewers" 
+                               class="sidebar-link {{ request()->is('admin/reviewers*') || request()->is('registrar/reviewers*') ? 'active' : '' }}"
+                               data-tooltip="Academic Reviewers">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
+                                <span>Academic Reviewers</span>
+                            </a>
+                        @endif
+                    @endif
+
+                    {{-- 4. COMMITTEE WORKSPACES --}}
+                    @php
+                        $hasCommitteeDesks = (($isSuperAdmin || $isScrutiny || $user->can('scrutinize-application')) && \App\Models\SystemSetting::isPipelineStepEnabled('scrutiny'))
+                            || (($isSuperAdmin || $isBoard || $user->can('access-board-grading') || $user->can('evaluate-application')) && \App\Models\SystemSetting::isPipelineStepEnabled('board_interview'))
+                            || (($isSuperAdmin || $isAppellate || $user->can('view-appeal') || $user->can('process-appeal')) && \App\Models\SystemSetting::isPipelineStepEnabled('appellate'))
+                            || (($isSuperAdmin || $isReviewer || $user->can('evaluate-academic-dossier')) && \App\Models\SystemSetting::isPipelineStepEnabled('peer_review'));
+                    @endphp
+                    @if($hasCommitteeDesks)
+                        <div class="sidebar-section-title">Committee Desks</div>
+
+                        @if(($isSuperAdmin || $isScrutiny || $user->can('scrutinize-application')) && \App\Models\SystemSetting::isPipelineStepEnabled('scrutiny'))
+                            <a href="/scrutiny/dashboard" 
+                               class="sidebar-link {{ request()->is('scrutiny*') ? 'active' : '' }}"
+                               data-tooltip="Scrutiny Queue">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"/>
+                                    <path d="m21 21-4.3-4.3"/>
+                                    <path d="M11 8v6"/>
+                                    <path d="M8 11h6"/>
+                                </svg>
+                                <span>Scrutiny Queue</span>
+                            </a>
+                        @endif
+
+                        @if(($isSuperAdmin || $isBoard || $user->can('access-board-grading') || $user->can('evaluate-application')) && \App\Models\SystemSetting::isPipelineStepEnabled('board_interview'))
+                            <a href="/board/dashboard" 
+                               class="sidebar-link {{ request()->is('board*') ? 'active' : '' }}"
+                               data-tooltip="Board Grading Desk">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                </svg>
+                                <span>Board Grading Desk</span>
+                            </a>
+                        @endif
+
+                        @if(($isSuperAdmin || $isAppellate || $user->can('view-appeal') || $user->can('process-appeal')) && \App\Models\SystemSetting::isPipelineStepEnabled('appellate'))
+                            <a href="/appellate/dashboard" 
+                               class="sidebar-link {{ request()->is('appellate*') || request()->is('admin/appeals*') ? 'active' : '' }}"
+                               data-tooltip="Grievance Appeals">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+                                    <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+                                    <path d="M7 21h10"/>
+                                    <path d="M12 3v18"/>
+                                    <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+                                </svg>
+                                <span>Grievance Appeals</span>
+                            </a>
+                        @endif
+
+                        @if(($isSuperAdmin || $isReviewer || $user->can('evaluate-academic-dossier')) && \App\Models\SystemSetting::isPipelineStepEnabled('peer_review'))
+                            <a href="/reviewer/dashboard" 
+                               class="sidebar-link {{ request()->is('reviewer*') ? 'active' : '' }}"
+                               data-tooltip="Evaluation Desk">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                    <polyline points="10 9 9 9 8 9"/>
+                                </svg>
+                                <span>Evaluation Desk</span>
+                            </a>
+                        @endif
+                    @endif
+
+                    {{-- 5. ADMINISTRATION & SECURITY --}}
+                    @if($isSuperAdmin || $isRegistrar || $user->can('view-user') || $user->can('view-role') || $user->can('view-permission') || $user->can('view-audit-log') || $user->can('manage-settings'))
                         <div class="sidebar-section-title">Administration</div>
                         @can('view-user')
-                            <a href="{{ $baseRoute }}/users" class="sidebar-link {{ request()->is('admin/users*') || request()->is('registrar/users*') ? 'active' : '' }}">
+                            <a href="{{ $baseRoute }}/users" 
+                               class="sidebar-link {{ request()->is('admin/users*') || request()->is('registrar/users*') ? 'active' : '' }}"
+                               data-tooltip="User Accounts">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                                     <circle cx="9" cy="7" r="4"/>
@@ -225,16 +326,20 @@
                         @endcan
 
                         @if($isSuperAdmin || $user->can('view-role') || $user->can('view-permission'))
-                            <a href="{{ $baseRoute }}/roles" class="sidebar-link {{ request()->is('admin/roles*') || request()->is('registrar/roles*') ? 'active' : '' }}">
+                            <a href="{{ $baseRoute }}/roles" 
+                               class="sidebar-link {{ request()->is('admin/roles*') || request()->is('registrar/roles*') ? 'active' : '' }}"
+                               data-tooltip="Roles &amp; Access">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                                 </svg>
-                                <span>Roles & Access</span>
+                                <span>Roles &amp; Access</span>
                             </a>
                         @endif
 
                         @can('view-audit-log')
-                            <a href="{{ $baseRoute }}/audit-logs" class="sidebar-link {{ request()->is('admin/audit-logs*') || request()->is('registrar/audit-logs*') ? 'active' : '' }}">
+                            <a href="{{ $baseRoute }}/audit-logs" 
+                               class="sidebar-link {{ request()->is('admin/audit-logs*') || request()->is('registrar/audit-logs*') ? 'active' : '' }}"
+                               data-tooltip="Security Audit Logs">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                                     <line x1="16" y1="13" x2="8" y2="13"/>
@@ -246,82 +351,33 @@
                         @endcan
 
                         @if($isSuperAdmin || $user->can('manage-settings'))
-                            <a href="{{ $baseRoute }}/settings" class="sidebar-link {{ request()->is('admin/settings*') || request()->is('registrar/settings*') ? 'active' : '' }}">
+                            <a href="{{ $baseRoute }}/settings" 
+                               class="sidebar-link {{ request()->is('admin/settings*') || request()->is('registrar/settings*') ? 'active' : '' }}"
+                               data-tooltip="Settings &amp; Workflows">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <circle cx="12" cy="12" r="3"/>
                                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                                 </svg>
-                                <span>Settings & Workflows</span>
+                                <span>Settings &amp; Workflows</span>
                             </a>
                         @endif
                     @endif
 
-                    {{-- 2. Scrutiny Committee Desk --}}
-                    @if(($isSuperAdmin || $isScrutiny || $user->can('scrutinize-application')) && \App\Models\SystemSetting::isPipelineStepEnabled('scrutiny'))
-                        <div class="sidebar-section-title">Scrutiny Desk</div>
-                        <a href="/scrutiny/dashboard" class="sidebar-link {{ request()->is('scrutiny*') ? 'active' : '' }}">
-                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="11" cy="11" r="8"/>
-                                <path d="m21 21-4.3-4.3"/>
-                                <path d="M11 8v6"/>
-                                <path d="M8 11h6"/>
-                            </svg>
-                            <span>Scrutiny Queue</span>
-                        </a>
-                    @endif
-
-                    {{-- 3. Selection Board Desk --}}
-                    @if(($isSuperAdmin || $isBoard || $user->can('access-board-grading') || $user->can('evaluate-application')) && \App\Models\SystemSetting::isPipelineStepEnabled('board_interview'))
-                        <div class="sidebar-section-title">Selection Board</div>
-                        <a href="/board/dashboard" class="sidebar-link {{ request()->is('board*') ? 'active' : '' }}">
-                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                            </svg>
-                            <span>Board Grading Desk</span>
-                        </a>
-                    @endif
-
-                    {{-- 4. Appellate Committee Desk --}}
-                    @if(($isSuperAdmin || $isAppellate || $user->can('view-appeal') || $user->can('process-appeal')) && \App\Models\SystemSetting::isPipelineStepEnabled('appellate'))
-                        <div class="sidebar-section-title">Appellate Desk</div>
-                        <a href="/appellate/dashboard" class="sidebar-link {{ request()->is('appellate*') || request()->is('admin/appeals*') ? 'active' : '' }}">
-                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
-                                <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
-                                <path d="M7 21h10"/>
-                                <path d="M12 3v18"/>
-                                <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
-                            </svg>
-                            <span>Grievance Appeals</span>
-                        </a>
-                    @endif
-
-                    {{-- 5. Academic Reviewer Peer Review Desk --}}
-                    @if(($isSuperAdmin || $isReviewer || $user->can('evaluate-academic-dossier')) && \App\Models\SystemSetting::isPipelineStepEnabled('peer_review'))
-                        <div class="sidebar-section-title">Peer Review</div>
-                        <a href="/reviewer/dashboard" class="sidebar-link {{ request()->is('reviewer*') ? 'active' : '' }}">
-                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14 2 14 8 20 8"/>
-                                <line x1="16" y1="13" x2="8" y2="13"/>
-                                <line x1="16" y1="17" x2="8" y2="17"/>
-                                <polyline points="10 9 9 9 8 9"/>
-                            </svg>
-                            <span>Evaluation Desk</span>
-                        </a>
-                    @endif
-
-                    {{-- 6. Applicant / Candidate Space --}}
+                    {{-- 6. CANDIDATE SPACE --}}
                     @if($isApplicant)
                         <div class="sidebar-section-title">Candidate Space</div>
-                        <a href="/applicant/dashboard" class="sidebar-link {{ request()->is('applicant/dashboard') ? 'active' : '' }}">
+                        <a href="/applicant/dashboard" 
+                           class="sidebar-link {{ request()->is('applicant/dashboard') ? 'active' : '' }}"
+                           data-tooltip="Candidate Profile">
                             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
                                 <circle cx="12" cy="7" r="4"/>
                             </svg>
                             <span>Candidate Profile</span>
                         </a>
-                        <a href="/applicant/wizard" class="sidebar-link {{ request()->is('applicant/wizard') ? 'active' : '' }}">
+                        <a href="/applicant/wizard" 
+                           class="sidebar-link {{ request()->is('applicant/wizard') ? 'active' : '' }}"
+                           data-tooltip="Application Wizard">
                             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
                                 <path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1Z"/>
@@ -331,10 +387,13 @@
                         </a>
                     @endif
 
-                    {{-- 7. Fintech Sandbox (Admin & Registrar only) --}}
+                    {{-- 7. FINTECH SANDBOX (Admin & Registrar only) --}}
                     @if($isSuperAdmin || $isRegistrar)
                         <div class="sidebar-section-title">Fintech Sandbox</div>
-                        <a href="/bank/simulator" class="sidebar-link {{ request()->is('bank/simulator*') ? 'active' : '' }}" style="border: 1px dashed var(--secondary-glow); color: var(--secondary);">
+                        <a href="/bank/simulator" 
+                           class="sidebar-link {{ request()->is('bank/simulator*') ? 'active' : '' }}" 
+                           style="border: 1px dashed var(--secondary-glow); color: var(--secondary);"
+                           data-tooltip="1Link Simulator">
                             <svg class="nav-icon" style="color: var(--secondary);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect width="20" height="14" x="2" y="5" rx="2"/>
                                 <line x1="2" x2="22" y1="10" y2="10"/>
@@ -344,7 +403,7 @@
                         </a>
                     @endif
                 @else
-                    <a href="/login" class="sidebar-link">
+                    <a href="/login" class="sidebar-link" data-tooltip="Sign In">
                         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
                             <polyline points="10 17 15 12 10 7"/>
@@ -352,7 +411,7 @@
                         </svg>
                         <span>Sign In</span>
                     </a>
-                    <a href="/bank/simulator" class="sidebar-link" style="border: 1px dashed var(--secondary-glow); color: var(--secondary);">
+                    <a href="/bank/simulator" class="sidebar-link" style="border: 1px dashed var(--secondary-glow); color: var(--secondary);" data-tooltip="1Link Simulator">
                         <svg class="nav-icon" style="color: var(--secondary);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect width="20" height="14" x="2" y="5" rx="2"/>
                             <line x1="2" x2="22" y1="10" y2="10"/>
@@ -362,19 +421,35 @@
                 @endauth
             </nav>
 
-            @auth
-                <!-- Sidebar Live Governance Operational Status Beacon -->
-                <div class="sidebar-status-beacon-box">
-                    <div class="beacon-pulse-indicator">
-                        <span class="beacon-pulse-ring"></span>
-                        <span class="beacon-pulse-dot"></span>
+            <div class="sidebar-footer-wrapper" style="margin-top: auto; padding-top: 0.65rem; border-top: 1px solid var(--border-color);">
+                @auth
+                    <!-- Sidebar Live Governance Operational Status Beacon -->
+                    <div class="sidebar-status-beacon-box" data-tooltip="Governance Engine: Operational">
+                        <div class="beacon-pulse-indicator">
+                            <span class="beacon-pulse-ring"></span>
+                            <span class="beacon-pulse-dot"></span>
+                        </div>
+                        <div class="beacon-status-text">
+                            <span class="beacon-status-title">Governance Engine</span>
+                            <span class="beacon-status-sub">Operational • Live Quorum</span>
+                        </div>
                     </div>
-                    <div class="beacon-status-text">
-                        <span class="beacon-status-title">Governance Engine</span>
-                        <span class="beacon-status-sub">Operational • Live Quorum</span>
-                    </div>
-                </div>
-            @endauth
+                @endauth
+
+                <!-- Sidebar Rail Collapse Toggle Button -->
+                <button type="button" 
+                        class="sidebar-collapse-toggle-btn" 
+                        id="sidebarRailToggle" 
+                        title="Toggle Sidebar Rail (Ctrl + B)" 
+                        aria-label="Toggle Sidebar Rail">
+                    <svg class="toggle-icon-collapse" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="18" height="18" x="3" y="3" rx="2"/>
+                        <path d="M9 3v18"/>
+                        <path d="m16 15-3-3 3-3"/>
+                    </svg>
+                    <span>Collapse Rail</span>
+                </button>
+            </div>
         </aside>
 
         <!-- Main Content Wrapper -->
@@ -409,6 +484,15 @@
                     <button type="button" id="sidebarToggle" class="btn btn-secondary btn-sm" style="display: none;" title="Toggle Sidebar">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>
+                        </svg>
+                    </button>
+
+                    <!-- Desktop Sidebar Rail Toggle -->
+                    <button type="button" id="sidebarDesktopToggle" class="sidebar-desktop-toggle-btn" title="Toggle Sidebar Rail (Ctrl + B)" aria-label="Toggle Sidebar Rail">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="18" height="18" x="3" y="3" rx="2"/>
+                            <path d="M9 3v18"/>
+                            <path d="m15 9-3 3 3 3"/>
                         </svg>
                     </button>
 
@@ -679,6 +763,36 @@
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
                 if (localStorage.getItem('theme') === 'system' || !localStorage.getItem('theme')) {
                     applyThemeAndActiveButton('system');
+                }
+            });
+
+            // Desktop Sidebar Rail Collapsible Mode & Persistence
+            function toggleSidebarRail() {
+                const isCollapsed = document.documentElement.classList.toggle('sidebar-collapsed');
+                document.body.classList.toggle('sidebar-collapsed', isCollapsed);
+                localStorage.setItem('hirely_sidebar_collapsed', isCollapsed ? 'true' : 'false');
+            }
+
+            // Sync body class with html class on load
+            if (document.documentElement.classList.contains('sidebar-collapsed')) {
+                document.body.classList.add('sidebar-collapsed');
+            }
+
+            const sidebarRailToggle = document.getElementById('sidebarRailToggle');
+            if (sidebarRailToggle) {
+                sidebarRailToggle.addEventListener('click', toggleSidebarRail);
+            }
+
+            const sidebarDesktopToggle = document.getElementById('sidebarDesktopToggle');
+            if (sidebarDesktopToggle) {
+                sidebarDesktopToggle.addEventListener('click', toggleSidebarRail);
+            }
+
+            // Keyboard Shortcut: Ctrl + B or Cmd + B to toggle sidebar rail
+            window.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) {
+                    e.preventDefault();
+                    toggleSidebarRail();
                 }
             });
 

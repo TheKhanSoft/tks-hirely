@@ -111,7 +111,7 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1rem;">
                 
                 <!-- 1. Disallow Third Division Across Career -->
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem; background: var(--bg-surface); border: 1px solid {{ $global_disallow_third_division ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
+                <div id="setting-academic-disallow-3rd-career" style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem; background: var(--bg-surface); border: 1px solid {{ $global_disallow_third_division ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
                     <div style="max-width: 80%;">
                         <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
                             <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
@@ -141,7 +141,7 @@
                 </div>
 
                 <!-- 2. Disallow Third Division in Terminal / Highest Degree -->
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem; background: var(--bg-surface); border: 1px solid {{ $global_disallow_third_in_terminal ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
+                <div id="setting-academic-disallow-3rd-terminal" style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem; background: var(--bg-surface); border: 1px solid {{ $global_disallow_third_in_terminal ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
                     <div style="max-width: 80%;">
                         <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
                             <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
@@ -171,7 +171,7 @@
                 </div>
 
                 <!-- 3. Maximum Allowed 3rd Divisions -->
-                <div style="padding: 1.15rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                <div id="setting-academic-max-3rd-divisions" style="padding: 1.15rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
                         <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
                             Maximum Permitted 3rd Divisions
@@ -194,7 +194,7 @@
                 </div>
 
                 <!-- 4. Disallow Multiple 2nd Divisions -->
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem; background: var(--bg-surface); border: 1px solid {{ $global_disallow_two_second_divisions ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
+                <div id="setting-academic-disallow-two-2nd" style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem; background: var(--bg-surface); border: 1px solid {{ $global_disallow_two_second_divisions ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
                     <div style="max-width: 80%;">
                         <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
                             <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
@@ -246,7 +246,7 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1.15rem;">
                 
                 <!-- 1. Min Aggregate Percentage -->
-                <div class="card" style="padding: 1.25rem; background: var(--bg-surface); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); transition: all 0.2s ease;">
+                <div id="setting-academic-aggregate-pct" class="card" style="padding: 1.25rem; background: var(--bg-surface); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); transition: all 0.2s ease;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
                             <div style="width: 30px; height: 30px; border-radius: 8px; background: rgba(99,102,241,0.12); color: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: 800; flex-shrink: 0;">
@@ -290,7 +290,7 @@
                 </div>
 
                 <!-- 2. Min Terminal Degree Marks % -->
-                <div class="card" style="padding: 1.25rem; background: var(--bg-surface); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); transition: all 0.2s ease;">
+                <div id="setting-academic-terminal-pct" class="card" style="padding: 1.25rem; background: var(--bg-surface); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); transition: all 0.2s ease;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
                             <div style="width: 30px; height: 30px; border-radius: 8px; background: rgba(14,165,233,0.12); color: #0ea5e9; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: 800; flex-shrink: 0;">
@@ -334,7 +334,7 @@
                 </div>
 
                 <!-- 3. Min Terminal CGPA (HIGHLIGHTED SCALE / 4.00) -->
-                <div class="card" style="padding: 1.25rem; background: var(--bg-surface); border: 1.5px solid {{ (float)$global_min_terminal_cgpa >= 3.0 ? 'rgba(245,158,11,0.5)' : 'var(--border-color)' }}; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); transition: all 0.2s ease;">
+                <div id="setting-academic-cgpa" class="card" style="padding: 1.25rem; background: var(--bg-surface); border: 1.5px solid {{ (float)$global_min_terminal_cgpa >= 3.0 ? 'rgba(245,158,11,0.5)' : 'var(--border-color)' }}; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); transition: all 0.2s ease;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
                             <div style="width: 30px; height: 30px; border-radius: 8px; background: rgba(245,158,11,0.15); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: 800; flex-shrink: 0;">
@@ -392,7 +392,7 @@
         </div>
 
         <!-- SECTION 3: External Peer Reviewer Quotas by Rank -->
-        <div style="margin-bottom: 2rem;">
+        <div id="setting-academic-peer-quotas" style="margin-bottom: 2rem;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                     <span style="font-size: 1.25rem;">👨‍🏫</span>
