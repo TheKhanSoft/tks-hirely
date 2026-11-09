@@ -585,6 +585,26 @@
                                 </x-entity-card-menu-item>
                             @endif
 
+                            @if(\App\Models\SystemSetting::isFeatureEnabled('interview_call_letters'))
+                                <x-entity-card-menu-item 
+                                    label="Issue Interview Call Letter" 
+                                    click="openCallLetterModal({{ $app->id }})">
+                                    <x-slot:icon>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                                    </x-slot:icon>
+                                </x-entity-card-menu-item>
+                                @if($app->hasCallLetterIssued() || $app->status === 'INTERVIEW_SCHEDULED')
+                                    <x-entity-card-menu-item 
+                                        label="Print Official Call Letter (PDF)" 
+                                        href="{{ route('application.call-letter', $app->id) }}"
+                                        target="_blank">
+                                        <x-slot:icon>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                                        </x-slot:icon>
+                                    </x-entity-card-menu-item>
+                                @endif
+                            @endif
+
                             @if($reqReferees > 0 || $app->campaign->track_type === 'ACADEMIC')
                                 @if($canModifyApp)
                                     <x-entity-card-menu-item 
@@ -1639,6 +1659,126 @@
                     </button>
                 </div>
             </div>
+        @endif
+    </x-modal>
+
+    <!-- Statutory Interview Call Letter Generator & Dispatch Modal -->
+    <x-modal :show="$showCallLetterModal" title="Statutory Selection Board Interview Call Letter Generator" closeAction="closeCallLetterModal" style="max-width: 720px; width: 95%;">
+        @if($callLetterApplication)
+            @php
+                $bi = $callLetterApplication->user?->basicInfo;
+                $candName = $bi ? trim($bi->first_name . ' ' . $bi->last_name) : $callLetterApplication->user?->email;
+            @endphp
+            <form wire:submit.prevent="issueCallLetter" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                <!-- Candidate & Post Details Strip -->
+                <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem;">
+                        <div>
+                            <span class="badge badge-indigo" style="font-size: 0.7rem; font-weight: 800;">STATUTORY INTERVIEW SUMMONS</span>
+                            <div style="font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); margin-top: 0.25rem;">
+                                {{ $candName }} ({{ $callLetterApplication->tracking_number }})
+                            </div>
+                            <div style="font-size: 0.82rem; color: var(--color-text-secondary); margin-top: 2px;">
+                                Post: <strong>{{ $callLetterApplication->campaign?->title }}</strong> • {{ $callLetterApplication->campaign?->department?->name ?? 'University Secretariat' }}
+                            </div>
+                        </div>
+
+                        @if($callLetterApplication->hasCallLetterIssued())
+                            <a href="{{ route('application.call-letter', $callLetterApplication->id) }}" 
+                               target="_blank" 
+                               class="btn btn-secondary btn-sm"
+                               style="font-size: 0.78rem; font-weight: 700;">
+                                📄 View Current Call Letter (PDF) ↗
+                            </a>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Scheduling Grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div>
+                        <label style="display: block; font-weight: 800; font-size: 0.85rem; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                            Interview Date <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="date" wire:model="callLetterDate" class="form-control" required style="font-size: 0.88rem;">
+                        @error('callLetterDate') <span style="color: #ef4444; font-size: 0.78rem;">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-weight: 800; font-size: 0.85rem; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                            Reporting Time <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="text" wire:model="callLetterReportingTime" placeholder="e.g. 09:00 AM" class="form-control" required style="font-size: 0.88rem;">
+                        @error('callLetterReportingTime') <span style="color: #ef4444; font-size: 0.78rem;">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-weight: 800; font-size: 0.85rem; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                            Interview Commences <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="text" wire:model="callLetterTime" placeholder="e.g. 10:00 AM" class="form-control" required style="font-size: 0.88rem;">
+                        @error('callLetterTime') <span style="color: #ef4444; font-size: 0.78rem;">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <!-- Venue & Committee Room -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+                    <div>
+                        <label style="display: block; font-weight: 800; font-size: 0.85rem; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                            Venue / Building <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="text" wire:model="callLetterVenue" class="form-control" required style="font-size: 0.88rem;">
+                        @error('callLetterVenue') <span style="color: #ef4444; font-size: 0.78rem;">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-weight: 800; font-size: 0.85rem; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                            Committee Room / Hall <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="text" wire:model="callLetterCommitteeRoom" class="form-control" required style="font-size: 0.88rem;">
+                        @error('callLetterCommitteeRoom') <span style="color: #ef4444; font-size: 0.78rem;">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <!-- Instructions to Candidate -->
+                <div>
+                    <label style="display: block; font-weight: 800; font-size: 0.85rem; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                        Special Instructions &amp; Mandatory Documents
+                    </label>
+                    <textarea wire:model="callLetterInstructions" rows="3" class="form-control" style="font-size: 0.85rem;"></textarea>
+                    <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.25rem;">
+                        Standard instructions regarding original CNIC, degrees, HEC equivalence, and NOC are automatically appended on the printable letterhead.
+                    </div>
+                </div>
+
+                <!-- Dispatch Channels -->
+                <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem 1.15rem;">
+                    <div style="font-weight: 800; font-size: 0.82rem; color: var(--color-text-primary); margin-bottom: 0.5rem; text-transform: uppercase;">
+                        Multi-Channel Summons Dispatch
+                    </div>
+                    <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+                        <label style="display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                            <input type="checkbox" wire:model="callLetterSendEmail">
+                            <span>📧 Send Official Email (with PDF link)</span>
+                        </label>
+                        <label style="display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                            <input type="checkbox" wire:model="callLetterSendSms">
+                            <span>📱 Send Instant SMS Alert</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" wire:click="closeCallLetterModal">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.45rem; font-weight: 800;">
+                        <span wire:loading.remove wire:target="issueCallLetter">Issue &amp; Dispatch Call Letter</span>
+                        <span wire:loading wire:target="issueCallLetter">Generating &amp; Dispatching...</span>
+                    </button>
+                </div>
+            </form>
         @endif
     </x-modal>
 </div>

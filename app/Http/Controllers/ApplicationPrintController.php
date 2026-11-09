@@ -242,7 +242,6 @@ class ApplicationPrintController extends Controller
 
         $application = Application::with([
             'user.basicInfo',
-            'campaign.department',
             'campaign.advertisement',
         ])->findOrFail($id);
 
@@ -257,12 +256,13 @@ class ApplicationPrintController extends Controller
             || $currentUser->can('view-application')
             || $currentUser->can('access-board-grading');
 
-        if ($isApplicant && $application->user_id !== $currentUser->id) {
+        // Security: Non-staff users can ONLY view their own call letter
+        if (!$isStaff && $application->user_id !== $currentUser->id) {
             abort(403, 'You are not authorized to view this candidate call letter.');
         }
 
-        // For applicants, ensure call letter has actually been issued
-        if ($isApplicant && !$application->hasCallLetterIssued() && $application->status !== 'INTERVIEW_SCHEDULED') {
+        // For non-staff candidates, ensure call letter has actually been formally issued
+        if (!$isStaff && !$application->hasCallLetterIssued() && $application->status !== 'INTERVIEW_SCHEDULED') {
             abort(404, 'Interview call letter has not been formally issued for your application yet.');
         }
 

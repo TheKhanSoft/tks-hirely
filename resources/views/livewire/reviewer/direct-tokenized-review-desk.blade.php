@@ -63,7 +63,7 @@
                     </h1>
                     <div style="color: var(--color-text-secondary); font-size: 0.88rem; margin-top: 0.35rem;">
                         <span>Institution: <strong>{{ $orgName }}</strong></span> • 
-                        <span>Department: <strong>{{ $campaign->department?->name ?? 'Academic Faculty' }}</strong></span> •
+                        <span>Department: <strong>{{ $campaign->department ?? 'Academic Faculty' }}</strong></span> •
                         <span>Candidate Tracking: <strong style="font-family: 'JetBrains Mono', monospace;">{{ $app->tracking_number }}</strong></span>
                     </div>
                 </div>

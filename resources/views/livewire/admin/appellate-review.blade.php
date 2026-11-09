@@ -1,4 +1,22 @@
-<div class="split-screen">
+<div>
+@if($isFeatureDisabled)
+    <div class="card mb-6" style="padding: 2.5rem; text-align: center; border-left: 5px solid var(--warning); background: var(--bg-card); box-shadow: var(--shadow-lg); margin: 1.5rem auto; max-width: 900px;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">⚖️</div>
+        <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.5rem;">
+            Grievance Appellate Adjudication Workbench is Currently Disabled
+        </h2>
+        <p style="color: var(--color-text-secondary); max-width: 650px; margin: 0 auto; line-height: 1.6; font-size: 0.95rem;">
+            The digital adjudication desk for reviewing candidate appeals and issuing statutory decrees has been toggled off by university administrators in Workflows Settings.
+        </p>
+        @can('manage-settings')
+            <div style="margin-top: 1.5rem;">
+                <a href="/admin/settings/workflows" class="btn btn-primary" style="font-weight: 700;">Enable Appellate Workbench in Workflows Settings</a>
+            </div>
+        @endcan
+    </div>
+@endif
+
+<div class="split-screen" style="{{ $isFeatureDisabled ? 'opacity: 0.5; pointer-events: none;' : '' }}">
     <!-- Left Pane: Appealed Applications List & Selected Details -->
     <div class="split-left">
         <div class="card mb-4" style="border-color: var(--border-color); box-shadow: var(--shadow-sm);">
@@ -224,6 +242,25 @@
                             </p>
                         </div>
 
+                        <!-- Recorded Decree Details (if decided) -->
+                        @if($selectedAppeal->appeal_decision_remarks)
+                            <div style="background: rgba(16, 185, 129, 0.08); border: 1.5px solid rgba(16, 185, 129, 0.3); padding: 1rem 1.25rem; border-radius: var(--radius-sm);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; flex-wrap: wrap; gap: 0.5rem;">
+                                    <strong style="color: var(--success); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.04em;">
+                                        ⚖️ Recorded Appellate Tribunal Decree
+                                    </strong>
+                                    @if($selectedAppeal->appeal_decided_at)
+                                        <span style="font-size: 0.75rem; color: var(--color-text-muted); font-family: 'JetBrains Mono', monospace;">
+                                            Decided: {{ $selectedAppeal->appeal_decided_at->format('d M Y, h:i A') }}
+                                        </span>
+                                    @endif
+                                </div>
+                                <p style="font-size: 0.9rem; color: var(--color-text-primary); margin: 0; line-height: 1.5;">
+                                    "{{ $selectedAppeal->appeal_decision_remarks }}"
+                                </p>
+                            </div>
+                        @endif
+
                         <!-- Committee Decision Actions -->
                         <div class="flex-col gap-2 mt-2" style="border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
                             <div class="flex justify-between align-center mb-2">
@@ -397,4 +434,5 @@
             </div>
         @endif
     </x-modal>
+</div>
 </div>

@@ -17,6 +17,8 @@ use App\Services\CountryService;
 use App\Mail\ApplicationAssignedReviewerMail;
 use App\Mail\ReviewerCredentialsMail;
 use App\Services\MailNotificationService;
+use App\Services\Sms\SmsGatewayService;
+use App\Models\SecurityAuditLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -148,6 +150,122 @@ class ApplicationManagement extends Component
     {
         $this->showAppointmentLetterModal = false;
         $this->appointmentApplication = null;
+    }
+
+    // =========================================================================
+    // ✉️ DIRECT ACTION 6: STATUTORY INTERVIEW CALL LETTER GENERATOR & DISPATCH
+    // =========================================================================
+    public $showCallLetterModal = false;
+    public $callLetterAppId = null;
+    public $callLetterApplication = null;
+    public $callLetterDate = '';
+    public $callLetterTime = '10:00';
+    public $callLetterReportingTime = '09:00';
+    public $callLetterVenue = 'Main Administration Block, University Secretariat';
+    public $callLetterCommitteeRoom = 'Syndicate & Selection Board Conference Room, 2nd Floor';
+    public $callLetterInstructions = 'Bring original CNIC, degrees, transcripts, NOC (if employed), and publication reprints.';
+    public $callLetterSendEmail = true;
+    public $callLetterSendSms = true;
+
+    public function openCallLetterModal($appId)
+    {
+        abort_unless(Auth::user()->can('change-application-status') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+
+        if (!SystemSetting::isFeatureEnabled('interview_call_letters')) {
+            session()->flash('error', 'Statutory Interview Call Letter module is currently disabled in System Settings.');
+            return;
+        }
+
+        $this->callLetterAppId = $appId;
+        $this->callLetterApplication = Application::with(['user.basicInfo', 'campaign'])->findOrFail($appId);
+
+        $this->callLetterDate = $this->callLetterApplication->interview_date ? $this->callLetterApplication->interview_date->format('Y-m-d') : now()->addDays(7)->format('Y-m-d');
+        $this->callLetterTime = $this->callLetterApplication->interview_time ?: '10:00';
+        $this->callLetterReportingTime = $this->callLetterApplication->interview_reporting_time ?: '09:00';
+        $this->callLetterVenue = $this->callLetterApplication->interview_venue ?: 'Main Administration Block, University Secretariat';
+        $this->callLetterCommitteeRoom = $this->callLetterApplication->interview_committee_room ?: 'Syndicate & Selection Board Conference Room, 2nd Floor';
+        $this->callLetterInstructions = $this->callLetterApplication->interview_instructions ?: 'Bring original CNIC, degrees, transcripts, NOC (if employed), and publication reprints.';
+        $this->callLetterSendEmail = true;
+        $this->callLetterSendSms = true;
+        $this->showCallLetterModal = true;
+    }
+
+    public function closeCallLetterModal()
+    {
+        $this->showCallLetterModal = false;
+        $this->callLetterAppId = null;
+        $this->callLetterApplication = null;
+    }
+
+    public function issueCallLetter()
+    {
+        abort_unless(Auth::user()->can('change-application-status') || Auth::user()->hasAnyRole(['super-admin', 'registrar']), 403);
+
+        if (!SystemSetting::isFeatureEnabled('interview_call_letters')) {
+            session()->flash('error', 'Statutory Interview Call Letter module is currently disabled in System Settings.');
+            return;
+        }
+
+        $this->validate([
+            'callLetterDate' => 'required|date',
+            'callLetterTime' => 'required|string',
+            'callLetterReportingTime' => 'required|string',
+            'callLetterVenue' => 'required|string|max:255',
+            'callLetterCommitteeRoom' => 'required|string|max:255',
+            'callLetterInstructions' => 'nullable|string|max:2000',
+        ]);
+
+        $app = Application::with(['user.basicInfo', 'campaign'])->findOrFail($this->callLetterAppId);
+
+        $targetStatus = in_array($app->status, ['DISQUALIFIED', 'REJECTED']) ? $app->status : 'INTERVIEW_SCHEDULED';
+
+        $app->update([
+            'interview_date' => $this->callLetterDate,
+            'interview_time' => $this->callLetterTime,
+            'interview_reporting_time' => $this->callLetterReportingTime,
+            'interview_venue' => $this->callLetterVenue,
+            'interview_committee_room' => $this->callLetterCommitteeRoom,
+            'interview_instructions' => $this->callLetterInstructions,
+            'interview_call_letter_issued_at' => now(),
+            'status' => $targetStatus,
+        ]);
+
+        // Email Dispatch
+        if ($this->callLetterSendEmail && $app->user?->email) {
+            MailNotificationService::triggerInterviewCall($app, [
+                'date' => \Carbon\Carbon::parse($this->callLetterDate)->format('l, d F Y'),
+                'time' => $this->callLetterTime,
+                'reporting_time' => $this->callLetterReportingTime,
+                'venue' => $this->callLetterVenue . ' (' . $this->callLetterCommitteeRoom . ')',
+                'docs' => $this->callLetterInstructions,
+            ]);
+        }
+
+        // SMS Dispatch
+        $mobile = $app->user?->basicInfo?->mobile_number;
+        if ($this->callLetterSendSms && $mobile) {
+            $smsMsg = "Interview Call: You are scheduled for Selection Board interview for {$app->campaign?->title} on " . \Carbon\Carbon::parse($this->callLetterDate)->format('d-M-Y') . " at {$this->callLetterTime}. Venue: {$this->callLetterVenue}. Download official call letter from your portal.";
+            SmsGatewayService::send($mobile, $smsMsg);
+        }
+
+        SecurityAuditLog::record(
+            'INTERVIEW_CALL_LETTER_ISSUED',
+            'Application',
+            $app->id,
+            [
+                'interview_date' => $this->callLetterDate,
+                'interview_time' => $this->callLetterTime,
+                'candidate' => $app->user?->name,
+                'tracking' => $app->tracking_number,
+                'email_dispatched' => $this->callLetterSendEmail,
+                'sms_dispatched' => $this->callLetterSendSms,
+            ],
+            null,
+            Auth::id()
+        );
+
+        session()->flash('message', "Statutory Interview Call Letter successfully issued and dispatched for candidate {$app->tracking_number}!");
+        $this->closeCallLetterModal();
     }
 
     public function mount()

@@ -34,4 +34,26 @@ class SecurityAuditLog extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+     * Convenient helper to record a security audit entry.
+     */
+    public static function record(
+        string $actionType,
+        string $tableName,
+        $recordId,
+        $stateAfter = null,
+        $stateBefore = null,
+        $userId = null
+    ): self {
+        return self::create([
+            'user_id' => $userId ?: auth()->id(),
+            'ip_address' => request()->ip() ?: '127.0.0.1',
+            'action_type' => $actionType,
+            'table_name' => $tableName,
+            'record_id' => $recordId,
+            'state_before' => is_array($stateBefore) ? $stateBefore : ($stateBefore ? (array) $stateBefore : null),
+            'state_after' => is_array($stateAfter) ? $stateAfter : ($stateAfter ? (array) $stateAfter : null),
+        ]);
+    }
 }

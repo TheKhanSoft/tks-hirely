@@ -1592,7 +1592,24 @@
                                     </div>
                                 </div>
 
-                                <div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                    @if(\App\Models\SystemSetting::isFeatureEnabled('referee_magic_links') && $ar->status !== 'SUBMITTED')
+                                        @php
+                                            $tokenUrl = $ar->getDirectReviewUrl();
+                                        @endphp
+                                        <div x-data="{ copied: false }" style="display: inline-block;">
+                                            <button type="button" 
+                                                    class="btn btn-secondary btn-sm"
+                                                    style="font-size: 0.76rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem;"
+                                                    @click="navigator.clipboard.writeText('{{ $tokenUrl }}'); copied = true; setTimeout(() => copied = false, 2500);"
+                                                    :title="copied ? 'Copied Link!' : 'Copy 1-Click Evaluation Link for Referee'">
+                                                <svg x-show="!copied" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                                                <svg x-show="copied" style="display: none;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.8"><polyline points="20 6 9 17 4 12"/></svg>
+                                                <span x-text="copied ? 'Link Copied!' : 'Copy 1-Click Referee Link'">Copy 1-Click Referee Link</span>
+                                            </button>
+                                        </div>
+                                    @endif
+
                                     @if($ar->status === 'SUBMITTED')
                                         <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--success); font-weight: 800; font-size: 0.8rem; padding: 0.35rem 0.75rem; border: 1px solid rgba(16,185,129,0.3);">
                                             ✓ Report Submitted

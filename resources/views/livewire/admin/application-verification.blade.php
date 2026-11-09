@@ -416,13 +416,35 @@
                         </thead>
                         <tbody>
                             @forelse($application->user->basicInfo?->publications ?? [] as $pub)
+                                @php
+                                    $hjrs = \App\Services\HecHjrsJournalService::verifyPublication($pub);
+                                @endphp
                                 <tr>
                                     <td><strong>{{ $pub->title }}</strong></td>
-                                    <td>{{ $pub->journal_name }} <br><small style="color: var(--color-text-secondary)">ISSN: {{ $pub->issn_print }}</small></td>
                                     <td>
-                                        <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary);">
-                                            {{ $pub->hjrs_category }} (IF: {{ $pub->impact_factor }})
-                                        </span>
+                                        {{ $pub->journal_name }}
+                                        @if($pub->issn_print)
+                                            <br><small style="color: var(--color-text-secondary); font-family: 'JetBrains Mono', monospace;">ISSN: {{ $pub->issn_print }}</small>
+                                        @endif
+                                        @if(!empty($hjrs['warning']))
+                                            <div style="font-size: 0.74rem; color: #ef4444; font-weight: 700; margin-top: 2px;">
+                                                ⚠️ {{ $hjrs['warning'] }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($hjrs['enabled'])
+                                            <span class="badge {{ $hjrs['is_predatory'] ? 'badge-rose' : ($hjrs['category'] === 'W' ? 'badge-emerald' : ($hjrs['category'] === 'X' ? 'badge-indigo' : ($hjrs['category'] === 'Y' ? 'badge-cyan' : 'badge-slate'))) }}" style="font-size: 0.72rem; font-weight: 800;">
+                                                {{ $hjrs['badge_text'] }}
+                                            </span>
+                                            @if(!empty($hjrs['impact_factor']))
+                                                <small style="display: block; color: var(--color-text-secondary); font-size: 0.72rem; margin-top: 2px;">IF: {{ $hjrs['impact_factor'] }}</small>
+                                            @endif
+                                        @else
+                                            <span class="badge" style="background: rgba(6,182,212,0.12); color: var(--secondary);">
+                                                {{ $pub->hjrs_category }} (IF: {{ $pub->impact_factor }})
+                                            </span>
+                                        @endif
                                     </td>
                                     <td style="text-align: right;">
                                         <button type="button" class="btn {{ $pub->is_verified ? 'btn-success' : 'btn-secondary' }}" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;"

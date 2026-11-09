@@ -55,6 +55,22 @@ class BasicInfo extends Model
     }
 
     /**
+     * Candidate Full Name Accessor.
+     */
+    public function getFullNameAttribute(): string
+    {
+        return trim(($this->first_name ?? '') . ' ' . ($this->last_name ?? ''));
+    }
+
+    /**
+     * CNIC or Passport Number Alias.
+     */
+    public function getCnicPassportAttribute(): ?string
+    {
+        return $this->cnic_number;
+    }
+
+    /**
      * Academic medals ledger.
      */
     public function medals(): HasMany

@@ -31,6 +31,8 @@ use App\Livewire\Board\LiveGradingPanel;
 use App\Livewire\Board\Dashboard as BoardDashboard;
 use App\Livewire\Scrutiny\Dashboard as ScrutinyDashboard;
 use App\Livewire\Bank\PaymentSimulator;
+use App\Http\Controllers\Api\HecHjrsApiController;
+use App\Livewire\Reviewer\DirectTokenizedReviewDesk;
 
 // Role-Based Root Redirect Logic (Supports both full titles and concise aliases)
 Route::get('/', function () {
@@ -69,6 +71,12 @@ Route::post('/api/webhooks/kuickpay', [KuickpayWebhookController::class, 'handle
 
 // Public Sandbox Bank Simulator
 Route::get('/bank/simulator', PaymentSimulator::class);
+
+// Public / Internal HEC HJRS Journal ISSN Lookup & Predatory Detection REST API
+Route::get('/api/hjrs/lookup', [HecHjrsApiController::class, 'lookup'])->name('api.hjrs.lookup');
+
+// Passwordless External Academic Referee Direct Evaluation Desk
+Route::get('/referee/direct-review/{token}', DirectTokenizedReviewDesk::class)->name('referee.direct-review');
 
 // Protected role-based workflows
 Route::middleware('auth')->group(function () {

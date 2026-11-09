@@ -403,7 +403,7 @@
             </div>
 
             <div class="confidential-stamp">
-                STATUTORY<br>SUMMONS
+                STATUTORY SUMMONS
             </div>
         </div>
 
@@ -453,7 +453,7 @@
         <div class="body-text">
             <p>Dear Candidate,</p>
             <p style="margin-top: 0.5rem;">
-                With reference to your application for the post of <strong>{{ $campaign?->title ?? 'Advertised Position' }}</strong> in the <strong>{{ $campaign?->department?->name ?? 'University Academic / Administrative Cadre' }}</strong>, you are hereby informed that after formal scrutiny and statutory preliminary screening, you have been shortlisted to appear for an interview before the <strong>Statutory Selection Board</strong>.
+                With reference to your application for the post of <strong>{{ $campaign?->title ?? 'Advertised Position' }}</strong> in the <strong>{{ $campaign?->department ?? 'University Academic / Administrative Cadre' }}</strong>, you are hereby informed that after formal scrutiny and statutory preliminary screening, you have been shortlisted to appear for an interview before the <strong>Statutory Selection Board</strong>.
             </p>
             <p style="margin-top: 0.5rem;">
                 You are accordingly advised to appear in person before the Selection Board strictly according to the following schedule:

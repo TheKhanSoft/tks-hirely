@@ -53,7 +53,7 @@ class DirectTokenizedReviewDesk extends Component
             'application.user.basicInfo.publications',
             'application.user.basicInfo.researchProjects',
             'application.user.basicInfo.patents',
-            'application.campaign.department',
+            'application.campaign',
             'reviewer.reviewerProfile',
         ])->where('access_token', $token)->first();
 

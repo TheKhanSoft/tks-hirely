@@ -7,7 +7,10 @@ use App\Livewire\Traits\WithDynamicListing;
 use App\Models\Application;
 use App\Models\Advertisement;
 use App\Models\Campaign;
+use App\Models\SecurityAuditLog;
+use App\Models\SystemSetting;
 use App\Services\MailNotificationService;
+use App\Services\Sms\SmsGatewayService;
 use Illuminate\Support\Facades\Auth;
 
 class AppellateReview extends Component
@@ -186,30 +189,92 @@ class AppellateReview extends Component
 
     public function executeAppellateDecree()
     {
-        abort_unless(Auth::user()->can('process-appeal'), 403);
+        abort_unless(Auth::user()->can('process-appeal') || Auth::user()->hasAnyRole(['super-admin', 'registrar', 'appellate-committee']), 403);
+
+        if (!SystemSetting::isFeatureEnabled('appellate_workbench')) {
+            session()->flash('error', 'Grievance Appellate Adjudication Workbench is currently disabled by university administration.');
+            return;
+        }
 
         if (!$this->selectedAppeal) {
             return;
         }
 
+        $app = $this->selectedAppeal;
+        $orderNotes = trim($this->statutoryOrderNotes) ?: 'Statutory decree issued by Appellate Committee.';
+        $deciderId = Auth::id();
+        $decidedAt = now();
+
         if ($this->resolutionType === 'ELIGIBLE') {
-            $this->selectedAppeal->update([
+            $app->update([
                 'status' => 'ELIGIBLE',
                 'disqualification_reason' => null,
+                'appeal_decision_remarks' => $orderNotes,
+                'appeal_decided_by' => $deciderId,
+                'appeal_decided_at' => $decidedAt,
             ]);
+
+            MailNotificationService::triggerAppealDecision(
+                $app,
+                'APPROVED_DECLARED_ELIGIBLE',
+                $orderNotes
+            );
+
             session()->flash('message', 'Formal Appellate Decree Issued: Candidate restored to ELIGIBLE.');
         } elseif ($this->resolutionType === 'PAID') {
-            $this->selectedAppeal->update([
+            $app->update([
                 'status' => 'PAID',
                 'disqualification_reason' => null,
+                'appeal_decision_remarks' => $orderNotes,
+                'appeal_decided_by' => $deciderId,
+                'appeal_decided_at' => $decidedAt,
             ]);
+
+            MailNotificationService::triggerAppealDecision(
+                $app,
+                'APPROVED_RETURNED_TO_SCRUTINY',
+                $orderNotes
+            );
+
             session()->flash('message', 'Formal Appellate Remand: Candidate remanded to PAID for re-scrutiny.');
         } elseif ($this->resolutionType === 'REJECTED') {
-            $this->selectedAppeal->update([
+            $app->update([
                 'status' => 'REJECTED',
+                'appeal_decision_remarks' => $orderNotes,
+                'appeal_decided_by' => $deciderId,
+                'appeal_decided_at' => $decidedAt,
             ]);
+
+            MailNotificationService::triggerAppealDecision(
+                $app,
+                'REJECTED',
+                $orderNotes
+            );
+
             session()->flash('message', 'Formal Appellate Decree: Appeal dismissed and candidacy marked REJECTED.');
         }
+
+        // Candidate SMS Notification
+        $mobile = $app->user?->basicInfo?->mobile_number;
+        if ($mobile) {
+            $smsMsg = "Appellate Decision: Your statutory appeal for {$app->campaign?->title} has been decided ({$this->resolutionType}). Please check candidate portal for official decree.";
+            SmsGatewayService::send($mobile, $smsMsg);
+        }
+
+        // Security Audit Log
+        SecurityAuditLog::record(
+            'APPELLATE_DECREE_EXECUTED',
+            'Application',
+            $app->id,
+            [
+                'decree' => $this->resolutionType,
+                'remarks' => $orderNotes,
+                'candidate' => $app->user?->name,
+                'tracking' => $app->tracking_number,
+            ],
+            null,
+            $deciderId
+        );
 
         $this->closeResolutionModal();
         $this->selectedAppealId = null;
@@ -401,6 +466,7 @@ class AppellateReview extends Component
         return view('livewire.admin.appellate-review', [
             'campaigns' => $campaigns,
             'advertisements' => $advertisements,
+            'isFeatureDisabled' => !SystemSetting::isFeatureEnabled('appellate_workbench'),
         ])->layout('layouts.app');
     }
 }
