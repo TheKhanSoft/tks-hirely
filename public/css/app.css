@@ -5257,6 +5257,8 @@ html.sidebar-collapsed .sidebar-section-title {
     padding: 0.85rem 0 0.35rem;
     justify-content: center;
     font-size: 0;
+    cursor: pointer;
+    pointer-events: auto;
 }
 
 body.sidebar-collapsed .sidebar-section-title::after,
@@ -5302,7 +5304,7 @@ html.sidebar-collapsed .sidebar-link::after {
     position: fixed;
     top: 0;
     left: 0;
-    transform: translate3d(0, -50%, 0) scale(0.92);
+    transform: translate3d(-5px, -50%, 0) scale(0.95);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
@@ -5338,20 +5340,43 @@ html.sidebar-collapsed .sidebar-link::after {
 }
 
 html.light .sidebar-rail-tooltip {
-    background: #1e293b;
+    background: #0f172a;
     color: #ffffff;
-    border-color: #334155;
-    box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.25), 0 3px 10px rgba(15, 23, 42, 0.12);
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.35), 0 3px 10px rgba(15, 23, 42, 0.18);
 }
 
 html.light .sidebar-rail-tooltip::before {
-    border-right-color: #1e293b;
+    border-right-color: #0f172a;
 }
 
 .sidebar-rail-tooltip.show {
     opacity: 1;
     visibility: visible;
     transform: translate3d(0, -50%, 0) scale(1);
+}
+
+/* Topbar header tooltip variation */
+.sidebar-rail-tooltip.topbar-tooltip {
+    transform: translate3d(-50%, -4px, 0) scale(0.95);
+}
+
+.sidebar-rail-tooltip.topbar-tooltip.show {
+    transform: translate3d(-50%, 0, 0) scale(1);
+}
+
+.sidebar-rail-tooltip.topbar-tooltip::before {
+    left: 50%;
+    top: -5px;
+    transform: translateX(-50%);
+    border-top: none;
+    border-right: 5px solid transparent;
+    border-left: 5px solid transparent;
+    border-bottom: 5px solid #0f172a;
+}
+
+html.light .sidebar-rail-tooltip.topbar-tooltip::before {
+    border-bottom-color: #0f172a;
 }
 
 .sidebar-desktop-toggle-btn {

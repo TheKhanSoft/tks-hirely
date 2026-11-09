@@ -58,6 +58,9 @@
     $themeVars = \App\Models\SystemSetting::getThemeVariables();
 @endphp
 <body class="theme-density-{{ $themeVars['density'] }} theme-radius-{{ $themeVars['radiusStyle'] }} theme-elevation-{{ $themeVars['elevation'] }}">
+    <!-- Global Floating Rail Tooltip -->
+    <div id="sidebarRailTooltip" class="sidebar-rail-tooltip" role="tooltip" aria-hidden="true"></div>
+
     <div class="app-layout">
         <!-- Sidebar Navigation Drawer -->
         <aside class="sidebar sidebar-{{ $themeVars['sidebarStyle'] }}" id="appSidebar">
@@ -102,7 +105,7 @@
 
                     {{-- 1. CAMPAIGNS & INTAKE --}}
                     @if($isSuperAdmin || $isRegistrar || $user->can('view-campaign') || $user->can('view-advertisement'))
-                        <div class="sidebar-section-title">Campaigns &amp; Intake</div>
+                        <div class="sidebar-section-title" data-tooltip="Section: Campaigns &amp; Intake">Campaigns &amp; Intake</div>
                         @if($isSuperAdmin || $isRegistrar)
                             <a href="{{ $baseRoute }}/dashboard" 
                                class="sidebar-link {{ request()->is('admin/dashboard*') || request()->is('registrar/dashboard*') ? 'active' : '' }}"
@@ -145,7 +148,7 @@
 
                     {{-- 2. CANDIDACIES & DOSSIERS --}}
                     @if($isSuperAdmin || $isRegistrar || $user->can('view-application') || $user->can('view-basic-info') || $user->can('view-payment'))
-                        <div class="sidebar-section-title">Candidacies &amp; Dossiers</div>
+                        <div class="sidebar-section-title" data-tooltip="Section: Candidacies &amp; Dossiers">Candidacies &amp; Dossiers</div>
                         @can('view-application')
                             <a href="{{ $baseRoute }}/applications" 
                                class="sidebar-link {{ request()->is('admin/applications*') || request()->is('registrar/applications*') ? 'active' : '' }}"
@@ -202,7 +205,7 @@
 
                     {{-- 3. STATUTORY GOVERNANCE --}}
                     @if($isSuperAdmin || $isRegistrar || $user->can('tune-constitution') || $user->can('manage-statuses') || $user->can('manage-reviewers') || $user->can('view-reviewer'))
-                        <div class="sidebar-section-title">Statutory Governance</div>
+                        <div class="sidebar-section-title" data-tooltip="Section: Statutory Governance">Statutory Governance</div>
                         @can('tune-constitution')
                             <a href="{{ $baseRoute }}/criteria" 
                                class="sidebar-link {{ request()->is('admin/criteria*') || request()->is('registrar/criteria*') || request()->is('*/constitutions*') ? 'active' : '' }}"
@@ -253,6 +256,19 @@
                                 <span>Academic Reviewers</span>
                             </a>
                         @endif
+
+                        @if(($isSuperAdmin || $isRegistrar || $user->can('view-executive-analytics')) && \App\Models\SystemSetting::isFeatureEnabled('executive_analytics'))
+                            <a href="{{ $baseRoute }}/executive-analytics" 
+                               class="sidebar-link {{ request()->is('admin/executive-analytics*') || request()->is('registrar/executive-analytics*') ? 'active' : '' }}"
+                               data-tooltip="Executive Analytics">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" x2="18" y1="20" y2="10"/>
+                                    <line x1="12" x2="12" y1="20" y2="4"/>
+                                    <line x1="6" x2="6" y1="20" y2="14"/>
+                                </svg>
+                                <span>Executive Analytics</span>
+                            </a>
+                        @endif
                     @endif
 
                     {{-- 4. COMMITTEE WORKSPACES --}}
@@ -263,7 +279,7 @@
                             || (($isSuperAdmin || $isReviewer || $user->can('evaluate-academic-dossier')) && \App\Models\SystemSetting::isPipelineStepEnabled('peer_review'));
                     @endphp
                     @if($hasCommitteeDesks)
-                        <div class="sidebar-section-title">Committee Desks</div>
+                        <div class="sidebar-section-title" data-tooltip="Section: Committee Desks">Committee Desks</div>
 
                         @if(($isSuperAdmin || $isScrutiny || $user->can('scrutinize-application')) && \App\Models\SystemSetting::isPipelineStepEnabled('scrutiny'))
                             <a href="/scrutiny/dashboard" 
@@ -281,13 +297,26 @@
 
                         @if(($isSuperAdmin || $isBoard || $user->can('access-board-grading') || $user->can('evaluate-application')) && \App\Models\SystemSetting::isPipelineStepEnabled('board_interview'))
                             <a href="/board/dashboard" 
-                               class="sidebar-link {{ request()->is('board*') ? 'active' : '' }}"
+                               class="sidebar-link {{ request()->is('board/dashboard*') || request()->is('board/evaluate*') ? 'active' : '' }}"
                                data-tooltip="Board Grading Desk">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                                 </svg>
                                 <span>Board Grading Desk</span>
                             </a>
+
+                            @if(($isSuperAdmin || $isBoard || $user->can('view-projector-merit-board')) && \App\Models\SystemSetting::isFeatureEnabled('projector_merit_board'))
+                                <a href="/board/projector" 
+                                   class="sidebar-link {{ request()->is('*projector*') ? 'active' : '' }}"
+                                   data-tooltip="Projector Merit Board">
+                                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect width="20" height="15" x="2" y="3" rx="2"/>
+                                        <line x1="12" x2="12" y1="18" y2="21"/>
+                                        <line x1="8" x2="16" y1="21" y2="21"/>
+                                    </svg>
+                                    <span>Projector Merit Board</span>
+                                </a>
+                            @endif
                         @endif
 
                         @if(($isSuperAdmin || $isAppellate || $user->can('view-appeal') || $user->can('process-appeal')) && \App\Models\SystemSetting::isPipelineStepEnabled('appellate'))
@@ -323,7 +352,7 @@
 
                     {{-- 5. ADMINISTRATION & SECURITY --}}
                     @if($isSuperAdmin || $isRegistrar || $user->can('view-user') || $user->can('view-role') || $user->can('view-permission') || $user->can('view-audit-log') || $user->can('manage-settings'))
-                        <div class="sidebar-section-title">Administration</div>
+                        <div class="sidebar-section-title" data-tooltip="Section: Administration">Administration</div>
                         @can('view-user')
                             <a href="{{ $baseRoute }}/users" 
                                class="sidebar-link {{ request()->is('admin/users*') || request()->is('registrar/users*') ? 'active' : '' }}"
@@ -378,7 +407,7 @@
 
                     {{-- 6. CANDIDATE SPACE --}}
                     @if($isApplicant)
-                        <div class="sidebar-section-title">Candidate Space</div>
+                        <div class="sidebar-section-title" data-tooltip="Section: Candidate Space">Candidate Space</div>
                         <a href="/applicant/dashboard" 
                            class="sidebar-link {{ request()->is('applicant/dashboard') ? 'active' : '' }}"
                            data-tooltip="Candidate Profile">
@@ -402,7 +431,7 @@
 
                     {{-- 7. FINTECH SANDBOX (Admin & Registrar only) --}}
                     @if($isSuperAdmin || $isRegistrar)
-                        <div class="sidebar-section-title">Fintech Sandbox</div>
+                        <div class="sidebar-section-title" data-tooltip="Section: Fintech Sandbox">Fintech Sandbox</div>
                         <a href="/bank/simulator" 
                            class="sidebar-link {{ request()->is('bank/simulator*') ? 'active' : '' }}" 
                            style="border: 1px dashed var(--secondary-glow); color: var(--secondary);"
@@ -502,6 +531,8 @@
                         <span style="opacity: 0.35;">/</span>
                         <strong style="color: var(--color-text-primary); font-weight: 700; font-size: 0.88rem;">
                             @if(request()->is('admin/dashboard*') || request()->is('registrar/dashboard*')) Administrative Operations Desk
+                            @elseif(request()->is('*projector*')) Selection Board Projector Merit Board
+                            @elseif(request()->is('*executive-analytics*')) Executive Recruitment Intelligence & Analytics
                             @elseif(request()->is('scrutiny*')) Scrutiny Committee Workspace
                             @elseif(request()->is('board*')) Selection Board Workspace
                             @elseif(request()->is('appellate*') || request()->is('admin/appeals*')) Grievance Appeals Workspace
@@ -797,74 +828,183 @@
                 });
             }
 
-            // Smooth Floating Tooltips on Hover (Only in Collapsed Rail Mode)
-            (function initSidebarRailTooltips() {
-                const tooltip = document.getElementById('sidebarRailTooltip');
-                const sidebar = document.getElementById('appSidebar');
-                if (!tooltip || !sidebar) return;
+            // Universal Floating Tooltip System (Menubar Rail & Header Controls)
+            (function initFloatingTooltips() {
+                function getOrCreateTooltip() {
+                    let el = document.getElementById('sidebarRailTooltip');
+                    if (!el) {
+                        el = document.createElement('div');
+                        el.id = 'sidebarRailTooltip';
+                        el.className = 'sidebar-rail-tooltip';
+                        el.setAttribute('role', 'tooltip');
+                        el.setAttribute('aria-hidden', 'true');
+                        document.body.prepend(el);
+                    }
+                    return el;
+                }
 
                 let activeEl = null;
 
-                function showTooltipFor(target) {
-                    if (!document.documentElement.classList.contains('sidebar-collapsed')) {
+                function extractTooltipText(target) {
+                    if (!target) return '';
+                    let text = target.getAttribute('data-tooltip');
+                    if (!text && target.hasAttribute('title')) {
+                        text = target.getAttribute('title');
+                        target.setAttribute('data-tooltip', text);
+                    }
+                    if (!text && target.classList.contains('sidebar-link')) {
+                        const span = target.querySelector('span:not(.sidebar-badge)');
+                        if (span) text = span.textContent.trim();
+                    }
+                    return text ? text.trim() : '';
+                }
+
+                function showTooltip(target) {
+                    if (window.innerWidth <= 768) return;
+
+                    const text = extractTooltipText(target);
+                    if (!text) {
                         hideTooltip();
                         return;
                     }
 
-                    const tooltipText = target.getAttribute('data-tooltip');
-                    if (!tooltipText) {
-                        hideTooltip();
-                        return;
+                    // Strip native title to avoid native browser tooltip collision
+                    if (target.hasAttribute('title')) {
+                        target.setAttribute('data-native-title', target.getAttribute('title'));
+                        target.removeAttribute('title');
                     }
 
+                    const tooltip = getOrCreateTooltip();
+
+                    // Clean decode entities
                     const temp = document.createElement('div');
-                    temp.innerHTML = tooltipText;
-                    tooltip.textContent = temp.textContent || tooltipText;
+                    temp.innerHTML = text;
+                    tooltip.textContent = temp.textContent || text;
 
-                    const sidebarRect = sidebar.getBoundingClientRect();
                     const targetRect = target.getBoundingClientRect();
+                    if (targetRect.height === 0 || targetRect.width === 0) return;
 
-                    const left = Math.round(sidebarRect.right + 10);
-                    const top = Math.round(targetRect.top + (targetRect.height / 2));
+                    const sidebar = document.getElementById('appSidebar');
+                    const isInsideSidebar = sidebar && sidebar.contains(target);
+                    const isInsideTopbar = target.closest('.topbar-header');
 
-                    tooltip.style.left = `${left}px`;
-                    tooltip.style.top = `${top}px`;
+                    let left = 0;
+                    let top = 0;
+
+                    if (isInsideSidebar && sidebar) {
+                        tooltip.classList.remove('topbar-tooltip');
+                        const sidebarRect = sidebar.getBoundingClientRect();
+                        // Position strictly to the right of the menubar / sidebar
+                        left = Math.round(sidebarRect.right + 10);
+                        top = Math.round(targetRect.top + (targetRect.height / 2));
+                    } else if (isInsideTopbar) {
+                        tooltip.classList.add('topbar-tooltip');
+                        left = Math.round(targetRect.left + (targetRect.width / 2));
+                        top = Math.round(targetRect.bottom + 8);
+                    } else {
+                        tooltip.classList.remove('topbar-tooltip');
+                        left = Math.round(targetRect.right + 10);
+                        top = Math.round(targetRect.top + (targetRect.height / 2));
+                    }
+
+                    // Clamp to viewport
+                    if (!isInsideTopbar) {
+                        const minTop = 15;
+                        const maxTop = window.innerHeight - 30;
+                        top = Math.max(minTop, Math.min(top, maxTop));
+                    }
+
+                    const wasShowing = tooltip.classList.contains('show');
+
+                    if (!wasShowing) {
+                        tooltip.style.transition = 'none';
+                        tooltip.style.left = `${left}px`;
+                        tooltip.style.top = `${top}px`;
+                        void tooltip.offsetHeight; // force reflow
+                        tooltip.style.transition = '';
+                    } else {
+                        tooltip.style.left = `${left}px`;
+                        tooltip.style.top = `${top}px`;
+                    }
+
                     tooltip.classList.add('show');
                     activeEl = target;
                 }
 
                 function hideTooltip() {
-                    tooltip.classList.remove('show');
+                    const tooltip = document.getElementById('sidebarRailTooltip');
+                    if (tooltip) {
+                        tooltip.classList.remove('show');
+                    }
                     activeEl = null;
                 }
 
-                sidebar.addEventListener('mouseover', function(e) {
-                    if (!document.documentElement.classList.contains('sidebar-collapsed')) return;
-                    const item = e.target.closest('[data-tooltip]');
-                    if (item && sidebar.contains(item)) {
-                        showTooltipFor(item);
-                    }
-                });
+                // Global delegate on sidebar
+                const sidebar = document.getElementById('appSidebar');
+                if (sidebar) {
+                    sidebar.addEventListener('mouseover', function(e) {
+                        const target = e.target.closest('[data-tooltip], .sidebar-link, .sidebar-brand-wrapper, .sidebar-header-toggle-btn, .sidebar-section-title');
+                        if (target && sidebar.contains(target)) {
+                            showTooltip(target);
+                        }
+                    });
 
-                sidebar.addEventListener('mouseout', function(e) {
-                    if (!activeEl) return;
-                    const next = e.relatedTarget ? e.relatedTarget.closest('[data-tooltip]') : null;
-                    if (!next || !sidebar.contains(next)) {
+                    sidebar.addEventListener('mouseout', function(e) {
+                        if (!activeEl) return;
+                        const related = e.relatedTarget;
+                        if (!related || !sidebar.contains(related)) {
+                            hideTooltip();
+                        } else {
+                            const next = related.closest('[data-tooltip], .sidebar-link, .sidebar-brand-wrapper, .sidebar-header-toggle-btn, .sidebar-section-title');
+                            if (!next || !sidebar.contains(next)) {
+                                hideTooltip();
+                            }
+                        }
+                    });
+
+                    sidebar.addEventListener('mouseleave', hideTooltip);
+
+                    const menu = sidebar.querySelector('.sidebar-menu');
+                    if (menu) {
+                        menu.addEventListener('scroll', hideTooltip, { passive: true });
+                    }
+                }
+
+                // Topbar controls delegate
+                const topbar = document.querySelector('.topbar-header');
+                if (topbar) {
+                    topbar.addEventListener('mouseover', function(e) {
+                        const target = e.target.closest('[data-tooltip], #sidebarDesktopToggle, .topbar-search-trigger, .theme-btn');
+                        if (target && topbar.contains(target)) {
+                            showTooltip(target);
+                        }
+                    });
+
+                    topbar.addEventListener('mouseout', function(e) {
+                        if (!activeEl) return;
+                        const related = e.relatedTarget;
+                        if (!related || !topbar.contains(related)) {
+                            hideTooltip();
+                        } else {
+                            const next = related.closest('[data-tooltip], #sidebarDesktopToggle, .topbar-search-trigger, .theme-btn');
+                            if (!next || !topbar.contains(next)) {
+                                hideTooltip();
+                            }
+                        }
+                    });
+
+                    topbar.addEventListener('mouseleave', hideTooltip);
+                }
+
+                window.addEventListener('scroll', hideTooltip, { passive: true });
+                window.addEventListener('resize', hideTooltip, { passive: true });
+                window.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' || (e.ctrlKey && e.key.toLowerCase() === 'b')) {
                         hideTooltip();
                     }
                 });
-
-                const menu = sidebar.querySelector('.sidebar-menu');
-                if (menu) {
-                    menu.addEventListener('scroll', hideTooltip, { passive: true });
-                }
-                window.addEventListener('scroll', hideTooltip, { passive: true });
-                window.addEventListener('resize', hideTooltip, { passive: true });
             })();
         })();
     </script>
-
-    <!-- Global Floating Rail Tooltip -->
-    <div id="sidebarRailTooltip" class="sidebar-rail-tooltip" role="tooltip" aria-hidden="true"></div>
 </body>
 </html>
