@@ -345,10 +345,7 @@
                                 <span class="settings-nav-active-pill">
                                     <span class="active-dot"></span>
                                 </span>
-                            @else
-                                <span class="settings-nav-badge" style="background: {{ $tab['bg'] }}; color: {{ $tab['color'] }};">
-                                    {{ $tab['badge'] }}
-                                </span>
+                            
                             @endif
                         </a>
                     @endforeach

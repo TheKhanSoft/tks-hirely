@@ -138,30 +138,26 @@
            role="button"
            aria-pressed="{{ $isActive ? 'true' : 'false' }}">
             
-            <div class="settings-tab-card-top">
-                <div class="settings-tab-icon-box" style="background: {{ $card['bg'] }}; color: {{ $card['color'] }};">
-                    {!! $card['icon'] !!}
+            <div class="settings-tab-card-header">
+                <div class="settings-tab-card-header-left">
+                    <div class="settings-tab-icon-box" style="background: {{ $card['bg'] }}; color: {{ $card['color'] }};">
+                        {!! $card['icon'] !!}
+                    </div>
+                    <div class="settings-tab-title">
+                        {{ $card['label'] }}
+                    </div>
                 </div>
                 
                 @if($isActive)
-                    <span class="settings-tab-active-indicator" style="background: #4f46e5; color: #ffffff;">
-                        <span class="active-dot" style="background: #ffffff;"></span>
+                    <span class="settings-tab-active-indicator">
+                        <span class="active-dot"></span>
                         <span>Active</span>
-                    </span>
-                @else
-                    <span class="settings-tab-badge" style="background: {{ $card['bg'] }}; color: {{ $card['color'] }};">
-                        {{ $card['badge'] }}
                     </span>
                 @endif
             </div>
 
-            <div>
-                <div class="settings-tab-title" style="font-size: 0.95rem; font-weight: 700; color: {{ $isActive ? 'var(--primary, #4f46e5)' : 'var(--color-text-primary, #1e293b)' }};">
-                    {{ $card['label'] }}
-                </div>
-                <div class="settings-tab-subtitle" style="font-size: 0.8rem; color: var(--color-text-secondary, #64748b); margin-top: 0.2rem; line-height: 1.4;">
-                    {{ $card['subtitle'] }}
-                </div>
+            <div class="settings-tab-subtitle">
+                {{ $card['subtitle'] }}
             </div>
         </a>
     @endforeach

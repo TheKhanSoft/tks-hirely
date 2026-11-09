@@ -166,14 +166,11 @@ class SettingsMasterSidebarNavigationTest extends TestCase
         $response->assertSee('Security & Access');
         $response->assertSee('System & Health');
 
-        // 3. Badges
-        $response->assertSee('GATES &amp; QUORUM', false);
-        $response->assertSee('COMPLIANCE');
-        $response->assertSee('INTAKE CONTROLS');
-        $response->assertSee('HEC STANDARDS');
-        $response->assertSee('VISUAL IDENTITY');
-        $response->assertSee('SMTP PROTOCOL');
-        $response->assertSee('2FA &amp; SESSIONS', false);
-        $response->assertSee('DIAGNOSTICS');
+        // 3. Bento Card Header Layout (Title inline in front of Icon, category badges removed)
+        $response->assertSee('settings-tab-card-header');
+        $response->assertSee('settings-tab-icon-box');
+        $response->assertSee('settings-tab-title');
+        $response->assertDontSee('GATES &amp; QUORUM', false);
+        $response->assertDontSee('settings-tab-badge');
     }
 }
