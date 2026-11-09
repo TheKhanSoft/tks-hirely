@@ -4635,15 +4635,16 @@ html.light .settings-tab-card.active {
 
 .settings-tab-card-header {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
+    align-items: flex-start;
+    gap: 0.85rem;
+    min-width: 0;
+    width: 100%;
 }
 
-.settings-tab-card-header-left {
+.settings-tab-card-text {
     display: flex;
-    align-items: center;
-    gap: 0.75rem;
+    flex-direction: column;
+    gap: 0.25rem;
     min-width: 0;
     flex: 1;
 }
@@ -4657,6 +4658,7 @@ html.light .settings-tab-card.active {
     justify-content: center;
     transition: all 0.2s;
     flex-shrink: 0;
+    margin-top: 1px;
 }
 
 .settings-tab-badge {
@@ -4669,20 +4671,26 @@ html.light .settings-tab-card.active {
     line-height: 1.2;
 }
 
-.settings-tab-active-indicator {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    font-size: 0.68rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 0.18rem 0.55rem;
-    border-radius: 9999px;
+.settings-tab-corner-dot {
+    position: absolute;
+    top: 13px;
+    right: 13px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
     background: var(--primary);
-    color: #ffffff;
-    box-shadow: 0 2px 8px var(--primary-glow);
-    flex-shrink: 0;
+    box-shadow: 0 0 0 3.5px var(--primary-light), 0 0 8px var(--primary);
+    pointer-events: none;
+    z-index: 2;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.settings-tab-card:hover .settings-tab-corner-dot {
+    transform: scale(1.2);
+}
+
+.settings-tab-active-indicator {
+    display: none;
 }
 
 .active-dot {
@@ -4699,12 +4707,14 @@ html.light .settings-tab-card.active {
     color: var(--color-text-primary);
     line-height: 1.3;
     white-space: normal;
+    padding-right: 1.25rem;
 }
 
 .settings-tab-subtitle {
     font-size: 0.78rem;
     color: var(--color-text-muted);
     line-height: 1.4;
+    white-space: normal;
 }
 
 .settings-tab-card.active .settings-tab-title {

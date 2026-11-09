@@ -172,5 +172,6 @@ class SettingsMasterSidebarNavigationTest extends TestCase
         $response->assertSee('settings-tab-title');
         $response->assertDontSee('GATES &amp; QUORUM', false);
         $response->assertDontSee('settings-tab-badge');
+        $response->assertSee('settings-tab-corner-dot');
     }
 }

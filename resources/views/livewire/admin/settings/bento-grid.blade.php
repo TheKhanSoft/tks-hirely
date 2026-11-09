@@ -138,26 +138,22 @@
            role="button"
            aria-pressed="{{ $isActive ? 'true' : 'false' }}">
             
+            @if($isActive)
+                <span class="settings-tab-corner-dot" aria-label="Active Tab" title="Active Tab"></span>
+            @endif
+
             <div class="settings-tab-card-header">
-                <div class="settings-tab-card-header-left">
-                    <div class="settings-tab-icon-box" style="background: {{ $card['bg'] }}; color: {{ $card['color'] }};">
-                        {!! $card['icon'] !!}
-                    </div>
+                <div class="settings-tab-icon-box" style="background: {{ $card['bg'] }}; color: {{ $card['color'] }};">
+                    {!! $card['icon'] !!}
+                </div>
+                <div class="settings-tab-card-text">
                     <div class="settings-tab-title">
                         {{ $card['label'] }}
                     </div>
+                    <div class="settings-tab-subtitle">
+                        {{ $card['subtitle'] }}
+                    </div>
                 </div>
-                
-                @if($isActive)
-                    <span class="settings-tab-active-indicator">
-                        <span class="active-dot"></span>
-                        <span>Active</span>
-                    </span>
-                @endif
-            </div>
-
-            <div class="settings-tab-subtitle">
-                {{ $card['subtitle'] }}
             </div>
         </a>
     @endforeach
