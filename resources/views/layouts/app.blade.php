@@ -105,7 +105,7 @@
 
                     {{-- 1. CAMPAIGNS & INTAKE --}}
                     @if($isSuperAdmin || $isRegistrar || $user->can('view-campaign') || $user->can('view-advertisement'))
-                        <div class="sidebar-section-title" data-tooltip="Section: Campaigns &amp; Intake">Campaigns &amp; Intake</div>
+                        <div class="sidebar-section-title">Campaigns &amp; Intake</div>
                         @if($isSuperAdmin || $isRegistrar)
                             <a href="{{ $baseRoute }}/dashboard" 
                                class="sidebar-link {{ request()->is('admin/dashboard*') || request()->is('registrar/dashboard*') ? 'active' : '' }}"
@@ -148,7 +148,7 @@
 
                     {{-- 2. CANDIDACIES & DOSSIERS --}}
                     @if($isSuperAdmin || $isRegistrar || $user->can('view-application') || $user->can('view-basic-info') || $user->can('view-payment'))
-                        <div class="sidebar-section-title" data-tooltip="Section: Candidacies &amp; Dossiers">Candidacies &amp; Dossiers</div>
+                        <div class="sidebar-section-title">Candidacies &amp; Dossiers</div>
                         @can('view-application')
                             <a href="{{ $baseRoute }}/applications" 
                                class="sidebar-link {{ request()->is('admin/applications*') || request()->is('registrar/applications*') ? 'active' : '' }}"
@@ -205,7 +205,7 @@
 
                     {{-- 3. STATUTORY GOVERNANCE --}}
                     @if($isSuperAdmin || $isRegistrar || $user->can('tune-constitution') || $user->can('manage-statuses') || $user->can('manage-reviewers') || $user->can('view-reviewer'))
-                        <div class="sidebar-section-title" data-tooltip="Section: Statutory Governance">Statutory Governance</div>
+                        <div class="sidebar-section-title">Statutory Governance</div>
                         @can('tune-constitution')
                             <a href="{{ $baseRoute }}/criteria" 
                                class="sidebar-link {{ request()->is('admin/criteria*') || request()->is('registrar/criteria*') || request()->is('*/constitutions*') ? 'active' : '' }}"
@@ -279,7 +279,7 @@
                             || (($isSuperAdmin || $isReviewer || $user->can('evaluate-academic-dossier')) && \App\Models\SystemSetting::isPipelineStepEnabled('peer_review'));
                     @endphp
                     @if($hasCommitteeDesks)
-                        <div class="sidebar-section-title" data-tooltip="Section: Committee Desks">Committee Desks</div>
+                        <div class="sidebar-section-title">Committee Desks</div>
 
                         @if(($isSuperAdmin || $isScrutiny || $user->can('scrutinize-application')) && \App\Models\SystemSetting::isPipelineStepEnabled('scrutiny'))
                             <a href="/scrutiny/dashboard" 
@@ -352,7 +352,7 @@
 
                     {{-- 5. ADMINISTRATION & SECURITY --}}
                     @if($isSuperAdmin || $isRegistrar || $user->can('view-user') || $user->can('view-role') || $user->can('view-permission') || $user->can('view-audit-log') || $user->can('manage-settings'))
-                        <div class="sidebar-section-title" data-tooltip="Section: Administration">Administration</div>
+                        <div class="sidebar-section-title">Administration</div>
                         @can('view-user')
                             <a href="{{ $baseRoute }}/users" 
                                class="sidebar-link {{ request()->is('admin/users*') || request()->is('registrar/users*') ? 'active' : '' }}"
@@ -407,7 +407,7 @@
 
                     {{-- 6. CANDIDATE SPACE --}}
                     @if($isApplicant)
-                        <div class="sidebar-section-title" data-tooltip="Section: Candidate Space">Candidate Space</div>
+                        <div class="sidebar-section-title">Candidate Space</div>
                         <a href="/applicant/dashboard" 
                            class="sidebar-link {{ request()->is('applicant/dashboard') ? 'active' : '' }}"
                            data-tooltip="Candidate Profile">
@@ -431,7 +431,7 @@
 
                     {{-- 7. FINTECH SANDBOX (Admin & Registrar only) --}}
                     @if($isSuperAdmin || $isRegistrar)
-                        <div class="sidebar-section-title" data-tooltip="Section: Fintech Sandbox">Fintech Sandbox</div>
+                        <div class="sidebar-section-title">Fintech Sandbox</div>
                         <a href="/bank/simulator" 
                            class="sidebar-link {{ request()->is('bank/simulator*') ? 'active' : '' }}" 
                            style="border: 1px dashed var(--secondary-glow); color: var(--secondary);"
@@ -862,6 +862,25 @@
                 function showTooltip(target) {
                     if (window.innerWidth <= 768) return;
 
+                    const sidebar = document.getElementById('appSidebar');
+                    const isInsideSidebar = sidebar && sidebar.contains(target);
+
+                    // Requirement: In expanded mode, do NOT show tooltips on the sidebar
+                    if (isInsideSidebar) {
+                        const isCollapsed = document.documentElement.classList.contains('sidebar-collapsed') 
+                                         || document.body.classList.contains('sidebar-collapsed');
+                        if (!isCollapsed) {
+                            hideTooltip();
+                            return;
+                        }
+
+                        // Requirement: Never show tooltips for sections/groups
+                        if (target.classList.contains('sidebar-section-title') || target.closest('.sidebar-section-title')) {
+                            hideTooltip();
+                            return;
+                        }
+                    }
+
                     const text = extractTooltipText(target);
                     if (!text) {
                         hideTooltip();
@@ -884,8 +903,6 @@
                     const targetRect = target.getBoundingClientRect();
                     if (targetRect.height === 0 || targetRect.width === 0) return;
 
-                    const sidebar = document.getElementById('appSidebar');
-                    const isInsideSidebar = sidebar && sidebar.contains(target);
                     const isInsideTopbar = target.closest('.topbar-header');
 
                     let left = 0;
@@ -894,7 +911,7 @@
                     if (isInsideSidebar && sidebar) {
                         tooltip.classList.remove('topbar-tooltip');
                         const sidebarRect = sidebar.getBoundingClientRect();
-                        // Position strictly to the right of the menubar / sidebar
+                        // Position strictly to the right of the collapsed rail
                         left = Math.round(sidebarRect.right + 10);
                         top = Math.round(targetRect.top + (targetRect.height / 2));
                     } else if (isInsideTopbar) {
@@ -939,11 +956,15 @@
                     activeEl = null;
                 }
 
-                // Global delegate on sidebar
+                // Global delegate on sidebar (only when collapsed, strictly excludes sections)
                 const sidebar = document.getElementById('appSidebar');
                 if (sidebar) {
                     sidebar.addEventListener('mouseover', function(e) {
-                        const target = e.target.closest('[data-tooltip], .sidebar-link, .sidebar-brand-wrapper, .sidebar-header-toggle-btn, .sidebar-section-title');
+                        const isCollapsed = document.documentElement.classList.contains('sidebar-collapsed') 
+                                         || document.body.classList.contains('sidebar-collapsed');
+                        if (!isCollapsed) return;
+
+                        const target = e.target.closest('.sidebar-link, .sidebar-brand-wrapper, .sidebar-header-toggle-btn');
                         if (target && sidebar.contains(target)) {
                             showTooltip(target);
                         }
@@ -955,7 +976,7 @@
                         if (!related || !sidebar.contains(related)) {
                             hideTooltip();
                         } else {
-                            const next = related.closest('[data-tooltip], .sidebar-link, .sidebar-brand-wrapper, .sidebar-header-toggle-btn, .sidebar-section-title');
+                            const next = related.closest('.sidebar-link, .sidebar-brand-wrapper, .sidebar-header-toggle-btn');
                             if (!next || !sidebar.contains(next)) {
                                 hideTooltip();
                             }

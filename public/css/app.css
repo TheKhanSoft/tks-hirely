@@ -2467,12 +2467,12 @@ html.light .action-btn:hover {
     box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.1);
 }
 
-/* Pure CSS Ultra-Smooth Tooltip System */
-[data-tooltip] {
+/* Pure CSS Ultra-Smooth Tooltip System (Strictly Excludes Sidebar Navigation) */
+[data-tooltip]:not(.sidebar-link):not(.sidebar-brand-wrapper):not(.sidebar-header-toggle-btn):not(.sidebar-section-title):not(.sidebar *) {
     position: relative;
 }
 
-[data-tooltip]::before {
+[data-tooltip]:not(.sidebar-link):not(.sidebar-brand-wrapper):not(.sidebar-header-toggle-btn):not(.sidebar-section-title):not(.sidebar *)::before {
     content: attr(data-tooltip);
     position: absolute;
     bottom: calc(100% + 7px);
@@ -2496,7 +2496,7 @@ html.light .action-btn:hover {
     z-index: 99999;
 }
 
-[data-tooltip]::after {
+[data-tooltip]:not(.sidebar-link):not(.sidebar-brand-wrapper):not(.sidebar-header-toggle-btn):not(.sidebar-section-title):not(.sidebar *)::after {
     content: '';
     position: absolute;
     bottom: calc(100% + 2px);
@@ -2512,20 +2512,20 @@ html.light .action-btn:hover {
     z-index: 99999;
 }
 
-[data-tooltip]:hover::before,
-[data-tooltip]:hover::after {
+[data-tooltip]:not(.sidebar-link):not(.sidebar-brand-wrapper):not(.sidebar-header-toggle-btn):not(.sidebar-section-title):not(.sidebar *):hover::before,
+[data-tooltip]:not(.sidebar-link):not(.sidebar-brand-wrapper):not(.sidebar-header-toggle-btn):not(.sidebar-section-title):not(.sidebar *):hover::after {
     opacity: 1;
     visibility: visible;
     transform: translateX(-50%) translateY(0) scale(1);
 }
 
-html.light [data-tooltip]::before {
+html.light [data-tooltip]:not(.sidebar-link):not(.sidebar-brand-wrapper):not(.sidebar-header-toggle-btn):not(.sidebar-section-title):not(.sidebar *)::before {
     background: #1e293b;
     color: #ffffff;
     border-color: rgba(0, 0, 0, 0.2);
 }
 
-html.light [data-tooltip]::after {
+html.light [data-tooltip]:not(.sidebar-link):not(.sidebar-brand-wrapper):not(.sidebar-header-toggle-btn):not(.sidebar-section-title):not(.sidebar *)::after {
     border-color: #1e293b transparent transparent transparent;
 }
 
@@ -5252,28 +5252,10 @@ html.sidebar-collapsed .sidebar-header-toggle-btn .header-toggle-chevron {
     transform: rotate(180deg);
 }
 
+/* Completely remove section/group headers in collapsed rail mode */
 body.sidebar-collapsed .sidebar-section-title,
 html.sidebar-collapsed .sidebar-section-title {
-    padding: 0.85rem 0 0.35rem;
-    justify-content: center;
-    font-size: 0;
-    cursor: pointer;
-    pointer-events: auto;
-}
-
-body.sidebar-collapsed .sidebar-section-title::after,
-html.sidebar-collapsed .sidebar-section-title::after {
-    display: none;
-}
-
-body.sidebar-collapsed .sidebar-section-title::before,
-html.sidebar-collapsed .sidebar-section-title::before {
-    content: '';
-    display: block;
-    width: 20px;
-    height: 2px;
-    background: var(--border-color);
-    border-radius: 9999px;
+    display: none !important;
 }
 
 body.sidebar-collapsed .sidebar-link,
@@ -5281,7 +5263,7 @@ html.sidebar-collapsed .sidebar-link {
     justify-content: center;
     padding: 0.65rem 0;
     width: 44px;
-    margin: 0 auto;
+    margin: 0.15rem auto;
     position: relative;
 }
 
@@ -5292,11 +5274,26 @@ html.sidebar-collapsed .sidebar-link .sidebar-badge {
     display: none !important;
 }
 
-/* Disable legacy CSS ::after pseudo-element to prevent clipping inside scroll containers */
+/* Strictly disable ALL CSS pseudo-element tooltips on sidebar navigation (prevents middle clipping box) */
+.sidebar [data-tooltip]::before,
+.sidebar [data-tooltip]::after,
+.sidebar-menu [data-tooltip]::before,
+.sidebar-menu [data-tooltip]::after,
+.sidebar-link::before,
+.sidebar-link::after,
+.sidebar-brand-wrapper::before,
+.sidebar-brand-wrapper::after,
+.sidebar-header-toggle-btn::before,
+.sidebar-header-toggle-btn::after,
+body.sidebar-collapsed .sidebar-link::before,
 body.sidebar-collapsed .sidebar-link::after,
+html.sidebar-collapsed .sidebar-link::before,
 html.sidebar-collapsed .sidebar-link::after {
     display: none !important;
     content: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
 }
 
 /* Universal Floating Rail Tooltip (Smooth, High-Z-Index & Completely Unclipped) */
