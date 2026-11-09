@@ -131,6 +131,22 @@ class SystemSetting extends Model
     }
 
     /**
+     * Check if a specific statutory module or sub-feature is toggled on.
+     */
+    public static function isFeatureEnabled(string $feature): bool
+    {
+        $key = match ($feature) {
+            'interview_call_letters', 'call_letters' => 'enable_interview_call_letters',
+            'referee_magic_links', 'referee_links' => 'enable_referee_magic_links',
+            'hjrs_lookup', 'hjrs_journal_lookup' => 'enable_hjrs_journal_lookup',
+            'appellate_workbench' => 'enable_appellate_workbench',
+            default => str_starts_with($feature, 'enable_') ? $feature : "enable_{$feature}",
+        };
+
+        return (bool) self::get($key, true);
+    }
+
+    /**
      * Check if a document upload is required.
      */
     public static function isDocumentRequired(string $docType): bool
@@ -1296,6 +1312,38 @@ class SystemSetting extends Model
                 'type' => 'boolean',
                 'label' => 'Strict Peer Review Quota Enforcement',
                 'description' => 'Enforces dispatching exactly the statutory number of external experts (e.g. 3 experts for Assistant Professor).',
+            ],
+            [
+                'key' => 'enable_interview_call_letters',
+                'value' => '1',
+                'group' => 'pipeline',
+                'type' => 'boolean',
+                'label' => 'Statutory Interview Call Letter Generator & Batch Dispatch',
+                'description' => 'Permits the Registrar Secretariat to generate and dispatch official printable call letters to shortlisted candidates via PDF, email, and SMS.',
+            ],
+            [
+                'key' => 'enable_referee_magic_links',
+                'value' => '1',
+                'group' => 'pipeline',
+                'type' => 'boolean',
+                'label' => 'External Academic Referee Tokenized Magic Links (Passwordless Desk)',
+                'description' => 'Enables secure cryptographic 1-click evaluation links for external subject experts without requiring account password logins.',
+            ],
+            [
+                'key' => 'enable_hjrs_journal_lookup',
+                'value' => '1',
+                'group' => 'academic_criteria',
+                'type' => 'boolean',
+                'label' => 'HEC HJRS Journal ISSN Verification & Predatory Journal Filter',
+                'description' => 'Automatically verifies journal ISSN authenticity against HEC HJRS recognized categories and warns against unindexed/predatory publications.',
+            ],
+            [
+                'key' => 'enable_appellate_workbench',
+                'value' => '1',
+                'group' => 'pipeline',
+                'type' => 'boolean',
+                'label' => 'Grievance Appellate Committee Digital Adjudication Workbench',
+                'description' => 'Enables the digital dispute resolution and appellate adjudication workbench for candidate disqualification grievances.',
             ],
 
             // 📑 Document Requests & Mandatory Uploads

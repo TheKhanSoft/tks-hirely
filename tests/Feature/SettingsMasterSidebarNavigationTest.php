@@ -84,15 +84,23 @@ class SettingsMasterSidebarNavigationTest extends TestCase
         $response->assertSee('Statutory Governance', false);
         $response->assertSee('Administration', false);
 
-        // 2. Collapsible rail toggle buttons
+        // 2. Collapsible rail toggle buttons in top header & desktop topbar
+        $response->assertSee('sidebar-header-box', false);
+        $response->assertSee('sidebar-header-toggle-btn', false);
         $response->assertSee('id="sidebarRailToggle"', false);
         $response->assertSee('id="sidebarDesktopToggle"', false);
 
-        // 3. Floating Tooltips (data-tooltip)
+        // 3. Floating Tooltips (data-tooltip) & Global Tooltip Container
+        $response->assertSee('id="sidebarRailTooltip"', false);
         $response->assertSee('data-tooltip="Operations Desk"', false);
         $response->assertSee('data-tooltip="Candidate Profiles"', false);
         $response->assertSee('data-tooltip="Academic Reviewers"', false);
         $response->assertSee('data-tooltip="Settings &amp; Workflows"', false);
+
+        // 4. Governance Engine and bottom beacon removed
+        $response->assertDontSee('sidebar-status-beacon-box', false);
+        $response->assertDontSee('Operational • Live Quorum', false);
+        $response->assertDontSee('Governance Engine: Operational', false);
     }
 
     public function test_universal_search_palette_indexes_deep_settings(): void

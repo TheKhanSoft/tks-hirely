@@ -719,6 +719,24 @@
                         </span>
                     </label>
                 </div>
+
+                <!-- 3. HEC HJRS Journal Lookup & Predatory Filter -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem; background: var(--bg-surface); border: 1px solid {{ $enable_hjrs_journal_lookup ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-sm);">
+                    <div style="max-width: 75%;">
+                        <div style="font-weight: 800; font-size: 0.88rem; color: var(--color-text-primary);">
+                            HEC HJRS Journal ISSN Lookup & Predatory Filter
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--color-text-secondary); margin-top: 0.2rem;">
+                            Validates candidate research publications against official HEC HJRS categories (W, X, Y) and flags predatory journals.
+                        </div>
+                    </div>
+                    <label style="position: relative; display: inline-block; width: 48px; height: 26px; cursor: pointer;">
+                        <input type="checkbox" wire:model.live="enable_hjrs_journal_lookup" style="opacity: 0; width: 0; height: 0;">
+                        <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $enable_hjrs_journal_lookup ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $enable_hjrs_journal_lookup ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
+                            <span style="position: absolute; content: ''; height: 18px; width: 18px; left: {{ $enable_hjrs_journal_lookup ? '24px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
+                        </span>
+                    </label>
+                </div>
             </div>
 
             <!-- HJRS Journal Category Scoring Weights -->

@@ -184,6 +184,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/reviewers/dispatch/print', [PeerReviewPrintController::class, 'printDispatchRegister'])->name('reviewers-dispatch.print');
     Route::get('/admin/peer-dispatch-register/print', [PeerReviewPrintController::class, 'printDispatchRegister'])->name('peer-dispatch-register.print');
     Route::get('/registrar/reviewers/dispatch/print', [PeerReviewPrintController::class, 'printDispatchRegister']);
+    Route::get('/application/{id}/call-letter', [ApplicationPrintController::class, 'printInterviewCallLetter'])->name('application.call-letter');
+    Route::get('/applicant/applications/{id}/call-letter', [ApplicationPrintController::class, 'printInterviewCallLetter']);
+    Route::get('/applicant/applications/{id}/interview-slip', [ApplicationPrintController::class, 'printInterviewCallLetter']);
+    Route::get('/admin/applications/{id}/call-letter', [ApplicationPrintController::class, 'printInterviewCallLetter']);
+    Route::get('/registrar/applications/{id}/call-letter', [ApplicationPrintController::class, 'printInterviewCallLetter']);
 
     // Direct / admin compatibility aliases
     Route::get('/admin/verification/{id}', ApplicationVerification::class);

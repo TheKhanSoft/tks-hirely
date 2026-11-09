@@ -20,6 +20,16 @@ class Application extends Model
         'disqualification_reason',
         'appeal_letter',
         'appeal_proof_path',
+        'interview_date',
+        'interview_time',
+        'interview_venue',
+        'interview_committee_room',
+        'interview_reporting_time',
+        'interview_call_letter_issued_at',
+        'interview_instructions',
+        'appeal_decision_remarks',
+        'appeal_decided_by',
+        'appeal_decided_at',
     ];
 
     /**
@@ -40,7 +50,26 @@ class Application extends Model
 
     protected $casts = [
         'submission_timestamp' => 'datetime',
+        'interview_date' => 'date',
+        'interview_call_letter_issued_at' => 'datetime',
+        'appeal_decided_at' => 'datetime',
     ];
+
+    /**
+     * Check if official interview call letter has been issued.
+     */
+    public function hasCallLetterIssued(): bool
+    {
+        return !empty($this->interview_call_letter_issued_at);
+    }
+
+    /**
+     * Appellate tribunal officer who decided the appeal.
+     */
+    public function appealDecider(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'appeal_decided_by');
+    }
 
     /**
      * Get dynamic workflow status entity.

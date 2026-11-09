@@ -304,6 +304,123 @@
                 </div>
             </div>
 
+            <!-- Section Divider: Statutory Modules & Secretariat Operations -->
+            <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color);">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                    <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: var(--color-text-primary);">
+                        Statutory Operational Modules & Specialized Features
+                    </h4>
+                    <span class="badge badge-indigo" style="font-size: 0.68rem; font-weight: 800;">STATUTORY SUITE</span>
+                </div>
+                <p style="margin: 0 0 1rem 0; font-size: 0.8rem; color: var(--color-text-secondary);">
+                    Toggle institutional recruitment capabilities, candidate summons generators, external reviewer links, and scrutiny intelligence features.
+                </p>
+            </div>
+
+            <!-- 7. Statutory Interview Call Letter Generator Toggle -->
+            <div id="setting-feature-call-letters" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $enable_interview_call_letters ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
+                <div style="max-width: 80%;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                        <span style="font-size: 1.15rem;">✉️</span>
+                        <span style="font-size: 0.98rem; font-weight: 800; color: var(--color-text-primary);">
+                            Statutory Interview Call Letter Generator & Multi-Channel Dispatch (PDF + Email + SMS)
+                        </span>
+                        <span class="badge {{ $enable_interview_call_letters ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.68rem; font-weight: 800;">
+                            {{ $enable_interview_call_letters ? 'ENABLED' : 'DISABLED' }}
+                        </span>
+                    </div>
+                    <div style="font-size: 0.82rem; color: var(--color-text-secondary); line-height: 1.5;">
+                        Empowers the Registrar Secretariat to generate official printable Selection Board interview summons on university letterhead, schedule batches (date, time, venue, committee room), and dispatch multi-channel summons notifications with downloadable PDF access.
+                    </div>
+                </div>
+                <div>
+                    <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
+                        <input type="checkbox" wire:model.live="enable_interview_call_letters" style="opacity: 0; width: 0; height: 0;">
+                        <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $enable_interview_call_letters ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $enable_interview_call_letters ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
+                            <span style="position: absolute; content: ''; height: 20px; width: 20px; left: {{ $enable_interview_call_letters ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 8. External Academic Referee Tokenized Magic Link Desk Toggle -->
+            <div id="setting-feature-referee-magic-links" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $enable_referee_magic_links ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
+                <div style="max-width: 80%;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                        <span style="font-size: 1.15rem;">🔗</span>
+                        <span style="font-size: 0.98rem; font-weight: 800; color: var(--color-text-primary);">
+                            External Academic Referee Tokenized Magic Links (Passwordless 1-Click Desk)
+                        </span>
+                        <span class="badge {{ $enable_referee_magic_links ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.68rem; font-weight: 800;">
+                            {{ $enable_referee_magic_links ? 'ENABLED' : 'DISABLED' }}
+                        </span>
+                    </div>
+                    <div style="font-size: 0.82rem; color: var(--color-text-secondary); line-height: 1.5;">
+                        Allows foreign and national external subject referees to securely access candidate dossiers and submit quantitative marks (0-100) and qualitative reports using time-limited cryptographic URL tokens without friction or password login hurdles.
+                    </div>
+                </div>
+                <div>
+                    <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
+                        <input type="checkbox" wire:model.live="enable_referee_magic_links" style="opacity: 0; width: 0; height: 0;">
+                        <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $enable_referee_magic_links ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $enable_referee_magic_links ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
+                            <span style="position: absolute; content: ''; height: 20px; width: 20px; left: {{ $enable_referee_magic_links ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 9. HEC HJRS Journal Lookup & Predatory Filter Toggle -->
+            <div id="setting-feature-hjrs-lookup" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $enable_hjrs_journal_lookup ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
+                <div style="max-width: 80%;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                        <span style="font-size: 1.15rem;">📚</span>
+                        <span style="font-size: 0.98rem; font-weight: 800; color: var(--color-text-primary);">
+                            HEC HJRS Journal ISSN Lookup & Predatory Journal Detector
+                        </span>
+                        <span class="badge {{ $enable_hjrs_journal_lookup ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.68rem; font-weight: 800;">
+                            {{ $enable_hjrs_journal_lookup ? 'ENABLED' : 'DISABLED' }}
+                        </span>
+                    </div>
+                    <div style="font-size: 0.82rem; color: var(--color-text-secondary); line-height: 1.5;">
+                        Validates candidate research publications against official HEC HJRS journal categories (W, X, Y) and real-time REST API lookup, flagging predatory, blacklisted, or cloned journals with alert warnings in Scrutiny Committee verification.
+                    </div>
+                </div>
+                <div>
+                    <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
+                        <input type="checkbox" wire:model.live="enable_hjrs_journal_lookup" style="opacity: 0; width: 0; height: 0;">
+                        <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $enable_hjrs_journal_lookup ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $enable_hjrs_journal_lookup ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
+                            <span style="position: absolute; content: ''; height: 20px; width: 20px; left: {{ $enable_hjrs_journal_lookup ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 10. Grievance Appellate Adjudication Workbench Toggle -->
+            <div id="setting-feature-appellate-workbench" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $enable_appellate_workbench ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
+                <div style="max-width: 80%;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                        <span style="font-size: 1.15rem;">⚖️</span>
+                        <span style="font-size: 0.98rem; font-weight: 800; color: var(--color-text-primary);">
+                            Grievance Appellate Committee Digital Adjudication Workbench
+                        </span>
+                        <span class="badge {{ $enable_appellate_workbench ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.68rem; font-weight: 800;">
+                            {{ $enable_appellate_workbench ? 'ENABLED' : 'DISABLED' }}
+                        </span>
+                    </div>
+                    <div style="font-size: 0.82rem; color: var(--color-text-secondary); line-height: 1.5;">
+                        Provides the Appellate Committee with a dedicated side-by-side adjudication desk (Scrutiny Finding vs Candidate Rebuttal Proof) and statutory decree execution (Overrule & Reinstate, Dismiss Appeal, or Remand for Re-scrutiny) with automated SMS and email alerts.
+                    </div>
+                </div>
+                <div>
+                    <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
+                        <input type="checkbox" wire:model.live="enable_appellate_workbench" style="opacity: 0; width: 0; height: 0;">
+                        <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $enable_appellate_workbench ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $enable_appellate_workbench ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
+                            <span style="position: absolute; content: ''; height: 20px; width: 20px; left: {{ $enable_appellate_workbench ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
         </div>
 
         {{-- Deep Expandable Policy Guidelines --}}

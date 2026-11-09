@@ -230,4 +230,49 @@ class ApplicationPrintController extends Controller
             'printedAt' => $printedAt,
         ]);
     }
+
+    /**
+     * Display printable statutory interview call letter.
+     */
+    public function printInterviewCallLetter(Request $request, $id)
+    {
+        if (!SystemSetting::isFeatureEnabled('interview_call_letters')) {
+            abort(403, 'The Statutory Interview Call Letter module is currently disabled by university administration.');
+        }
+
+        $application = Application::with([
+            'user.basicInfo',
+            'campaign.department',
+            'campaign.advertisement',
+        ])->findOrFail($id);
+
+        $currentUser = Auth::user();
+        if (!$currentUser) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        $isApplicant = $currentUser->isApplicant();
+        $isStaff = $currentUser->hasRole('super-admin') 
+            || $currentUser->hasRole('registrar')
+            || $currentUser->can('view-application')
+            || $currentUser->can('access-board-grading');
+
+        if ($isApplicant && $application->user_id !== $currentUser->id) {
+            abort(403, 'You are not authorized to view this candidate call letter.');
+        }
+
+        // For applicants, ensure call letter has actually been issued
+        if ($isApplicant && !$application->hasCallLetterIssued() && $application->status !== 'INTERVIEW_SCHEDULED') {
+            abort(404, 'Interview call letter has not been formally issued for your application yet.');
+        }
+
+        return view('print.interview-call-letter', [
+            'application' => $application,
+            'campaign' => $application->campaign,
+            'orgName' => SystemSetting::getOrgName(),
+            'letterhead' => SystemSetting::getLetterheadDetails(),
+            'letterFooter' => SystemSetting::getLetterFooter(),
+            'currentUser' => $currentUser,
+        ]);
+    }
 }

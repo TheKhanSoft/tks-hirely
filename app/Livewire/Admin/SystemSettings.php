@@ -22,6 +22,10 @@ class SystemSettings extends Component
     public $enable_board_interview_step;
     public $enforce_strict_committee_quorum;
     public $enforce_strict_peer_review_quorum;
+    public $enable_interview_call_letters = true;
+    public $enable_referee_magic_links = true;
+    public $enable_hjrs_journal_lookup = true;
+    public $enable_appellate_workbench = true;
 
     // 📑 Document Request Toggles
     public $require_transcript_proof;
@@ -307,6 +311,10 @@ class SystemSettings extends Component
         $this->enable_board_interview_step = (bool) SystemSetting::get('enable_board_interview_step', true);
         $this->enforce_strict_committee_quorum = (bool) SystemSetting::get('enforce_strict_committee_quorum', true);
         $this->enforce_strict_peer_review_quorum = (bool) SystemSetting::get('enforce_strict_peer_review_quorum', false);
+        $this->enable_interview_call_letters = (bool) SystemSetting::get('enable_interview_call_letters', true);
+        $this->enable_referee_magic_links = (bool) SystemSetting::get('enable_referee_magic_links', true);
+        $this->enable_hjrs_journal_lookup = (bool) SystemSetting::get('enable_hjrs_journal_lookup', true);
+        $this->enable_appellate_workbench = (bool) SystemSetting::get('enable_appellate_workbench', true);
 
         // Documents
         $this->require_transcript_proof = (bool) SystemSetting::get('require_transcript_proof', true);
@@ -512,6 +520,10 @@ class SystemSettings extends Component
         SystemSetting::set('enable_board_interview_step', $this->enable_board_interview_step, 'pipeline', 'boolean');
         SystemSetting::set('enforce_strict_committee_quorum', $this->enforce_strict_committee_quorum, 'pipeline', 'boolean');
         SystemSetting::set('enforce_strict_peer_review_quorum', $this->enforce_strict_peer_review_quorum, 'pipeline', 'boolean');
+        SystemSetting::set('enable_interview_call_letters', (bool) $this->enable_interview_call_letters, 'pipeline', 'boolean');
+        SystemSetting::set('enable_referee_magic_links', (bool) $this->enable_referee_magic_links, 'pipeline', 'boolean');
+        SystemSetting::set('enable_hjrs_journal_lookup', (bool) $this->enable_hjrs_journal_lookup, 'academic_criteria', 'boolean');
+        SystemSetting::set('enable_appellate_workbench', (bool) $this->enable_appellate_workbench, 'pipeline', 'boolean');
 
         session()->flash('message', 'Workflow pipeline stage settings successfully saved.');
     }
@@ -702,6 +714,7 @@ class SystemSettings extends Component
             'scope' => 'GLOBAL',
             'rule_notes' => 'Institutional global qualifications and division benchmarks',
         ]);
+        SystemSetting::set('enable_hjrs_journal_lookup', (bool) $this->enable_hjrs_journal_lookup, 'academic_criteria', 'boolean');
 
         SystemSetting::set('asst_prof_required_peer_reviewers', (int)$this->asst_prof_required_peer_reviewers, 'academic_criteria', 'integer');
         SystemSetting::set('prof_required_peer_reviewers', (int)$this->prof_required_peer_reviewers, 'academic_criteria', 'integer');
@@ -888,6 +901,10 @@ class SystemSettings extends Component
         $this->enable_board_interview_step = true;
         $this->enforce_strict_committee_quorum = true;
         $this->enforce_strict_peer_review_quorum = false;
+        $this->enable_interview_call_letters = true;
+        $this->enable_referee_magic_links = true;
+        $this->enable_hjrs_journal_lookup = true;
+        $this->enable_appellate_workbench = true;
         $this->savePipelineSettings();
         session()->flash('message', 'Workflow pipeline settings restored to institutional statutory default.');
     }

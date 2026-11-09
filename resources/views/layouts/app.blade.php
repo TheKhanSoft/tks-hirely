@@ -61,16 +61,29 @@
     <div class="app-layout">
         <!-- Sidebar Navigation Drawer -->
         <aside class="sidebar sidebar-{{ $themeVars['sidebarStyle'] }}" id="appSidebar">
-            <!-- Brand Logo -->
-            <a href="/" class="sidebar-brand-wrapper" title="{{ $sysOrgName }}">
-                <div class="brand-icon-box" style="padding: 0; background: transparent; box-shadow: none; overflow: hidden; display: flex; align-items: center; justify-content: center;">
-                    <img src="{{ $sysAppLogo }}" alt="{{ $sysOrgShortName }}" width="34" height="34" style="border-radius: 9px; display: block; box-shadow: 0 4px 14px var(--primary-glow); object-fit: contain;">
-                </div>
-                <div style="overflow: hidden; min-width: 0;">
-                    <div class="brand-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $sysOrgName }}">{{ strtoupper($sysBrandDisplay) }}</div>
-                    <div class="brand-badge" style="white-space: nowrap;"><span class="badge-dot" style="background: currentColor;"></span> {{ $sysAppVersion }}</div>
-                </div>
-            </a>
+            <!-- Brand Logo & Header Rail Toggle -->
+            <div class="sidebar-header-box">
+                <a href="/" class="sidebar-brand-wrapper" title="{{ $sysOrgName }}" data-tooltip="{{ $sysBrandDisplay }}">
+                    <div class="brand-icon-box" style="padding: 0; background: transparent; box-shadow: none; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                        <img src="{{ $sysAppLogo }}" alt="{{ $sysOrgShortName }}" width="34" height="34" style="border-radius: 9px; display: block; box-shadow: 0 4px 14px var(--primary-glow); object-fit: contain;">
+                    </div>
+                    <div class="brand-meta-box" style="overflow: hidden; min-width: 0;">
+                        <div class="brand-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $sysOrgName }}">{{ strtoupper($sysBrandDisplay) }}</div>
+                        <div class="brand-badge" style="white-space: nowrap;"><span class="badge-dot" style="background: currentColor;"></span> {{ $sysAppVersion }}</div>
+                    </div>
+                </a>
+
+                <button type="button" 
+                        class="sidebar-header-toggle-btn" 
+                        id="sidebarRailToggle" 
+                        title="Toggle Sidebar Rail (Ctrl + B)" 
+                        aria-label="Toggle Sidebar Rail"
+                        data-tooltip="Toggle Sidebar (Ctrl + B)">
+                    <svg class="header-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+            </div>
             
             <nav class="sidebar-menu">
                 @auth
@@ -421,35 +434,7 @@
                 @endauth
             </nav>
 
-            <div class="sidebar-footer-wrapper" style="margin-top: auto; padding-top: 0.65rem; border-top: 1px solid var(--border-color);">
-                @auth
-                    <!-- Sidebar Live Governance Operational Status Beacon -->
-                    <div class="sidebar-status-beacon-box" data-tooltip="Governance Engine: Operational">
-                        <div class="beacon-pulse-indicator">
-                            <span class="beacon-pulse-ring"></span>
-                            <span class="beacon-pulse-dot"></span>
-                        </div>
-                        <div class="beacon-status-text">
-                            <span class="beacon-status-title">Governance Engine</span>
-                            <span class="beacon-status-sub">Operational • Live Quorum</span>
-                        </div>
-                    </div>
-                @endauth
 
-                <!-- Sidebar Rail Collapse Toggle Button -->
-                <button type="button" 
-                        class="sidebar-collapse-toggle-btn" 
-                        id="sidebarRailToggle" 
-                        title="Toggle Sidebar Rail (Ctrl + B)" 
-                        aria-label="Toggle Sidebar Rail">
-                    <svg class="toggle-icon-collapse" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect width="18" height="18" x="3" y="3" rx="2"/>
-                        <path d="M9 3v18"/>
-                        <path d="m16 15-3-3 3-3"/>
-                    </svg>
-                    <span>Collapse Rail</span>
-                </button>
-            </div>
         </aside>
 
         <!-- Main Content Wrapper -->
@@ -771,6 +756,9 @@
                 const isCollapsed = document.documentElement.classList.toggle('sidebar-collapsed');
                 document.body.classList.toggle('sidebar-collapsed', isCollapsed);
                 localStorage.setItem('hirely_sidebar_collapsed', isCollapsed ? 'true' : 'false');
+
+                const tooltip = document.getElementById('sidebarRailTooltip');
+                if (tooltip) tooltip.classList.remove('show');
             }
 
             // Sync body class with html class on load
@@ -808,7 +796,75 @@
                     sidebar.classList.toggle('open');
                 });
             }
+
+            // Smooth Floating Tooltips on Hover (Only in Collapsed Rail Mode)
+            (function initSidebarRailTooltips() {
+                const tooltip = document.getElementById('sidebarRailTooltip');
+                const sidebar = document.getElementById('appSidebar');
+                if (!tooltip || !sidebar) return;
+
+                let activeEl = null;
+
+                function showTooltipFor(target) {
+                    if (!document.documentElement.classList.contains('sidebar-collapsed')) {
+                        hideTooltip();
+                        return;
+                    }
+
+                    const tooltipText = target.getAttribute('data-tooltip');
+                    if (!tooltipText) {
+                        hideTooltip();
+                        return;
+                    }
+
+                    const temp = document.createElement('div');
+                    temp.innerHTML = tooltipText;
+                    tooltip.textContent = temp.textContent || tooltipText;
+
+                    const sidebarRect = sidebar.getBoundingClientRect();
+                    const targetRect = target.getBoundingClientRect();
+
+                    const left = Math.round(sidebarRect.right + 10);
+                    const top = Math.round(targetRect.top + (targetRect.height / 2));
+
+                    tooltip.style.left = `${left}px`;
+                    tooltip.style.top = `${top}px`;
+                    tooltip.classList.add('show');
+                    activeEl = target;
+                }
+
+                function hideTooltip() {
+                    tooltip.classList.remove('show');
+                    activeEl = null;
+                }
+
+                sidebar.addEventListener('mouseover', function(e) {
+                    if (!document.documentElement.classList.contains('sidebar-collapsed')) return;
+                    const item = e.target.closest('[data-tooltip]');
+                    if (item && sidebar.contains(item)) {
+                        showTooltipFor(item);
+                    }
+                });
+
+                sidebar.addEventListener('mouseout', function(e) {
+                    if (!activeEl) return;
+                    const next = e.relatedTarget ? e.relatedTarget.closest('[data-tooltip]') : null;
+                    if (!next || !sidebar.contains(next)) {
+                        hideTooltip();
+                    }
+                });
+
+                const menu = sidebar.querySelector('.sidebar-menu');
+                if (menu) {
+                    menu.addEventListener('scroll', hideTooltip, { passive: true });
+                }
+                window.addEventListener('scroll', hideTooltip, { passive: true });
+                window.addEventListener('resize', hideTooltip, { passive: true });
+            })();
         })();
     </script>
+
+    <!-- Global Floating Rail Tooltip -->
+    <div id="sidebarRailTooltip" class="sidebar-rail-tooltip" role="tooltip" aria-hidden="true"></div>
 </body>
 </html>

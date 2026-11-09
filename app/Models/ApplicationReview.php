@@ -17,6 +17,8 @@ class ApplicationReview extends Model
         'due_date',
         'confidential_notes',
         'status',
+        'access_token',
+        'token_expires_at',
         'recommendation',
         'overall_score',
         'report_text',
@@ -27,9 +29,56 @@ class ApplicationReview extends Model
     protected $casts = [
         'assigned_at' => 'datetime',
         'due_date' => 'date',
+        'token_expires_at' => 'datetime',
         'submitted_at' => 'datetime',
         'overall_score' => 'decimal:2',
     ];
+
+    /**
+     * Ensure a secure cryptographic access token exists for passwordless review.
+     */
+    public function ensureAccessToken(): string
+    {
+        if (empty($this->access_token) || ($this->token_expires_at && $this->token_expires_at->isPast())) {
+            $days = (int) SystemSetting::get('referee_token_expiry_days', 14);
+            $this->access_token = bin2hex(random_bytes(32));
+            $this->token_expires_at = now()->addDays($days);
+            $this->save();
+        }
+
+        return $this->access_token;
+    }
+
+    /**
+     * Get direct passwordless evaluation link.
+     */
+    public function getDirectReviewUrl(): string
+    {
+        $token = $this->ensureAccessToken();
+        return url('/referee/direct-review/' . $token);
+    }
+
+    /**
+     * Check if a given token is valid and unexpired for this review.
+     */
+    public function isTokenValid(?string $token = null): bool
+    {
+        $tokenToCheck = $token ?: $this->access_token;
+
+        if (empty($tokenToCheck) || empty($this->access_token)) {
+            return false;
+        }
+
+        if (!hash_equals($this->access_token, $tokenToCheck)) {
+            return false;
+        }
+
+        if ($this->token_expires_at && $this->token_expires_at->isPast()) {
+            return false;
+        }
+
+        return true;
+    }
 
     /**
      * Parent application being evaluated.
