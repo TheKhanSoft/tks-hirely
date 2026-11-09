@@ -397,6 +397,14 @@ class PermissionRegistry
                     'label' => 'View Executive Analytics & Metrics',
                     'description' => 'Access recruitment funnel, quota distribution, and revenue analytics',
                 ],
+                'view-executive-analytics' => [
+                    'label' => 'View VC & Registrar Executive Recruitment Analytics',
+                    'description' => 'Access university executive recruitment analytics dashboard with statutory quota adherence, disqualification Pareto, and milestone velocity',
+                ],
+                'export-executive-analytics' => [
+                    'label' => 'Export Executive Recruitment Analytics',
+                    'description' => 'Download executive recruitment dockets and CSV data for Senate and Syndicate presentations',
+                ],
             ],
 
             'Selection Board Live Grading' => [
@@ -411,6 +419,14 @@ class PermissionRegistry
                 'view-board-roster' => [
                     'label' => 'View Selection Board Merit Roster',
                     'description' => 'Inspect official ranked selection merit list and composite interview scores',
+                ],
+                'view-projector-merit-board' => [
+                    'label' => 'View Selection Board Projector Merit Board',
+                    'description' => 'Access live conference room big-screen / projector merit board display for committee deliberations',
+                ],
+                'manage-projector-merit-board' => [
+                    'label' => 'Manage Projector Merit Board Controls',
+                    'description' => 'Control candidate interview queue spotlight, anonymization mode, and projector screen settings',
                 ],
             ],
 

@@ -26,6 +26,8 @@ class SystemSettings extends Component
     public $enable_referee_magic_links = true;
     public $enable_hjrs_journal_lookup = true;
     public $enable_appellate_workbench = true;
+    public $enable_projector_merit_board = true;
+    public $enable_executive_analytics = true;
 
     // 📑 Document Request Toggles
     public $require_transcript_proof;
@@ -315,6 +317,8 @@ class SystemSettings extends Component
         $this->enable_referee_magic_links = (bool) SystemSetting::get('enable_referee_magic_links', true);
         $this->enable_hjrs_journal_lookup = (bool) SystemSetting::get('enable_hjrs_journal_lookup', true);
         $this->enable_appellate_workbench = (bool) SystemSetting::get('enable_appellate_workbench', true);
+        $this->enable_projector_merit_board = (bool) SystemSetting::get('enable_projector_merit_board', true);
+        $this->enable_executive_analytics = (bool) SystemSetting::get('enable_executive_analytics', true);
 
         // Documents
         $this->require_transcript_proof = (bool) SystemSetting::get('require_transcript_proof', true);
@@ -524,6 +528,8 @@ class SystemSettings extends Component
         SystemSetting::set('enable_referee_magic_links', (bool) $this->enable_referee_magic_links, 'pipeline', 'boolean');
         SystemSetting::set('enable_hjrs_journal_lookup', (bool) $this->enable_hjrs_journal_lookup, 'academic_criteria', 'boolean');
         SystemSetting::set('enable_appellate_workbench', (bool) $this->enable_appellate_workbench, 'pipeline', 'boolean');
+        SystemSetting::set('enable_projector_merit_board', (bool) $this->enable_projector_merit_board, 'pipeline', 'boolean');
+        SystemSetting::set('enable_executive_analytics', (bool) $this->enable_executive_analytics, 'governance', 'boolean');
 
         session()->flash('message', 'Workflow pipeline stage settings successfully saved.');
     }
@@ -905,6 +911,8 @@ class SystemSettings extends Component
         $this->enable_referee_magic_links = true;
         $this->enable_hjrs_journal_lookup = true;
         $this->enable_appellate_workbench = true;
+        $this->enable_projector_merit_board = true;
+        $this->enable_executive_analytics = true;
         $this->savePipelineSettings();
         session()->flash('message', 'Workflow pipeline settings restored to institutional statutory default.');
     }

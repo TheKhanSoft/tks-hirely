@@ -421,6 +421,58 @@
                 </div>
             </div>
 
+            <!-- 11. Live Selection Board Big-Screen / Projector Merit Board Toggle -->
+            <div id="setting-feature-projector-merit-board" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $enable_projector_merit_board ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
+                <div style="max-width: 80%;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                        <span style="font-size: 1.15rem;">📽️</span>
+                        <span style="font-size: 0.98rem; font-weight: 800; color: var(--color-text-primary);">
+                            Live Selection Board Big-Screen / Projector Merit Board
+                        </span>
+                        <span class="badge {{ $enable_projector_merit_board ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.68rem; font-weight: 800;">
+                            {{ $enable_projector_merit_board ? 'ENABLED' : 'DISABLED' }}
+                        </span>
+                    </div>
+                    <div style="font-size: 0.82rem; color: var(--color-text-secondary); line-height: 1.5;">
+                        Optimizes syndicate and committee meeting rooms with a high-contrast big-screen projector view, real-time board scoring rollup, anonymization mode for blind deliberations, and instant consensus rankings.
+                    </div>
+                </div>
+                <div>
+                    <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
+                        <input type="checkbox" wire:model.live="enable_projector_merit_board" style="opacity: 0; width: 0; height: 0;">
+                        <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $enable_projector_merit_board ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $enable_projector_merit_board ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
+                            <span style="position: absolute; content: ''; height: 20px; width: 20px; left: {{ $enable_projector_merit_board ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 12. Vice Chancellor & Registrar Executive Recruitment Analytics Dashboard Toggle -->
+            <div id="setting-feature-executive-analytics" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $enable_executive_analytics ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
+                <div style="max-width: 80%;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                        <span style="font-size: 1.15rem;">📊</span>
+                        <span style="font-size: 0.98rem; font-weight: 800; color: var(--color-text-primary);">
+                            Vice Chancellor & Registrar Executive Recruitment Analytics Dashboard
+                        </span>
+                        <span class="badge {{ $enable_executive_analytics ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.68rem; font-weight: 800;">
+                            {{ $enable_executive_analytics ? 'ENABLED' : 'DISABLED' }}
+                        </span>
+                    </div>
+                    <div style="font-size: 0.82rem; color: var(--color-text-secondary); line-height: 1.5;">
+                        Empowers university leadership with executive intelligence dashboards covering statutory quota compliance, scrutiny disqualification Pareto root-causes, milestone stage velocity (time-to-hire), and financial ledger summaries.
+                    </div>
+                </div>
+                <div>
+                    <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
+                        <input type="checkbox" wire:model.live="enable_executive_analytics" style="opacity: 0; width: 0; height: 0;">
+                        <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $enable_executive_analytics ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $enable_executive_analytics ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
+                            <span style="position: absolute; content: ''; height: 20px; width: 20px; left: {{ $enable_executive_analytics ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
         </div>
 
         {{-- Deep Expandable Policy Guidelines --}}

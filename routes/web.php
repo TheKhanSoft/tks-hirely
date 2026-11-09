@@ -28,6 +28,8 @@ use App\Http\Controllers\MeritListPrintController;
 use App\Http\Controllers\PeerReviewPrintController;
 use App\Livewire\Reviewer\EvaluationDesk;
 use App\Livewire\Board\LiveGradingPanel;
+use App\Livewire\Board\ProjectorMeritBoard;
+use App\Livewire\Admin\ExecutiveAnalytics;
 use App\Livewire\Board\Dashboard as BoardDashboard;
 use App\Livewire\Scrutiny\Dashboard as ScrutinyDashboard;
 use App\Livewire\Bank\PaymentSimulator;
@@ -102,6 +104,8 @@ Route::middleware('auth')->group(function () {
     // -------------------------------------------------------------
     Route::get('/board/dashboard', BoardDashboard::class);
     Route::get('/board/evaluate/{id}', LiveGradingPanel::class);
+    Route::get('/board/projector/{campaignId?}', ProjectorMeritBoard::class)->name('board.projector');
+    Route::get('/admin/projector/{campaignId?}', ProjectorMeritBoard::class);
 
     // -------------------------------------------------------------
     // Appellate Committee Workspace
@@ -138,6 +142,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/registrar/permissions', function() { return redirect('/registrar/roles?tab=permissions'); });
     Route::get('/registrar/audit-logs', AuditLogManagement::class);
     Route::get('/registrar/merit-lists', MeritListManagement::class);
+    Route::get('/registrar/executive-analytics', ExecutiveAnalytics::class);
     Route::get('/registrar/settings', SystemSettings::class);
     Route::get('/registrar/settings/{tab}', SystemSettings::class)->where('tab', '[a-zA-Z0-9_\-]+');
 
@@ -172,6 +177,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/audit-logs', AuditLogManagement::class);
     Route::get('/admin/merit-lists', MeritListManagement::class);
     Route::get('/board/merit-lists', MeritListManagement::class);
+    Route::get('/admin/executive-analytics', ExecutiveAnalytics::class)->name('admin.executive-analytics');
     Route::get('/admin/settings', SystemSettings::class);
     Route::get('/admin/settings/{tab}', SystemSettings::class)->where('tab', '[a-zA-Z0-9_\-]+');
 

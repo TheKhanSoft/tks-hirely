@@ -53,6 +53,17 @@
                 <span>All Stage Merit Lists</span>
             </a>
 
+            @if(\App\Models\SystemSetting::isFeatureEnabled('projector_merit_board'))
+                <a href="/board/projector{{ !empty($campaignFilter) ? '/' . $campaignFilter : '' }}" 
+                   class="btn btn-secondary" 
+                   target="_blank"
+                   style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.6rem 1rem; font-weight: 700; font-size: 0.84rem; text-decoration: none;"
+                   title="Open Big-Screen / Projector Live Merit Board for boardroom display">
+                    <span style="font-size: 1rem;">📽️</span>
+                    <span>Projector Merit Board</span>
+                </a>
+            @endif
+
             <button type="button" 
                     class="btn btn-secondary" 
                     wire:click="openRosterModal"

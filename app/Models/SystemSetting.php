@@ -140,6 +140,8 @@ class SystemSetting extends Model
             'referee_magic_links', 'referee_links' => 'enable_referee_magic_links',
             'hjrs_lookup', 'hjrs_journal_lookup' => 'enable_hjrs_journal_lookup',
             'appellate_workbench' => 'enable_appellate_workbench',
+            'projector_merit_board', 'live_merit_board' => 'enable_projector_merit_board',
+            'executive_analytics', 'recruitment_analytics' => 'enable_executive_analytics',
             default => str_starts_with($feature, 'enable_') ? $feature : "enable_{$feature}",
         };
 
@@ -1344,6 +1346,22 @@ class SystemSetting extends Model
                 'type' => 'boolean',
                 'label' => 'Grievance Appellate Committee Digital Adjudication Workbench',
                 'description' => 'Enables the digital dispute resolution and appellate adjudication workbench for candidate disqualification grievances.',
+            ],
+            [
+                'key' => 'enable_projector_merit_board',
+                'value' => '1',
+                'group' => 'pipeline',
+                'type' => 'boolean',
+                'label' => 'Live Selection Board Big-Screen / Projector Merit Board',
+                'description' => 'Enables full-screen, high-contrast live merit board optimized for conference room projectors and TV displays during Selection Board interview sessions.',
+            ],
+            [
+                'key' => 'enable_executive_analytics',
+                'value' => '1',
+                'group' => 'governance',
+                'type' => 'boolean',
+                'label' => 'Vice Chancellor & Registrar Executive Recruitment Analytics Dashboard',
+                'description' => 'Provides an executive intelligence dashboard tracking statutory quota compliance, disqualification Pareto breakdown, milestone stage velocity, and financial ledger summaries.',
             ],
 
             // 📑 Document Requests & Mandatory Uploads

@@ -126,7 +126,11 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'export-status',
             'view-dashboard',
             'view-analytics',
+            'view-executive-analytics',
+            'export-executive-analytics',
             'view-board-roster',
+            'view-projector-merit-board',
+            'manage-projector-merit-board',
         ]);
 
         $scrutinyPanel = Role::firstOrCreate(['name' => 'scrutiny-committee', 'guard_name' => 'web']);
@@ -165,6 +169,7 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'access-board-grading',
             'submit-board-score',
             'view-board-roster',
+            'view-projector-merit-board',
         ]);
 
         $applicant = Role::firstOrCreate(['name' => 'applicant', 'guard_name' => 'web']);
