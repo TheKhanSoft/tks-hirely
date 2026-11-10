@@ -5310,12 +5310,10 @@ html.sidebar-collapsed .sidebar-link .sidebar-badge {
 }
 
 /* Strictly disable ALL CSS pseudo-element tooltips on sidebar navigation (prevents middle clipping box) */
-#appSidebar *,
 #appSidebar *::before,
 #appSidebar *::after,
 #appSidebar *:hover::before,
 #appSidebar *:hover::after,
-.sidebar *,
 .sidebar *::before,
 .sidebar *::after,
 .sidebar *:hover::before,
