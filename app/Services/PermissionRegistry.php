@@ -428,6 +428,41 @@ class PermissionRegistry
                     'label' => 'Manage Projector Merit Board Controls',
                     'description' => 'Control candidate interview queue spotlight, anonymization mode, and projector screen settings',
                 ],
+                'view-merit-list' => [
+                    'label' => 'View Statutory Merit Lists',
+                    'description' => 'Access and inspect consolidated statutory merit rankings and gazettes',
+                ],
+                'generate-merit-list' => [
+                    'label' => 'Generate Statutory Merit Lists',
+                    'description' => 'Compile and calculate candidate rankings according to statutory formula',
+                ],
+                'export-merit-list' => [
+                    'label' => 'Export Merit Lists Data',
+                    'description' => 'Download official merit rosters and candidate scores in CSV format',
+                ],
+                'publish-merit-list' => [
+                    'label' => 'Publish Official Merit List',
+                    'description' => 'Authorize public or portal release of official merit rankings',
+                ],
+            ],
+
+            'Communications & Email Dispatch' => [
+                'manage-email-templates' => [
+                    'label' => 'Manage Email Templates',
+                    'description' => 'Create, edit, preview, and restore system notification email templates',
+                ],
+                'view-email-templates' => [
+                    'label' => 'View Email Templates',
+                    'description' => 'Inspect seeded system email templates, layouts, and subject lines',
+                ],
+                'send-custom-email' => [
+                    'label' => 'Dispatch Custom Emails',
+                    'description' => 'Compose and dispatch direct emails to candidates and stakeholders',
+                ],
+                'toggle-email-triggers' => [
+                    'label' => 'Toggle Email Automated Triggers',
+                    'description' => 'Enable or disable automated event-driven email notifications',
+                ],
             ],
 
             'System & Workflow Settings' => [

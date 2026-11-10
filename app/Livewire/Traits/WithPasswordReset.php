@@ -108,6 +108,17 @@ trait WithPasswordReset
 
         $targetUser = User::with(['roles', 'basicInfo', 'reviewerProfile'])->findOrFail($this->resetTargetUserId);
 
+        abort_unless(
+            $admin && (
+                $admin->hasRole('super-admin') ||
+                $admin->can('reset-user-password') ||
+                $admin->can('edit-user') ||
+                PasswordResetManager::canResetPassword($admin, $targetUser)
+            ),
+            403,
+            'Unauthorized: You do not possess clearance to reset credentials for this account.'
+        );
+
         if ($this->resetMethod === 'email') {
             $passwordToSet = PasswordResetManager::generateTemporaryPassword();
             $this->resetPlainPassword = '';

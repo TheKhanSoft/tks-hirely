@@ -120,7 +120,7 @@ class ReviewerManagement extends Component
 
     public function mount()
     {
-        abort_unless(Auth::check() && Auth::user()->can('manage-reviewers'), 403);
+        abort_unless(Auth::check() && (Auth::user()->can('manage-reviewers') || Auth::user()->can('view-reviewer')), 403);
         $this->reviewDueDate = now()->addDays(14)->format('Y-m-d');
     }
 
@@ -416,6 +416,23 @@ class ReviewerManagement extends Component
         if ($this->showDetailsModal && $this->selectedReviewerForDetails?->id === $profile->id) {
             $this->openDetailsModal($profile->id);
         }
+    }
+
+    public function deleteReviewer($profileId)
+    {
+        abort_unless(Auth::user()->can('delete-reviewer') || Auth::user()->can('manage-reviewers'), 403);
+
+        $profile = ReviewerProfile::withCount('reviews')->findOrFail($profileId);
+        if ($profile->reviews_count > 0) {
+            session()->flash('error', "Cannot delete referee '{$profile->name}': this expert has {$profile->reviews_count} assigned candidate reviews.");
+            return;
+        }
+
+        $name = $profile->name;
+        $profile->delete();
+
+        session()->flash('message', "Academic referee '{$name}' has been successfully removed.");
+        $this->closeDetailsModal();
     }
 
     public function openDispatchModal($applicationId)

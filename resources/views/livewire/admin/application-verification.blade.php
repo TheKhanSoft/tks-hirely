@@ -225,9 +225,20 @@
 
         <!-- 1. Bio-Data Checklist -->
         <div class="card mb-4">
-            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
-                <span style="width: 22px; height: 22px; border-radius: 50%; background: rgba(6,182,212,0.15); color: var(--secondary); font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center;">1</span>
-                <h3 class="card-title" style="margin: 0; font-size: 1.05rem; color: var(--secondary);">Bio-Data & CNIC Verification</h3>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="width: 22px; height: 22px; border-radius: 50%; background: rgba(6,182,212,0.15); color: var(--secondary); font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center;">1</span>
+                    <h3 class="card-title" style="margin: 0; font-size: 1.05rem; color: var(--secondary);">Bio-Data & CNIC Verification</h3>
+                </div>
+                @php
+                    $isBiodataVerified = !empty($application->verification_data['biodata_verified']);
+                @endphp
+                <button type="button" 
+                        wire:click="toggleVerifyBiodata"
+                        class="btn btn-sm {{ $isBiodataVerified ? 'btn-success' : 'btn-outline-secondary' }}"
+                        style="font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem;">
+                    {{ $isBiodataVerified ? '✓ Bio-Data Verified' : 'Verify Bio-Data' }}
+                </button>
             </div>
             
             <div style="display: flex; gap: 1.15rem; align-items: center; background: var(--bg-tertiary); padding: 0.85rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 1rem;">

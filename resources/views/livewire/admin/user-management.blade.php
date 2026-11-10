@@ -371,7 +371,7 @@
                         <!-- Quick Actions (Hover Reveal Icons) -->
                         <x-slot:quickActions>
                             {{-- Impersonate Quick Action --}}
-                            @if(auth()->user()->hasRole('super-admin') && auth()->id() !== $u->id && !$u->hasRole('super-admin'))
+                            @if((auth()->user()->hasRole('super-admin') || auth()->user()->can('impersonate-user')) && auth()->id() !== $u->id && !$u->hasRole('super-admin'))
                                 <a href="{{ route('impersonate.start', $u->id) }}" 
                                    class="action-btn action-btn-impersonate" 
                                    data-tooltip="Impersonate {{ $displayName ?: $u->email }}"
@@ -483,7 +483,7 @@
                                 </x-entity-card-menu-item>
                             @endcan
 
-                            @if(auth()->user()->hasRole('super-admin') && auth()->id() !== $u->id && !$u->hasRole('super-admin'))
+                            @if((auth()->user()->hasRole('super-admin') || auth()->user()->can('impersonate-user')) && auth()->id() !== $u->id && !$u->hasRole('super-admin'))
                                 <div class="entity-card-menu-divider"></div>
                                 <x-entity-card-menu-item 
                                     label="Impersonate User" 
@@ -668,7 +668,7 @@
                                                         <span>Reset Password & Credentials</span>
                                                     </button>
                                                 @endif
-                                                @if(auth()->user()->hasRole('super-admin') && auth()->id() !== $u->id && !$u->hasRole('super-admin'))
+                                                @if((auth()->user()->hasRole('super-admin') || auth()->user()->can('impersonate-user')) && auth()->id() !== $u->id && !$u->hasRole('super-admin'))
                                                     <a href="{{ route('impersonate.start', $u->id) }}" class="table-action-menu-item impersonate">
                                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                                         <span>Impersonate User</span>
@@ -817,7 +817,7 @@
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
                     <div>
-                        @if(auth()->user()->hasRole('super-admin') && auth()->id() !== $selectedPersonnel->id && !$selectedPersonnel->hasRole('super-admin'))
+                        @if((auth()->user()->hasRole('super-admin') || auth()->user()->can('impersonate-user')) && auth()->id() !== $selectedPersonnel->id && !$selectedPersonnel->hasRole('super-admin'))
                             <a href="{{ route('impersonate.start', $selectedPersonnel->id) }}" class="btn btn-warning" style="display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 700; text-decoration: none;">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>

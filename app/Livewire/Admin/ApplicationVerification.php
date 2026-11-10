@@ -77,6 +77,7 @@ class ApplicationVerification extends Component
     {
         abort_unless(
             Auth::user()->can('verify-documents') ||
+            Auth::user()->can('verify-biodata') ||
             Auth::user()->can('scrutinize-application') ||
             Auth::user()->can('view-application'),
             403
@@ -85,6 +86,38 @@ class ApplicationVerification extends Component
         $this->viewingDocName = $name;
         $this->viewingDocPath = $path;
         $this->viewingDocType = $type;
+    }
+
+    public function toggleVerifyBiodata()
+    {
+        abort_unless(
+            Auth::user()->can('verify-biodata') ||
+            Auth::user()->can('verify-documents') ||
+            Auth::user()->can('scrutinize-application'),
+            403
+        );
+
+        $basicInfo = $this->application->user?->basicInfo;
+        if ($basicInfo) {
+            $verificationData = $this->application->verification_data ?? [];
+            $isVerified = (bool)($verificationData['biodata_verified'] ?? false);
+            $verificationData['biodata_verified'] = !$isVerified;
+            $verificationData['biodata_verified_by'] = Auth::id();
+            $verificationData['biodata_verified_at'] = now()->toIso8601String();
+
+            $this->application->update(['verification_data' => $verificationData]);
+
+            SecurityAuditLog::record(
+                !$isVerified ? 'BIODATA_VERIFIED' : 'BIODATA_VERIFICATION_REVOKED',
+                'Application',
+                $this->application->id,
+                ['candidate_name' => trim(($basicInfo->first_name ?? '') . ' ' . ($basicInfo->last_name ?? '')), 'cnic' => $basicInfo->cnic_number],
+                null,
+                Auth::id()
+            );
+
+            session()->flash('message', !$isVerified ? 'Candidate Bio-Data & CNIC marked verified.' : 'Candidate Bio-Data verification revoked.');
+        }
     }
 
     // Toggle individual verification state in DB for audit trail

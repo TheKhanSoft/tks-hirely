@@ -410,4 +410,70 @@ class ActionPermissionsCoverageTest extends TestCase
             ->call('toggleAllowedTransition', 'ELIGIBLE')
             ->assertHasNoErrors();
     }
+
+    public function test_newly_enforced_granular_permissions_coverage()
+    {
+        $user = User::factory()->create(['email' => 'auditor@awkum.edu.pk']);
+        $user->givePermissionTo('view-advertisement', 'view-reviewer', 'scrutinize-application', 'view-user');
+        $this->actingAs($user);
+
+        // 1. Advertisement Deletion requires delete-advertisement
+        $ad = Advertisement::create([
+            'advertisement_no' => 'AD-DEL-TEST-01',
+            'title' => 'Test Ad For Deletion',
+            'year' => 2026,
+            'newspaper' => 'Daily Dawn',
+            'publish_date' => now()->toDateString(),
+            'valid_from' => now()->toDateString(),
+            'valid_to' => now()->addDays(20),
+            'is_active' => true,
+            'created_by' => $user->id,
+        ]);
+
+        Livewire::test(\App\Livewire\Admin\AdvertisementManagement::class)
+            ->call('deleteAdvertisement', $ad->id)
+            ->assertForbidden();
+
+        $user->givePermissionTo('delete-advertisement');
+        Livewire::test(\App\Livewire\Admin\AdvertisementManagement::class)
+            ->call('deleteAdvertisement', $ad->id)
+            ->assertHasNoErrors();
+        $this->assertDatabaseMissing('advertisements', ['id' => $ad->id]);
+
+        // 2. Reviewer Deletion requires delete-reviewer
+        $refUser = User::factory()->create(['email' => 'referee.del@awkum.edu.pk']);
+        $profile = \App\Models\ReviewerProfile::create([
+            'user_id' => $refUser->id,
+            'name' => 'Prof. Dr. Deletion Test',
+            'email' => $refUser->email,
+            'subject' => 'Computer Science',
+            'academic_rank' => 'Professor',
+            'university' => 'Oxford',
+            'country' => 'United Kingdom',
+            'is_active' => true,
+        ]);
+
+        Livewire::test(\App\Livewire\Admin\ReviewerManagement::class)
+            ->call('deleteReviewer', $profile->id)
+            ->assertForbidden();
+
+        $user->givePermissionTo('delete-reviewer');
+        Livewire::test(\App\Livewire\Admin\ReviewerManagement::class)
+            ->call('deleteReviewer', $profile->id)
+            ->assertHasNoErrors();
+        $this->assertDatabaseMissing('reviewer_profiles', ['id' => $profile->id]);
+
+        // 3. Password Reset Execution requires reset-user-password
+        $targetUser = User::factory()->create(['email' => 'target.reset@awkum.edu.pk']);
+        $testComponent = Livewire::test(\App\Livewire\Admin\UserManagement::class);
+        $testComponent->set('resetTargetUserId', $targetUser->id);
+        $testComponent->call('executePasswordReset')
+            ->assertForbidden();
+
+        $user->givePermissionTo('reset-user-password');
+        Livewire::test(\App\Livewire\Admin\UserManagement::class)
+            ->set('resetTargetUserId', $targetUser->id)
+            ->call('executePasswordReset')
+            ->assertHasNoErrors();
+    }
 }

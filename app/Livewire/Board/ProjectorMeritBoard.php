@@ -127,6 +127,12 @@ class ProjectorMeritBoard extends Component
 
     public function setCandidateDecision($appId, $recommendation, $remarks = ''): void
     {
+        abort_unless(
+            Auth::user()->can('manage-projector-merit-board') ||
+            Auth::user()->hasAnyRole(['super-admin', 'registrar', 'selection-board-member', 'board']),
+            403
+        );
+
         $this->consensusDecisions[$appId]['recommendation'] = $recommendation;
         if ($remarks) {
             $this->consensusDecisions[$appId]['remarks'] = $remarks;
@@ -136,6 +142,7 @@ class ProjectorMeritBoard extends Component
     public function signAndLockConsensusBallot(): void
     {
         abort_unless(
+            Auth::user()->can('manage-projector-merit-board') ||
             Auth::user()->hasAnyRole(['super-admin', 'registrar', 'selection-board-member', 'board']),
             403,
             'Unauthorized to execute statutory ballot sign-off.'

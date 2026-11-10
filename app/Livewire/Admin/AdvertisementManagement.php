@@ -310,6 +310,22 @@ class AdvertisementManagement extends Component
         $this->dateTracks = [];
     }
 
+    public function deleteAdvertisement($adId)
+    {
+        abort_unless(Auth::user()->can('delete-advertisement') || Auth::user()->can('delete-campaign'), 403);
+
+        $ad = Advertisement::withCount('campaigns')->findOrFail($adId);
+        if ($ad->campaigns_count > 0) {
+            session()->flash('error', "Cannot delete advertisement '{$ad->advertisement_no}': it has {$ad->campaigns_count} linked job campaigns. Please delete or reassign them first.");
+            return;
+        }
+
+        $adNo = $ad->advertisement_no;
+        $ad->delete();
+
+        session()->flash('message', "Advertisement '{$adNo}' has been permanently deleted.");
+    }
+
     public function openJobsModal($adId)
     {
         abort_unless(Auth::user()->can('view-advertisement') || Auth::user()->can('view-campaign'), 403);

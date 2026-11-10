@@ -64,6 +64,7 @@ class MeritListManagement extends Component
     public function mount()
     {
         abort_unless(Auth::check() && (
+            Auth::user()->can('view-merit-list') ||
             Auth::user()->can('view-board-roster') ||
             Auth::user()->can('view-application') ||
             Auth::user()->can('scrutinize-application') ||
@@ -174,6 +175,8 @@ class MeritListManagement extends Component
     public function exportCsv(MeritListService $meritService)
     {
         abort_unless(Auth::check() && (
+            Auth::user()->can('export-merit-list') ||
+            Auth::user()->can('view-merit-list') ||
             Auth::user()->can('view-board-roster') ||
             Auth::user()->can('view-application') ||
             Auth::user()->hasAnyRole(['super-admin', 'registrar', 'selection-board-member'])
@@ -340,6 +343,50 @@ class MeritListManagement extends Component
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ]);
+    }
+
+    public function generateMeritList(MeritListService $meritService)
+    {
+        abort_unless(
+            Auth::user()->can('generate-merit-list') || 
+            Auth::user()->hasAnyRole(['super-admin', 'registrar']),
+            403
+        );
+
+        $campaign = Campaign::with(['advertisement', 'constitution', 'processFlow'])->find($this->campaignId);
+        if (!$campaign) {
+            session()->flash('error', 'Please select a campaign to generate merit rankings.');
+            return;
+        }
+
+        $meritService->getStageData($campaign, $this->activeStage, []);
+        session()->flash('message', "Statutory merit rankings successfully compiled and refreshed for {$campaign->title}.");
+    }
+
+    public function publishOfficialMeritList()
+    {
+        abort_unless(
+            Auth::user()->can('publish-merit-list') || 
+            Auth::user()->hasAnyRole(['super-admin', 'registrar']),
+            403
+        );
+
+        $campaign = Campaign::find($this->campaignId);
+        if (!$campaign) {
+            session()->flash('error', 'Please select a campaign to publish.');
+            return;
+        }
+
+        \App\Models\SecurityAuditLog::record(
+            'STATUTORY_MERIT_LIST_PUBLISHED',
+            'Campaign',
+            $campaign->id,
+            ['stage' => $this->activeStage, 'campaign' => $campaign->title, 'published_by' => Auth::id()],
+            null,
+            Auth::id()
+        );
+
+        session()->flash('message', "Official Merit Gazette for {$campaign->title} ({$this->activeStage}) formally certified and published.");
     }
 
     public function render(MeritListService $meritService)

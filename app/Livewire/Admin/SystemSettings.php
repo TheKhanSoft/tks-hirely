@@ -306,7 +306,22 @@ class SystemSettings extends Component
 
     public function mount($tab = null)
     {
-        abort_unless(Auth::check() && (Auth::user()->hasRole('super-admin') || Auth::user()->can('manage-settings')), 403);
+        $user = Auth::user();
+        abort_unless(
+            $user && (
+                $user->hasRole('super-admin') ||
+                $user->can('manage-settings') ||
+                $user->can('manage-security-settings') ||
+                $user->can('manage-system-maintenance') ||
+                $user->can('view-system-health') ||
+                $user->can('manage-email-templates') ||
+                $user->can('view-email-templates') ||
+                $user->can('manage-sms-settings') ||
+                $user->can('manage-whatsapp-settings') ||
+                $user->can('manage-merit-formula')
+            ),
+            403
+        );
         $this->loadSettings();
 
         if ($tab) {
@@ -787,7 +802,7 @@ class SystemSettings extends Component
 
     public function saveAcademicCriteriaSettings()
     {
-        abort_unless(Auth::user()->can('manage-settings'), 403);
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('manage-merit-formula'), 403);
 
         if ($this->global_disallow_third_division) {
             $this->global_disallow_third_in_terminal = true;

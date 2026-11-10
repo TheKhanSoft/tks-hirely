@@ -351,6 +351,17 @@
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                             </button>
                         @endif
+
+                        @if(auth()->user()->can('delete-advertisement') || auth()->user()->can('delete-campaign'))
+                            <button type="button" 
+                                    class="action-btn action-btn-danger" 
+                                    data-tooltip="Delete Advertisement" 
+                                    wire:click="deleteAdvertisement({{ $ad->id }})" 
+                                    wire:confirm="Are you sure you want to delete advertisement '{{ $ad->advertisement_no }}'?"
+                                    aria-label="Delete Advertisement">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                            </button>
+                        @endif
                     @endif
                 </x-slot:quickActions>
 
