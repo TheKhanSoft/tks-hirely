@@ -729,7 +729,7 @@
                         🧪 Live WhatsApp Dispatch Verification Console
                     </div>
                     <span style="font-size: 0.75rem; color: var(--color-text-muted);">
-                        Testing Provider: <strong style="color: #25D366;">{{ strtoupper($whatsapp_provider) }}</strong>
+                        Testing Provider: <strong style="color: #25D366;">{{ strtoupper($whatsapp_provider ?? 'meta') }}</strong>
                     </span>
                 </div>
                 <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.5rem;">
@@ -739,8 +739,8 @@
                         💬 Dispatch Test WhatsApp
                     </button>
                 </div>
-                @if($test_whatsapp_result || session()->has('test_whatsapp_status'))
-                    @php $waStatus = $test_whatsapp_result ?: session('test_whatsapp_status'); @endphp
+                @if((isset($test_whatsapp_result) && $test_whatsapp_result) || session()->has('test_whatsapp_status'))
+                    @php $waStatus = ($test_whatsapp_result ?? null) ?: session('test_whatsapp_status'); @endphp
                     <div style="margin-top: 0.75rem; font-size: 0.82rem; font-weight: 700; color: {{ ($waStatus['type'] ?? 'success') === 'success' ? 'var(--success)' : 'var(--danger)' }};">
                         {{ ($waStatus['type'] ?? 'success') === 'success' ? '✅' : '❌' }} {{ $waStatus['message'] }}
                         @if(!empty($waStatus['message_id']))
