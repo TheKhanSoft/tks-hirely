@@ -302,4 +302,34 @@ class ProjectorBoardAndExecutiveAnalyticsTest extends TestCase
             ->assertSee('Executive Recruitment Analytics Dashboard is Disabled')
             ->assertDontSee('Total Intake Applications');
     }
+
+    /**
+     * Test 8: Statutory Quorum Tracker and Consensus Ballot digital sign-off.
+     */
+    public function test_projector_quorum_tracker_and_consensus_ballot_sign_off(): void
+    {
+        $component = Livewire::actingAs($this->superAdmin)
+            ->test(ProjectorMeritBoard::class, ['campaignId' => $this->campaign->id])
+            ->assertStatus(200)
+            ->assertSee('Board Quorum')
+            ->assertSee('Consensus Ballot')
+            ->call('toggleQuorumModal')
+            ->assertSet('showQuorumModal', true)
+            ->assertSee('Statutory Selection Board Quorum Tracker')
+            ->call('toggleQuorumModal')
+            ->assertSet('showQuorumModal', false)
+            ->call('openConsensusModal')
+            ->assertSet('showConsensusModal', true)
+            ->assertSee('Selection Board Consensus Ballot', false)
+            ->set('consensusResolution', 'Special Syndicate Recommendation Approved by Selection Board.')
+            ->call('signAndLockConsensusBallot')
+            ->assertHasNoErrors()
+            ->assertSee('Digital Sign-off Recorded');
+
+        // Verify ballot stored in campaign scoring rules
+        $freshCamp = $this->campaign->fresh();
+        $this->assertNotNull($freshCamp->scoring_rules['consensus_ballot']);
+        $this->assertEquals('Special Syndicate Recommendation Approved by Selection Board.', $freshCamp->scoring_rules['consensus_ballot']['resolution']);
+        $this->assertEquals($this->superAdmin->id, $freshCamp->scoring_rules['consensus_ballot']['signed_by_user_id']);
+    }
 }

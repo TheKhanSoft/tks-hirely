@@ -58,18 +58,19 @@
                 </div>
             </div>
 
-            <!-- Center: Quorum Counter -->
+            <!-- Center: Quorum Counter with Live Tracker Trigger -->
             <div style="background: var(--p-card-header); border: 1px solid var(--p-border); border-radius: 10px; padding: 0.6rem 1.25rem; display: flex; align-items: center; gap: 1.25rem;">
-                <div style="text-align: center;">
-                    <div style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--p-text-muted);">
-                        Board Quorum
+                <div style="text-align: center; cursor: pointer;" wire:click="toggleQuorumModal" title="Click to view statutory quorum breakdown">
+                    <div style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--p-text-muted); display: flex; align-items: center; gap: 0.3rem; justify-content: center;">
+                        <span>Board Quorum</span>
+                        <span style="font-size: 0.65rem;">ℹ️</span>
                     </div>
                     <div style="font-size: 1.1rem; font-weight: 800; color: {{ $committeeQuorum['quorum_met'] ? 'var(--p-emerald)' : 'var(--p-gold)' }};">
                         {{ $committeeQuorum['quorum_met'] ? '🟢 Quorum Met' : '🟡 In Deliberation' }}
                     </div>
                 </div>
                 <div style="height: 28px; width: 1px; background: var(--p-border);"></div>
-                <div style="text-align: center;">
+                <div style="text-align: center; cursor: pointer;" wire:click="toggleQuorumModal" title="Click to inspect committee attendance roster">
                     <div style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--p-text-muted);">
                         Evaluations Cast
                     </div>
@@ -82,12 +83,32 @@
             <!-- Right: Projector Controls Toolbar -->
             <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                 
+                <!-- Statutory Consensus Ballot & Sign-off -->
+                <button type="button" 
+                        wire:click="openConsensusModal" 
+                        class="btn" 
+                        style="background: linear-gradient(135deg, var(--p-gold), #ea580c); color: #000; border: none; font-weight: 800; font-size: 0.85rem; padding: 0.5rem 1rem; border-radius: 8px; display: flex; align-items: center; gap: 0.45rem; box-shadow: 0 4px 14px rgba(251, 191, 36, 0.35);">
+                    <span>📝</span>
+                    <span>Consensus Ballot</span>
+                    @if($ballotSignedAt)
+                        <span style="background: rgba(0,0,0,0.25); color: #fff; padding: 0.1rem 0.45rem; border-radius: 9999px; font-size: 0.65rem;">LOCKED</span>
+                    @endif
+                </button>
+
+                <!-- Quorum Tracker Button -->
+                <button type="button" 
+                        wire:click="toggleQuorumModal"
+                        class="btn" 
+                        style="background: var(--p-card-header); color: var(--p-text); border: 1px solid var(--p-border); font-weight: 700; font-size: 0.85rem; padding: 0.5rem 0.9rem; border-radius: 8px;">
+                    ⚖️ Quorum Tracker
+                </button>
+
                 <!-- Anonymize Toggle -->
                 <button type="button" 
                         wire:click="toggleAnonymization"
                         class="btn" 
                         style="background: {{ $isAnonymized ? 'rgba(244, 63, 94, 0.2)' : 'var(--p-card-header)' }}; color: {{ $isAnonymized ? 'var(--p-rose)' : 'var(--p-text)' }}; border: 1px solid {{ $isAnonymized ? 'var(--p-rose)' : 'var(--p-border)' }}; font-weight: 700; font-size: 0.85rem; padding: 0.5rem 0.9rem; border-radius: 8px;">
-                    🛡️ {{ $isAnonymized ? 'Anonymized (Active)' : 'Anonymize Candidates' }}
+                    🛡️ {{ $isAnonymized ? 'Anonymized' : 'Anonymize' }}
                 </button>
 
                 <!-- High-contrast Dark/Light Mode -->
@@ -95,7 +116,7 @@
                         wire:click="toggleTheme" 
                         class="btn" 
                         style="background: var(--p-card-header); color: var(--p-text); border: 1px solid var(--p-border); font-weight: 700; font-size: 0.85rem; padding: 0.5rem 0.9rem; border-radius: 8px;">
-                    {{ $themeMode === 'dark' ? '☀️ Light' : '🌙 Dark Projector' }}
+                    {{ $themeMode === 'dark' ? '☀️ Light' : '🌙 Dark' }}
                 </button>
 
                 <!-- Auto-Sync Toggle -->
@@ -103,7 +124,7 @@
                         wire:click="toggleAutoRefresh" 
                         class="btn" 
                         style="background: {{ $autoRefresh ? 'rgba(16, 185, 129, 0.15)' : 'var(--p-card-header)' }}; color: {{ $autoRefresh ? 'var(--p-emerald)' : 'var(--p-text-muted)' }}; border: 1px solid {{ $autoRefresh ? 'var(--p-emerald)' : 'var(--p-border)' }}; font-weight: 700; font-size: 0.85rem; padding: 0.5rem 0.9rem; border-radius: 8px;">
-                    🔄 {{ $autoRefresh ? 'Live Sync (10s)' : 'Sync Paused' }}
+                    🔄 {{ $autoRefresh ? 'Sync (10s)' : 'Paused' }}
                 </button>
 
                 <!-- Native Fullscreen Toggle Button -->
@@ -393,6 +414,260 @@
 
             </div>
         @endif
+    @endif
+
+    <!-- Statutory Quorum Tracker Modal -->
+    @if($showQuorumModal)
+        <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1rem;" wire:click.self="toggleQuorumModal">
+            <div style="background: var(--p-card); border: 1px solid var(--p-border); border-radius: 16px; width: 100%; max-width: 680px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); overflow: hidden;">
+                <!-- Header -->
+                <div style="padding: 1.25rem 1.5rem; background: var(--p-card-header); border-bottom: 1px solid var(--p-border); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 0.65rem;">
+                        <span style="font-size: 1.35rem;">⚖️</span>
+                        <div>
+                            <div style="font-weight: 800; font-size: 1.1rem; color: var(--p-text);">Statutory Selection Board Quorum Tracker</div>
+                            <div style="font-size: 0.78rem; color: var(--p-text-muted);">HEC University Model Act & AWKUM Statutory Guidelines</div>
+                        </div>
+                    </div>
+                    <button type="button" wire:click="toggleQuorumModal" style="background: none; border: none; font-size: 1.25rem; color: var(--p-text-muted); cursor: pointer;">✕</button>
+                </div>
+
+                <!-- Body -->
+                <div style="padding: 1.5rem;">
+                    <!-- Overall Status Alert -->
+                    <div style="padding: 1rem 1.25rem; border-radius: 10px; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.75rem; background: {{ $committeeQuorum['quorum_met'] ? 'rgba(16, 185, 129, 0.12)' : 'rgba(251, 191, 36, 0.12)' }}; border: 1px solid {{ $committeeQuorum['quorum_met'] ? 'var(--p-emerald)' : 'var(--p-gold)' }};">
+                        <span style="font-size: 1.75rem;">{{ $committeeQuorum['quorum_met'] ? '🟢' : '🟡' }}</span>
+                        <div>
+                            <div style="font-weight: 800; font-size: 0.95rem; color: {{ $committeeQuorum['quorum_met'] ? 'var(--p-emerald)' : 'var(--p-gold)' }};">
+                                {{ $committeeQuorum['quorum_met'] ? 'Statutory Quorum Satisfied for Formal Recommendation' : 'Quorum Deficient: Session in Progress' }}
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--p-text-muted); margin-top: 0.15rem;">
+                                {{ $committeeQuorum['quorum_met'] 
+                                    ? 'Required voting threshold of ' . $committeeQuorum['required_quorum'] . ' members met, including external expert representation.' 
+                                    : 'A minimum of ' . $committeeQuorum['required_quorum'] . ' members (and at least 1 external expert) must evaluate before final ballot sign-off.' }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quorum Metric Tiles -->
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.5rem;">
+                        <div style="background: var(--p-card-header); padding: 0.85rem; border-radius: 8px; text-align: center; border: 1px solid var(--p-border);">
+                            <div style="font-size: 0.72rem; color: var(--p-text-muted); text-transform: uppercase; font-weight: 800;">Total Members</div>
+                            <div style="font-size: 1.35rem; font-weight: 800; color: var(--p-text); margin-top: 0.2rem;">{{ $committeeQuorum['total_members'] }}</div>
+                        </div>
+                        <div style="background: var(--p-card-header); padding: 0.85rem; border-radius: 8px; text-align: center; border: 1px solid var(--p-border);">
+                            <div style="font-size: 0.72rem; color: var(--p-text-muted); text-transform: uppercase; font-weight: 800;">External Experts</div>
+                            <div style="font-size: 1.35rem; font-weight: 800; color: {{ ($committeeQuorum['external_submitted'] ?? 0) >= 1 ? 'var(--p-emerald)' : 'var(--p-rose)' }}; margin-top: 0.2rem;">
+                                {{ $committeeQuorum['external_submitted'] ?? 0 }} / {{ $committeeQuorum['external_members'] }}
+                            </div>
+                        </div>
+                        <div style="background: var(--p-card-header); padding: 0.85rem; border-radius: 8px; text-align: center; border: 1px solid var(--p-border);">
+                            <div style="font-size: 0.72rem; color: var(--p-text-muted); text-transform: uppercase; font-weight: 800;">Evaluations Cast</div>
+                            <div style="font-size: 1.35rem; font-weight: 800; color: {{ $committeeQuorum['quorum_met'] ? 'var(--p-emerald)' : 'var(--p-gold)' }}; margin-top: 0.2rem;">
+                                {{ $committeeQuorum['members_submitted'] }} / {{ $committeeQuorum['required_quorum'] }} Req.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Deficiencies List if any -->
+                    @if(!empty($committeeQuorum['deficiencies']))
+                        <div style="margin-bottom: 1.25rem;">
+                            <div style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--p-rose); margin-bottom: 0.4rem;">Statutory Prerequisites Outstanding:</div>
+                            @foreach($committeeQuorum['deficiencies'] as $def)
+                                <div style="font-size: 0.8rem; color: var(--p-text); margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.4rem;">
+                                    <span>⚠️</span> <span>{{ $def }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <!-- Committee Attendance Roster -->
+                    <div>
+                        <div style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--p-text-muted); margin-bottom: 0.5rem;">Selection Board Roster & Live Evaluation Activity:</div>
+                        <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--p-border); border-radius: 8px;">
+                            @forelse($committeeQuorum['roster'] ?? [] as $member)
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.85rem; border-bottom: 1px solid var(--p-border); font-size: 0.82rem;">
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <span>{{ $member['has_evaluated'] ? '✅' : '⏳' }}</span>
+                                        <span style="font-weight: 700; color: var(--p-text);">{{ $member['name'] }}</span>
+                                        <span class="badge {{ $member['category'] === 'INTERNAL' ? 'badge-slate' : 'badge-amber' }}" style="font-size: 0.65rem;">
+                                            {{ $member['category'] }}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span style="font-size: 0.75rem; font-weight: 700; color: {{ $member['has_evaluated'] ? 'var(--p-emerald)' : 'var(--p-gold)' }};">
+                                            {{ $member['has_evaluated'] ? 'Evaluated' : 'Pending Score' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @empty
+                                <div style="padding: 1rem; text-align: center; color: var(--p-text-muted); font-size: 0.8rem;">
+                                    No committee members formally constituted for this campaign.
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+
+                <div style="padding: 1rem 1.5rem; background: var(--p-card-header); border-top: 1px solid var(--p-border); display: flex; justify-content: flex-end;">
+                    <button type="button" wire:click="toggleQuorumModal" class="btn btn-secondary" style="font-size: 0.85rem; font-weight: 700;">Close</button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Consensus Ballot & Digital Sign-off Modal -->
+    @if($showConsensusModal)
+        <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1rem;" wire:click.self="closeConsensusModal">
+            <div style="background: var(--p-card); border: 1px solid var(--p-border); border-radius: 16px; width: 100%; max-width: 900px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 25px 60px rgba(0,0,0,0.6); overflow: hidden;">
+                
+                <!-- Modal Header -->
+                <div style="padding: 1.25rem 1.75rem; background: var(--p-card-header); border-bottom: 1px solid var(--p-border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="font-size: 1.5rem;">📜</span>
+                        <div>
+                            <div style="font-weight: 800; font-size: 1.15rem; color: var(--p-text);">
+                                Selection Board Consensus Ballot & Digital Sign-off
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--p-text-muted);">
+                                {{ $campaign?->title }} &bull; Formal Recommendation to the Syndicate
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" wire:click="closeConsensusModal" style="background: none; border: none; font-size: 1.35rem; color: var(--p-text-muted); cursor: pointer;">✕</button>
+                </div>
+
+                <!-- Modal Body -->
+                <div style="padding: 1.5rem 1.75rem; overflow-y: auto; flex: 1;">
+                    @if(session()->has('consensus_saved'))
+                        <div style="padding: 0.85rem 1.15rem; border-radius: 8px; margin-bottom: 1.25rem; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--p-emerald); color: var(--p-emerald); font-weight: 700; font-size: 0.85rem;">
+                            {{ session('consensus_saved') }}
+                        </div>
+                    @endif
+
+                    @if($ballotSignedAt)
+                        <div style="padding: 0.85rem 1.15rem; border-radius: 8px; margin-bottom: 1.25rem; background: rgba(56, 189, 248, 0.12); border: 1px solid var(--p-accent); display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <span style="font-weight: 800; color: var(--p-accent); font-size: 0.85rem;">✅ Digital Sign-off Recorded & Locked</span>
+                                <div style="font-size: 0.75rem; color: var(--p-text-muted); margin-top: 0.15rem;">
+                                    Signed by: <strong>{{ $ballotSignedByName }}</strong> &bull; Timestamp: {{ $ballotSignedAt }}
+                                </div>
+                            </div>
+                            <a href="/admin/merit-lists/{{ $campaignId }}/print?stage=selection_board" target="_blank" class="btn btn-primary" style="font-size: 0.8rem; font-weight: 700; padding: 0.4rem 0.8rem;">
+                                🖨️ Print Ballot Gazette
+                            </a>
+                        </div>
+                    @endif
+
+                    <!-- Candidates Consensus Decisions Table -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <div style="font-size: 0.8rem; font-weight: 800; text-transform: uppercase; color: var(--p-text-muted); margin-bottom: 0.6rem;">
+                            Candidate Final Consensus Endorsements:
+                        </div>
+                        <div style="border: 1px solid var(--p-border); border-radius: 10px; overflow: hidden;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem;">
+                                <thead>
+                                    <tr style="background: var(--p-card-header); border-bottom: 1px solid var(--p-border);">
+                                        <th style="padding: 0.6rem 0.75rem; text-align: left; color: var(--p-text-muted);">Candidate</th>
+                                        <th style="padding: 0.6rem 0.75rem; text-align: center; color: var(--p-text-muted);">Total Aggregate</th>
+                                        <th style="padding: 0.6rem 0.75rem; text-align: left; color: var(--p-text-muted); width: 230px;">Consensus Recommendation</th>
+                                        <th style="padding: 0.6rem 0.75rem; text-align: left; color: var(--p-text-muted);">Remarks / Justification</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($candidates as $index => $item)
+                                        @php
+                                            $appId = $item['app']->id;
+                                            $decision = $consensusDecisions[$appId] ?? ['recommendation' => 'RECOMMENDED', 'remarks' => ''];
+                                        @endphp
+                                        <tr style="border-bottom: 1px solid var(--p-border);">
+                                            <td style="padding: 0.65rem 0.75rem;">
+                                                <div style="font-weight: 700; color: var(--p-text);">
+                                                    {{ $isAnonymized ? 'Candidate #' . ($index + 1) : ($item['candidate_name'] ?? 'Applicant') }}
+                                                </div>
+                                                <div style="font-size: 0.72rem; color: var(--p-text-muted);">
+                                                    ID: {{ $item['app']->id }} &bull; CNIC: {{ $isAnonymized ? '•••••-•••••••-•' : ($item['cnic'] ?? 'N/A') }}
+                                                </div>
+                                            </td>
+                                            <td style="padding: 0.65rem 0.75rem; text-align: center; font-weight: 800; color: var(--p-emerald);">
+                                                {{ number_format($item['aggregate_score'] ?? 0, 1) }}
+                                            </td>
+                                            <td style="padding: 0.65rem 0.75rem;">
+                                                <select wire:change="setCandidateDecision({{ $appId }}, $event.target.value)" 
+                                                        style="background: var(--p-card-header); color: var(--p-text); border: 1px solid var(--p-border); border-radius: 6px; font-weight: 700; font-size: 0.8rem; padding: 0.3rem 0.5rem; width: 100%; cursor: pointer;"
+                                                        {{ $ballotSignedAt ? 'disabled' : '' }}>
+                                                    <option value="RECOMMENDED" @selected(($decision['recommendation'] ?? '') === 'RECOMMENDED')>🟢 RECOMMENDED</option>
+                                                    <option value="ALTERNATE" @selected(($decision['recommendation'] ?? '') === 'ALTERNATE')>🟡 ALTERNATE / WAITING</option>
+                                                    <option value="REGRET" @selected(($decision['recommendation'] ?? '') === 'REGRET')>🔴 REGRET / NOT RECOMMENDED</option>
+                                                </select>
+                                            </td>
+                                            <td style="padding: 0.65rem 0.75rem;">
+                                                <input type="text" 
+                                                       wire:change="setCandidateDecision({{ $appId }}, '{{ $decision['recommendation'] ?? 'RECOMMENDED' }}', $event.target.value)"
+                                                       value="{{ $decision['remarks'] ?? '' }}"
+                                                       placeholder="Optional remarks..."
+                                                       style="background: var(--p-card-header); color: var(--p-text); border: 1px solid var(--p-border); border-radius: 6px; font-size: 0.8rem; padding: 0.3rem 0.5rem; width: 100%;"
+                                                       {{ $ballotSignedAt ? 'disabled' : '' }}>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="4" style="padding: 1.5rem; text-align: center; color: var(--p-text-muted);">
+                                                No candidates in this selection board stage.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Statutory Secretariat Resolution Textarea -->
+                    <div style="margin-bottom: 1.25rem;">
+                        <label style="font-size: 0.8rem; font-weight: 800; text-transform: uppercase; color: var(--p-text-muted); display: block; margin-bottom: 0.4rem;">
+                            Formal Selection Board Resolution to the Syndicate:
+                        </label>
+                        <textarea wire:model.live="consensusResolution" 
+                                  rows="3" 
+                                  style="background: var(--p-card-header); color: var(--p-text); border: 1px solid var(--p-border); border-radius: 8px; width: 100%; padding: 0.65rem 0.85rem; font-size: 0.82rem; line-height: 1.5; font-family: inherit;"
+                                  {{ $ballotSignedAt ? 'disabled' : '' }}></textarea>
+                    </div>
+
+                    <!-- Quorum Statutory Validation Banner -->
+                    <div style="padding: 0.75rem 1rem; border-radius: 8px; background: {{ $committeeQuorum['quorum_met'] ? 'rgba(16, 185, 129, 0.1)' : 'rgba(244, 63, 94, 0.1)' }}; border: 1px solid {{ $committeeQuorum['quorum_met'] ? 'var(--p-emerald)' : 'var(--p-rose)' }}; display: flex; align-items: center; justify-content: space-between;">
+                        <div style="font-size: 0.8rem; font-weight: 700; color: {{ $committeeQuorum['quorum_met'] ? 'var(--p-emerald)' : 'var(--p-rose)' }};">
+                            {{ $committeeQuorum['quorum_met'] ? '✓ Quorum verified: Valid for formal Syndicate recommendation' : '⚠️ Statutory quorum warning: Minimum required evaluations pending' }}
+                        </div>
+                        <span style="font-size: 0.75rem; color: var(--p-text-muted);">
+                            {{ $committeeQuorum['members_submitted'] }} of {{ $committeeQuorum['required_quorum'] }} Votes Cast
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div style="padding: 1.15rem 1.75rem; background: var(--p-card-header); border-top: 1px solid var(--p-border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
+                    <div>
+                        <a href="/admin/merit-lists/{{ $campaignId }}/print?stage=selection_board" target="_blank" class="btn" style="background: var(--p-card); color: var(--p-text); border: 1px solid var(--p-border); font-size: 0.85rem; font-weight: 700;">
+                            🖨️ Preview Gazette
+                        </a>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <button type="button" wire:click="closeConsensusModal" class="btn btn-secondary" style="font-size: 0.85rem; font-weight: 700;">
+                            Cancel
+                        </button>
+                        @can('manage-settings')
+                            <button type="button" 
+                                    wire:click="signAndLockConsensusBallot" 
+                                    class="btn btn-primary" 
+                                    style="font-size: 0.85rem; font-weight: 800; background: linear-gradient(135deg, var(--p-emerald), #059669); border: none; padding: 0.55rem 1.25rem;">
+                                ✍️ {{ $ballotSignedAt ? 'Re-Sign & Update Ballot' : 'Sign & Lock Consensus Ballot' }}
+                            </button>
+                        @endcan
+                    </div>
+                </div>
+
+            </div>
+        </div>
     @endif
 
     <!-- Native Fullscreen Script -->
