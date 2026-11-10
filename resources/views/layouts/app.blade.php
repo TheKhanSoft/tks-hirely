@@ -847,10 +847,10 @@
 
                 function extractTooltipText(target) {
                     if (!target) return '';
-                    let text = target.getAttribute('data-tooltip');
+                    let text = target.getAttribute('data-rail-tooltip') || target.getAttribute('data-tooltip');
                     if (!text && target.hasAttribute('title')) {
                         text = target.getAttribute('title');
-                        target.setAttribute('data-tooltip', text);
+                        target.setAttribute(target.closest('#appSidebar') ? 'data-rail-tooltip' : 'data-tooltip', text);
                     }
                     if (!text && target.classList.contains('sidebar-link')) {
                         const span = target.querySelector('span:not(.sidebar-badge)');

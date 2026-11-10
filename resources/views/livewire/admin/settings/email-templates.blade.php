@@ -454,263 +454,491 @@
     </x-modal>
 
     <!-- ========================================================================= -->
-    <!-- 2. LIVE EMAIL PREVIEW MODAL                                               -->
+    <!-- 2. LIVE EMAIL PREVIEW & INSPECTION MODAL (ISOLATED IFRAME STUDIO)        -->
     <!-- ========================================================================= -->
-    <x-modal :show="$isPreviewModalOpen" title="Email Inspection: {{ $previewTemplateName }}" closeAction="closePreviewModal" style="max-width: 820px; width: 95%;">
+    <x-modal :show="$isPreviewModalOpen" title="Live Email Preview &amp; Dispatch Inspection" closeAction="closePreviewModal" maxWidth="980px">
         @if($isPreviewModalOpen)
             <div style="display: flex; flex-direction: column; gap: 1rem;">
                 
-                <!-- Preview Toolbar & Inspection Mode -->
-                <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); padding: 0.65rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); flex-wrap: wrap; gap: 0.5rem;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="font-size: 0.78rem; font-weight: 700; color: var(--color-text-secondary); text-transform: uppercase;">Rendering Mode:</span>
-                        <div style="display: inline-flex; background: var(--bg-card); padding: 2px; border-radius: 6px; border: 1px solid var(--border-color);">
+                <!-- Status Feedback Alerts -->
+                @if(session()->has('preview_status'))
+                    @php $status = session('preview_status'); @endphp
+                    <div class="alert {{ ($status['type'] ?? '') === 'success' ? 'alert-success' : 'alert-danger' }}" 
+                         style="display: flex; align-items: center; justify-content: space-between; padding: 0.65rem 1rem; border-radius: 8px; font-size: 0.82rem; font-weight: 700;">
+                        <span>{{ $status['message'] ?? '' }}</span>
+                        <button type="button" wire:click="$refresh" style="background: none; border: none; color: inherit; cursor: pointer; font-size: 0.85rem;">✕</button>
+                    </div>
+                @endif
+
+                <!-- Inspection Toolbar: Device Switcher & Rendering Data Mode -->
+                <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); padding: 0.75rem 1rem; border-radius: 9px; border: 1px solid var(--border-color); flex-wrap: wrap; gap: 0.75rem;">
+                    
+                    <!-- Left: Template Identifier & Target -->
+                    <div style="display: flex; align-items: center; gap: 0.65rem; min-width: 0;">
+                        <span style="font-size: 1.1rem; line-height: 1;">✉️</span>
+                        <div style="min-width: 0;">
+                            <div style="font-weight: 800; font-size: 0.95rem; color: var(--color-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Outfit', sans-serif;">
+                                {{ $previewTemplateName }}
+                            </div>
+                            <div style="font-size: 0.72rem; color: var(--color-text-muted);">
+                                Institutional Letterhead &bull; Master HTML Template
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Controls: Device Mode & Sample vs Raw Toggle -->
+                    <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                        
+                        <!-- Device Frame Switcher -->
+                        <div style="display: inline-flex; align-items: center; background: var(--bg-card); padding: 3px; border-radius: 8px; border: 1px solid var(--border-color); gap: 2px;">
+                            <button type="button" 
+                                    wire:click="setPreviewDeviceMode('desktop')" 
+                                    class="btn btn-sm {{ $previewDeviceMode === 'desktop' ? 'btn-primary' : 'btn-ghost' }}"
+                                    style="padding: 0.25rem 0.65rem; font-size: 0.74rem; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.35rem;"
+                                    title="Desktop Webmail View">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+                                <span>Desktop</span>
+                            </button>
+                            <button type="button" 
+                                    wire:click="setPreviewDeviceMode('mobile')" 
+                                    class="btn btn-sm {{ $previewDeviceMode === 'mobile' ? 'btn-primary' : 'btn-ghost' }}"
+                                    style="padding: 0.25rem 0.65rem; font-size: 0.74rem; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.35rem;"
+                                    title="Mobile Smartphone Frame (390px)">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect width="14" height="20" x="5" y="2" rx="2"/><line x1="12" x2="12.01" y1="18" y2="18"/></svg>
+                                <span>Mobile</span>
+                            </button>
+                        </div>
+
+                        <!-- Data Sample Switcher -->
+                        <div style="display: inline-flex; align-items: center; background: var(--bg-card); padding: 3px; border-radius: 8px; border: 1px solid var(--border-color); gap: 2px;">
                             <button type="button" 
                                     wire:click="setPreviewMode('sample')"
                                     class="btn btn-sm {{ $previewMode === 'sample' ? 'btn-primary' : 'btn-ghost' }}"
-                                    style="padding: 0.2rem 0.65rem; font-size: 0.75rem; font-weight: 700; border-radius: 4px;">
-                                ✓ Sample Data
+                                    style="padding: 0.25rem 0.65rem; font-size: 0.74rem; font-weight: 700; border-radius: 6px;">
+                                ✓ Realistic Data
                             </button>
                             <button type="button" 
                                     wire:click="setPreviewMode('raw')"
                                     class="btn btn-sm {{ $previewMode === 'raw' ? 'btn-primary' : 'btn-ghost' }}"
-                                    style="padding: 0.2rem 0.65rem; font-size: 0.75rem; font-weight: 700; border-radius: 4px;">
-                                { } Placeholders
+                                    style="padding: 0.25rem 0.65rem; font-size: 0.74rem; font-weight: 700; border-radius: 6px;">
+                                { } Raw Tokens
                             </button>
                         </div>
                     </div>
-
-                    <div style="font-size: 0.75rem; color: var(--color-text-muted);">
-                        @if($previewMode === 'sample')
-                            <span style="color: #10b981; font-weight: 700;">● Realistic Sample Values Loaded</span> (Candidate, Designation, Tracking, Dates)
-                        @else
-                            <span style="color: #6366f1; font-weight: 700;">● Raw Template Variables</span>
-                        @endif
-                    </div>
                 </div>
 
-                <!-- Simulated Email Client Envelope Strip -->
-                <div style="background: #090d16; border: 1px solid #1e293b; border-radius: 8px 8px 0 0; padding: 0.85rem 1.25rem; font-size: 0.8rem; color: #94a3b8; display: flex; flex-direction: column; gap: 0.35rem;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="font-weight: 700; color: #64748b; width: 60px;">From:</span>
-                        <span style="color: #cbd5e1;">Statutory Recruitment Directorate &lt;noreply@hirely.app&gt;</span>
+                <!-- Simulated Desktop/Web Mail Client Window Chrome -->
+                <div style="background: #090d16; border: 1px solid #1e293b; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);">
+                    
+                    <!-- Apple Mail Style Title Bar -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 1rem; background: #0d1527; border-bottom: 1px solid #1e293b;">
+                        <div style="display: flex; align-items: center; gap: 0.45rem;">
+                            <span style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444; display: inline-block;"></span>
+                            <span style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span>
+                            <span style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                            <span style="margin-left: 0.5rem; font-size: 0.72rem; font-weight: 700; color: #64748b; letter-spacing: 0.04em;">HIRELY ENTERPRISE DISPATCH VIEWER</span>
+                        </div>
+                        <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 600;">
+                            SSL/TLS Enforced &bull; DKIM Signed
+                        </div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="font-weight: 700; color: #64748b; width: 60px;">To:</span>
-                        <span style="color: #cbd5e1;">Dr. Tariq Mahmood Khan &lt;tariq.mahmood@example.edu.pk&gt;</span>
+
+                    <!-- Envelope Metadata Table -->
+                    <div style="padding: 0.75rem 1.15rem; background: #090d16; border-bottom: 1px solid #1e293b; font-size: 0.8rem; display: flex; flex-direction: column; gap: 0.35rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="font-weight: 700; color: #64748b; width: 62px; flex-shrink: 0;">From:</span>
+                            <span style="color: #cbd5e1; font-weight: 600;">Statutory Recruitment Directorate &lt;<span style="color: #38bdf8;">noreply@hirely.app</span>&gt;</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="font-weight: 700; color: #64748b; width: 62px; flex-shrink: 0;">To:</span>
+                            <span style="color: #cbd5e1;">Dr. Tariq Mahmood Khan &lt;<span style="color: #94a3b8;">tariq.mahmood@example.edu.pk</span>&gt;</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 0.35rem; margin-top: 0.15rem;">
+                            <span style="font-weight: 700; color: #64748b; width: 62px; flex-shrink: 0;">Subject:</span>
+                            <span style="color: #ffffff; font-weight: 800; font-family: 'Outfit', sans-serif;">{{ $previewSubject }}</span>
+                        </div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem; border-top: 1px solid #1e293b; padding-top: 0.35rem; margin-top: 0.15rem;">
-                        <span style="font-weight: 700; color: #64748b; width: 60px;">Subject:</span>
-                        <span style="color: #ffffff; font-weight: 700;">{{ $previewSubject }}</span>
-                    </div>
+
+                    <!-- Rendered Email Body in Isolated Iframe (No Parent DOM Margin Leaks) -->
+                    @if($previewDeviceMode === 'desktop')
+                        <div style="background: #060913; padding: 1.5rem 1rem; display: flex; justify-content: center; overflow-y: auto;">
+                            <div style="width: 100%; max-width: 680px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5); border-radius: 10px; overflow: hidden; background: #ffffff;">
+                                <iframe 
+                                    srcdoc="{{ htmlspecialchars($previewHtml, ENT_QUOTES, 'UTF-8') }}"
+                                    style="width: 100%; height: 560px; border: none; display: block; background: #ffffff;"
+                                    sandbox="allow-same-origin"
+                                    loading="lazy"
+                                    title="Email Preview Desktop Canvas">
+                                </iframe>
+                            </div>
+                        </div>
+                    @else
+                        <!-- Mobile iPhone Frame Mockup (390px Width) -->
+                        <div style="background: #060913; padding: 1.75rem 1rem; display: flex; justify-content: center; overflow-y: auto;">
+                            <div style="width: 390px; background: #0f172a; border: 11px solid #1e293b; border-radius: 42px; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255,255,255,0.12); overflow: hidden; position: relative;">
+                                
+                                <!-- iPhone Dynamic Island Top Bezel -->
+                                <div style="height: 32px; background: #1e293b; display: flex; align-items: center; justify-content: space-between; padding: 0 1.25rem;">
+                                    <span style="font-size: 0.68rem; font-weight: 800; color: #ffffff;">9:41</span>
+                                    <div style="width: 84px; height: 16px; background: #090d16; border-radius: 9999px;"></div>
+                                    <span style="font-size: 0.68rem; font-weight: 700; color: #94a3b8;">5G 100%</span>
+                                </div>
+
+                                <!-- Mobile Mail Render Frame -->
+                                <iframe 
+                                    srcdoc="{{ htmlspecialchars($previewHtml, ENT_QUOTES, 'UTF-8') }}"
+                                    style="width: 100%; height: 520px; border: none; display: block; background: #ffffff;"
+                                    sandbox="allow-same-origin"
+                                    loading="lazy"
+                                    title="Email Preview Mobile Viewport">
+                                </iframe>
+
+                                <!-- iPhone Home Indicator Bottom Bar -->
+                                <div style="height: 20px; background: #1e293b; display: flex; align-items: center; justify-content: center;">
+                                    <div style="width: 115px; height: 4px; background: #64748b; border-radius: 9999px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
-                <!-- Rendered Email Body in Master Branded Layout -->
-                <div style="background: #0b1120; border: 1px solid #1e293b; border-top: none; border-radius: 0 0 8px 8px; max-height: 560px; overflow-y: auto; padding: 1.5rem 0.75rem;">
-                    {!! $previewHtml !!}
-                </div>
+                <!-- Inspection Footer Actions -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; flex-wrap: wrap; gap: 0.75rem;">
+                    <div>
+                        @can('manage-email-templates')
+                            @if($selectedTemplateId)
+                                <button type="button" 
+                                        wire:click="dispatchPreviewTestEmail" 
+                                        wire:loading.attr="disabled"
+                                        class="btn btn-secondary btn-sm"
+                                        style="display: inline-flex; align-items: center; gap: 0.45rem; font-weight: 700; border-radius: 7px; padding: 0.45rem 0.95rem;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                                    <span wire:loading.remove wire:target="dispatchPreviewTestEmail">Send Live Copy to My Email</span>
+                                    <span wire:loading wire:target="dispatchPreviewTestEmail">Dispatching Test Email...</span>
+                                </button>
+                            @endif
+                        @endcan
+                    </div>
 
-                <!-- Preview Actions -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
-                    @can('manage-email-templates')
-                        @if($selectedTemplateId)
-                        <button type="button" 
-                                wire:click="sendTestTemplateEmail({{ $selectedTemplateId }})" 
-                                wire:confirm="Send a live test dispatch of this template to your admin email address?"
-                                class="btn btn-secondary btn-sm"
-                                style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-                            <span>Send Live Test to My Email</span>
-                        </button>
-                        @endif
-                    @endcan
-
-                    <button type="button" wire:click="closePreviewModal" class="btn btn-primary btn-sm" style="font-weight: 700;">Close Preview</button>
+                    <button type="button" wire:click="closePreviewModal" class="btn btn-primary btn-sm" style="font-weight: 800; border-radius: 7px; padding: 0.45rem 1.25rem;">
+                        Done &bull; Close Inspection
+                    </button>
                 </div>
             </div>
         @endif
     </x-modal>
 
     <!-- ========================================================================= -->
-    <!-- 3. SEND CUSTOM BESPOKE EMAIL MODAL (WITH RICH TEXTBOX)                    -->
+    <!-- 3. BESPOKE EMAIL COMPOSER STUDIO (DUAL TAB: DRAFT & LIVE LETTERHEAD)     -->
     <!-- ========================================================================= -->
-    <x-modal :show="$isCustomEmailModalOpen" title="Compose &amp; Dispatch Bespoke Custom Email" closeAction="closeCustomEmailModal" style="max-width: 860px; width: 95%;">
+    <x-modal :show="$isCustomEmailModalOpen" title="Bespoke Communications Studio" closeAction="closeCustomEmailModal" maxWidth="1050px">
         @if($isCustomEmailModalOpen)
-            <form wire:submit.prevent="sendCustomEmailAction">
-                <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-                    
-                    <!-- Pre-fill from Existing Template -->
-                    <div style="background: var(--bg-surface); border: 1px solid var(--border-color); padding: 0.85rem 1rem; border-radius: var(--radius-sm);">
-                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--secondary); text-transform: uppercase; margin-bottom: 0.35rem;">
-                            Template Pre-Fill (Optional):
-                        </label>
-                        <select wire:model.live="custom_selected_template_slug" wire:change="loadTemplateForCustomEmail" class="form-control form-select" style="font-size: 0.85rem;">
-                            <option value="">Start from blank bespoke draft...</option>
-                            @foreach($emailTemplates ?? [] as $t)
-                                <option value="{{ $t->slug }}">Load Template: {{ $t->name }} ({{ $t->recipient_group }})</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- Recipient Selection Controls -->
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
-                        <!-- Recipient Target Selection -->
-                        <div>
-                            <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.35rem;">
-                                Target Recipient Roster *
-                            </label>
-                            <select wire:model.live="custom_recipient_type" class="form-control form-select" style="font-size: 0.85rem;">
-                                <option value="custom">Direct Email Address (Enter Manually)</option>
-                                <option value="candidate">Select from Candidate Applicant Pool</option>
-                                <option value="reviewer">Select from Academic Peer Referee Roster</option>
-                                <option value="board">Select from Selection Board / Committee Member</option>
-                            </select>
-                        </div>
-
-                        <!-- User Selector Dropdown (When Not Manual) -->
-                        @if($custom_recipient_type === 'candidate')
-                            <div>
-                                <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.35rem;">
-                                    Select Candidate:
-                                </label>
-                                <select wire:model.live="custom_recipient_user_id" class="form-control form-select" style="font-size: 0.85rem;">
-                                    <option value="">Choose an applicant...</option>
-                                    @foreach($candidatesList as $cand)
-                                        <option value="{{ $cand->id }}">
-                                            {{ $cand->basicInfo ? ($cand->basicInfo->first_name . ' ' . $cand->basicInfo->last_name) : $cand->email }} ({{ $cand->email }})
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        @elseif($custom_recipient_type === 'reviewer')
-                            <div>
-                                <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.35rem;">
-                                    Select Academic Referee:
-                                </label>
-                                <select wire:model.live="custom_recipient_user_id" class="form-control form-select" style="font-size: 0.85rem;">
-                                    <option value="">Choose an expert referee...</option>
-                                    @foreach($reviewersList as $rev)
-                                        <option value="{{ $rev->user_id }}">
-                                            {{ $rev->name }} ({{ $rev->university }}) — {{ $rev->user?->email }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        @elseif($custom_recipient_type === 'board')
-                            <div>
-                                <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.35rem;">
-                                    Select Committee Member:
-                                </label>
-                                <select wire:model.live="custom_recipient_user_id" class="form-control form-select" style="font-size: 0.85rem;">
-                                    <option value="">Choose board/scrutiny member...</option>
-                                    @foreach($boardMembersList as $bm)
-                                        <option value="{{ $bm->id }}">{{ $bm->name ?? $bm->email }} ({{ $bm->email }})</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        @endif
-                    </div>
-
-                    <!-- Recipient Email & Name Fields -->
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
-                        <div>
-                            <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.35rem;">
-                                Recipient Email Address *
-                            </label>
-                            <input type="email" 
-                                   wire:model="custom_recipient_email" 
-                                   class="form-control" 
-                                   placeholder="e.g. candidate@university.edu.pk"
-                                   style="font-size: 0.85rem;">
-                            @error('custom_recipient_email') <span style="color: #ef4444; font-size: 0.75rem;">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div>
-                            <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.35rem;">
-                                Recipient Salutation Name (Optional)
-                            </label>
-                            <input type="text" 
-                                   wire:model="custom_recipient_name" 
-                                   class="form-control" 
-                                   placeholder="e.g. Dr. Muhammad Tariq"
-                                   style="font-size: 0.85rem;">
-                        </div>
-                    </div>
-
-                    <!-- Custom Subject -->
-                    <div>
-                        <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.35rem;">
-                            Email Subject Line *
-                        </label>
-                        <input type="text" 
-                               wire:model="custom_subject" 
-                               class="form-control" 
-                               placeholder="e.g. Urgent Update: Selection Board Proceedings Schedule"
-                               style="font-size: 0.88rem; font-weight: 600;">
-                        @error('custom_subject') <span style="color: #ef4444; font-size: 0.75rem;">{{ $message }}</span> @enderror
-                    </div>
-
-                    <!-- Rich Text Editor for Custom Body -->
-                    <div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.4rem;">
-                            <label style="font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary);">
-                                Email Body Content (Rich Text / HTML Formatted) *
-                            </label>
-
-                            <!-- Rich Textbox Formatting Controls -->
-                            <div style="display: flex; align-items: center; gap: 0.25rem; flex-wrap: wrap; background: var(--bg-card); padding: 0.25rem 0.4rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                                <button type="button" @click="wrapSelection('custom-email-body-textarea', '<strong>', '</strong>')" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.45rem; font-size: 0.72rem; font-weight: 800;" title="Bold">B</button>
-                                <button type="button" @click="wrapSelection('custom-email-body-textarea', '<em>', '</em>')" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.45rem; font-size: 0.72rem; font-style: italic;" title="Italic">I</button>
-                                <button type="button" @click="wrapSelection('custom-email-body-textarea', '<u>', '</u>')" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.45rem; font-size: 0.72rem; text-decoration: underline;" title="Underline">U</button>
-                                <button type="button" @click="wrapSelection('custom-email-body-textarea', '<h2 style=\x22margin-top:0; color:#0f172a;\x22>', '</h2>')" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.45rem; font-size: 0.72rem;" title="Heading 2">H2</button>
-                                <button type="button" @click="wrapSelection('custom-email-body-textarea', '<h3 style=\x22color:#334155;\x22>', '</h3>')" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.45rem; font-size: 0.72rem;" title="Heading 3">H3</button>
-                                <button type="button" @click="insertAtCursor('custom-email-body-textarea', '<ul>\n    <li>Bullet point 1</li>\n    <li>Bullet point 2</li>\n</ul>')" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.45rem; font-size: 0.72rem;" title="Bullet List">• List</button>
-                                <button type="button" @click="insertAtCursor('custom-email-body-textarea', '<div class=\x22callout-box\x22>\n    <strong>Notice:</strong> Please be advised that...\n</div>')" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.45rem; font-size: 0.72rem;" title="Callout Box">Box</button>
-                                <button type="button" @click="insertAtCursor('custom-email-body-textarea', '<p style=\x22text-align:center; margin:24px 0;\x22><a href=\x22{login_url}\x22 class=\x22btn-action\x22>Action Button Text &rarr;</a></p>')" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.45rem; font-size: 0.72rem;" title="Action Button">CTA</button>
-                                <button type="button" @click="insertAtCursor('custom-email-body-textarea', '<hr style=\x22border:0; border-top:1px solid #e2e8f0; margin:20px 0;\x22>')" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.45rem; font-size: 0.72rem;" title="Divider">Line</button>
-                            </div>
-                        </div>
-
-                        <!-- Variable Insertion Chips -->
-                        <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.45rem; flex-wrap: wrap;">
-                            <span style="font-size: 0.72rem; color: var(--color-text-muted); font-weight: 700;">Placeholders:</span>
-                            <button type="button" @click="insertAtCursor('custom-email-body-textarea', '{recipient_name}')" class="badge badge-slate" style="cursor: pointer; font-size: 0.7rem;">+ {recipient_name}</button>
-                            <button type="button" @click="insertAtCursor('custom-email-body-textarea', '{org_name}')" class="badge badge-slate" style="cursor: pointer; font-size: 0.7rem;">+ {org_name}</button>
-                            <button type="button" @click="insertAtCursor('custom-email-body-textarea', '{job_title}')" class="badge badge-slate" style="cursor: pointer; font-size: 0.7rem;">+ {job_title}</button>
-                            <button type="button" @click="insertAtCursor('custom-email-body-textarea', '{tracking_number}')" class="badge badge-slate" style="cursor: pointer; font-size: 0.7rem;">+ {tracking_number}</button>
-                            <button type="button" @click="insertAtCursor('custom-email-body-textarea', '{login_url}')" class="badge badge-slate" style="cursor: pointer; font-size: 0.7rem;">+ {login_url}</button>
-                            <button type="button" @click="insertAtCursor('custom-email-body-textarea', '{support_email}')" class="badge badge-slate" style="cursor: pointer; font-size: 0.7rem;">+ {support_email}</button>
-                        </div>
-
-                        <!-- Textarea -->
-                        <textarea id="custom-email-body-textarea" 
-                                  wire:model="custom_body" 
-                                  rows="10" 
-                                  class="form-control" 
-                                  placeholder="Type or paste your message here. HTML tags and placeholders are fully supported..."
-                                  style="font-family: 'JetBrains Mono', monospace; font-size: 0.84rem; line-height: 1.55;"></textarea>
-                        @error('custom_body') <span style="color: #ef4444; font-size: 0.75rem;">{{ $message }}</span> @enderror
-                    </div>
-
-                    <!-- Dispatch Actions Strip -->
-                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
-                        <button type="button" wire:click="closeCustomEmailModal" class="btn btn-secondary">
-                            Cancel
+            <div style="display: flex; flex-direction: column; gap: 1.15rem;">
+                
+                <!-- Dual Studio Navigation Tabs -->
+                <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--border-color); padding-bottom: 0.25rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <button type="button" 
+                                wire:click="setCustomEmailTab('compose')" 
+                                class="btn btn-sm {{ $customEmailTab === 'compose' ? 'btn-primary' : 'btn-ghost' }}"
+                                style="font-weight: 800; border-radius: 8px; padding: 0.45rem 1rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+                            <span>✍️</span>
+                            <span>Draft Composer</span>
                         </button>
-
-                        <button type="submit" 
-                                class="btn btn-primary" 
-                                style="font-weight: 800; padding: 0.6rem 1.6rem; display: inline-flex; align-items: center; gap: 0.45rem;">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="22" y1="2" x2="11" y2="13"/>
-                                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                            </svg>
-                            <span wire:loading.remove wire:target="sendCustomEmailAction">Dispatch Custom Email</span>
-                            <span wire:loading wire:target="sendCustomEmailAction">Sending Email...</span>
+                        <button type="button" 
+                                wire:click="setCustomEmailTab('preview')" 
+                                class="btn btn-sm {{ $customEmailTab === 'preview' ? 'btn-primary' : 'btn-ghost' }}"
+                                style="font-weight: 800; border-radius: 8px; padding: 0.45rem 1rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+                            <span>👁️</span>
+                            <span>Live Branded Preview</span>
+                            @if(!empty($custom_body))
+                                <span class="badge badge-success" style="font-size: 0.65rem; padding: 0.1rem 0.4rem;">Ready</span>
+                            @endif
                         </button>
+                    </div>
+
+                    <div style="font-size: 0.74rem; color: var(--color-text-muted); font-weight: 600;">
+                        Institutional High-Integrity SMTP Delivery
                     </div>
                 </div>
-            </form>
+
+                <!-- TAB 1: COMPOSE & DRAFT STUDIO -->
+                <div x-show="$wire.customEmailTab === 'compose'">
+                    <form wire:submit.prevent="sendCustomEmailAction">
+                        <div style="display: flex; flex-direction: column; gap: 1.15rem;">
+                            
+                            <!-- Row 1: Target Recipient Archetype (Segmented Buttons) -->
+                            <div style="background: var(--bg-surface); border: 1px solid var(--border-color); padding: 0.95rem 1.15rem; border-radius: 9px;">
+                                <label style="display: block; font-size: 0.78rem; font-weight: 800; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.6rem;">
+                                    Target Recipient Roster Category *
+                                </label>
+                                
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem;">
+                                    <button type="button" 
+                                            wire:click="$set('custom_recipient_type', 'custom')" 
+                                            class="btn btn-sm {{ $custom_recipient_type === 'custom' ? 'btn-primary' : 'btn-secondary' }}"
+                                            style="justify-content: flex-start; padding: 0.5rem 0.85rem; font-weight: 700; border-radius: 7px; text-align: left;">
+                                        🌐 Direct Email (Manual)
+                                    </button>
+                                    <button type="button" 
+                                            wire:click="$set('custom_recipient_type', 'candidate')" 
+                                            class="btn btn-sm {{ $custom_recipient_type === 'candidate' ? 'btn-primary' : 'btn-secondary' }}"
+                                            style="justify-content: flex-start; padding: 0.5rem 0.85rem; font-weight: 700; border-radius: 7px; text-align: left;">
+                                        🎓 Candidate Applicant Pool
+                                    </button>
+                                    <button type="button" 
+                                            wire:click="$set('custom_recipient_type', 'reviewer')" 
+                                            class="btn btn-sm {{ $custom_recipient_type === 'reviewer' ? 'btn-primary' : 'btn-secondary' }}"
+                                            style="justify-content: flex-start; padding: 0.5rem 0.85rem; font-weight: 700; border-radius: 7px; text-align: left;">
+                                        🔬 Academic Referee Roster
+                                    </button>
+                                    <button type="button" 
+                                            wire:click="$set('custom_recipient_type', 'board')" 
+                                            class="btn btn-sm {{ $custom_recipient_type === 'board' ? 'btn-primary' : 'btn-secondary' }}"
+                                            style="justify-content: flex-start; padding: 0.5rem 0.85rem; font-weight: 700; border-radius: 7px; text-align: left;">
+                                        🏛️ Selection Board Member
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Row 2: Dynamic Stakeholder Dropdowns & Template Pre-Fill -->
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+                                
+                                <!-- Stakeholder Selector (When Not Manual) -->
+                                @if($custom_recipient_type === 'candidate')
+                                    <div>
+                                        <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                                            Select Candidate Applicant:
+                                        </label>
+                                        <select wire:model.live="custom_recipient_user_id" class="form-control form-select" style="font-size: 0.85rem; border-radius: 7px;">
+                                            <option value="">Choose an applicant profile...</option>
+                                            @foreach($candidatesList as $cand)
+                                                <option value="{{ $cand->id }}">
+                                                    {{ $cand->basicInfo ? ($cand->basicInfo->first_name . ' ' . $cand->basicInfo->last_name) : $cand->email }} &bull; {{ $cand->email }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @elseif($custom_recipient_type === 'reviewer')
+                                    <div>
+                                        <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                                            Select Academic Referee:
+                                        </label>
+                                        <select wire:model.live="custom_recipient_user_id" class="form-control form-select" style="font-size: 0.85rem; border-radius: 7px;">
+                                            <option value="">Choose an external referee...</option>
+                                            @foreach($reviewersList as $rev)
+                                                <option value="{{ $rev->user_id }}">
+                                                    {{ $rev->name }} ({{ $rev->university }}) &bull; {{ $rev->user?->email }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @elseif($custom_recipient_type === 'board')
+                                    <div>
+                                        <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                                            Select Board / Committee Member:
+                                        </label>
+                                        <select wire:model.live="custom_recipient_user_id" class="form-control form-select" style="font-size: 0.85rem; border-radius: 7px;">
+                                            <option value="">Choose board/scrutiny member...</option>
+                                            @foreach($boardMembersList as $bm)
+                                                <option value="{{ $bm->id }}">{{ $bm->name ?? $bm->email }} &bull; {{ $bm->email }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endif
+
+                                <!-- Template Pre-fill Selector -->
+                                <div>
+                                    <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--secondary); margin-bottom: 0.35rem;">
+                                        Pre-Fill from Institutional Template (Optional):
+                                    </label>
+                                    <select wire:model.live="custom_selected_template_slug" wire:change="loadTemplateForCustomEmail" class="form-control form-select" style="font-size: 0.85rem; border-radius: 7px;">
+                                        <option value="">Start from blank bespoke draft...</option>
+                                        @foreach($emailTemplates ?? [] as $t)
+                                            <option value="{{ $t->slug }}">Load Template: {{ $t->name }} ({{ $t->recipient_group }})</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Row 3: Recipient Email Address & Salutation Name -->
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+                                <div>
+                                    <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                                        Recipient Email Address *
+                                    </label>
+                                    <input type="email" 
+                                           wire:model="custom_recipient_email" 
+                                           class="form-control" 
+                                           placeholder="e.g. candidate@university.edu.pk"
+                                           style="font-size: 0.85rem; border-radius: 7px;">
+                                    @error('custom_recipient_email') <span style="color: #ef4444; font-size: 0.75rem; font-weight: 700;">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div>
+                                    <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                                        Recipient Salutation Name (Optional)
+                                    </label>
+                                    <input type="text" 
+                                           wire:model="custom_recipient_name" 
+                                           class="form-control" 
+                                           placeholder="e.g. Dr. Muhammad Tariq"
+                                           style="font-size: 0.85rem; border-radius: 7px;">
+                                </div>
+                            </div>
+
+                            <!-- Row 4: Subject Line -->
+                            <div>
+                                <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                                    Email Subject Line *
+                                </label>
+                                <input type="text" 
+                                       wire:model="custom_subject" 
+                                       class="form-control" 
+                                       placeholder="e.g. Official Notification: Selection Board Proceedings Schedule"
+                                       style="font-size: 0.92rem; font-weight: 700; border-radius: 7px; font-family: 'Outfit', sans-serif;">
+                                @error('custom_subject') <span style="color: #ef4444; font-size: 0.75rem; font-weight: 700;">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- Row 5: Rich Formatting Toolbar & Textarea -->
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem; flex-wrap: wrap; gap: 0.5rem;">
+                                    <label style="font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary);">
+                                        Email Body Content (HTML &amp; Rich Format) *
+                                    </label>
+
+                                    <!-- Quick Formatting Tools -->
+                                    <div style="display: flex; align-items: center; gap: 0.25rem; flex-wrap: wrap; background: var(--bg-card); padding: 0.25rem 0.4rem; border-radius: 7px; border: 1px solid var(--border-color);">
+                                        <button type="button" @click="wrapSelection('custom-email-body-textarea', '<strong>', '</strong>')" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.5rem; font-size: 0.72rem; font-weight: 800;" title="Bold">B</button>
+                                        <button type="button" @click="wrapSelection('custom-email-body-textarea', '<em>', '</em>')" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.5rem; font-size: 0.72rem; font-style: italic;" title="Italic">I</button>
+                                        <button type="button" @click="wrapSelection('custom-email-body-textarea', '<u>', '</u>')" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.5rem; font-size: 0.72rem; text-decoration: underline;" title="Underline">U</button>
+                                        <button type="button" @click="wrapSelection('custom-email-body-textarea', '<h2 style=\x22margin-top:0; color:#0f172a;\x22>', '</h2>')" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.5rem; font-size: 0.72rem; font-weight: 700;" title="Heading 2">H2</button>
+                                        <button type="button" @click="wrapSelection('custom-email-body-textarea', '<h3 style=\x22color:#334155;\x22>', '</h3>')" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.5rem; font-size: 0.72rem; font-weight: 700;" title="Heading 3">H3</button>
+                                        <button type="button" @click="insertAtCursor('custom-email-body-textarea', '<ul>\n    <li>Bullet item 1</li>\n    <li>Bullet item 2</li>\n</ul>')" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.5rem; font-size: 0.72rem;" title="List">• List</button>
+                                        <button type="button" @click="insertAtCursor('custom-email-body-textarea', '<div class=\x22callout-box\x22>\n    <strong>Notice:</strong> Please be advised that...\n</div>')" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.5rem; font-size: 0.72rem;" title="Callout Box">Box</button>
+                                        <button type="button" @click="insertAtCursor('custom-email-body-textarea', '<p style=\x22text-align:center; margin:24px 0;\x22><a href=\x22{login_url}\x22 class=\x22btn-action\x22>Action Button Text &rarr;</a></p>')" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.5rem; font-size: 0.72rem;" title="Action Button">CTA</button>
+                                        <button type="button" @click="insertAtCursor('custom-email-body-textarea', '<hr style=\x22border:0; border-top:1px solid #e2e8f0; margin:20px 0;\x22>')" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.5rem; font-size: 0.72rem;" title="Divider">Line</button>
+                                    </div>
+                                </div>
+
+                                <!-- Variable Insertion Chips -->
+                                <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+                                    <span style="font-size: 0.72rem; color: var(--color-text-muted); font-weight: 700;">Insert Tokens:</span>
+                                    <button type="button" @click="insertAtCursor('custom-email-body-textarea', '{recipient_name}')" class="badge badge-slate" style="cursor: pointer; font-size: 0.72rem; padding: 0.2rem 0.5rem;">+ {recipient_name}</button>
+                                    <button type="button" @click="insertAtCursor('custom-email-body-textarea', '{org_name}')" class="badge badge-slate" style="cursor: pointer; font-size: 0.72rem; padding: 0.2rem 0.5rem;">+ {org_name}</button>
+                                    <button type="button" @click="insertAtCursor('custom-email-body-textarea', '{job_title}')" class="badge badge-slate" style="cursor: pointer; font-size: 0.72rem; padding: 0.2rem 0.5rem;">+ {job_title}</button>
+                                    <button type="button" @click="insertAtCursor('custom-email-body-textarea', '{tracking_number}')" class="badge badge-slate" style="cursor: pointer; font-size: 0.72rem; padding: 0.2rem 0.5rem;">+ {tracking_number}</button>
+                                    <button type="button" @click="insertAtCursor('custom-email-body-textarea', '{login_url}')" class="badge badge-slate" style="cursor: pointer; font-size: 0.72rem; padding: 0.2rem 0.5rem;">+ {login_url}</button>
+                                    <button type="button" @click="insertAtCursor('custom-email-body-textarea', '{support_email}')" class="badge badge-slate" style="cursor: pointer; font-size: 0.72rem; padding: 0.2rem 0.5rem;">+ {support_email}</button>
+                                </div>
+
+                                <!-- Textarea Code Area -->
+                                <textarea id="custom-email-body-textarea" 
+                                          wire:model="custom_body" 
+                                          rows="10" 
+                                          class="form-control" 
+                                          placeholder="Type or paste your message here. HTML tags and placeholders are fully supported..."
+                                          style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; line-height: 1.6; border-radius: 8px;"></textarea>
+                                @error('custom_body') <span style="color: #ef4444; font-size: 0.75rem; font-weight: 700;">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 1.15rem;">
+                                <button type="button" wire:click="setCustomEmailTab('preview')" class="btn btn-secondary btn-sm" style="font-weight: 700; border-radius: 7px;">
+                                    👁️ Preview in Letterhead &rarr;
+                                </button>
+
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <button type="button" wire:click="closeCustomEmailModal" class="btn btn-secondary btn-sm" style="border-radius: 7px;">
+                                        Cancel
+                                    </button>
+
+                                    <button type="submit" 
+                                            class="btn btn-primary" 
+                                            style="font-weight: 800; padding: 0.55rem 1.6rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.45rem;">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="22" y1="2" x2="11" y2="13"/>
+                                            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                        </svg>
+                                        <span wire:loading.remove wire:target="sendCustomEmailAction">Dispatch Custom Email</span>
+                                        <span wire:loading wire:target="sendCustomEmailAction">Sending Dispatch...</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- TAB 2: LIVE BRANDED LETTERHEAD PREVIEW -->
+                <div x-show="$wire.customEmailTab === 'preview'">
+                    <div style="background: #090d16; border: 1px solid #1e293b; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);">
+                        
+                        <!-- Chrome Header Strip -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 1rem; background: #0d1527; border-bottom: 1px solid #1e293b;">
+                            <div style="display: flex; align-items: center; gap: 0.45rem;">
+                                <span style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444; display: inline-block;"></span>
+                                <span style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span>
+                                <span style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                                <span style="margin-left: 0.5rem; font-size: 0.72rem; font-weight: 700; color: #64748b; letter-spacing: 0.04em;">LIVE RECIPIENT INBOX PREVIEW</span>
+                            </div>
+                            <div style="font-size: 0.72rem; color: #38bdf8; font-weight: 700;">
+                                Master University Letterhead Applied
+                            </div>
+                        </div>
+
+                        <!-- Envelope Header -->
+                        <div style="padding: 0.75rem 1.15rem; background: #090d16; border-bottom: 1px solid #1e293b; font-size: 0.8rem; display: flex; flex-direction: column; gap: 0.35rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="font-weight: 700; color: #64748b; width: 62px; flex-shrink: 0;">To:</span>
+                                <span style="color: #cbd5e1; font-weight: 600;">{{ $custom_recipient_name ?: 'Valued Stakeholder' }} &lt;<span style="color: #38bdf8;">{{ $custom_recipient_email ?: 'recipient@university.edu.pk' }}</span>&gt;</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 0.35rem; margin-top: 0.15rem;">
+                                <span style="font-weight: 700; color: #64748b; width: 62px; flex-shrink: 0;">Subject:</span>
+                                <span style="color: #ffffff; font-weight: 800; font-family: 'Outfit', sans-serif;">{{ $custom_subject ?: 'Official Communication' }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Isolated Iframe Canvas -->
+                        <div style="background: #060913; padding: 1.5rem 1rem; display: flex; justify-content: center; overflow-y: auto;">
+                            <div style="width: 100%; max-width: 680px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5); border-radius: 10px; overflow: hidden; background: #ffffff;">
+                                <iframe 
+                                    srcdoc="{{ htmlspecialchars($this->customEmailPreviewHtml, ENT_QUOTES, 'UTF-8') }}"
+                                    style="width: 100%; height: 520px; border: none; display: block; background: #ffffff;"
+                                    sandbox="allow-same-origin"
+                                    loading="lazy"
+                                    title="Custom Email Live Preview Frame">
+                                </iframe>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions Strip -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 1.15rem; margin-top: 1.15rem;">
+                        <button type="button" wire:click="setCustomEmailTab('compose')" class="btn btn-secondary btn-sm" style="font-weight: 700; border-radius: 7px;">
+                            &larr; Back to Draft Composer
+                        </button>
+
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <button type="button" wire:click="closeCustomEmailModal" class="btn btn-secondary btn-sm" style="border-radius: 7px;">
+                                Close
+                            </button>
+
+                            <button type="button" 
+                                    wire:click="sendCustomEmailAction" 
+                                    class="btn btn-primary" 
+                                    style="font-weight: 800; padding: 0.55rem 1.6rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.45rem;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="22" y1="2" x2="11" y2="13"/>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                </svg>
+                                <span wire:loading.remove wire:target="sendCustomEmailAction">Dispatch Custom Email</span>
+                                <span wire:loading wire:target="sendCustomEmailAction">Sending Dispatch...</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         @endif
     </x-modal>
 

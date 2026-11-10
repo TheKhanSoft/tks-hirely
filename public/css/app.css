@@ -2467,12 +2467,14 @@ html.light .action-btn:hover {
     box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.1);
 }
 
-/* Pure CSS Ultra-Smooth Tooltip System (Strictly Excludes Sidebar Navigation) */
-[data-tooltip]:not(.sidebar-link):not(.sidebar-brand-wrapper):not(.sidebar-header-toggle-btn):not(.sidebar-section-title):not(.sidebar *) {
+/* Pure CSS Ultra-Smooth Tooltip System (Strictly Scoped to Content Canvas & Topbar, Excludes Sidebar) */
+.main-content [data-tooltip],
+.topbar-header [data-tooltip] {
     position: relative;
 }
 
-[data-tooltip]:not(.sidebar-link):not(.sidebar-brand-wrapper):not(.sidebar-header-toggle-btn):not(.sidebar-section-title):not(.sidebar *)::before {
+.main-content [data-tooltip]::before,
+.topbar-header [data-tooltip]::before {
     content: attr(data-tooltip);
     position: absolute;
     bottom: calc(100% + 7px);
@@ -2496,7 +2498,8 @@ html.light .action-btn:hover {
     z-index: 99999;
 }
 
-[data-tooltip]:not(.sidebar-link):not(.sidebar-brand-wrapper):not(.sidebar-header-toggle-btn):not(.sidebar-section-title):not(.sidebar *)::after {
+.main-content [data-tooltip]::after,
+.topbar-header [data-tooltip]::after {
     content: '';
     position: absolute;
     bottom: calc(100% + 2px);
@@ -2512,20 +2515,24 @@ html.light .action-btn:hover {
     z-index: 99999;
 }
 
-[data-tooltip]:not(.sidebar-link):not(.sidebar-brand-wrapper):not(.sidebar-header-toggle-btn):not(.sidebar-section-title):not(.sidebar *):hover::before,
-[data-tooltip]:not(.sidebar-link):not(.sidebar-brand-wrapper):not(.sidebar-header-toggle-btn):not(.sidebar-section-title):not(.sidebar *):hover::after {
+.main-content [data-tooltip]:hover::before,
+.main-content [data-tooltip]:hover::after,
+.topbar-header [data-tooltip]:hover::before,
+.topbar-header [data-tooltip]:hover::after {
     opacity: 1;
     visibility: visible;
     transform: translateX(-50%) translateY(0) scale(1);
 }
 
-html.light [data-tooltip]:not(.sidebar-link):not(.sidebar-brand-wrapper):not(.sidebar-header-toggle-btn):not(.sidebar-section-title):not(.sidebar *)::before {
+html.light .main-content [data-tooltip]::before,
+html.light .topbar-header [data-tooltip]::before {
     background: #1e293b;
     color: #ffffff;
     border-color: rgba(0, 0, 0, 0.2);
 }
 
-html.light [data-tooltip]:not(.sidebar-link):not(.sidebar-brand-wrapper):not(.sidebar-header-toggle-btn):not(.sidebar-section-title):not(.sidebar *)::after {
+html.light .main-content [data-tooltip]::after,
+html.light .topbar-header [data-tooltip]::after {
     border-color: #1e293b transparent transparent transparent;
 }
 
@@ -5279,6 +5286,11 @@ html.sidebar-collapsed .sidebar-header-toggle-btn .header-toggle-chevron {
 body.sidebar-collapsed .sidebar-section-title,
 html.sidebar-collapsed .sidebar-section-title {
     display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden !important;
 }
 
 body.sidebar-collapsed .sidebar-link,
@@ -5298,20 +5310,36 @@ html.sidebar-collapsed .sidebar-link .sidebar-badge {
 }
 
 /* Strictly disable ALL CSS pseudo-element tooltips on sidebar navigation (prevents middle clipping box) */
-.sidebar [data-tooltip]::before,
-.sidebar [data-tooltip]::after,
-.sidebar-menu [data-tooltip]::before,
-.sidebar-menu [data-tooltip]::after,
+#appSidebar *,
+#appSidebar *::before,
+#appSidebar *::after,
+#appSidebar *:hover::before,
+#appSidebar *:hover::after,
+.sidebar *,
+.sidebar *::before,
+.sidebar *::after,
+.sidebar *:hover::before,
+.sidebar *:hover::after,
 .sidebar-link::before,
 .sidebar-link::after,
+.sidebar-link:hover::before,
+.sidebar-link:hover::after,
 .sidebar-brand-wrapper::before,
 .sidebar-brand-wrapper::after,
+.sidebar-brand-wrapper:hover::before,
+.sidebar-brand-wrapper:hover::after,
 .sidebar-header-toggle-btn::before,
 .sidebar-header-toggle-btn::after,
+.sidebar-header-toggle-btn:hover::before,
+.sidebar-header-toggle-btn:hover::after,
 body.sidebar-collapsed .sidebar-link::before,
 body.sidebar-collapsed .sidebar-link::after,
+body.sidebar-collapsed .sidebar-link:hover::before,
+body.sidebar-collapsed .sidebar-link:hover::after,
 html.sidebar-collapsed .sidebar-link::before,
-html.sidebar-collapsed .sidebar-link::after {
+html.sidebar-collapsed .sidebar-link::after,
+html.sidebar-collapsed .sidebar-link:hover::before,
+html.sidebar-collapsed .sidebar-link:hover::after {
     display: none !important;
     content: none !important;
     opacity: 0 !important;

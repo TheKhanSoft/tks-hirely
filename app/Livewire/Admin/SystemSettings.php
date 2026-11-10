@@ -291,9 +291,11 @@ class SystemSettings extends Component
     public $previewSubject = '';
     public $previewTemplateName = '';
     public $previewMode = 'sample'; // 'sample' or 'raw'
+    public $previewDeviceMode = 'desktop'; // 'desktop' or 'mobile'
 
     // Custom Email Composer
     public $isCustomEmailModalOpen = false;
+    public $customEmailTab = 'compose'; // 'compose' or 'preview'
     public $custom_recipient_type = 'custom'; // 'candidate', 'reviewer', 'board', 'custom'
     public $custom_recipient_user_id = null;
     public $custom_recipient_email = '';
@@ -1906,6 +1908,7 @@ class SystemSettings extends Component
         $this->selectedTemplateId = $template->id;
         $this->previewTemplateName = $template->name;
         $this->previewMode = 'sample';
+        $this->previewDeviceMode = 'desktop';
         $dummyData = \App\Models\EmailTemplate::getDummySampleData();
         $this->previewSubject = $template->renderSubject($dummyData);
         $this->previewHtml = $template->renderHtml($dummyData);
@@ -1930,10 +1933,45 @@ class SystemSettings extends Component
         }
     }
 
+    public function setPreviewDeviceMode($mode)
+    {
+        $this->previewDeviceMode = in_array($mode, ['desktop', 'mobile']) ? $mode : 'desktop';
+    }
+
     public function closePreviewModal()
     {
         $this->isPreviewModalOpen = false;
         $this->previewHtml = '';
+    }
+
+    public function dispatchPreviewTestEmail()
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('send-custom-email'), 403);
+        $user = Auth::user();
+        if (!$user || empty($user->email)) {
+            session()->flash('preview_status', ['type' => 'error', 'message' => 'Your user account does not have a valid email address.']);
+            return;
+        }
+
+        if (empty($this->previewHtml)) {
+            session()->flash('preview_status', ['type' => 'error', 'message' => 'No template loaded to dispatch.']);
+            return;
+        }
+
+        $result = \App\Services\MailNotificationService::sendCustomEmail(
+            recipientEmail: $user->email,
+            subject: '[TEST PREVIEW] ' . $this->previewSubject,
+            bodyHtml: $this->previewHtml,
+            recipientName: $user->name,
+            recipientUser: $user,
+            senderUser: $user
+        );
+
+        if ($result['status'] === 'sent') {
+            session()->flash('preview_status', ['type' => 'success', 'message' => "✓ Test email copy dispatched to your address ({$user->email})."]);
+        } else {
+            session()->flash('preview_status', ['type' => 'error', 'message' => "Dispatch failed: " . ($result['error'] ?? 'Unknown error')]);
+        }
     }
 
     public function openCustomEmailModal(?string $templateSlug = null)
@@ -1945,6 +1983,7 @@ class SystemSettings extends Component
         $this->custom_recipient_name = '';
         $this->custom_subject = '';
         $this->custom_body = '';
+        $this->customEmailTab = 'compose';
         $this->custom_selected_template_slug = $templateSlug ?? '';
 
         if (!empty($templateSlug)) {
@@ -1952,6 +1991,45 @@ class SystemSettings extends Component
         }
 
         $this->isCustomEmailModalOpen = true;
+    }
+
+    public function setCustomEmailTab($tab)
+    {
+        $this->customEmailTab = in_array($tab, ['compose', 'preview']) ? $tab : 'compose';
+    }
+
+    public function getCustomEmailPreviewHtmlProperty(): string
+    {
+        if (empty($this->custom_body)) {
+            return '<div style="padding: 48px; text-align: center; color: #64748b; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+                <div style="font-size: 32px; margin-bottom: 12px;">✉️</div>
+                <div style="font-size: 15px; font-weight: 700; color: #cbd5e1; margin-bottom: 6px;">Draft Content is Currently Empty</div>
+                <div style="font-size: 13px; color: #94a3b8;">Type your message in the Composer tab to preview live branded formatting.</div>
+            </div>';
+        }
+
+        $recipientGroup = match($this->custom_recipient_type) {
+            'candidate' => 'CANDIDATE',
+            'reviewer' => 'REVIEWER',
+            'board' => 'BOARD_EXPERT',
+            default => 'GENERAL',
+        };
+
+        $dummyVars = [
+            '{recipient_name}' => $this->custom_recipient_name ?: 'Valued Stakeholder',
+            '{applicant_name}' => $this->custom_recipient_name ?: 'Valued Candidate',
+            '{job_title}' => 'Assistant Professor of Computer Science',
+            '{tracking_number}' => 'APP-2026-0842',
+            '{department}' => 'Department of Computer Science',
+            '{login_url}' => url('/login'),
+        ];
+
+        return \App\Models\EmailTemplate::wrapInMasterLayout(
+            $this->custom_body,
+            $this->custom_subject ?: 'Official Communication',
+            $recipientGroup,
+            $dummyVars
+        );
     }
 
     public function closeCustomEmailModal()
