@@ -451,6 +451,18 @@ class PermissionRegistry
                     'label' => 'Manage SMS Gateways & Notification Triggers',
                     'description' => 'Configure SMS providers, API credentials, sender IDs, and automated candidate text message triggers',
                 ],
+                'manage-whatsapp-settings' => [
+                    'label' => 'Manage WhatsApp Business Gateway & Triggers',
+                    'description' => 'Configure WhatsApp providers, API credentials, phone IDs, and automated candidate WhatsApp triggers',
+                ],
+                'send-whatsapp-alerts' => [
+                    'label' => 'Dispatch Official WhatsApp Alerts',
+                    'description' => 'Send transactional and statutory WhatsApp messages, password credentials, and alerts to candidates',
+                ],
+                'verify-otp' => [
+                    'label' => 'Execute OTP & Multi-Factor Verification',
+                    'description' => 'Generate and verify one-time passcodes (OTP) for authentication and statutory action verification',
+                ],
                 'manage-merit-formula' => [
                     'label' => 'Manage Statutory Merit Weightages',
                     'description' => 'Configure statutory selection board formula weightages for academics, research, experience, and interview',

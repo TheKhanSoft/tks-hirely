@@ -320,4 +320,31 @@ class EmailTemplatesAndTriggerGovernanceTest extends TestCase
             'dispatch_type' => 'SYSTEM_AUTOMATED',
         ]);
     }
+
+    public function test_email_sandbox_live_previewer_and_queue_health_diagnostics(): void
+    {
+        Mail::fake();
+        $this->actingAs($this->superAdmin);
+
+        $testable = Livewire::test(SystemSettings::class, ['tab' => 'email'])
+            ->assertSet('sandboxDeviceMode', 'desktop')
+            ->call('setSandboxDeviceMode', 'mobile')
+            ->assertSet('sandboxDeviceMode', 'mobile')
+            ->set('sandboxTemplateSlug', 'candidate-interview-call')
+            ->call('refreshSandboxPreview');
+
+        $this->assertNotEmpty($testable->get('sandboxPreviewSubject'));
+        $this->assertNotEmpty($testable->get('sandboxPreviewHtml'));
+
+        $testable->set('sandboxRecipient', 'dean.recruitment@university.edu')
+            ->call('dispatchSandboxEmail')
+            ->assertSee('Sandbox template')
+            ->call('checkQueueHealth')
+            ->assertSet('queueConnection', config('queue.default', 'database'));
+
+        Mail::assertSent(DynamicNotificationMail::class, function ($mail) {
+            return $mail->hasTo('dean.recruitment@university.edu')
+                && str_contains($mail->mailSubject, '[SANDBOX TEST]');
+        });
+    }
 }

@@ -5,9 +5,14 @@ namespace App\Livewire\Admin;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\SystemSetting;
+use App\Models\EmailTemplate;
+use App\Models\SecurityAuditLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Artisan;
 
 class SystemSettings extends Component
 {
@@ -145,6 +150,25 @@ class SystemSettings extends Component
     public $test_email_recipient = '';
     public $showPassword = false;
 
+    // 📬 Email Sandbox & Live Trigger Diagnostics
+    public $sandboxTemplateSlug = 'candidate-interview-call';
+    public $sandboxRecipient = '';
+    public $sandboxPreviewSubject = '';
+    public $sandboxPreviewHtml = '';
+    public $sandboxDeviceMode = 'desktop'; // 'desktop' or 'mobile'
+
+    // ⚡ Queue Health & Fallback Monitor
+    public $queueConnection = 'database';
+    public $pendingJobsCount = 0;
+    public $failedJobsCount = 0;
+
+    // 🔐 Two-Factor Authentication (2FA) QR Enrollment
+    public $is2FaModalOpen = false;
+    public $twoFactorSecret = '';
+    public $twoFactorQrUri = '';
+    public $twoFactorOtpCode = '';
+    public $twoFactorRecoveryCodes = [];
+
     // ⚖️ Statutory Quota Defaults
     public $asst_prof_required_peer_reviewers;
     public $prof_required_peer_reviewers;
@@ -220,8 +244,35 @@ class SystemSettings extends Component
     public $sms_trigger_scrutiny_deficiency = true;
     public $sms_trigger_interview_call = true;
     public $test_sms_recipient = '';
+
+    // 💬 Official WhatsApp Business Automated Alerts Gateway
     public $whatsapp_business_enabled = false;
     public $whatsapp_business_phone = '+92-300-1234567';
+    public $whatsapp_provider = 'meta_cloud';
+    public $whatsapp_phone_number_id = '';
+    public $whatsapp_api_token = '';
+    public $whatsapp_api_url = '';
+    public $whatsapp_trigger_password_reset = true;
+    public $whatsapp_trigger_otp = true;
+    public $whatsapp_trigger_app_submitted = true;
+    public $whatsapp_trigger_payment_verified = true;
+    public $whatsapp_trigger_scrutiny_alert = true;
+    public $whatsapp_trigger_interview_call = true;
+    public $test_whatsapp_recipient = '';
+    public $test_whatsapp_message = '';
+    public $test_whatsapp_result = null;
+
+    // 🛡️ Multi-Channel OTP & Two-Factor Verification Engine
+    public $enable_otp_verification = true;
+    public $otp_default_channel = 'whatsapp';
+    public $otp_expiry_minutes = 10;
+    public $otp_max_attempts = 3;
+    public $require_otp_for_submission = false;
+    public $test_otp_recipient = '';
+    public $test_otp_channel = 'whatsapp';
+    public $test_otp_code_input = '';
+    public $test_otp_result = null;
+    public $test_otp_verify_result = null;
 
     // ✉️ Email Templates & Custom Dispatch Desk
     public $templateRecipientFilter = 'ALL';
@@ -503,6 +554,28 @@ class SystemSettings extends Component
         $this->sms_trigger_interview_call = (bool) SystemSetting::get('sms_trigger_interview_call', true);
         $this->whatsapp_business_enabled = (bool) SystemSetting::get('whatsapp_business_enabled', false);
         $this->whatsapp_business_phone = (string) SystemSetting::get('whatsapp_business_phone', '+92-300-1234567');
+        $this->whatsapp_provider = (string) SystemSetting::get('whatsapp_provider', 'meta_cloud');
+        $this->whatsapp_phone_number_id = (string) SystemSetting::get('whatsapp_phone_number_id', '');
+        $this->whatsapp_api_token = (string) SystemSetting::get('whatsapp_api_token', '');
+        $this->whatsapp_api_url = (string) SystemSetting::get('whatsapp_api_url', '');
+        $this->whatsapp_trigger_password_reset = (bool) SystemSetting::get('whatsapp_trigger_password_reset', true);
+        $this->whatsapp_trigger_otp = (bool) SystemSetting::get('whatsapp_trigger_otp', true);
+        $this->whatsapp_trigger_app_submitted = (bool) SystemSetting::get('whatsapp_trigger_app_submitted', true);
+        $this->whatsapp_trigger_payment_verified = (bool) SystemSetting::get('whatsapp_trigger_payment_verified', true);
+        $this->whatsapp_trigger_scrutiny_alert = (bool) SystemSetting::get('whatsapp_trigger_scrutiny_alert', true);
+        $this->whatsapp_trigger_interview_call = (bool) SystemSetting::get('whatsapp_trigger_interview_call', true);
+
+        // Multi-Channel OTP & Two-Factor Verification Engine
+        $this->enable_otp_verification = (bool) SystemSetting::get('enable_otp_verification', true);
+        $this->otp_default_channel = (string) SystemSetting::get('otp_default_channel', 'whatsapp');
+        $this->otp_expiry_minutes = (int) SystemSetting::get('otp_expiry_minutes', 10);
+        $this->otp_max_attempts = (int) SystemSetting::get('otp_max_attempts', 3);
+        $this->require_otp_for_submission = (bool) SystemSetting::get('require_otp_for_submission', false);
+
+        // Email Sandbox & Queue Health Init
+        $this->sandboxRecipient = Auth::user()?->email ?: 'admin@awkum.edu.pk';
+        $this->refreshSandboxPreview();
+        $this->checkQueueHealth();
     }
 
     public function toggleSetting($key)
@@ -1194,6 +1267,188 @@ class SystemSettings extends Component
         }
     }
 
+    // 📬 Email Sandbox & Live Trigger Diagnostics
+    public function updatedSandboxTemplateSlug($value)
+    {
+        $this->refreshSandboxPreview();
+    }
+
+    public function setSandboxDeviceMode($mode)
+    {
+        $this->sandboxDeviceMode = in_array($mode, ['desktop', 'mobile']) ? $mode : 'desktop';
+    }
+
+    public function refreshSandboxPreview()
+    {
+        $tpl = EmailTemplate::getBySlug($this->sandboxTemplateSlug) ?: EmailTemplate::first();
+        if ($tpl) {
+            $this->sandboxPreviewSubject = $tpl->renderSampleSubject();
+            $this->sandboxPreviewHtml = $tpl->renderSampleHtml();
+        }
+    }
+
+    public function dispatchSandboxEmail()
+    {
+        abort_unless(Auth::user()->can('manage-settings'), 403);
+        $this->validate([
+            'sandboxRecipient' => 'required|email',
+            'sandboxTemplateSlug' => 'required|string',
+        ]);
+
+        $tpl = EmailTemplate::getBySlug($this->sandboxTemplateSlug);
+        if (!$tpl) {
+            session()->flash('sandbox_email_status', ['type' => 'error', 'message' => 'Template not found in registry.']);
+            return;
+        }
+
+        try {
+            Config::set('mail.default', $this->mail_mailer);
+            if ($this->mail_mailer === 'smtp') {
+                Config::set('mail.mailers.smtp.host', $this->mail_host);
+                Config::set('mail.mailers.smtp.port', (int) $this->mail_port);
+                Config::set('mail.mailers.smtp.encryption', $this->mail_encryption === 'none' ? null : $this->mail_encryption);
+                Config::set('mail.mailers.smtp.username', $this->mail_username);
+                Config::set('mail.mailers.smtp.password', $this->mail_password);
+            }
+            Config::set('mail.from.address', $this->mail_from_address);
+            Config::set('mail.from.name', $this->mail_from_name);
+
+            $subject = '[SANDBOX TEST] ' . $this->sandboxPreviewSubject;
+            $html = $this->sandboxPreviewHtml;
+            $recipient = $this->sandboxRecipient;
+
+            \App\Services\MailNotificationService::sendCustomEmail($recipient, $subject, $html);
+
+            session()->flash('sandbox_email_status', [
+                'type' => 'success',
+                'message' => "Sandbox template '{$tpl->name}' dispatched to '{$this->sandboxRecipient}' via {$this->mail_mailer}.",
+            ]);
+        } catch (\Throwable $e) {
+            session()->flash('sandbox_email_status', [
+                'type' => 'error',
+                'message' => 'Sandbox dispatch failed: ' . $e->getMessage(),
+            ]);
+        }
+    }
+
+    // ⚡ Queue Health & Fallback Monitor
+    public function checkQueueHealth()
+    {
+        $this->queueConnection = config('queue.default', 'database');
+        $this->pendingJobsCount = Schema::hasTable('jobs') ? DB::table('jobs')->count() : 0;
+        $this->failedJobsCount = Schema::hasTable('failed_jobs') ? DB::table('failed_jobs')->count() : 0;
+    }
+
+    public function retryFailedJobs()
+    {
+        abort_unless(Auth::user()->can('manage-settings'), 403);
+        try {
+            Artisan::call('queue:retry', ['id' => ['all']]);
+            $this->checkQueueHealth();
+            session()->flash('queue_health_status', ['type' => 'success', 'message' => 'Retried all failed queue jobs.']);
+        } catch (\Throwable $e) {
+            session()->flash('queue_health_status', ['type' => 'error', 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function flushFailedJobs()
+    {
+        abort_unless(Auth::user()->can('manage-settings'), 403);
+        try {
+            Artisan::call('queue:flush');
+            $this->checkQueueHealth();
+            session()->flash('queue_health_status', ['type' => 'info', 'message' => 'Failed job records cleared.']);
+        } catch (\Throwable $e) {
+            session()->flash('queue_health_status', ['type' => 'error', 'message' => $e->getMessage()]);
+        }
+    }
+
+    // 🔐 Two-Factor Authentication Methods
+    public function open2FaModal()
+    {
+        $user = Auth::user();
+        if (!$user) return;
+
+        // Generate base32 secret (32 base32 chars)
+        $validChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+        $secret = '';
+        for ($i = 0; $i < 32; $i++) {
+            $secret .= $validChars[random_int(0, 31)];
+        }
+        $this->twoFactorSecret = $secret;
+        $appName = urlencode(SystemSetting::getAppName());
+        $userEmail = urlencode($user->email);
+        $this->twoFactorQrUri = "otpauth://totp/{$appName}:{$userEmail}?secret={$this->twoFactorSecret}&issuer={$appName}";
+        
+        // Generate 8 random recovery codes
+        $this->twoFactorRecoveryCodes = [];
+        for ($i = 0; $i < 8; $i++) {
+            $this->twoFactorRecoveryCodes[] = bin2hex(random_bytes(5));
+        }
+
+        $this->twoFactorOtpCode = '';
+        $this->is2FaModalOpen = true;
+    }
+
+    public function close2FaModal()
+    {
+        $this->is2FaModalOpen = false;
+        $this->twoFactorOtpCode = '';
+    }
+
+    public function confirm2FaEnrollment()
+    {
+        $user = Auth::user();
+        if (!$user) return;
+
+        $this->validate([
+            'twoFactorOtpCode' => 'required|string|min:6|max:6',
+        ]);
+
+        $user->update([
+            'two_factor_secret' => encrypt($this->twoFactorSecret),
+            'two_factor_recovery_codes' => $this->twoFactorRecoveryCodes,
+            'two_factor_confirmed_at' => now(),
+            'two_factor_enabled' => true,
+        ]);
+
+        SecurityAuditLog::record(
+            'TWO_FACTOR_AUTHENTICATION_ENROLLED',
+            'User',
+            $user->id,
+            ['email' => $user->email, 'method' => 'TOTP_AUTHENTICATOR'],
+            null,
+            $user->id
+        );
+
+        $this->is2FaModalOpen = false;
+        session()->flash('message', 'Two-Factor Authentication (2FA) successfully enrolled and activated.');
+    }
+
+    public function disable2Fa()
+    {
+        $user = Auth::user();
+        if (!$user) return;
+
+        $user->update([
+            'two_factor_secret' => null,
+            'two_factor_recovery_codes' => null,
+            'two_factor_confirmed_at' => null,
+            'two_factor_enabled' => false,
+        ]);
+
+        SecurityAuditLog::record(
+            'TWO_FACTOR_AUTHENTICATION_DISABLED',
+            'User',
+            $user->id,
+            ['email' => $user->email],
+            null,
+            $user->id
+        );
+
+        session()->flash('message', 'Two-Factor Authentication (2FA) disabled for this account.');
+    }
+
     // 🔒 Security, Access Governance & Session Policies
     public function saveSecuritySettings()
     {
@@ -1230,6 +1485,13 @@ class SystemSettings extends Component
         SystemSetting::set('force_logout_on_password_change', (bool) $this->force_logout_on_password_change, 'security', 'boolean');
         SystemSetting::set('tamper_evident_dossier_hash', (bool) $this->tamper_evident_dossier_hash, 'security', 'boolean');
         SystemSetting::set('watermark_text_custom', (string) $this->watermark_text_custom, 'security', 'string');
+
+        // Multi-Channel OTP Verification Engine
+        SystemSetting::set('enable_otp_verification', (bool) $this->enable_otp_verification, 'security', 'boolean');
+        SystemSetting::set('otp_default_channel', (string) $this->otp_default_channel, 'security', 'string');
+        SystemSetting::set('otp_expiry_minutes', (int) $this->otp_expiry_minutes, 'security', 'integer');
+        SystemSetting::set('otp_max_attempts', (int) $this->otp_max_attempts, 'security', 'integer');
+        SystemSetting::set('require_otp_for_submission', (bool) $this->require_otp_for_submission, 'security', 'boolean');
 
         session()->flash('message', 'Security governance, access policies, and authentication thresholds successfully saved.');
     }
@@ -1310,6 +1572,16 @@ class SystemSettings extends Component
         SystemSetting::set('sms_trigger_interview_call', (bool) $this->sms_trigger_interview_call, 'email', 'boolean');
         SystemSetting::set('whatsapp_business_enabled', (bool) $this->whatsapp_business_enabled, 'email', 'boolean');
         SystemSetting::set('whatsapp_business_phone', (string) $this->whatsapp_business_phone, 'email', 'string');
+        SystemSetting::set('whatsapp_provider', (string) $this->whatsapp_provider, 'email', 'string');
+        SystemSetting::set('whatsapp_phone_number_id', (string) $this->whatsapp_phone_number_id, 'email', 'string');
+        SystemSetting::set('whatsapp_api_token', (string) $this->whatsapp_api_token, 'email', 'string');
+        SystemSetting::set('whatsapp_api_url', (string) $this->whatsapp_api_url, 'email', 'string');
+        SystemSetting::set('whatsapp_trigger_password_reset', (bool) $this->whatsapp_trigger_password_reset, 'email', 'boolean');
+        SystemSetting::set('whatsapp_trigger_otp', (bool) $this->whatsapp_trigger_otp, 'email', 'boolean');
+        SystemSetting::set('whatsapp_trigger_app_submitted', (bool) $this->whatsapp_trigger_app_submitted, 'email', 'boolean');
+        SystemSetting::set('whatsapp_trigger_payment_verified', (bool) $this->whatsapp_trigger_payment_verified, 'email', 'boolean');
+        SystemSetting::set('whatsapp_trigger_scrutiny_alert', (bool) $this->whatsapp_trigger_scrutiny_alert, 'email', 'boolean');
+        SystemSetting::set('whatsapp_trigger_interview_call', (bool) $this->whatsapp_trigger_interview_call, 'email', 'boolean');
 
         session()->flash('message', 'SMS & WhatsApp multi-channel notification gateways saved.');
     }
@@ -1357,6 +1629,100 @@ class SystemSettings extends Component
                 'message' => $result['detail'],
             ]);
         }
+    }
+
+    public function sendTestWhatsApp()
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('manage-whatsapp-settings') || Auth::user()->can('send-whatsapp-alerts'), 403);
+        $this->validate([
+            'test_whatsapp_recipient' => 'required|string|min:10|max:20',
+        ]);
+
+        $message = $this->test_whatsapp_message ?: "Hirely Recruitment: Test automated notification dispatched successfully via official WhatsApp Business Gateway ({$this->whatsapp_provider}).";
+
+        $result = \App\Services\WhatsApp\WhatsAppGatewayService::send(
+            $this->test_whatsapp_recipient,
+            $message
+        );
+
+        $status = [
+            'type' => $result['success'] ? 'success' : 'error',
+            'message' => $result['detail'],
+            'message_id' => $result['message_id'] ?? null,
+        ];
+        $this->test_whatsapp_result = $status;
+        session()->flash('test_whatsapp_status', $status);
+    }
+
+    public function sendTestOtp()
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('verify-otp'), 403);
+        $this->validate([
+            'test_otp_recipient' => 'required|string',
+            'test_otp_channel' => 'required|string|in:whatsapp,sms,email,all',
+        ]);
+
+        // Use active admin user as recipient entity with simulated target phone/email
+        $user = Auth::user();
+
+        // If admin entered a custom phone number, temporarily attach for dispatch test
+        if (str_contains($this->test_otp_recipient, '@')) {
+            $user->email = $this->test_otp_recipient;
+        }
+
+        $result = \App\Services\Verification\OtpVerificationService::generateAndSend(
+            $user,
+            'test_verification',
+            $this->test_otp_channel,
+            [
+                'purpose_label' => 'Administrative Gateway Test',
+                'expiry_minutes' => $this->otp_expiry_minutes ?: 10,
+            ]
+        );
+
+        if ($result['success']) {
+            $status = [
+                'type' => 'success',
+                'message' => "OTP Passcode successfully generated and dispatched via {$result['channel']}. (Test Code: " . ($result['test_code'] ?? 'Hidden in Production') . ")",
+                'code' => $result['test_code'] ?? null,
+            ];
+        } else {
+            $status = [
+                'type' => 'error',
+                'message' => $result['message'] ?? 'Failed to dispatch test OTP.',
+            ];
+        }
+        $this->test_otp_result = $status;
+        session()->flash('test_otp_status', $status);
+    }
+
+    public function verifyTestOtp()
+    {
+        abort_unless(Auth::user()->can('manage-settings') || Auth::user()->can('verify-otp'), 403);
+        $this->validate([
+            'test_otp_code_input' => 'required|string|min:4|max:10',
+        ]);
+
+        $user = Auth::user();
+        $result = \App\Services\Verification\OtpVerificationService::verify(
+            $user,
+            $this->test_otp_code_input,
+            'test_verification'
+        );
+
+        if ($result['success']) {
+            $status = [
+                'type' => 'success',
+                'message' => "Passcode Verified! Identity authenticated successfully.",
+            ];
+        } else {
+            $status = [
+                'type' => 'error',
+                'message' => $result['message'] ?? 'Passcode verification failed.',
+            ];
+        }
+        $this->test_otp_verify_result = $status;
+        session()->flash('test_otp_verify_status', $status);
     }
 
     // 🖥️ Diagnostics & Cache Clearing Actions

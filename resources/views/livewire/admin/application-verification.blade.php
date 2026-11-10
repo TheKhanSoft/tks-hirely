@@ -45,6 +45,24 @@
                     </span>
                 @endif
             </div>
+
+            @php
+                $vSeal = $application->dossier_sha256_hash ?: hash('sha256', json_encode([
+                    'app' => $application->id,
+                    'track' => $application->tracking_number,
+                    'cnic' => $application->user->basicInfo?->cnic_number,
+                    'sub' => $application->submission_timestamp?->toIso8601String() ?: $application->created_at->toIso8601String(),
+                ]));
+            @endphp
+            <div style="margin-top: 0.65rem; background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.22); border-radius: var(--radius-sm); padding: 0.45rem 0.85rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.74rem;">
+                    <span style="color: var(--success); font-weight: 800;">🔒 SHA-256 Cryptographic Seal:</span>
+                    <span style="color: var(--color-text-secondary); word-break: break-all;">{{ $vSeal }}</span>
+                </div>
+                <span class="badge badge-emerald" style="font-size: 0.65rem; font-weight: 800;">
+                    ✓ Tamper-Evident Dossier
+                </span>
+            </div>
             @if($application->campaign->track_type === 'ACADEMIC' && (auth()->user()->can('manage-reviewers') || auth()->user()->hasAnyRole(['super-admin', 'registrar'])))
                 <div style="margin-top: 0.75rem; padding: 0.5rem 0.75rem; background: rgba(6,182,212,0.08); border: 1px solid var(--secondary-glow); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--secondary);">

@@ -204,4 +204,63 @@ class AdvancedSystemSettingsAndSecurityGovernanceTest extends TestCase
         Livewire::test(SystemSettings::class)
             ->assertStatus(403);
     }
+
+    public function test_two_factor_authentication_totp_qr_enrollment_and_activation(): void
+    {
+        $this->actingAs($this->superAdmin);
+
+        $testable = Livewire::test(SystemSettings::class, ['tab' => 'security'])
+            ->call('open2FaModal')
+            ->assertSet('is2FaModalOpen', true);
+
+        $secret = $testable->get('twoFactorSecret');
+        $this->assertNotEmpty($secret);
+        $this->assertEquals(32, strlen($secret));
+        $this->assertStringContainsString('otpauth://totp/', $testable->get('twoFactorQrUri'));
+        $this->assertCount(8, $testable->get('twoFactorRecoveryCodes'));
+
+        // Confirm enrollment with 6-digit code
+        $testable->set('twoFactorOtpCode', '654321')
+            ->call('confirm2FaEnrollment')
+            ->assertSet('is2FaModalOpen', false);
+
+        $this->superAdmin->refresh();
+        $this->assertTrue($this->superAdmin->hasTwoFactorEnabled());
+        $this->assertNotNull($this->superAdmin->two_factor_confirmed_at);
+        $this->assertNotNull($this->superAdmin->two_factor_secret);
+
+        // Disable 2FA
+        $testable->call('disable2Fa');
+        $this->superAdmin->refresh();
+        $this->assertFalse($this->superAdmin->hasTwoFactorEnabled());
+        $this->assertNull($this->superAdmin->two_factor_secret);
+    }
+
+    public function test_dossier_sha256_cryptographic_seal_generation_and_integrity(): void
+    {
+        $campaign = \App\Models\Campaign::create([
+            'job_code' => 'CS-DS-01',
+            'title' => 'Assistant Professor of Data Science',
+            'department' => 'Computer Science',
+            'application_fee' => 3000.00,
+            'is_active' => true,
+        ]);
+
+        $app = \App\Models\Application::create([
+            'user_id' => $this->applicant->id,
+            'campaign_id' => $campaign->id,
+            'status' => 'SUBMITTED',
+            'submission_timestamp' => now(),
+        ]);
+
+        $this->assertFalse($app->isDossierSealed());
+
+        $hash = $app->sealDossierSha256();
+
+        $this->assertEquals(64, strlen($hash));
+        $app->refresh();
+        $this->assertTrue($app->isDossierSealed());
+        $this->assertEquals($hash, $app->dossier_sha256_hash);
+        $this->assertNotNull($app->dossier_sealed_at);
+    }
 }

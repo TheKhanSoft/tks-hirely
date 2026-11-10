@@ -176,8 +176,26 @@ class PasswordResetManager
             }
         }
 
-        // 4. Build WhatsApp details if applicable
+        // 4. Build WhatsApp details and automated dispatch if applicable
         $whatsappData = self::buildWhatsAppDispatch($targetUser, $plainPassword);
+
+        if ($method === 'whatsapp') {
+            try {
+                $waDispatch = \App\Services\WhatsApp\WhatsAppGatewayService::sendPasswordDispatch(
+                    $targetUser,
+                    $plainPassword,
+                    $adminUser->display_name
+                );
+                if ($whatsappData) {
+                    $whatsappData['automated_dispatch'] = $waDispatch;
+                }
+            } catch (\Throwable $we) {
+                Log::warning("Could not dispatch automated WhatsApp password to {$targetUser->email}: " . $we->getMessage());
+                if ($whatsappData) {
+                    $whatsappData['automated_dispatch'] = ['success' => false, 'detail' => $we->getMessage()];
+                }
+            }
+        }
 
         return [
             'status' => 'success',

@@ -156,6 +156,42 @@
                 </div>
             </div>
         </div>
+
+        <!-- Interactive 2FA Enrollment Console for Admin User -->
+        @php
+            $currentUser = Auth::user();
+            $has2Fa = $currentUser?->hasTwoFactorEnabled();
+        @endphp
+        <div style="margin-top: 1.25rem; background: var(--bg-card); border: 1.5px solid {{ $has2Fa ? 'rgba(16, 185, 129, 0.35)' : 'rgba(99, 102, 241, 0.35)' }}; border-radius: var(--radius-sm); padding: 1.15rem 1.35rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+                <div style="width: 42px; height: 42px; border-radius: 10px; background: {{ $has2Fa ? 'rgba(16, 185, 129, 0.12)' : 'rgba(99, 102, 241, 0.12)' }}; color: {{ $has2Fa ? 'var(--success)' : 'var(--primary)' }}; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                    {{ $has2Fa ? '🛡️' : '📲' }}
+                </div>
+                <div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <strong style="color: var(--color-text-primary); font-size: 0.95rem;">Your Account 2FA Protection (TOTP)</strong>
+                        <span class="badge {{ $has2Fa ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.68rem; font-weight: 800;">
+                            {{ $has2Fa ? '✓ ACTIVE & ENROLLED' : 'NOT CONFIGURED' }}
+                        </span>
+                    </div>
+                    <div style="font-size: 0.78rem; color: var(--color-text-secondary); margin-top: 0.15rem;">
+                        {{ $has2Fa ? 'Your account is secured with Google/Microsoft Authenticator time-based one-time passcodes.' : 'Scan QR code using Google Authenticator, Microsoft Authenticator, or 1Password to protect administrative actions.' }}
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                @if($has2Fa)
+                    <button type="button" wire:click="disable2Fa" wire:confirm="Disable Two-Factor Authentication for your account?" class="btn btn-secondary btn-sm" style="color: var(--danger); font-weight: 700;">
+                        Disable 2FA
+                    </button>
+                @else
+                    <button type="button" wire:click="open2FaModal" class="btn btn-primary btn-sm" style="font-weight: 800; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 4px 12px var(--primary-glow);">
+                        <span>📲 Enroll Authenticator App (QR)</span>
+                    </button>
+                @endif
+            </div>
+        </div>
     </div>
 
     <!-- Section 2: Candidate Intake & Career Board Access -->
@@ -348,4 +384,191 @@
             </div>
         </div>
     </div>
+
+    <!-- Section 6: Multi-Channel OTP & Verification Engine -->
+    <div id="setting-security-otp-engine" style="margin-top: 1.75rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+                <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-text-primary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                    <span>🛡️</span> Multi-Channel One-Time Passcode (OTP) Verification Engine
+                </h3>
+                <p style="font-size: 0.83rem; color: var(--color-text-secondary); margin: 0.2rem 0 0 0;">
+                    Dispatches cryptographically secure 6-digit one-time passcodes across WhatsApp, SMS, and Email for identity challenges and statutory actions.
+                </p>
+            </div>
+
+            <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
+                <input type="checkbox" wire:model.live="enable_otp_verification" style="opacity: 0; width: 0; height: 0;">
+                <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $enable_otp_verification ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $enable_otp_verification ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
+                    <span style="position: absolute; content: ''; height: 20px; width: 20px; left: {{ $enable_otp_verification ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
+                </span>
+            </label>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin-top: 1.25rem; margin-bottom: 1.5rem;">
+            <div>
+                <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">Default OTP Delivery Channel</label>
+                <select wire:model="otp_default_channel" class="form-control" style="font-weight: 600;">
+                    <option value="whatsapp">WhatsApp Priority (Instant WhatsApp Message)</option>
+                    <option value="sms">SMS Priority (Corporate Cellular SMS)</option>
+                    <option value="email">Email Priority (HTML Email Passcode)</option>
+                    <option value="all">Omnichannel Simultaneous Dispatch (WhatsApp + SMS + Email)</option>
+                </select>
+                <div style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 0.25rem;">Channel prioritized when issuing user verification codes.</div>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">OTP Expiry Duration (Minutes)</label>
+                <input type="number" wire:model="otp_expiry_minutes" min="2" max="60" class="form-control" style="font-weight: 600;" placeholder="10">
+                <div style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 0.25rem;">Validity window before code expires automatically (Standard: 10 mins).</div>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">Maximum Incorrect Code Attempts</label>
+                <input type="number" wire:model="otp_max_attempts" min="1" max="10" class="form-control" style="font-weight: 600;" placeholder="3">
+                <div style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 0.25rem;">Failed entries permitted before code revocation (Standard: 3 attempts).</div>
+            </div>
+        </div>
+
+        <!-- Submission Gate Checkbox -->
+        <div style="background: var(--bg-surface); padding: 0.95rem 1.15rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+            <div style="max-width: 80%;">
+                <div style="font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary);">Mandatory OTP Gate on Application Submission</div>
+                <div style="font-size: 0.74rem; color: var(--color-text-secondary); margin-top: 0.15rem;">Requires candidates to enter a live OTP before finalizing and locking their statutory recruitment dossier.</div>
+            </div>
+            <input type="checkbox" wire:model="require_otp_for_submission" style="width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;">
+        </div>
+
+        <!-- Interactive Live OTP Testing Console -->
+        <div style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                <div style="font-weight: 800; font-size: 0.88rem; color: var(--color-text-primary);">
+                    🧪 Live OTP Generation &amp; Verification Test Console
+                </div>
+                <span class="badge badge-emerald" style="font-size: 0.72rem; font-weight: 800;">
+                    Sandbox Ready
+                </span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 180px auto; gap: 0.75rem; margin-bottom: 1rem; align-items: center;">
+                <input type="text" wire:model="test_otp_recipient" class="form-control" placeholder="Target Mobile # or Email (e.g. +923001234567 or user@univ.edu)">
+                <select wire:model="test_otp_channel" class="form-control" style="font-weight: 600;">
+                    <option value="whatsapp">WhatsApp</option>
+                    <option value="sms">Cellular SMS</option>
+                    <option value="email">Email</option>
+                    <option value="all">All Channels</option>
+                </select>
+                <button type="button" wire:click="sendTestOtp" class="btn btn-secondary btn-sm" style="font-weight: 800; white-space: nowrap;">
+                    🚀 Dispatch OTP
+                </button>
+            </div>
+
+            @if($test_otp_result || session()->has('test_otp_status'))
+                @php $otpStatus = $test_otp_result ?: session('test_otp_status'); @endphp
+                <div style="margin-bottom: 1rem; padding: 0.65rem 0.95rem; border-radius: 6px; background: {{ ($otpStatus['type'] ?? 'success') === 'success' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)' }}; border: 1px solid {{ ($otpStatus['type'] ?? 'success') === 'success' ? 'var(--success)' : 'var(--danger)' }}; font-size: 0.82rem; font-weight: 700; color: {{ ($otpStatus['type'] ?? 'success') === 'success' ? 'var(--success)' : 'var(--danger)' }};">
+                    {{ ($otpStatus['type'] ?? 'success') === 'success' ? '✅' : '❌' }} {{ $otpStatus['message'] }}
+                </div>
+
+                <!-- Test Code Verification Sub-Form -->
+                <div style="display: flex; gap: 0.75rem; align-items: center; background: var(--bg-surface); padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <span style="font-size: 0.8rem; font-weight: 800; color: var(--color-text-secondary); white-space: nowrap;">
+                        Enter Passcode to Verify:
+                    </span>
+                    <input type="text" wire:model="test_otp_code_input" maxlength="6" class="form-control" style="max-width: 130px; font-weight: 900; letter-spacing: 0.25em; text-align: center; font-family: monospace;" placeholder="849201">
+                    <button type="button" wire:click="verifyTestOtp" class="btn btn-primary btn-sm" style="font-weight: 800;">
+                        Validate Passcode
+                    </button>
+                </div>
+
+                @if($test_otp_verify_result || session()->has('test_otp_verify_status'))
+                    @php $verifyStatus = $test_otp_verify_result ?: session('test_otp_verify_status'); @endphp
+                    <div style="margin-top: 0.75rem; font-size: 0.84rem; font-weight: 800; color: {{ ($verifyStatus['type'] ?? 'success') === 'success' ? 'var(--success)' : 'var(--danger)' }};">
+                        {{ ($verifyStatus['type'] ?? 'success') === 'success' ? '🎉' : '❌' }} {{ $verifyStatus['message'] }}
+                    </div>
+                @endif
+            @endif
+        </div>
+    </div>
+
+    <!-- Two-Factor Authentication (2FA) Enrollment Modal -->
+    <x-modal :show="$is2FaModalOpen" title="Enroll Two-Factor Authentication (TOTP)" closeAction="close2FaModal" style="max-width: 620px; width: 95%;">
+        <div>
+            <div style="margin-bottom: 1.25rem;">
+                <div style="font-size: 0.8rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.04em;">
+                    Cryptographic Time-Based Passcode (TOTP)
+                </div>
+                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--color-text-primary); margin: 0.2rem 0;">
+                    Secure Your Administrative Account
+                </h3>
+                <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin: 0;">
+                    Scan this QR code using <strong>Google Authenticator</strong>, <strong>Microsoft Authenticator</strong>, or <strong>1Password</strong>.
+                </p>
+            </div>
+
+            <!-- QR Code Canvas & Manual Key -->
+            <div style="display: grid; grid-template-columns: 180px 1fr; gap: 1.25rem; align-items: center; background: var(--bg-surface); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 1.25rem;">
+                <div style="width: 180px; height: 180px; background: #ffffff; border-radius: 8px; padding: 8px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); border: 1px solid rgba(0,0,0,0.1);">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=164x164&data={{ urlencode($twoFactorQrUri) }}" 
+                         alt="2FA QR Code" 
+                         style="width: 164px; height: 164px; display: block;" 
+                         onerror="this.parentElement.innerHTML='<div style=\'text-align:center;font-size:0.75rem;color:#0f172a;font-weight:700;\'>Scan URI:<br><code style=\'word-break:break-all;font-size:0.65rem;\'>{{ $twoFactorSecret }}</code></div>';">
+                </div>
+
+                <div>
+                    <div style="font-size: 0.76rem; font-weight: 800; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 0.35rem;">
+                        Manual Setup Secret Key
+                    </div>
+                    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.5rem 0.75rem; font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; font-weight: 800; color: var(--secondary); letter-spacing: 0.1em; word-break: break-all;">
+                        {{ chunk_split($twoFactorSecret, 4, ' ') }}
+                    </div>
+                    <div style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 0.4rem;">
+                        Type: Time-Based (TOTP) &bull; Period: 30s &bull; Algorithm: SHA1
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Recovery Codes -->
+            <div style="margin-bottom: 1.25rem;">
+                <div style="font-size: 0.78rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                    🔑 Emergency One-Time Recovery Codes
+                </div>
+                <div style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700; color: var(--color-text-secondary); text-align: center;">
+                    @foreach($twoFactorRecoveryCodes as $code)
+                        <span>{{ $code }}</span>
+                    @endforeach
+                </div>
+                <div style="font-size: 0.7rem; color: var(--color-text-muted); margin-top: 0.25rem;">
+                    Store these backup codes safely. Each code may only be used once if you lose device access.
+                </div>
+            </div>
+
+            <!-- Code Verification Form -->
+            <div style="background: rgba(99, 102, 241, 0.06); border: 1.5px solid rgba(99, 102, 241, 0.25); border-radius: var(--radius-sm); padding: 1rem 1.25rem; margin-bottom: 1.25rem;">
+                <label class="form-label" style="font-weight: 800; font-size: 0.84rem; color: var(--color-text-primary); margin-bottom: 0.4rem;">
+                    Enter 6-Digit Code from Authenticator App *
+                </label>
+                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                    <input type="text" 
+                           wire:model="twoFactorOtpCode" 
+                           maxlength="6" 
+                           class="form-control" 
+                           style="max-width: 180px; font-weight: 900; letter-spacing: 0.3em; text-align: center; font-size: 1.15rem; font-family: 'JetBrains Mono', monospace;" 
+                           placeholder="123456">
+                    <button type="button" 
+                            wire:click="confirm2FaEnrollment" 
+                            class="btn btn-primary" 
+                            style="font-weight: 800; padding: 0.6rem 1.35rem; box-shadow: 0 4px 14px var(--primary-glow);">
+                        ✓ Activate 2FA Protection
+                    </button>
+                </div>
+                @error('twoFactorOtpCode') <div style="color: var(--danger); font-size: 0.76rem; font-weight: 700; margin-top: 0.35rem;">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="flex justify-end gap-3" style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                <button type="button" class="btn btn-secondary" wire:click="close2FaModal">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </x-modal>
 </div>

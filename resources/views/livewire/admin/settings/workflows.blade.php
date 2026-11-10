@@ -473,6 +473,58 @@
                 </div>
             </div>
 
+            <!-- 13. Official WhatsApp Automated Alerts & Password Dispatch Toggle -->
+            <div id="setting-feature-whatsapp-alerts" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $whatsapp_business_enabled ? 'rgba(37,211,102,0.45)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
+                <div style="max-width: 80%;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                        <span style="font-size: 1.15rem;">💬</span>
+                        <span style="font-size: 0.98rem; font-weight: 800; color: var(--color-text-primary);">
+                            Official WhatsApp Automated Alerts &amp; Password Dispatch
+                        </span>
+                        <span class="badge {{ $whatsapp_business_enabled ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.68rem; font-weight: 800; background: {{ $whatsapp_business_enabled ? '#25D366' : '' }}; color: {{ $whatsapp_business_enabled ? '#fff' : '' }};">
+                            {{ $whatsapp_business_enabled ? 'ENABLED' : 'DISABLED' }}
+                        </span>
+                    </div>
+                    <div style="font-size: 0.82rem; color: var(--color-text-secondary); line-height: 1.5;">
+                        Transmits automated transactional WhatsApp alerts for administrative password dispatch, interview summons, scrutiny deficiencies, and payment verifications via Meta Cloud API / WhatsApp Gateway.
+                    </div>
+                </div>
+                <div>
+                    <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
+                        <input type="checkbox" wire:model.live="whatsapp_business_enabled" style="opacity: 0; width: 0; height: 0;">
+                        <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $whatsapp_business_enabled ? '#25D366' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $whatsapp_business_enabled ? '#25D366' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
+                            <span style="position: absolute; content: ''; height: 20px; width: 20px; left: {{ $whatsapp_business_enabled ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 14. Multi-Channel OTP & Two-Factor Verification Engine Toggle -->
+            <div id="setting-feature-otp-engine" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg-surface); border: 1px solid {{ $enable_otp_verification ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
+                <div style="max-width: 80%;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                        <span style="font-size: 1.15rem;">🛡️</span>
+                        <span style="font-size: 0.98rem; font-weight: 800; color: var(--color-text-primary);">
+                            One-Time Passcode (OTP) Multi-Channel Verification Engine
+                        </span>
+                        <span class="badge {{ $enable_otp_verification ? 'badge-emerald' : 'badge-slate' }}" style="font-size: 0.68rem; font-weight: 800;">
+                            {{ $enable_otp_verification ? 'ENABLED' : 'DISABLED' }}
+                        </span>
+                    </div>
+                    <div style="font-size: 0.82rem; color: var(--color-text-secondary); line-height: 1.5;">
+                        Secures privileged logins, phone number verifications, and statutory dossier submissions with time-sensitive 6-digit cryptographic passcodes dispatched across WhatsApp, SMS, and Email.
+                    </div>
+                </div>
+                <div>
+                    <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
+                        <input type="checkbox" wire:model.live="enable_otp_verification" style="opacity: 0; width: 0; height: 0;">
+                        <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $enable_otp_verification ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $enable_otp_verification ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
+                            <span style="position: absolute; content: ''; height: 20px; width: 20px; left: {{ $enable_otp_verification ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
         </div>
 
         {{-- Deep Expandable Policy Guidelines --}}

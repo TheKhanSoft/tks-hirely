@@ -142,10 +142,14 @@ class SystemSetting extends Model
             'appellate_workbench' => 'enable_appellate_workbench',
             'projector_merit_board', 'live_merit_board' => 'enable_projector_merit_board',
             'executive_analytics', 'recruitment_analytics' => 'enable_executive_analytics',
-            default => str_starts_with($feature, 'enable_') ? $feature : "enable_{$feature}",
+            'whatsapp_business_enabled', 'whatsapp_alerts', 'whatsapp_business', 'whatsapp_dispatch' => 'whatsapp_business_enabled',
+            'enable_otp_verification', 'otp_verification', 'otp' => 'enable_otp_verification',
+            default => (str_starts_with($feature, 'enable_') || str_starts_with($feature, 'whatsapp_')) ? $feature : "enable_{$feature}",
         };
 
-        return (bool) self::get($key, true);
+        $default = ($key === 'whatsapp_business_enabled') ? false : true;
+
+        return (bool) self::get($key, $default);
     }
 
     /**
@@ -1912,6 +1916,128 @@ class SystemSetting extends Model
                 'type' => 'string',
                 'label' => 'Official WhatsApp Helpline / Dispatch Number',
                 'description' => 'Registered WhatsApp business account number displayed to candidates.',
+            ],
+            [
+                'key' => 'whatsapp_provider',
+                'value' => 'meta_cloud',
+                'group' => 'email',
+                'type' => 'string',
+                'label' => 'WhatsApp Gateway Provider',
+                'description' => 'Provider gateway: meta_cloud, twilio, infobip, generic_webhook, or log.',
+            ],
+            [
+                'key' => 'whatsapp_phone_number_id',
+                'value' => '',
+                'group' => 'email',
+                'type' => 'string',
+                'label' => 'WhatsApp Phone Number ID / SID',
+                'description' => 'Meta Cloud API Phone Number ID or Twilio Account SID.',
+            ],
+            [
+                'key' => 'whatsapp_api_token',
+                'value' => '',
+                'group' => 'email',
+                'type' => 'string',
+                'label' => 'WhatsApp API Access Token',
+                'description' => 'Meta permanent access token or provider API key.',
+            ],
+            [
+                'key' => 'whatsapp_api_url',
+                'value' => '',
+                'group' => 'email',
+                'type' => 'string',
+                'label' => 'WhatsApp Custom API Endpoint URL',
+                'description' => 'Optional custom API URL or webhook endpoint.',
+            ],
+            [
+                'key' => 'whatsapp_trigger_password_reset',
+                'value' => '1',
+                'group' => 'email',
+                'type' => 'boolean',
+                'label' => 'WhatsApp Trigger: Administrative Password Reset',
+                'description' => 'Automatically dispatches temporary password details via WhatsApp.',
+            ],
+            [
+                'key' => 'whatsapp_trigger_otp',
+                'value' => '1',
+                'group' => 'email',
+                'type' => 'boolean',
+                'label' => 'WhatsApp Trigger: OTP Verification Codes',
+                'description' => 'Dispatches OTP security codes to user mobile via WhatsApp.',
+            ],
+            [
+                'key' => 'whatsapp_trigger_app_submitted',
+                'value' => '1',
+                'group' => 'email',
+                'type' => 'boolean',
+                'label' => 'WhatsApp Trigger: Application Submitted',
+                'description' => 'Sends confirmation alert when candidate submits their application.',
+            ],
+            [
+                'key' => 'whatsapp_trigger_payment_verified',
+                'value' => '1',
+                'group' => 'email',
+                'type' => 'boolean',
+                'label' => 'WhatsApp Trigger: Payment Verified',
+                'description' => 'Sends confirmation alert when bank challan is verified.',
+            ],
+            [
+                'key' => 'whatsapp_trigger_scrutiny_alert',
+                'value' => '1',
+                'group' => 'email',
+                'type' => 'boolean',
+                'label' => 'WhatsApp Trigger: Scrutiny Deficiency Notice',
+                'description' => 'Alerts candidate via WhatsApp of any scrutiny deficiencies.',
+            ],
+            [
+                'key' => 'whatsapp_trigger_interview_call',
+                'value' => '1',
+                'group' => 'email',
+                'type' => 'boolean',
+                'label' => 'WhatsApp Trigger: Selection Board Interview Summons',
+                'description' => 'Sends urgent WhatsApp summons alert for Selection Board interview.',
+            ],
+
+            // 🛡️ Multi-Channel OTP & Two-Factor Verification
+            [
+                'key' => 'enable_otp_verification',
+                'value' => '1',
+                'group' => 'security',
+                'type' => 'boolean',
+                'label' => 'One-Time Passcode (OTP) Verification Engine',
+                'description' => 'Enforces multi-channel OTP verification for authentication, contact confirmation, and sensitive actions.',
+            ],
+            [
+                'key' => 'otp_default_channel',
+                'value' => 'whatsapp',
+                'group' => 'security',
+                'type' => 'string',
+                'label' => 'Primary OTP Delivery Channel',
+                'description' => 'Preferred delivery channel for security codes: whatsapp, sms, email, or all.',
+            ],
+            [
+                'key' => 'otp_expiry_minutes',
+                'value' => '10',
+                'group' => 'security',
+                'type' => 'integer',
+                'label' => 'OTP Code Expiration Duration (Minutes)',
+                'description' => 'Validity window for one-time passcodes before automatic invalidation.',
+            ],
+            [
+                'key' => 'otp_max_attempts',
+                'value' => '3',
+                'group' => 'security',
+                'type' => 'integer',
+                'label' => 'Maximum Failed OTP Attempts',
+                'description' => 'Number of incorrect passcode attempts permitted before code revocation.',
+            ],
+            [
+                'key' => 'require_otp_for_submission',
+                'value' => '0',
+                'group' => 'security',
+                'type' => 'boolean',
+                'label' => 'Require OTP for Application Dossier Finalization',
+                'description' => 'Mandates one-time passcode confirmation before candidate can lock and finalize application dossier.',
             ],
         ];
 

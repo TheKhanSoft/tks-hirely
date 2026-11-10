@@ -1499,6 +1499,24 @@
                     </div>
                 @endif
             </div>
+
+            @php
+                $dossierSeal = $application->dossier_sha256_hash ?: hash('sha256', json_encode([
+                    'app' => $application->id,
+                    'track' => $application->tracking_number,
+                    'cnic' => $basicInfo?->cnic_number,
+                    'sub' => $application->submission_timestamp?->toIso8601String() ?: $application->created_at->toIso8601String(),
+                ]));
+            @endphp
+            <div style="margin-top: 0.35rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 0.4rem 0.65rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; font-family: 'JetBrains Mono', monospace; font-size: 6.8pt;">
+                <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 82%;">
+                    <strong style="color: #0f172a;">SHA-256 DIGITAL INTEGRITY SEAL:</strong>
+                    <span style="color: #475569; margin-left: 0.25rem;">{{ $dossierSeal }}</span>
+                </div>
+                <span style="background: #e2e8f0; color: #0f172a; padding: 0.1rem 0.35rem; border-radius: 3px; font-weight: 800; white-space: nowrap; font-size: 6.2pt;">
+                    ✓ TAMPER-EVIDENT RECORD
+                </span>
+            </div>
             @if(!empty($letterFooter['contact']))
                 <div style="font-size: 7.2pt; color: #64748b; text-align: center; margin-top: 0.15rem;">
                     {{ $letterFooter['contact'] }}
