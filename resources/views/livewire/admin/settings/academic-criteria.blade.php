@@ -141,56 +141,85 @@
                 </div>
 
                 <!-- 2. Disallow Third Division in Terminal / Highest Degree -->
-                <div id="setting-academic-disallow-3rd-terminal" style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem; background: var(--bg-surface); border: 1px solid {{ $global_disallow_third_in_terminal ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast);">
+                <div id="setting-academic-disallow-3rd-terminal" style="display: flex; justify-content: space-between; align-items: center; padding: 1.15rem; background: var(--bg-surface); border: 1px solid {{ ($global_disallow_third_division || $global_disallow_third_in_terminal) ? 'var(--primary-glow)' : 'var(--border-color)' }}; border-radius: var(--radius-md); transition: var(--transition-fast); {{ $global_disallow_third_division ? 'opacity: 0.88;' : '' }}">
                     <div style="max-width: 80%;">
                         <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
                             <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
                                 Disallow 3rd Division in Terminal Degree
                             </span>
-                            <span class="badge {{ $global_disallow_third_in_terminal ? 'badge-rose' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">
-                                {{ $global_disallow_third_in_terminal ? 'TERMINAL BAR ON' : 'PERMITTED' }}
-                            </span>
+                            @if($global_disallow_third_division)
+                                <span class="badge badge-purple" style="font-size: 0.65rem; font-weight: 800;">
+                                    🔒 LOCKED ON (SUBSUMED)
+                                </span>
+                            @else
+                                <span class="badge {{ $global_disallow_third_in_terminal ? 'badge-rose' : 'badge-slate' }}" style="font-size: 0.65rem; font-weight: 800;">
+                                    {{ $global_disallow_third_in_terminal ? 'TERMINAL BAR ON' : 'PERMITTED' }}
+                                </span>
+                            @endif
                             <x-help-hint type="inline" 
                                          variant="statutory" 
                                          statute="Standard Statutory Rule" 
                                          title="Terminal Degree 3rd Division Bar" 
                                          text="Requires the highest qualifying degree (e.g. Master, MS/MPhil, or PhD) to be 1st or 2nd Division." />
                         </div>
-                        <div style="font-size: 0.8rem; color: var(--color-text-secondary); line-height: 1.45;">
-                            Enforces that the highest required degree for the applied position cannot be in the 3rd Division.
-                        </div>
+                        @if($global_disallow_third_division)
+                            <div style="font-size: 0.78rem; color: var(--primary); font-weight: 600; line-height: 1.45;">
+                                🔒 Automatically locked ON because career-wide Zero 3rd Division tolerance is active.
+                            </div>
+                        @else
+                            <div style="font-size: 0.8rem; color: var(--color-text-secondary); line-height: 1.45;">
+                                Enforces that the highest required degree for the applied position cannot be in the 3rd Division.
+                            </div>
+                        @endif
                     </div>
                     <div>
-                        <label style="position: relative; display: inline-block; width: 50px; height: 26px; cursor: pointer;">
-                            <input type="checkbox" wire:model.live="global_disallow_third_in_terminal" style="opacity: 0; width: 0; height: 0;">
-                            <span style="position: absolute; cursor: pointer; inset: 0; background-color: {{ $global_disallow_third_in_terminal ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ $global_disallow_third_in_terminal ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
-                                <span style="position: absolute; content: ''; height: 18px; width: 18px; left: {{ $global_disallow_third_in_terminal ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%;"></span>
+                        <label style="position: relative; display: inline-block; width: 50px; height: 26px; {{ $global_disallow_third_division ? 'cursor: not-allowed; opacity: 0.65;' : 'cursor: pointer;' }}">
+                            <input type="checkbox" 
+                                   wire:model.live="global_disallow_third_in_terminal" 
+                                   {{ $global_disallow_third_division ? 'disabled' : '' }}
+                                   style="opacity: 0; width: 0; height: 0;">
+                            <span style="position: absolute; {{ $global_disallow_third_division ? 'cursor: not-allowed;' : 'cursor: pointer;' }} inset: 0; background-color: {{ ($global_disallow_third_division || $global_disallow_third_in_terminal) ? 'var(--primary)' : 'rgba(148, 163, 184, 0.2)' }}; border: 1px solid {{ ($global_disallow_third_division || $global_disallow_third_in_terminal) ? 'var(--primary)' : 'var(--border-color)' }}; transition: .25s; border-radius: 34px;">
+                                <span style="position: absolute; content: ''; height: 18px; width: 18px; left: {{ ($global_disallow_third_division || $global_disallow_third_in_terminal) ? '26px' : '4px' }}; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%;"></span>
                             </span>
                         </label>
                     </div>
                 </div>
 
                 <!-- 3. Maximum Allowed 3rd Divisions -->
-                <div id="setting-academic-max-3rd-divisions" style="padding: 1.15rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                <div id="setting-academic-max-3rd-divisions" style="padding: 1.15rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); {{ $global_disallow_third_division ? 'opacity: 0.88;' : '' }}">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-                        <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
-                            Maximum Permitted 3rd Divisions
-                        </span>
+                        <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
+                            <span style="font-weight: 800; font-size: 0.92rem; color: var(--color-text-primary);">
+                                Maximum Permitted 3rd Divisions
+                            </span>
+                            @if($global_disallow_third_division)
+                                <span class="badge badge-purple" style="font-size: 0.65rem; font-weight: 800;">
+                                    🔒 LOCKED AT 0
+                                </span>
+                            @endif
+                        </div>
                         <x-help-hint type="inline" 
                                      variant="tip" 
                                      title="Allowed 3rd Division Cap" 
                                      text="Sets a numerical cap on 3rd divisions (e.g. at most 1 allowed in Matric/FSc). Leave blank for unconstrained unless zero-tolerance is on." />
                     </div>
-                    <div style="font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: 0.65rem;">
-                        Upper limit on total third divisions permitted in an applicant's academic trajectory.
-                    </div>
+                    @if($global_disallow_third_division)
+                        <div style="font-size: 0.78rem; color: var(--primary); font-weight: 600; margin-bottom: 0.65rem;">
+                            🔒 Fixed at 0 because career-wide Zero 3rd Division tolerance is active.
+                        </div>
+                    @else
+                        <div style="font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: 0.65rem;">
+                            Upper limit on total third divisions permitted in an applicant's academic trajectory.
+                        </div>
+                    @endif
                     <input type="number" 
                            wire:model.live="global_max_allowed_third_divisions" 
                            min="0" 
                            max="5" 
-                           placeholder="Leave empty for unconstrained" 
+                           {{ $global_disallow_third_division ? 'disabled' : '' }}
+                           placeholder="{{ $global_disallow_third_division ? 'Fixed at 0 (Zero Tolerance active)' : 'Leave empty for unconstrained' }}" 
                            class="form-control" 
-                           style="font-size: 0.9rem; padding: 0.45rem 0.75rem;">
+                           style="font-size: 0.9rem; padding: 0.45rem 0.75rem; {{ $global_disallow_third_division ? 'cursor: not-allowed; background: var(--bg-card); opacity: 0.75;' : '' }}">
                 </div>
 
                 <!-- 4. Disallow Multiple 2nd Divisions -->

@@ -159,7 +159,7 @@ class SettingsMasterSidebarNavigationTest extends TestCase
         $response->assertSee('Candidate Policies');
         $response->assertSee('Academic Benchmarks');
         $response->assertSee('Institution Profile & Acronym');
-        $response->assertSee('Theme Studio & Design System');
+        $response->assertSee('Theme & Design System');
         $response->assertSee('Contact & Helpdesk');
         $response->assertSee('Email & Delivery');
         $response->assertSee('Email Templates & Triggers');

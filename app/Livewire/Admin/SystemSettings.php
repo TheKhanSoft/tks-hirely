@@ -704,9 +704,23 @@ class SystemSettings extends Component
         session()->flash('message', 'Default statutory board quorums and peer review quotas successfully saved.');
     }
 
+    public function updatedGlobalDisallowThirdDivision($value): void
+    {
+        if ($value) {
+            $this->global_disallow_third_in_terminal = true;
+            $this->global_max_allowed_third_divisions = '0';
+        }
+    }
+
     public function saveAcademicCriteriaSettings()
     {
         abort_unless(Auth::user()->can('manage-settings'), 403);
+
+        if ($this->global_disallow_third_division) {
+            $this->global_disallow_third_in_terminal = true;
+            $this->global_max_allowed_third_divisions = '0';
+        }
+
         \App\Services\AcademicEligibilityEvaluator::setGlobalCriteria([
             'disallow_third_division' => (bool)$this->global_disallow_third_division,
             'max_allowed_third_divisions' => $this->global_max_allowed_third_divisions !== '' ? (int)$this->global_max_allowed_third_divisions : null,

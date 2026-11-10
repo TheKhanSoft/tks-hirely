@@ -22,7 +22,7 @@
                     'id' => 'branding',
                     'slug' => 'branding',
                     'url' => $basePrefix . '/settings/branding',
-                    'label' => 'Theme Studio & Design System',
+                    'label' => 'Theme & Design System',
                     'badge' => 'Visual Identity',
                     'subtitle' => 'Palettes, presets, radius & layout',
                     'color' => '#ec4899',

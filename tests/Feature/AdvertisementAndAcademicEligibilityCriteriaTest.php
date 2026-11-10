@@ -526,4 +526,20 @@ class AdvertisementAndAcademicEligibilityCriteriaTest extends TestCase
             ->assertSee('Statutory Academic Eligibility Violations')
             ->assertSee('3rd Division is not permitted');
     }
+
+    public function test_zero_third_division_toggle_reactively_locks_terminal_bar_and_max_cap(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('super-admin');
+
+        $this->actingAs($admin);
+
+        \Livewire\Livewire::test(\App\Livewire\Admin\SystemSettings::class)
+            ->call('setTab', 'academic_criteria')
+            ->set('global_disallow_third_division', true)
+            ->assertSet('global_disallow_third_in_terminal', true)
+            ->assertSet('global_max_allowed_third_divisions', '0')
+            ->assertSee('LOCKED ON (SUBSUMED)')
+            ->assertSee('LOCKED AT 0');
+    }
 }

@@ -183,9 +183,19 @@ return new class extends Migration
             $table->foreignId('campaign_id')->constrained('campaigns')->onDelete('restrict');
             $table->string('status', 100)->default('DRAFT');
             $table->timestamp('submission_timestamp')->nullable();
+            $table->date('interview_date')->nullable();
+            $table->string('interview_time', 50)->nullable();
+            $table->string('interview_venue', 255)->nullable();
+            $table->string('interview_committee_room', 100)->nullable();
+            $table->string('interview_reporting_time', 50)->nullable();
+            $table->dateTime('interview_call_letter_issued_at')->nullable();
+            $table->text('interview_instructions')->nullable();
             $table->text('disqualification_reason')->nullable(); // Structural code / administrative reference on eligibility failure
             $table->text('appeal_letter')->nullable(); // User's appeal text
             $table->string('appeal_proof_path')->nullable(); // Uploaded proof for appeals
+            $table->text('appeal_decision_remarks')->nullable();
+            $table->foreignId('appeal_decided_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->dateTime('appeal_decided_at')->nullable();
             $table->timestamps();
         });
 
@@ -379,6 +389,8 @@ return new class extends Migration
             $table->date('due_date')->nullable();
             $table->text('confidential_notes')->nullable();
             $table->enum('status', ['PENDING', 'ACCEPTED', 'SUBMITTED', 'DECLINED'])->default('PENDING');
+            $table->string('access_token', 64)->nullable()->unique();
+            $table->dateTime('token_expires_at')->nullable();
             $table->enum('recommendation', ['STRONGLY_RECOMMENDED', 'RECOMMENDED', 'CONDITIONALLY_RECOMMENDED', 'NOT_RECOMMENDED'])->nullable();
             $table->decimal('overall_score', 5, 2)->nullable();
             $table->text('report_text')->nullable();
