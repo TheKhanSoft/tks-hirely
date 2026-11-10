@@ -30,6 +30,16 @@ class Application extends Model
         'appeal_decision_remarks',
         'appeal_decided_by',
         'appeal_decided_at',
+        'appeal_hearing_date',
+        'appeal_hearing_time',
+        'appeal_hearing_venue',
+        'appeal_hearing_mode',
+        'appeal_hearing_link',
+        'appeal_hearing_notes',
+        'appeal_hearing_scheduled_at',
+        'appeal_readmitted_at',
+        'dossier_sha256_hash',
+        'dossier_sealed_at',
     ];
 
     /**
@@ -53,7 +63,59 @@ class Application extends Model
         'interview_date' => 'date',
         'interview_call_letter_issued_at' => 'datetime',
         'appeal_decided_at' => 'datetime',
+        'appeal_hearing_date' => 'date',
+        'appeal_hearing_scheduled_at' => 'datetime',
+        'appeal_readmitted_at' => 'datetime',
+        'dossier_sealed_at' => 'datetime',
     ];
+
+    /**
+     * Check if statutory hearing is scheduled.
+     */
+    public function isHearingScheduled(): bool
+    {
+        return !empty($this->appeal_hearing_date) && !empty($this->appeal_hearing_scheduled_at);
+    }
+
+    /**
+     * Check if dossier has a verified cryptographic SHA-256 seal.
+     */
+    public function isDossierSealed(): bool
+    {
+        return !empty($this->dossier_sha256_hash) && strlen($this->dossier_sha256_hash) === 64;
+    }
+
+    /**
+     * Generate and seal dossier with cryptographic SHA-256 checksum.
+     */
+    public function sealDossierSha256(): string
+    {
+        $user = $this->user;
+        $basicInfo = $user?->basicInfo;
+        $campaign = $this->campaign;
+
+        $fingerprintPayload = [
+            'application_id' => $this->id,
+            'tracking_number' => $this->tracking_number,
+            'campaign_code' => $campaign?->job_code,
+            'campaign_title' => $campaign?->title,
+            'candidate_cnic' => $basicInfo?->cnic_number,
+            'candidate_name' => $basicInfo ? ($basicInfo->first_name . ' ' . $basicInfo->last_name) : $user?->name,
+            'candidate_email' => $user?->email,
+            'submission_timestamp' => $this->submission_timestamp?->toIso8601String() ?: $this->created_at?->toIso8601String(),
+            'educations_count' => $basicInfo?->educations()->count() ?? 0,
+            'experiences_count' => $basicInfo?->experiences()->count() ?? 0,
+            'publications_count' => $basicInfo?->researchPublications()->count() ?? 0,
+        ];
+
+        $hash = hash('sha256', json_encode($fingerprintPayload));
+        $this->update([
+            'dossier_sha256_hash' => $hash,
+            'dossier_sealed_at' => now(),
+        ]);
+
+        return $hash;
+    }
 
     /**
      * Check if official interview call letter has been issued.

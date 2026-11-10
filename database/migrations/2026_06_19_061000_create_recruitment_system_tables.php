@@ -196,6 +196,16 @@ return new class extends Migration
             $table->text('appeal_decision_remarks')->nullable();
             $table->foreignId('appeal_decided_by')->nullable()->constrained('users')->nullOnDelete();
             $table->dateTime('appeal_decided_at')->nullable();
+            $table->date('appeal_hearing_date')->nullable();
+            $table->string('appeal_hearing_time', 50)->nullable();
+            $table->string('appeal_hearing_venue')->nullable();
+            $table->string('appeal_hearing_mode', 20)->default('IN_PERSON');
+            $table->string('appeal_hearing_link')->nullable();
+            $table->text('appeal_hearing_notes')->nullable();
+            $table->dateTime('appeal_hearing_scheduled_at')->nullable();
+            $table->dateTime('appeal_readmitted_at')->nullable();
+            $table->string('dossier_sha256_hash', 64)->nullable();
+            $table->dateTime('dossier_sealed_at')->nullable();
             $table->timestamps();
         });
 

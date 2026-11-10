@@ -37,6 +37,15 @@ class AppellateReview extends Component
     public $resolutionType = ''; // 'ELIGIBLE', 'PAID', 'REJECTED'
     public $statutoryOrderNotes = '';
 
+    // Statutory Appellate Hearing Notice Modal
+    public $isHearingModalOpen = false;
+    public $hearingDate = '';
+    public $hearingTime = '11:00 AM PST';
+    public $hearingVenue = 'Appellate Committee Room No. 1, Administration Block';
+    public $hearingMode = 'IN_PERSON'; // 'IN_PERSON' or 'VIRTUAL'
+    public $hearingLink = '';
+    public $hearingNotes = 'Please appear in person with all original academic credentials, degrees and verified publications for personal hearing.';
+
     public function sort($column)
     {
         if ($this->sortBy === $column) {
@@ -167,12 +176,108 @@ class AppellateReview extends Component
         return $this->streamCsvDownload('appellate-tribunal-docket-' . date('Y-m-d') . '.csv', $headers, $rows);
     }
 
+    public function openHearingModal($appealId = null)
+    {
+        abort_unless(Auth::user()->can('process-appeal') || Auth::user()->hasAnyRole(['super-admin', 'registrar', 'appellate-committee']), 403);
+        
+        $targetId = $appealId ?: $this->selectedAppealId;
+        if ($targetId) {
+            $this->selectedAppealId = $targetId;
+            $this->selectedAppeal = Application::with('user.basicInfo', 'campaign')->find($targetId);
+        }
+
+        if (!$this->selectedAppeal) {
+            session()->flash('error', 'Please select an appeal dossier first to issue a hearing notice.');
+            return;
+        }
+
+        $app = $this->selectedAppeal;
+        $this->hearingDate = $app->appeal_hearing_date?->format('Y-m-d') ?: now()->addDays(5)->format('Y-m-d');
+        $this->hearingTime = $app->appeal_hearing_time ?: '11:00 AM PST';
+        $this->hearingVenue = $app->appeal_hearing_venue ?: 'Appellate Committee Room No. 1, Administration Block';
+        $this->hearingMode = $app->appeal_hearing_mode ?: 'IN_PERSON';
+        $this->hearingLink = $app->appeal_hearing_link ?: '';
+        $this->hearingNotes = $app->appeal_hearing_notes ?: 'Please appear with original CNIC, all academic transcripts, degrees and verified publications for personal hearing before the Statutory Tribunal.';
+
+        $this->isHearingModalOpen = true;
+    }
+
+    public function closeHearingModal()
+    {
+        $this->isHearingModalOpen = false;
+    }
+
+    public function scheduleHearing()
+    {
+        abort_unless(Auth::user()->can('process-appeal') || Auth::user()->hasAnyRole(['super-admin', 'registrar', 'appellate-committee']), 403);
+
+        $this->validate([
+            'hearingDate' => 'required|date',
+            'hearingTime' => 'required|string',
+            'hearingVenue' => 'required|string',
+            'hearingMode' => 'required|in:IN_PERSON,VIRTUAL',
+        ]);
+
+        if (!$this->selectedAppeal) {
+            return;
+        }
+
+        $app = $this->selectedAppeal;
+        $scheduledAt = now();
+
+        $app->update([
+            'appeal_hearing_date' => $this->hearingDate,
+            'appeal_hearing_time' => $this->hearingTime,
+            'appeal_hearing_venue' => $this->hearingVenue,
+            'appeal_hearing_mode' => $this->hearingMode,
+            'appeal_hearing_link' => $this->hearingLink,
+            'appeal_hearing_notes' => $this->hearingNotes,
+            'appeal_hearing_scheduled_at' => $scheduledAt,
+        ]);
+
+        // Automated Hearing Notice Dispatch
+        MailNotificationService::triggerAppellateHearingNotice($app, [
+            'hearing_date' => $this->hearingDate,
+            'hearing_time' => $this->hearingTime,
+            'hearing_venue' => $this->hearingVenue,
+            'hearing_mode' => $this->hearingMode,
+            'hearing_link' => $this->hearingLink,
+            'hearing_notes' => $this->hearingNotes,
+        ]);
+
+        $mobile = $app->user?->basicInfo?->mobile_number;
+        if ($mobile) {
+            $smsMsg = "Appellate Hearing Notice: You are summoned to appear before the Appellate Tribunal on {$this->hearingDate} at {$this->hearingTime} ({$this->hearingVenue}). Check candidate portal.";
+            SmsGatewayService::send($mobile, $smsMsg);
+        }
+
+        SecurityAuditLog::record(
+            'APPELLATE_HEARING_SCHEDULED',
+            'Application',
+            $app->id,
+            [
+                'hearing_date' => $this->hearingDate,
+                'hearing_time' => $this->hearingTime,
+                'venue' => $this->hearingVenue,
+                'mode' => $this->hearingMode,
+                'candidate' => $app->user?->name,
+                'tracking' => $app->tracking_number,
+            ],
+            null,
+            Auth::id()
+        );
+
+        session()->flash('message', "Statutory Appellate Hearing Notice issued to {$app->user?->name} for {$this->hearingDate}.");
+        $this->closeHearingModal();
+        $this->loadAppeals();
+    }
+
     public function openResolutionModal($type)
     {
         abort_unless(Auth::user()->can('process-appeal'), 403);
         $this->resolutionType = $type;
         $this->statutoryOrderNotes = match($type) {
-            'ELIGIBLE' => 'The Appellate Tribunal, having examined the supplementary documentary evidence and equivalence certificates, finds the candidate fully qualified and hereby condones the initial scrutiny deficiency. The candidate is unconditionally restored as ELIGIBLE.',
+            'ELIGIBLE' => 'The Appellate Tribunal, having examined the supplementary documentary evidence and equivalence certificates, finds the candidate fully qualified and hereby condones the initial scrutiny deficiency. The candidate is unconditionally restored as ELIGIBLE and re-admitted to the Selection Board stream.',
             'PAID' => 'The Appellate Tribunal hereby remands the dossier back to the Scrutiny Committee for de novo review in light of the clarified credential evidence submitted by the appellant.',
             'REJECTED' => 'The Appellate Tribunal, upon rigorous judicial review of the statutory criteria, affirms the initial scrutiny decision. The grievance is hereby dismissed without merit.',
             default => '',
@@ -212,15 +317,12 @@ class AppellateReview extends Component
                 'appeal_decision_remarks' => $orderNotes,
                 'appeal_decided_by' => $deciderId,
                 'appeal_decided_at' => $decidedAt,
+                'appeal_readmitted_at' => $decidedAt,
             ]);
 
-            MailNotificationService::triggerAppealDecision(
-                $app,
-                'APPROVED_DECLARED_ELIGIBLE',
-                $orderNotes
-            );
+            MailNotificationService::triggerCandidateReadmission($app, $orderNotes);
 
-            session()->flash('message', 'Formal Appellate Decree Issued: Candidate restored to ELIGIBLE.');
+            session()->flash('message', 'Formal Appellate Decree Issued: Candidate restored & re-admitted to ELIGIBLE roster.');
         } elseif ($this->resolutionType === 'PAID') {
             $app->update([
                 'status' => 'PAID',
@@ -257,13 +359,15 @@ class AppellateReview extends Component
         // Candidate SMS Notification
         $mobile = $app->user?->basicInfo?->mobile_number;
         if ($mobile) {
-            $smsMsg = "Appellate Decision: Your statutory appeal for {$app->campaign?->title} has been decided ({$this->resolutionType}). Please check candidate portal for official decree.";
+            $smsMsg = $this->resolutionType === 'ELIGIBLE' 
+                ? "Appellate Decree: Appeal APPROVED. You have been formally re-admitted to the ELIGIBLE merit pool for Selection Board consideration."
+                : "Appellate Decision: Your statutory appeal for {$app->campaign?->title} has been decided ({$this->resolutionType}). Please check candidate portal for official decree.";
             SmsGatewayService::send($mobile, $smsMsg);
         }
 
         // Security Audit Log
         SecurityAuditLog::record(
-            'APPELLATE_DECREE_EXECUTED',
+            $this->resolutionType === 'ELIGIBLE' ? 'APPELLATE_CANDIDATE_READMITTED' : 'APPELLATE_DECREE_EXECUTED',
             'Application',
             $app->id,
             [
@@ -271,6 +375,7 @@ class AppellateReview extends Component
                 'remarks' => $orderNotes,
                 'candidate' => $app->user?->name,
                 'tracking' => $app->tracking_number,
+                'readmitted' => $this->resolutionType === 'ELIGIBLE',
             ],
             null,
             $deciderId

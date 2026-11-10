@@ -493,6 +493,50 @@ class MailNotificationService
         return self::sendTemplate('candidate-appeal-decision', $user->email, $vars, $user);
     }
 
+    /**
+     * Dispatch formal Statutory Appellate Hearing Notice summons to aggrieved candidate.
+     */
+    public static function triggerAppellateHearingNotice(Application $application, array $hearingDetails = []): array
+    {
+        $user = $application->user;
+        if (!$user?->email) {
+            return ['status' => 'error', 'message' => 'Candidate email not available.'];
+        }
+
+        $dateFormatted = !empty($hearingDetails['hearing_date']) 
+            ? date('l, d M, Y', strtotime($hearingDetails['hearing_date'])) 
+            : now()->addDays(5)->format('l, d M, Y');
+
+        $vars = array_merge(self::buildCommonVariables($application, $user), [
+            '{hearing_date}' => $dateFormatted,
+            '{hearing_time}' => $hearingDetails['hearing_time'] ?? '11:00 AM PST',
+            '{hearing_venue}' => $hearingDetails['hearing_venue'] ?? 'Committee Room No. 1, Administration Block',
+            '{hearing_mode}' => $hearingDetails['hearing_mode'] ?? 'IN_PERSON',
+            '{hearing_link}' => $hearingDetails['hearing_link'] ?? 'N/A',
+            '{hearing_instructions}' => $hearingDetails['hearing_notes'] ?? 'Please appear with original academic credentials, certificates and verified publications for personal hearing.',
+        ]);
+
+        return self::sendTemplate('candidate-appeal-submitted', $user->email, $vars, $user);
+    }
+
+    /**
+     * Dispatch formal Re-admission notice upon favorable Appellate Decree.
+     */
+    public static function triggerCandidateReadmission(Application $application, string $remarks = ''): array
+    {
+        $user = $application->user;
+        if (!$user?->email) {
+            return ['status' => 'error', 'message' => 'Candidate email not available.'];
+        }
+
+        $vars = array_merge(self::buildCommonVariables($application, $user), [
+            '{appeal_verdict}' => 'APPROVED & RE-ADMITTED TO ELIGIBLE POOL',
+            '{decree_text}' => $remarks ?: 'The Appellate Tribunal has overturned the initial disqualification. Your application has been fully restored and re-admitted to the eligible merit list for the Selection Board.',
+        ]);
+
+        return self::sendTemplate('candidate-appeal-decision', $user->email, $vars, $user);
+    }
+
     public static function triggerScreeningTestCall(Application $application, array $testDetails = []): array
     {
         $user = $application->user;

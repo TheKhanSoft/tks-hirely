@@ -179,9 +179,22 @@
                                     </span>
                                 </div>
                             </div>
-                            <div style="text-align: right;">
-                                <span class="badge" style="background: rgba(245,158,11,0.12); color: var(--warning); font-size: 0.72rem; font-weight: 700;">
-                                    ⚖️ Appeal #{{ $app->id }}
+                            <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
+                                @if($app->isHearingScheduled())
+                                    <span class="badge" style="background: rgba(245,158,11,0.15); color: var(--warning); border: 1px solid rgba(245,158,11,0.3); font-size: 0.68rem; font-weight: 800;">
+                                        🏛️ Hearing: {{ $app->appeal_hearing_date?->format('d M') }}
+                                    </span>
+                                @elseif($app->appeal_readmitted_at)
+                                    <span class="badge badge-emerald" style="font-size: 0.68rem; font-weight: 800;">
+                                        ✓ RE-ADMITTED
+                                    </span>
+                                @else
+                                    <span class="badge" style="background: rgba(245,158,11,0.12); color: var(--warning); font-size: 0.72rem; font-weight: 700;">
+                                        ⚖️ Appeal #{{ $app->id }}
+                                    </span>
+                                @endif
+                                <span class="badge {{ $app->status === 'ELIGIBLE' ? 'badge-emerald' : ($app->status === 'PAID' ? 'badge-indigo' : ($app->status === 'REJECTED' ? 'badge-rose' : 'badge-amber')) }}" style="font-size: 0.64rem; font-weight: 700;">
+                                    {{ $app->status }}
                                 </span>
                             </div>
                         </div>
@@ -260,6 +273,56 @@
                                 </p>
                             </div>
                         @endif
+
+                        <!-- Statutory Hearing Summons Notice Section -->
+                        <div class="mb-3" style="border-top: 1px solid var(--border-color); padding-top: 1.15rem;">
+                            @if($selectedAppeal->isHearingScheduled())
+                                <div style="background: rgba(245, 158, 11, 0.08); border: 1.5px solid rgba(245, 158, 11, 0.35); border-radius: var(--radius-sm); padding: 0.9rem 1.15rem;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.65rem;">
+                                        <div style="display: flex; align-items: flex-start; gap: 0.65rem;">
+                                            <span style="font-size: 1.35rem; line-height: 1;">🏛️</span>
+                                            <div>
+                                                <div style="font-size: 0.76rem; font-weight: 800; color: var(--warning); text-transform: uppercase; letter-spacing: 0.05em;">
+                                                    Statutory Hearing Notice Issued
+                                                </div>
+                                                <div style="font-size: 0.9rem; font-weight: 800; color: var(--color-text-primary); margin-top: 0.15rem;">
+                                                    {{ $selectedAppeal->appeal_hearing_date?->format('l, d F Y') }} &bull; {{ $selectedAppeal->appeal_hearing_time }}
+                                                </div>
+                                                <div style="font-size: 0.78rem; color: var(--color-text-secondary); margin-top: 0.2rem;">
+                                                    Venue: <strong>{{ $selectedAppeal->appeal_hearing_venue }}</strong>
+                                                    <span class="badge {{ $selectedAppeal->appeal_hearing_mode === 'VIRTUAL' ? 'badge-cyan' : 'badge-slate' }}" style="font-size: 0.65rem; margin-left: 0.35rem;">
+                                                        {{ $selectedAppeal->appeal_hearing_mode }}
+                                                    </span>
+                                                </div>
+                                                @if($selectedAppeal->appeal_hearing_link)
+                                                    <div style="font-size: 0.75rem; margin-top: 0.25rem;">
+                                                        <a href="{{ $selectedAppeal->appeal_hearing_link }}" target="_blank" style="color: var(--primary); text-decoration: underline;">
+                                                            🔗 Virtual Hearing Room Link
+                                                        </a>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <button type="button" wire:click="openHearingModal({{ $selectedAppeal->id }})" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; font-weight: 700;">
+                                            Update Summons
+                                        </button>
+                                    </div>
+                                </div>
+                            @else
+                                <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px dashed var(--border-color);">
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <span style="font-size: 1.15rem;">📅</span>
+                                        <div>
+                                            <div style="font-size: 0.82rem; font-weight: 700; color: var(--color-text-primary);">Tribunal Personal Hearing</div>
+                                            <div style="font-size: 0.72rem; color: var(--color-text-muted);">Summon the aggrieved candidate before decree adjudication</div>
+                                        </div>
+                                    </div>
+                                    <button type="button" wire:click="openHearingModal({{ $selectedAppeal->id }})" class="btn btn-secondary btn-sm" style="font-weight: 800; border-color: rgba(245,158,11,0.4); color: var(--warning);">
+                                        + Schedule Hearing Notice
+                                    </button>
+                                </div>
+                            @endif
+                        </div>
 
                         <!-- Committee Decision Actions -->
                         <div class="flex-col gap-2 mt-2" style="border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
@@ -387,6 +450,76 @@
             </div>
         </div>
     </div>
+
+    <!-- Statutory Hearing Notice & Summons Dispatch Modal -->
+    <x-modal :show="$isHearingModalOpen" title="Issue Statutory Appellate Hearing Notice & Summons" closeAction="closeHearingModal" style="max-width: 650px; width: 95%;">
+        @if($selectedAppeal)
+            <div>
+                <div style="margin-bottom: 1.25rem;">
+                    <div style="font-size: 0.8rem; color: var(--warning); text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em;">
+                        Statutory Tribunal Summons
+                    </div>
+                    <div style="font-size: 1.15rem; font-weight: 800; color: var(--color-text-primary); margin: 0.2rem 0;">
+                        Candidate: {{ $selectedAppeal->user->basicInfo?->first_name }} {{ $selectedAppeal->user->basicInfo?->last_name }}
+                    </div>
+                    <p style="font-size: 0.84rem; color: var(--color-text-secondary); margin: 0;">
+                        Campaign: <strong>{{ $selectedAppeal->campaign->title }}</strong> &bull; Tracking: <code style="color: var(--secondary);">{{ $selectedAppeal->tracking_number }}</code>
+                    </p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;" class="mb-3">
+                    <div class="form-group">
+                        <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">Hearing Date *</label>
+                        <input type="date" class="form-control" wire:model="hearingDate" min="{{ date('Y-m-d') }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">Hearing Time *</label>
+                        <input type="text" class="form-control" wire:model="hearingTime" placeholder="e.g. 11:00 AM PST">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;" class="mb-3">
+                    <div class="form-group">
+                        <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">Hearing Mode *</label>
+                        <select class="form-control form-select" wire:model="hearingMode">
+                            <option value="IN_PERSON">In-Person at University</option>
+                            <option value="VIRTUAL">Virtual / Online (Google Meet / Zoom)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">Hearing Venue / Room</label>
+                        <input type="text" class="form-control" wire:model="hearingVenue" placeholder="Committee Room No. 1, Admin Block">
+                    </div>
+                </div>
+
+                @if($hearingMode === 'VIRTUAL')
+                    <div class="form-group mb-3">
+                        <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">Meeting URL / Video Link</label>
+                        <input type="url" class="form-control" wire:model="hearingLink" placeholder="https://meet.google.com/xyz-abcd-efg">
+                    </div>
+                @endif
+
+                <div class="form-group mb-4">
+                    <label class="form-label" style="font-weight: 700; font-size: 0.84rem;">Summons Notice & Special Instructions</label>
+                    <textarea class="form-control" rows="3" wire:model="hearingNotes" placeholder="Required documents, original certificates, dress code..."></textarea>
+                    <small style="color: var(--color-text-muted); font-size: 0.74rem; display: block; margin-top: 0.35rem;">
+                        This text will be included in the official summons email dispatched to the candidate's verified address.
+                    </small>
+                </div>
+
+                <div class="flex justify-end gap-3" style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" wire:click="closeHearingModal">
+                        Cancel
+                    </button>
+                    <button type="button" class="btn btn-primary" wire:click="scheduleHearing" style="font-weight: 800; background: linear-gradient(135deg, var(--warning), #d97706); border: none; color: #fff;">
+                        <span>📢 Dispatch Statutory Summons</span>
+                    </button>
+                </div>
+            </div>
+        @endif
+    </x-modal>
 
     <!-- Statutory Condonation & Appellate Resolution Modal -->
     <x-modal :show="$isResolutionModalOpen" title="Issue Statutory Appellate Tribunal Decree" closeAction="closeResolutionModal" style="max-width: 650px; width: 95%;">

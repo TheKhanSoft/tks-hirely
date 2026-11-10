@@ -289,4 +289,52 @@ class StatutorySecretariatAndAppellateFeaturesTest extends TestCase
         $this->application->refresh();
         $this->assertEquals('APPEALED', $this->application->status); // unchanged because feature disabled
     }
+
+    public function test_appellate_hearing_notice_summons_and_automated_readmission(): void
+    {
+        $this->actingAs($this->admin);
+        SystemSetting::set('enable_appellate_workbench', true, 'pipeline', 'boolean');
+
+        $this->application->update([
+            'status' => 'APPEALED',
+            'disqualification_reason' => 'Scrutiny deficiency: incomplete degree transcript.',
+            'appeal_letter' => 'I have uploaded the verified official university transcript.',
+        ]);
+
+        $futureDate = now()->addDays(7)->format('Y-m-d');
+
+        // 1. Schedule hearing notice
+        Livewire::test(\App\Livewire\Admin\AppellateReview::class)
+            ->call('selectAppeal', $this->application->id)
+            ->call('openHearingModal', $this->application->id)
+            ->assertSet('isHearingModalOpen', true)
+            ->set('hearingDate', $futureDate)
+            ->set('hearingTime', '02:30 PM PST')
+            ->set('hearingVenue', 'Senate Executive Hall, Administration Block')
+            ->set('hearingMode', 'IN_PERSON')
+            ->set('hearingNotes', 'Bring original matric, fsc, bs transcripts and CNIC.')
+            ->call('scheduleHearing')
+            ->assertSet('isHearingModalOpen', false);
+
+        $this->application->refresh();
+        $this->assertTrue($this->application->isHearingScheduled());
+        $this->assertEquals($futureDate, $this->application->appeal_hearing_date->format('Y-m-d'));
+        $this->assertEquals('02:30 PM PST', $this->application->appeal_hearing_time);
+        $this->assertEquals('Senate Executive Hall, Administration Block', $this->application->appeal_hearing_venue);
+        $this->assertNotNull($this->application->appeal_hearing_scheduled_at);
+
+        // 2. Issue ELIGIBLE Decree with automated re-admission
+        Livewire::test(\App\Livewire\Admin\AppellateReview::class)
+            ->call('selectAppeal', $this->application->id)
+            ->call('openResolutionModal', 'ELIGIBLE')
+            ->set('statutoryOrderNotes', 'Appellant presented original sealed transcripts. Deficiency condoned; candidate restored & re-admitted.')
+            ->call('executeAppellateDecree');
+
+        $this->application->refresh();
+        $this->assertEquals('ELIGIBLE', $this->application->status);
+        $this->assertNull($this->application->disqualification_reason);
+        $this->assertNotNull($this->application->appeal_readmitted_at);
+        $this->assertNotNull($this->application->appeal_decided_at);
+        $this->assertEquals($this->admin->id, $this->application->appeal_decided_by);
+    }
 }
