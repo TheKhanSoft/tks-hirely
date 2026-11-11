@@ -11,6 +11,10 @@ fi
 cd /home/site/wwwroot
 php artisan optimize:clear || true
 
+# 2.5 Clean up any orphaned legacy migrations consolidated into baseline
+rm -f /home/site/wwwroot/database/migrations/2026_10_*.php
+rm -f /home/site/wwwroot/database/migrations/2026_11_*.php
+
 # 3. Run database migrations safely
 php artisan migrate --force || true
 

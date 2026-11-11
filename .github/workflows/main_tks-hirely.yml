@@ -87,3 +87,4 @@ jobs:
           app-name: tks-hirely
           slot-name: Production
           package: ${{ runner.temp }}/release.zip
+          clean: true
