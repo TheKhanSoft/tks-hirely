@@ -139,7 +139,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/registrar/reviewers', ReviewerManagement::class);
     Route::get('/registrar/users', UserManagement::class);
     Route::get('/registrar/roles', RolePermissionManagement::class);
-    Route::get('/registrar/permissions', function() { return redirect('/registrar/roles?tab=permissions'); });
+    Route::get('/registrar/permissions', function() { return redirect('/registrar/roles'); });
     Route::get('/registrar/audit-logs', AuditLogManagement::class);
     Route::get('/registrar/merit-lists', MeritListManagement::class);
     Route::get('/registrar/executive-analytics', ExecutiveAnalytics::class);

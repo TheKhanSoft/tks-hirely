@@ -54,15 +54,11 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'reset-user-password',
             'export-user',
             
-            // Roles & Permissions CRUD
+            // Roles Management & Permissions Assignment (Granular permission CRUD is Super Admin only)
             'view-role',
             'create-role',
             'edit-role',
             'delete-role',
-            'view-permission',
-            'create-permission',
-            'edit-permission',
-            'delete-permission',
             'assign-role-permissions',
             'export-role',
             
@@ -93,10 +89,8 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'simulate-payment',
             'export-payment',
 
-            // Audit Logs
+            // Audit Logs (View & Forensic Export - Deletion & Purging is strictly Super Admin)
             'view-audit-log',
-            'delete-audit-log',
-            'purge-audit-logs',
             'export-audit-log',
 
             // Academic Reviewer Management
@@ -116,13 +110,10 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'send-custom-email',
             'toggle-email-triggers',
             'manage-security-settings',
-            'manage-system-maintenance',
-            'view-system-health',
             'manage-sms-settings',
             'manage-whatsapp-settings',
             'send-whatsapp-alerts',
             'verify-otp',
-            'manage-merit-formula',
             'manage-statuses',
             'manage-constitutions',
             'export-constitution',
@@ -138,7 +129,6 @@ class SpatieRoleAndPermissionSeeder extends Seeder
             'publish-merit-list',
             'view-projector-merit-board',
             'manage-projector-merit-board',
-            'impersonate-user',
         ]);
 
         $scrutinyPanel = Role::firstOrCreate(['name' => 'scrutiny-committee', 'guard_name' => 'web']);

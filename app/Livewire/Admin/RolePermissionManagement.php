@@ -33,13 +33,15 @@ class RolePermissionManagement extends Component
     public $permission_id;
     public $permission_name_input;
 
-    public function mount()
+    public function mount($tab = null)
     {
-        abort_unless(Auth::check() && (Auth::user()->can('view-role') || Auth::user()->can('view-permission')), 403);
+        abort_unless(Auth::check() && (Auth::user()->can('view-role') || Auth::user()->hasRole('super-admin')), 403);
         
-        $tab = request()->query('tab');
-        if (in_array($tab, ['roles', 'permissions'])) {
-            $this->activeSubTab = $tab;
+        $requestedTab = $tab ?? request()->query('tab');
+        if ($requestedTab === 'permissions' && Auth::user()->hasRole('super-admin')) {
+            $this->activeSubTab = 'permissions';
+        } else {
+            $this->activeSubTab = 'roles';
         }
 
         $this->loadData();
@@ -47,6 +49,10 @@ class RolePermissionManagement extends Component
 
     public function setSubTab($tab)
     {
+        if ($tab === 'permissions' && !Auth::user()->hasRole('super-admin')) {
+            abort(403, 'Unauthorized access: The permissions catalogue is strictly reserved for Super Administrators.');
+        }
+
         $this->activeSubTab = $tab;
         $this->search = '';
         $this->resetPage();
@@ -55,7 +61,8 @@ class RolePermissionManagement extends Component
 
     public function loadData()
     {
-        $this->groupedPermissions = \App\Services\PermissionRegistry::catalogue();
+        // 🔒 Scoped: Non-super-admins (including Registrar) only see non-exclusive permissions
+        $this->groupedPermissions = \App\Services\PermissionRegistry::catalogueForUser(Auth::user());
     }
 
     public function resetForm()
@@ -102,7 +109,7 @@ class RolePermissionManagement extends Component
                 'Role ID', 'Role Slug', 'Permissions Count', 'Active Accounts', 'Permissions Scope'
             ], $rows);
         } else {
-            abort_unless(Auth::user()->can('view-permission'), 403);
+            abort_unless(Auth::user()->hasRole('super-admin'), 403);
             $permsQuery = Permission::query();
             if (!empty($this->search)) {
                 $permsQuery->where('name', 'like', '%' . $this->search . '%');
@@ -172,6 +179,13 @@ class RolePermissionManagement extends Component
             abort(403, 'Unauthorized modification to super-admin role.');
         }
 
+        // 🔒 Non-super-admins cannot assign super-admin-exclusive permissions
+        $permissionsToSync = $this->selected_permissions;
+        if (!Auth::user()->hasRole('super-admin')) {
+            $exclusive = \App\Services\PermissionRegistry::superAdminExclusivePermissions();
+            $permissionsToSync = array_values(array_diff($permissionsToSync, $exclusive));
+        }
+
         if ($this->isEditMode) {
             abort_unless(Auth::user()->can('edit-role') || Auth::user()->can('assign-role-permissions'), 403);
             $this->validate([
@@ -179,7 +193,7 @@ class RolePermissionManagement extends Component
             ]);
             $role = Role::findOrFail($this->role_id);
             $role->update(['name' => $this->role_name_input]);
-            $role->syncPermissions($this->selected_permissions);
+            $role->syncPermissions($permissionsToSync);
             session()->flash('message', 'Role permissions updated successfully.');
         } else {
             abort_unless(Auth::user()->can('create-role'), 403);
@@ -187,7 +201,7 @@ class RolePermissionManagement extends Component
                 'role_name_input' => 'required|string|unique:roles,name',
             ]);
             $role = Role::create(['name' => $this->role_name_input, 'guard_name' => 'web']);
-            $role->syncPermissions($this->selected_permissions);
+            $role->syncPermissions($permissionsToSync);
             session()->flash('message', 'New role created successfully.');
         }
 
@@ -208,10 +222,10 @@ class RolePermissionManagement extends Component
         $this->loadData();
     }
 
-    // Permission operations
+    // Permission operations (Strictly Super-Admin Reserved)
     public function openCreatePermissionForm()
     {
-        abort_unless(Auth::user()->can('create-permission'), 403);
+        abort_unless(Auth::user()->hasRole('super-admin'), 403);
         $this->resetForm();
         $this->isEditMode = false;
         $this->isFormOpen = true;
@@ -219,7 +233,7 @@ class RolePermissionManagement extends Component
 
     public function openEditPermissionForm($id)
     {
-        abort_unless(Auth::user()->can('edit-permission'), 403);
+        abort_unless(Auth::user()->hasRole('super-admin'), 403);
         $this->resetForm();
         $this->permission_id = $id;
         $perm = Permission::findOrFail($id);
@@ -230,8 +244,8 @@ class RolePermissionManagement extends Component
 
     public function savePermission()
     {
+        abort_unless(Auth::user()->hasRole('super-admin'), 403);
         if ($this->isEditMode) {
-            abort_unless(Auth::user()->can('edit-permission'), 403);
             $this->validate([
                 'permission_name_input' => 'required|string|unique:permissions,name,' . $this->permission_id,
             ]);
@@ -239,7 +253,6 @@ class RolePermissionManagement extends Component
             $perm->update(['name' => $this->permission_name_input]);
             session()->flash('message', 'Permission updated successfully.');
         } else {
-            abort_unless(Auth::user()->can('create-permission'), 403);
             $this->validate([
                 'permission_name_input' => 'required|string|unique:permissions,name',
             ]);
@@ -253,7 +266,7 @@ class RolePermissionManagement extends Component
 
     public function deletePermission($id)
     {
-        abort_unless(Auth::user()->can('delete-permission'), 403);
+        abort_unless(Auth::user()->hasRole('super-admin'), 403);
         Permission::destroy($id);
         session()->flash('message', 'Permission deleted and revoked.');
         $this->loadData();

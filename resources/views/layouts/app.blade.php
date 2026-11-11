@@ -5,7 +5,8 @@
     $sysBrandDisplay = \App\Models\SystemSetting::getBrandDisplayName();
     $sysAppLogo = \App\Models\SystemSetting::getAppLogo();
     $sysAppFavicon = \App\Models\SystemSetting::getAppFavicon();
-    $sysAppVersion = \App\Models\SystemSetting::get('app_version', 'v2.4 Enterprise OS');
+    $sysAppVersion = \App\Services\AppVersion::getShortVersion();
+    $sysAppVersionFull = \App\Services\AppVersion::format();
     $sysAccentColor = \App\Models\SystemSetting::get('theme_accent_color', '#4f46e5');
     $announcementActive = (bool) \App\Models\SystemSetting::get('portal_announcement_enabled', false);
     $announcementType = \App\Models\SystemSetting::get('portal_announcement_type', 'info');
@@ -701,8 +702,12 @@
                         </div>
                     @endif
                     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
-                        <div>
-                            {{ $footerCopyright }}
+                        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                            <span>{{ $footerCopyright }}</span>
+                            <span style="display: inline-flex; align-items: center; gap: 0.35rem; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; padding: 0.15rem 0.5rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 4px; color: var(--color-text-secondary);" title="Core Software Engine Build">
+                                <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                                {{ $sysAppVersionFull }}
+                            </span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 1.25rem;">
                             @if(!empty($supportEmail))

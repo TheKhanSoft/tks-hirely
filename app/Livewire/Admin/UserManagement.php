@@ -260,13 +260,19 @@ class UserManagement extends Component
         $this->targetUserIdForPermissions = $userId;
         $this->targetUserDirectPermissions = $user->getDirectPermissions()->pluck('name')->toArray();
         $this->targetUserRolePermissions = $user->getPermissionsViaRoles()->pluck('name')->toArray();
-        $this->allGroupedPermissions = \App\Services\PermissionRegistry::catalogue();
+        // 🔒 Scoped: Non-super-admins cannot see or grant super-admin-exclusive permissions
+        $this->allGroupedPermissions = \App\Services\PermissionRegistry::catalogueForUser(Auth::user());
         $this->isDirectPermissionsModalOpen = true;
     }
 
     public function toggleDirectPermission($permName)
     {
         abort_unless(Auth::user()->can('assign-user-permissions') || Auth::user()->can('edit-user'), 403);
+
+        // 🔒 Prevent non-super-admins from toggling super-admin exclusive permissions
+        if (!Auth::user()->hasRole('super-admin') && \App\Services\PermissionRegistry::isSuperAdminExclusive($permName)) {
+            return;
+        }
 
         if (in_array($permName, $this->targetUserDirectPermissions)) {
             $this->targetUserDirectPermissions = array_values(array_diff($this->targetUserDirectPermissions, [$permName]));
@@ -283,7 +289,14 @@ class UserManagement extends Component
             abort(403, 'Unauthorized to modify super administrator permissions.');
         }
 
-        $user->syncPermissions($this->targetUserDirectPermissions);
+        // 🔒 Non-super-admins cannot assign super-admin-exclusive permissions
+        $permissionsToSync = $this->targetUserDirectPermissions;
+        if (!Auth::user()->hasRole('super-admin')) {
+            $exclusive = \App\Services\PermissionRegistry::superAdminExclusivePermissions();
+            $permissionsToSync = array_values(array_diff($permissionsToSync, $exclusive));
+        }
+
+        $user->syncPermissions($permissionsToSync);
         $this->isDirectPermissionsModalOpen = false;
         session()->flash('message', 'Direct extra permissions updated successfully for ' . $user->email);
     }

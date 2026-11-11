@@ -18,7 +18,7 @@
                             Statutory Recruitment Merit Lists & Proceedings
                         </h1>
                         <span class="badge badge-indigo" style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase;">
-                            v2.4 Statutory Engine
+                            {{ \App\Services\AppVersion::getShortVersion() }} Statutory Engine
                         </span>
                     </div>
                     <p style="margin: 0.2rem 0 0 0; font-size: 0.85rem; color: var(--color-text-secondary);">

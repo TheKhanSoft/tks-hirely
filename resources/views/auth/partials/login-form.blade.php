@@ -134,6 +134,10 @@
             Visit Institutional Portal &rarr;
         </a>
     @endif
+    <div style="margin-top: 0.55rem; font-family: 'JetBrains Mono', monospace; font-size: 0.69rem; color: var(--color-text-muted); display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+        <span style="width: 5px; height: 5px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+        <span>{{ \App\Services\AppVersion::getPublicFooterString() }}</span>
+    </div>
 </div>
 
 <script>

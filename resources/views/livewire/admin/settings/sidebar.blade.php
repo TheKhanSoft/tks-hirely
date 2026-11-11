@@ -152,6 +152,13 @@
             ]
         ],
     ];
+
+    // 🔒 System Diagnostics & Maintenance is strictly Super-Admin tier
+    if (!auth()->user()->hasRole('super-admin') && !auth()->user()->can('view-system-health')) {
+        foreach ($navGroups as $gIndex => $grp) {
+            $navGroups[$gIndex]['tabs'] = array_values(array_filter($grp['tabs'], fn($tab) => $tab['id'] !== 'system'));
+        }
+    }
 @endphp
 
 <!-- Master-Detail Navigation Sidebar with Deep Settings Search Engine -->

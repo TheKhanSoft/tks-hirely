@@ -444,18 +444,27 @@
                         <small style="color: var(--color-text-secondary); font-size: 0.78rem; display: block; margin-top: 0.25rem;">Displayed beneath the logo on login and candidate splash screens.</small>
                     </div>
 
-                    <!-- App Version / Edition -->
+                    <!-- Core Software Version (System-Controlled) -->
                     <div>
-                        <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
-                            <span>Version &amp; Edition Badge</span>
+                        <label style="display: flex; align-items: center; justify-content: space-between; font-size: 0.88rem; font-weight: 800; color: var(--color-text-primary); margin-bottom: 0.35rem;">
+                            <span style="display: flex; align-items: center; gap: 0.45rem;">
+                                <span>🔒 Core Software Version</span>
+                                <span class="badge badge-emerald" style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase;">System-Controlled</span>
+                            </span>
+                            <span style="font-size: 0.72rem; color: var(--color-text-muted); font-weight: 600;">Code &amp; Build Artifact</span>
                         </label>
-                        <input type="text" 
-                               wire:model="app_version" 
-                               class="form-control" 
-                               placeholder="e.g. v2.4 Enterprise OS" 
-                               style="font-size: 0.92rem; padding: 0.65rem 1rem;">
-                        @error('app_version') <div style="color: var(--danger); font-size: 0.78rem; font-weight: 700; margin-top: 0.25rem;">{{ $message }}</div> @enderror
-                        <small style="color: var(--color-text-secondary); font-size: 0.78rem; display: block; margin-top: 0.25rem;">Pill badge rendered beside the brand mark in the sidebar.</small>
+                        <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.62rem 0.95rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;">
+                            <div style="display: flex; align-items: center; gap: 0.55rem;">
+                                <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 6px rgba(16,185,129,0.6);"></span>
+                                <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.90rem; font-weight: 800; color: var(--color-text-primary);">
+                                    {{ \App\Services\AppVersion::format() }}
+                                </span>
+                            </div>
+                            <span style="font-size: 0.75rem; color: var(--color-text-secondary); font-weight: 700; background: var(--bg-card); padding: 0.15rem 0.5rem; border-radius: 4px; border: 1px solid var(--border-color);">
+                                {{ \App\Services\AppVersion::getReleaseName() }}
+                            </span>
+                        </div>
+                        <small style="color: var(--color-text-secondary); font-size: 0.76rem; display: block; margin-top: 0.3rem;">Software version is governed by application code &amp; build releases. Manual editing is disabled for audit integrity.</small>
                     </div>
                 </div>
 

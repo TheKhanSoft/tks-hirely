@@ -26,6 +26,11 @@ class SystemSetting extends Model
      */
     public static function get(string $key, mixed $default = null): mixed
     {
+        // System-controlled core application versioning
+        if ($key === 'app_version') {
+            return \App\Services\AppVersion::format();
+        }
+
         $setting = Cache::remember("system_setting_{$key}", self::$cacheDuration, function () use ($key) {
             return self::where('key', $key)->first();
         });
@@ -318,6 +323,14 @@ class SystemSetting extends Model
     public static function getAppName(): string
     {
         return (string) self::get('app_name', config('app.name', 'Hirely'));
+    }
+
+    /**
+     * Get system-controlled application version and build string.
+     */
+    public static function getAppVersion(): string
+    {
+        return \App\Services\AppVersion::format();
     }
 
     /**
@@ -839,14 +852,6 @@ class SystemSetting extends Model
                 'type' => 'string',
                 'label' => 'Browser Favicon Asset',
                 'description' => 'Favicon icon displayed in browser tabs and bookmark shortcuts (.ico, .svg, .png).',
-            ],
-            [
-                'key' => 'app_version',
-                'value' => 'v2.4 Enterprise OS',
-                'group' => 'branding',
-                'type' => 'string',
-                'label' => 'Platform Release & Version Badge',
-                'description' => 'Version badge shown in the sidebar header beside the brand title.',
             ],
             [
                 'key' => 'theme_accent_color',

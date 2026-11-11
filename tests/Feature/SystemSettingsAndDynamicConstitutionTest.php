@@ -236,7 +236,6 @@ class SystemSettingsAndDynamicConstitutionTest extends TestCase
             ->set('app_name', 'EduHire Pakistan')
             ->set('app_tagline', 'National Higher Education Talent Grid')
             ->set('app_description', 'Official Recruitment Platform for Higher Education Institutions.')
-            ->set('app_version', 'v3.0 Sovereign')
             ->set('theme_accent_color', '#0d9488')
             ->set('portal_announcement_enabled', true)
             ->set('portal_announcement_type', 'warning')
@@ -248,7 +247,7 @@ class SystemSettingsAndDynamicConstitutionTest extends TestCase
         $this->assertEquals('EduHire Pakistan', SystemSetting::getAppName());
         $this->assertEquals('EduHire Pakistan', SystemSetting::get('app_name'));
         $this->assertEquals('National Higher Education Talent Grid', SystemSetting::get('app_tagline'));
-        $this->assertEquals('v3.0 Sovereign', SystemSetting::get('app_version'));
+        $this->assertEquals(\App\Services\AppVersion::format(), SystemSetting::get('app_version'));
         $this->assertEquals('#0d9488', SystemSetting::get('theme_accent_color'));
         $this->assertTrue((bool) SystemSetting::get('portal_announcement_enabled'));
         $this->assertEquals('warning', SystemSetting::get('portal_announcement_type'));
@@ -259,7 +258,7 @@ class SystemSettingsAndDynamicConstitutionTest extends TestCase
         $response = $this->get('/admin/dashboard');
         $response->assertStatus(200);
         $response->assertSee('EDUHIRE PAKISTAN');
-        $response->assertSee('v3.0 Sovereign');
+        $response->assertSee(\App\Services\AppVersion::getShortVersion());
         $response->assertSee('Scheduled maintenance this Sunday at 02:00 AM PKT.');
     }
 

@@ -523,6 +523,65 @@ class PermissionRegistry
     }
 
     /**
+     * Permissions strictly reserved for Super Administrator.
+     * These must not be assigned to or visible to any other roles (including Registrar).
+     */
+    public static function superAdminExclusivePermissions(): array
+    {
+        return [
+            'impersonate-user',
+            'delete-audit-log',
+            'purge-audit-logs',
+            'view-permission',
+            'create-permission',
+            'edit-permission',
+            'delete-permission',
+            'manage-system-maintenance',
+            'view-system-health',
+            'manage-merit-formula',
+        ];
+    }
+
+    /**
+     * Check if a given permission is strictly exclusive to Super Admin.
+     */
+    public static function isSuperAdminExclusive(string $permission): bool
+    {
+        return in_array($permission, self::superAdminExclusivePermissions());
+    }
+
+    /**
+     * Get permission catalogue filtered for the given user's authorization level.
+     * Non-super-admins cannot view or assign super-admin-exclusive permissions.
+     */
+    public static function catalogueForUser(?\App\Models\User $user = null): array
+    {
+        $user = $user ?? \Illuminate\Support\Facades\Auth::user();
+        $catalogue = self::catalogue();
+
+        if ($user && $user->hasRole('super-admin')) {
+            return $catalogue;
+        }
+
+        $exclusive = self::superAdminExclusivePermissions();
+        $filtered = [];
+
+        foreach ($catalogue as $group => $perms) {
+            $groupPerms = [];
+            foreach ($perms as $slug => $data) {
+                if (!in_array($slug, $exclusive)) {
+                    $groupPerms[$slug] = $data;
+                }
+            }
+            if (!empty($groupPerms)) {
+                $filtered[$group] = $groupPerms;
+            }
+        }
+
+        return $filtered;
+    }
+
+    /**
      * Get flat list of all system permission names.
      */
     public static function allPermissionNames(): array

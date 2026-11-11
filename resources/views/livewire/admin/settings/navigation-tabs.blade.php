@@ -125,6 +125,11 @@
         ],
     ];
 
+    // 🔒 System Diagnostics & Maintenance is strictly Super-Admin tier
+    if (!auth()->user()->hasRole('super-admin') && !auth()->user()->can('view-system-health')) {
+        $settingsTabs = array_filter($settingsTabs, fn($t) => $t['id'] !== 'system');
+    }
+
     $currentTabInfo = collect($settingsTabs)->firstWhere('id', $activeTab) ?? $settingsTabs[0];
 @endphp
 

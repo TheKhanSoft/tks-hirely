@@ -17,6 +17,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Version & Build Identification (System-Controlled)
+    |--------------------------------------------------------------------------
+    |
+    | Core software versioning governed by code releases and deployment builds.
+    |
+    */
+    'version' => env('APP_VERSION', 'v2.4.2'),
+    'build' => env('APP_BUILD', '20261111'),
+    'release_name' => env('APP_RELEASE_NAME', 'Statutory Recruitment OS'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |

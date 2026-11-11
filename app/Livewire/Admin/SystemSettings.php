@@ -331,6 +331,11 @@ class SystemSettings extends Component
         } elseif (request()->has('tab')) {
             $this->activeTab = $this->resolveTabSlug((string) request()->query('tab'));
         }
+
+        // 🔒 System tab is strictly reserved for Super Admin
+        if ($this->activeTab === 'system' && !Auth::user()->hasRole('super-admin') && !Auth::user()->can('view-system-health')) {
+            $this->activeTab = 'pipeline';
+        }
     }
 
     public function resolveTabSlug(string $slug): string
@@ -354,7 +359,11 @@ class SystemSettings extends Component
 
     public function setTab($tab)
     {
-        $this->activeTab = $this->resolveTabSlug((string) $tab);
+        $resolved = $this->resolveTabSlug((string) $tab);
+        if ($resolved === 'system' && !Auth::user()->hasRole('super-admin') && !Auth::user()->can('view-system-health')) {
+            $resolved = 'pipeline';
+        }
+        $this->activeTab = $resolved;
         $slug = match ($this->activeTab) {
             'documents' => 'documents',
             'candidate_rules' => 'candidate-rules',
@@ -445,7 +454,7 @@ class SystemSettings extends Component
         $this->app_logo = SystemSetting::get('app_logo', '/images/logo-icon.svg');
         $this->app_logo_dark = SystemSetting::get('app_logo_dark', '/images/logo-icon.svg');
         $this->app_favicon = SystemSetting::get('app_favicon', '/favicon.ico');
-        $this->app_version = SystemSetting::get('app_version', 'v2.4 Enterprise OS');
+        $this->app_version = \App\Services\AppVersion::format();
         $this->theme_accent_color = SystemSetting::get('theme_accent_color', '#4f46e5');
         $this->theme_secondary_color = SystemSetting::get('theme_secondary_color', '#06b6d4');
         $this->theme_radius_style = SystemSetting::get('theme_radius_style', 'modern');
@@ -858,7 +867,6 @@ class SystemSettings extends Component
             'app_name' => 'required|string|max:100',
             'app_tagline' => 'nullable|string|max:200',
             'app_description' => 'nullable|string|max:500',
-            'app_version' => 'nullable|string|max:50',
             'theme_accent_color' => 'nullable|string|max:20',
             'theme_secondary_color' => 'nullable|string|max:20',
             'theme_radius_style' => 'nullable|string|in:modern,compact,pill,sharp',
@@ -909,7 +917,6 @@ class SystemSettings extends Component
         SystemSetting::set('app_name', $this->app_name, 'branding', 'string');
         SystemSetting::set('app_tagline', $this->app_tagline, 'branding', 'string');
         SystemSetting::set('app_description', $this->app_description, 'branding', 'string');
-        SystemSetting::set('app_version', $this->app_version, 'branding', 'string');
         SystemSetting::set('theme_accent_color', $this->theme_accent_color, 'branding', 'string');
         SystemSetting::set('theme_secondary_color', $this->theme_secondary_color, 'branding', 'string');
         SystemSetting::set('theme_radius_style', $this->theme_radius_style, 'branding', 'string');
@@ -1113,7 +1120,7 @@ class SystemSettings extends Component
         $this->app_name = 'Hirely';
         $this->app_tagline = 'Statutory Recruitment & Selection Operating System';
         $this->app_description = 'Enterprise recruitment, statutory scrutiny, and merit selection operating system for higher education and statutory institutions.';
-        $this->app_version = 'v2.4 Enterprise OS';
+        $this->app_version = \App\Services\AppVersion::format();
         $this->app_logo = '/images/logo-icon.svg';
         $this->app_logo_dark = '/images/logo-icon.svg';
         $this->app_favicon = '/favicon.ico';
@@ -1746,6 +1753,8 @@ class SystemSettings extends Component
     public function getServerStatsProperty(): array
     {
         return [
+            'app_version' => \App\Services\AppVersion::format(),
+            'app_build' => \App\Services\AppVersion::getBuild(),
             'php_version' => PHP_VERSION,
             'laravel_version' => app()->version(),
             'environment' => app()->environment(),

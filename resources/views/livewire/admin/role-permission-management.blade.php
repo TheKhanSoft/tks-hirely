@@ -23,7 +23,7 @@
                             <span>+ Add Security Role</span>
                         </button>
                     @endcan
-                @elseif($activeSubTab === 'permissions')
+                @elseif($activeSubTab === 'permissions' && auth()->user()->hasRole('super-admin'))
                     @can('create-permission')
                         <button type="button" class="btn btn-primary" wire:click="openCreatePermissionForm" style="display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 18px -2px rgba(99,102,241,0.5); padding: 0.65rem 1.35rem; font-weight: 700; border-radius: 10px;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -114,12 +114,14 @@
             <span>Roles Registry</span>
             <span style="font-size: 0.75rem; padding: 0.15rem 0.45rem; border-radius: 999px; background: rgba(99,102,241,0.15); color: var(--primary);">{{ $totalRolesCount }}</span>
         </button>
+        @if(auth()->user()->hasRole('super-admin'))
         <button type="button" class="btn" wire:click="setSubTab('permissions')"
                 style="padding: 0.45rem 1.25rem; font-size: 0.875rem; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; transition: var(--transition-base); {{ $activeSubTab === 'permissions' ? 'background: var(--bg-card); color: var(--color-text-primary); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);' : 'background: transparent; color: var(--color-text-secondary); border: 1px solid transparent;' }}">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"></circle><path d="m21 2-9.6 9.6"></path><path d="m15.5 7.5 3 3L22 7l-3-3"></path></svg>
             <span>Permissions Catalog</span>
             <span style="font-size: 0.75rem; padding: 0.15rem 0.45rem; border-radius: 999px; background: rgba(6,182,212,0.15); color: var(--secondary);">{{ $totalPermsCount }}</span>
         </button>
+        @endif
     </div>
 
     <!-- ========================================== -->
@@ -140,11 +142,16 @@
                     </x-input>
                     
                     <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; background: var(--bg-tertiary);" class="mt-4 mb-4">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
                             <h4 style="color: var(--secondary); margin: 0; font-size: 1rem; font-weight: 700;">Assign Granular Permissions Grid (Grouped by Module)</h4>
                             <span style="font-size: 0.8rem; color: var(--color-text-secondary); font-weight: 600;">
                                 {{ count($selected_permissions) }} permissions assigned
                             </span>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0.85rem; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); border-radius: var(--radius-sm); margin-bottom: 1rem; font-size: 0.78rem; color: var(--color-text-secondary);">
+                            <span style="font-size: 0.95rem;">🛡️</span>
+                            <span><strong>Role Matrix Guidance:</strong> Select operational privileges to attach to this role. Super-Administrator-exclusive controls (user impersonation, server diagnostics, maintenance mode, forensic log purging) are strictly guarded at the root tier and excluded from general role delegations.</span>
                         </div>
                         
                         <div style="max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; padding-right: 0.5rem;">
