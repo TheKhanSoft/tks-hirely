@@ -126,4 +126,22 @@ class SystemControlledVersioningTest extends TestCase
         // Portal footer shows formatted build identifier
         $response->assertSee('v2.4.2 (Build 20261111)');
     }
+
+    /**
+     * Test 6: Dynamic auto detection resolves build date or git commit when set to auto.
+     */
+    public function test_automatic_dynamic_detection_from_git_and_system()
+    {
+        Config::set('app.version', 'auto');
+        Config::set('app.build', 'auto');
+        Config::set('app.release_name', 'Dynamic Statutory Engine');
+
+        $this->assertTrue(AppVersion::isDynamic());
+        $this->assertNotEmpty(AppVersion::getVersion());
+        $this->assertNotEmpty(AppVersion::getBuild());
+        $this->assertEquals('Dynamic Statutory Engine', AppVersion::getReleaseName());
+
+        $formatted = AppVersion::format();
+        $this->assertStringContainsString('Build', $formatted);
+    }
 }
