@@ -134,9 +134,15 @@
             Visit Institutional Portal &rarr;
         </a>
     @endif
-    <div style="margin-top: 0.55rem; font-family: 'JetBrains Mono', monospace; font-size: 0.69rem; color: var(--color-text-muted); display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
-        <span style="width: 5px; height: 5px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
-        <span>{{ \App\Services\AppVersion::getPublicFooterString() }}</span>
+    <!-- System Version & Release Information (Two Clean Balanced Lines) -->
+    <div style="margin-top: 0.65rem; padding-top: 0.55rem; border-top: 1px dotted var(--border-color); display: flex; flex-direction: column; align-items: center; gap: 0.2rem;">
+        <div style="font-size: 0.72rem; font-weight: 700; color: var(--color-text-secondary); letter-spacing: 0.02em;">
+            {{ config('app.name', 'Hirely') }} {{ \App\Services\AppVersion::getReleaseName() }}
+        </div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--color-text-muted); display: inline-flex; align-items: center; gap: 0.35rem;">
+            <span style="width: 5px; height: 5px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 5px rgba(16,185,129,0.6);"></span>
+            <span>{{ \App\Services\AppVersion::format() }}</span>
+        </div>
     </div>
 </div>
 

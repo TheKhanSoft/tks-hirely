@@ -83,16 +83,23 @@ class AppVersion
             $version = $gitTag ?: 'v2.4.2';
         }
 
-        // 3. Resolve Build
+        // 3. Resolve Build (Supports explicit string, 'commit'/'hash', 'date', 'hybrid', or 'auto')
         $configuredBuild = config('app.build', env('APP_BUILD'));
-        if (!empty($configuredBuild) && $configuredBuild !== 'auto') {
+        $gitDate = self::getGitCommitDate();
+        $gitHash = self::getGitCommitHash();
+
+        if (!empty($configuredBuild) && !in_array($configuredBuild, ['auto', 'commit', 'hash', 'date', 'hybrid'])) {
             $build = (string) $configuredBuild;
+        } elseif ($configuredBuild === 'commit' || $configuredBuild === 'hash') {
+            $build = $gitHash ?: ($gitDate ?: date('Ymd'));
+        } elseif ($configuredBuild === 'date') {
+            $build = $gitDate ?: date('Ymd');
+        } elseif ($configuredBuild === 'hybrid') {
+            $build = ($gitDate && $gitHash) ? "{$gitDate}.{$gitHash}" : ($gitDate ?: ($gitHash ?: date('Ymd')));
         } elseif (!empty($fileMeta['build'])) {
             $build = (string) $fileMeta['build'];
         } else {
-            // Dynamic git commit date or commit hash
-            $gitDate = self::getGitCommitDate();
-            $gitHash = self::getGitCommitHash();
+            // Default when auto: commit date, or short git hash, or current date
             $build = $gitDate ?: ($gitHash ?: date('Ymd'));
         }
 

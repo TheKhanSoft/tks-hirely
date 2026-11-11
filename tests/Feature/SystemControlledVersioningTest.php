@@ -144,4 +144,22 @@ class SystemControlledVersioningTest extends TestCase
         $formatted = AppVersion::format();
         $this->assertStringContainsString('Build', $formatted);
     }
+
+    /**
+     * Test 7: Build identifier options support commit hash, hybrid, and explicit dates.
+     */
+    public function test_build_identifier_options_support_commit_hash_and_hybrid()
+    {
+        Config::set('app.version', 'v2.4.2');
+
+        Config::set('app.build', 'commit');
+        $this->assertNotEmpty(AppVersion::getBuild());
+
+        Config::set('app.build', 'hybrid');
+        $hybrid = AppVersion::getBuild();
+        $this->assertNotEmpty($hybrid);
+
+        Config::set('app.build', '20261111');
+        $this->assertEquals('20261111', AppVersion::getBuild());
+    }
 }
